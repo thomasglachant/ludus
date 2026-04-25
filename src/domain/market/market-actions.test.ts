@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MARKET_CONFIG } from '../../game-data/market';
 import { getAvailableDormitoryBeds, getDormitoryCapacity } from '../buildings/dormitory-capacity';
+import type { Gladiator } from '../gladiators/types';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
 import {
@@ -41,6 +42,26 @@ function withPurchasedDormitory(save: GameSave, purchasedBeds = 0): GameSave {
   };
 }
 
+function createOwnedGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
+  return {
+    id: 'owned-gladiator-test',
+    name: 'Aulus',
+    age: 18,
+    strength: 7,
+    agility: 6,
+    defense: 7,
+    energy: 80,
+    health: 85,
+    morale: 75,
+    satiety: 80,
+    reputation: 0,
+    wins: 0,
+    losses: 0,
+    traits: [],
+    ...overrides,
+  };
+}
+
 describe('market actions', () => {
   it('generates five market gladiators that respect generation rules', () => {
     const gladiators = generateMarketGladiators(1, 1, () => 0);
@@ -63,12 +84,15 @@ describe('market actions', () => {
     }
   });
 
-  it('prevents buying a market gladiator without a dormitory bed', () => {
-    const save = createTestSave();
+  it('prevents buying a market gladiator when the free dormitory bed is occupied', () => {
+    const save = {
+      ...createTestSave(),
+      gladiators: [createOwnedGladiator()],
+    };
     const candidate = save.market.availableGladiators[0];
     const validation = validateMarketPurchase(save, candidate.id);
 
-    expect(getDormitoryCapacity(save)).toBe(0);
+    expect(getDormitoryCapacity(save)).toBe(1);
     expect(validation).toMatchObject({
       isAllowed: false,
       reason: 'noAvailableBed',

@@ -1,4 +1,8 @@
-import type { BuildingDefinition, BuildingId, BuildingState } from '../domain/buildings/types';
+import type {
+  BuildingConfiguration,
+  BuildingDefinition,
+  BuildingId,
+} from '../domain/buildings/types';
 import { calculateBuildingUpgradeCost } from './building-levels';
 
 export const BUILDING_IDS = [
@@ -36,8 +40,8 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     id: 'canteen',
     nameKey: 'buildings.canteen.name',
     descriptionKey: 'buildings.canteen.description',
-    startsPurchased: false,
-    startsAtLevel: 0,
+    startsPurchased: true,
+    startsAtLevel: 1,
     levels: [
       {
         level: 1,
@@ -62,8 +66,8 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     id: 'dormitory',
     nameKey: 'buildings.dormitory.name',
     descriptionKey: 'buildings.dormitory.description',
-    startsPurchased: false,
-    startsAtLevel: 0,
+    startsPurchased: true,
+    startsAtLevel: 1,
     levels: [
       {
         level: 1,
@@ -90,8 +94,8 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     id: 'trainingGround',
     nameKey: 'buildings.trainingGround.name',
     descriptionKey: 'buildings.trainingGround.description',
-    startsPurchased: false,
-    startsAtLevel: 0,
+    startsPurchased: true,
+    startsAtLevel: 1,
     levels: [
       {
         level: 1,
@@ -118,8 +122,8 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     id: 'pleasureHall',
     nameKey: 'buildings.pleasureHall.name',
     descriptionKey: 'buildings.pleasureHall.description',
-    startsPurchased: false,
-    startsAtLevel: 0,
+    startsPurchased: true,
+    startsAtLevel: 1,
     levels: [
       {
         level: 1,
@@ -140,8 +144,8 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     id: 'infirmary',
     nameKey: 'buildings.infirmary.name',
     descriptionKey: 'buildings.infirmary.description',
-    startsPurchased: false,
-    startsAtLevel: 0,
+    startsPurchased: true,
+    startsAtLevel: 1,
     levels: [
       {
         level: 1,
@@ -163,50 +167,17 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
   },
 };
 
-export const INITIAL_BUILDING_STATES: Record<BuildingId, BuildingState> = {
-  domus: {
-    id: 'domus',
-    isPurchased: true,
-    level: 1,
-    purchasedImprovementIds: [],
-  },
-  canteen: {
-    id: 'canteen',
-    isPurchased: false,
-    level: 0,
-    configuration: { mealPlanId: 'balancedMeals' },
-    purchasedImprovementIds: [],
-    selectedPolicyId: 'balancedMeals',
-  },
-  dormitory: {
-    id: 'dormitory',
-    isPurchased: false,
-    level: 0,
-    configuration: { purchasedBeds: 0 },
-    purchasedImprovementIds: [],
-  },
-  trainingGround: {
-    id: 'trainingGround',
-    isPurchased: false,
-    level: 0,
-    configuration: { defaultDoctrineId: 'balancedTraining' },
-    purchasedImprovementIds: [],
-    selectedPolicyId: 'balancedTraining',
-  },
-  pleasureHall: {
-    id: 'pleasureHall',
-    isPurchased: false,
-    level: 0,
-    configuration: { entertainmentPlanId: 'quietEvenings' },
-    purchasedImprovementIds: [],
-    selectedPolicyId: 'quietEvenings',
-  },
-  infirmary: {
-    id: 'infirmary',
-    isPurchased: false,
-    level: 0,
-    configuration: { carePolicyId: 'basicCare' },
-    purchasedImprovementIds: [],
-    selectedPolicyId: 'basicCare',
-  },
+export const INITIAL_BUILDING_CONFIGURATIONS: Partial<Record<BuildingId, BuildingConfiguration>> = {
+  canteen: { mealPlanId: 'balancedMeals' },
+  dormitory: { purchasedBeds: 0 },
+  trainingGround: { defaultDoctrineId: 'balancedTraining' },
+  pleasureHall: { entertainmentPlanId: 'quietEvenings' },
+  infirmary: { carePolicyId: 'basicCare' },
+};
+
+export const INITIAL_BUILDING_POLICY_IDS: Partial<Record<BuildingId, string>> = {
+  canteen: 'balancedMeals',
+  trainingGround: 'balancedTraining',
+  pleasureHall: 'quietEvenings',
+  infirmary: 'basicCare',
 };

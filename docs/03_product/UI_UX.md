@@ -84,6 +84,8 @@ It should display:
 - gladiator sprites;
 - time-of-day effects.
 
+All base buildings should be visible and available on the map from the start of a new game. Future optional buildings may use locked or unpurchased visual states when their data marks them that way.
+
 The map should support:
 
 - pan;
@@ -107,6 +109,8 @@ Clicking a building opens a contextual panel with:
 - improvements;
 - current policy;
 - assigned gladiators.
+
+For base buildings, the primary call to action should be upgrade or configure rather than purchase, because they start owned at level 1. Purchase actions should still exist for future optional buildings that start unpurchased.
 
 Building details should not be permanently displayed below the map.
 
@@ -193,7 +197,7 @@ New game:
 - ask for owner name;
 - ask for ludus name;
 - create a save with the current schema version;
-- start with Domus level 1 and initial game time.
+- start with all base buildings purchased at level 1 and initial game time.
 
 Load game modal:
 
@@ -214,6 +218,7 @@ The UI is valid when:
 - the main screen no longer looks like a long vertical dashboard;
 - the map is the main visual focus;
 - buildings are visually represented;
+- base buildings are visible and available from the start;
 - gladiators have portraits;
 - gladiators have map sprites;
 - the bottom roster is portrait-based;

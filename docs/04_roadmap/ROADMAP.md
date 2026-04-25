@@ -6,6 +6,8 @@ This roadmap describes product phases, not one-off setup tasks. It should evolve
 
 The project already has the core React + TypeScript application structure, local persistence, domain modules, game data modules, i18n, demo mode foundations, map-first UI direction and initial tests.
 
+New saves start with all base buildings purchased at level 1: `domus`, `canteen`, `dormitory`, `trainingGround`, `pleasureHall` and `infirmary`. Building initialization is data-driven from `startsPurchased` and `startsAtLevel`, the dormitory provides its level 1 free bed, and purchase validation remains available for future optional buildings that start unpurchased.
+
 The next work should keep improving the playable loop while preserving the architectural split between `src/game-data`, `src/domain`, `src/state`, `src/persistence` and `src/ui`.
 
 ## Phase 1: MVP
@@ -17,7 +19,8 @@ Product outcomes:
 - player can create and load a local save;
 - player can change language between French and English;
 - player sees a map-first ludus screen by default;
-- player can buy and upgrade buildings;
+- player can upgrade and configure base buildings;
+- future optional buildings can use the existing purchase flow when they start unpurchased;
 - player can buy gladiators from the market when bed capacity allows;
 - each gladiator can receive a weekly objective and training intensity;
 - recommendations, manual overrides and readiness warnings make 8+ gladiators manageable;
@@ -106,7 +109,7 @@ Goal: make the game readable, comfortable and emotionally sticky.
 
 Focus areas:
 
-- tune building costs;
+- tune building upgrade costs and future optional purchase costs;
 - tune readiness weights;
 - tune market prices and sale values;
 - tune combat hit chance, damage and consequences;
@@ -129,7 +132,7 @@ Acceptance:
 ## Open Product Decisions
 
 - Exact long-term building level count.
-- Exact final building upgrade costs.
+- Exact final building upgrade costs and future optional building purchase costs.
 - Exact improvement costs.
 - Exact food and entertainment formulas after removing budgets.
 - Final combat probability formulas.

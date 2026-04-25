@@ -145,7 +145,7 @@
   "market.ownedBeds": "Beds used",
   "market.availableBeds": "Available beds",
   "market.candidates": "Candidates",
-  "market.noBedWarning": "Purchase or upgrade the dormitory before buying another gladiator.",
+  "market.noBedWarning": "Free or add a dormitory bed before buying another gladiator.",
   "market.availableGladiators": "Available gladiators",
   "market.ownedGladiators": "Owned gladiators",
   "market.noCandidates": "No market candidates remain this week.",

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { calculateBuildingUpgradeCost } from '../../game-data/building-levels';
+import { BUILDING_IDS } from '../../game-data/buildings';
 import { createInitialSave } from '../saves/create-initial-save';
+import type { GameSave } from '../saves/types';
 import {
   purchaseBuilding,
   upgradeBuilding,
@@ -18,9 +20,23 @@ function createTestSave() {
   });
 }
 
+function withUnpurchasedBuilding(save: GameSave, buildingId: (typeof BUILDING_IDS)[number]) {
+  return {
+    ...save,
+    buildings: {
+      ...save.buildings,
+      [buildingId]: {
+        ...save.buildings[buildingId],
+        isPurchased: false,
+        level: 0,
+      },
+    },
+  };
+}
+
 describe('building actions', () => {
-  it('purchases an empty building slot when requirements are met', () => {
-    const save = createTestSave();
+  it('purchases an unowned building fixture when requirements are met', () => {
+    const save = withUnpurchasedBuilding(createTestSave(), 'canteen');
     const result = purchaseBuilding(save, 'canteen');
 
     expect(result.validation).toMatchObject({
@@ -37,22 +53,26 @@ describe('building actions', () => {
 
   it('prevents purchasing an already purchased building', () => {
     const save = createTestSave();
-    const validation = validateBuildingPurchase(save, 'domus');
 
-    expect(validation).toMatchObject({
-      isAllowed: false,
-      reason: 'alreadyPurchased',
-    });
+    for (const buildingId of BUILDING_IDS) {
+      expect(validateBuildingPurchase(save, buildingId)).toMatchObject({
+        isAllowed: false,
+        reason: 'alreadyPurchased',
+      });
+    }
   });
 
   it('prevents purchasing when treasury is too low', () => {
-    const save = {
-      ...createTestSave(),
-      ludus: {
-        treasury: 10,
-        reputation: 0,
+    const save = withUnpurchasedBuilding(
+      {
+        ...createTestSave(),
+        ludus: {
+          treasury: 10,
+          reputation: 0,
+        },
       },
-    };
+      'canteen',
+    );
     const validation = validateBuildingPurchase(save, 'canteen');
 
     expect(validation).toMatchObject({
@@ -76,17 +96,14 @@ describe('building actions', () => {
   });
 
   it('gates non-domus upgrades behind the required Domus level', () => {
-    const purchased = purchaseBuilding(
-      {
-        ...createTestSave(),
-        ludus: {
-          treasury: 1_000,
-          reputation: 0,
-        },
+    const save = {
+      ...createTestSave(),
+      ludus: {
+        treasury: 1_000,
+        reputation: 0,
       },
-      'canteen',
-    ).save;
-    const validation = validateBuildingUpgrade(purchased, 'canteen');
+    };
+    const validation = validateBuildingUpgrade(save, 'canteen');
 
     expect(validation).toMatchObject({
       isAllowed: false,

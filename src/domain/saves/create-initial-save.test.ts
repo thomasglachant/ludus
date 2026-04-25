@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { BUILDING_IDS } from '../../game-data/buildings';
 import { INITIAL_TREASURY } from '../../game-data/economy';
+import { getDormitoryCapacity } from '../buildings/dormitory-capacity';
 import { createInitialSave } from './create-initial-save';
 
 describe('createInitialSave', () => {
@@ -22,12 +24,31 @@ describe('createInitialSave', () => {
       minute: 0,
       speed: 1,
     });
-    expect(save.buildings.domus).toMatchObject({
-      id: 'domus',
-      isPurchased: true,
-      level: 1,
+    for (const buildingId of BUILDING_IDS) {
+      expect(save.buildings[buildingId]).toMatchObject({
+        id: buildingId,
+        isPurchased: true,
+        level: 1,
+      });
+    }
+    expect(save.buildings.canteen).toMatchObject({
+      configuration: { mealPlanId: 'balancedMeals' },
+      selectedPolicyId: 'balancedMeals',
     });
-    expect(save.buildings.canteen.isPurchased).toBe(false);
+    expect(save.buildings.dormitory.configuration).toEqual({ purchasedBeds: 0 });
+    expect(save.buildings.trainingGround).toMatchObject({
+      configuration: { defaultDoctrineId: 'balancedTraining' },
+      selectedPolicyId: 'balancedTraining',
+    });
+    expect(save.buildings.pleasureHall).toMatchObject({
+      configuration: { entertainmentPlanId: 'quietEvenings' },
+      selectedPolicyId: 'quietEvenings',
+    });
+    expect(save.buildings.infirmary).toMatchObject({
+      configuration: { carePolicyId: 'basicCare' },
+      selectedPolicyId: 'basicCare',
+    });
+    expect(getDormitoryCapacity(save)).toBeGreaterThanOrEqual(1);
     expect(save.gladiators).toEqual([]);
     expect(save.market.availableGladiators).toHaveLength(5);
   });

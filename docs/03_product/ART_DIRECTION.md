@@ -307,7 +307,7 @@ Each building should have:
 - clickable area;
 - hover state;
 - selected state;
-- empty plot version if not purchased;
+- locked or unpurchased plot version for future optional buildings;
 - contextual props;
 - action stations for gladiators.
   Buildings should visually communicate their function.
@@ -1291,9 +1291,9 @@ MVP visual goals:
 
 1. Main map container with pan and zoom.
 2. Static Roman countryside background.
-3. Domus visible at start.
-4. Empty plots for other buildings.
-5. Purchased buildings appear on the map.
+3. All base buildings visible at start.
+4. Purchased buildings appear on the map.
+5. Unpurchased plots reserved for future optional buildings.
 6. Clickable buildings open modals.
 7. Market and arena visible as distant external locations.
 8. A few decorative props.

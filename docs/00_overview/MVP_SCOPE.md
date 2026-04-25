@@ -56,10 +56,11 @@ Initial MVP buildings:
 
 Building rules:
 
-- Domus starts purchased at level 1.
-- Other buildings must be purchased.
+- All base buildings start purchased at level 1.
+- Future optional buildings may start locked or unpurchased and be bought later.
 - Building levels are gated by Domus level.
 - Buildings can have purchase costs, upgrade costs, improvements, policies and simple effects.
+- Building purchase remains available for future optional buildings.
 - The removed building budget slider system is excluded.
 
 ### Dormitory Capacity
@@ -166,9 +167,9 @@ The MVP is valid if:
 - language can be changed;
 - the ludus screen shows time, treasury, buildings and gladiators;
 - local save can be created and loaded;
-- Domus starts at level 1;
-- other buildings can be purchased;
-- buildings can be upgraded;
+- a new game starts with all base buildings purchased at level 1;
+- base buildings can be upgraded and configured;
+- building purchase applies to future optional buildings that start unpurchased;
 - no building has a numeric budget slider;
 - the market offers 5 gladiators;
 - the player can buy a gladiator if a bed is available;

@@ -33,11 +33,11 @@ Gladiators are not anonymous resources. They have stats, gauges, traits, records
 
 ### Progression
 
-The ludus grows through building purchases, level upgrades, improvements, policies, better routines, stronger gladiators, reputation and access to harder arena ranks.
+The ludus grows through future optional building purchases, level upgrades, improvements, policies, better routines, stronger gladiators, reputation and access to harder arena ranks.
 
 ### Buildings
 
-Buildings are strategic systems and map locations. They should matter through purchase costs, upgrades, improvements, weekly policies, special actions, capacity constraints, action stations and visible progression.
+Buildings are strategic systems and map locations. Base buildings start available, while future optional buildings may matter through purchase costs. All buildings should matter through upgrades, improvements, weekly policies, special actions, capacity constraints, action stations and visible progression.
 
 The removed 1-to-10 building budget system must not return unless a future design decision explicitly restores it.
 

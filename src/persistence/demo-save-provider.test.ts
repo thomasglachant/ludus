@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getDormitoryCapacity } from '../domain/buildings/dormitory-capacity';
 import { isGameSave } from '../domain/saves/save-validation';
+import { BUILDING_IDS } from '../game-data/buildings';
 import { DEMO_SAVE_DEFINITIONS } from '../game-data/demo-saves';
 import { DemoSaveProvider, DemoSaveReadOnlyError } from './demo-save-provider';
 import { SaveNotFoundError } from './save-provider';
@@ -88,6 +89,12 @@ describe('demo save definitions', () => {
       });
       expect(hasBudgetField(save.buildings)).toBe(false);
       expect(getDormitoryCapacity(save)).toBeGreaterThanOrEqual(save.gladiators.length);
+      for (const buildingId of BUILDING_IDS) {
+        expect(save.buildings[buildingId]).toMatchObject({
+          isPurchased: true,
+        });
+        expect(save.buildings[buildingId].level).toBeGreaterThanOrEqual(1);
+      }
       expect(save.market.availableGladiators).toHaveLength(5);
       expect(save.time.speed).toBe(0);
       expect(save.time.isPaused).toBe(true);

@@ -145,7 +145,7 @@
   "market.ownedBeds": "Lits occupés",
   "market.availableBeds": "Lits disponibles",
   "market.candidates": "Candidats",
-  "market.noBedWarning": "Achetez ou améliorez le dortoir avant d'acheter un autre gladiateur.",
+  "market.noBedWarning": "Libérez ou ajoutez un lit au dortoir avant d'acheter un autre gladiateur.",
   "market.availableGladiators": "Gladiateurs disponibles",
   "market.ownedGladiators": "Gladiateurs possédés",
   "market.noCandidates": "Aucun candidat ne reste au marché cette semaine.",

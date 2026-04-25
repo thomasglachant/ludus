@@ -33,7 +33,7 @@ describe('App', () => {
     expect(screen.getAllByText('500')).not.toHaveLength(0);
   });
 
-  it('purchases an empty building slot from the building panel', async () => {
+  it('opens a current building as owned with upgrade as the primary action', async () => {
     const user = userEvent.setup();
 
     render(
@@ -50,13 +50,16 @@ describe('App', () => {
 
     await user.click(canteenButtons[canteenButtons.length - 1]);
 
-    expect(screen.getByRole('heading', { name: 'Canteen' })).toBeInTheDocument();
-    expect(screen.getByText('Cost 120')).toBeInTheDocument();
+    const buildingPanel = await screen.findByTestId('building-modal');
 
-    await user.click(screen.getByRole('button', { name: 'Purchase' }));
-
-    expect(screen.getByText('Domus must reach level 2 first.')).toBeInTheDocument();
-    expect(screen.getAllByText('380')).not.toHaveLength(0);
+    expect(within(buildingPanel).getByRole('heading', { name: 'Canteen' })).toBeInTheDocument();
+    expect(within(buildingPanel).getByText('Purchased')).toBeInTheDocument();
+    expect(within(buildingPanel).getByText('Upgrade cost')).toBeInTheDocument();
+    expect(
+      within(buildingPanel).queryByRole('button', { name: 'Purchase' }),
+    ).not.toBeInTheDocument();
+    expect(within(buildingPanel).getByRole('button', { name: 'Upgrade' })).toBeDisabled();
+    expect(within(buildingPanel).getByText('Domus must reach level 2 first.')).toBeInTheDocument();
   });
 
   it('switches the interface language', async () => {

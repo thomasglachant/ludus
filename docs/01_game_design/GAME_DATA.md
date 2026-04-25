@@ -83,25 +83,31 @@ export interface BuildingState {
 
 ### Initial Building State
 
+All base buildings start purchased at level 1:
+
 - `domus`: purchased, level 1.
-- `canteen`: not purchased, level 0, default policy `balancedMeals`.
-- `dormitory`: not purchased, level 0, `purchasedBeds: 0`.
-- `trainingGround`: not purchased, level 0, default policy `balancedTraining`.
-- `pleasureHall`: not purchased, level 0, default policy `quietEvenings`.
-- `infirmary`: not purchased, level 0, default policy `basicCare`.
+- `canteen`: purchased, level 1, default policy `balancedMeals`.
+- `dormitory`: purchased, level 1, `purchasedBeds: 0`.
+- `trainingGround`: purchased, level 1, default policy `balancedTraining`.
+- `pleasureHall`: purchased, level 1, default policy `quietEvenings`.
+- `infirmary`: purchased, level 1, default policy `basicCare`.
+
+The dormitory starts with `purchasedBeds: 0`, but level 1 provides one free bed through `DORMITORY_BED_CONFIG.freeBedsAtLevelOne`.
 
 ### Purchase and Upgrade Values
 
 Current MVP building definitions include levels 1 and 2.
 
+Level 1 purchase costs on base buildings are not used when creating a new game because those buildings start owned. Purchase costs remain part of building data so future optional buildings can start unpurchased and be bought later.
+
 | Building        | Starts purchased | Level 1 purchase | Level 1 effect                                               | Level 2 requirement | Level 2 effect                                         |
 | --------------- | ---------------- | ---------------: | ------------------------------------------------------------ | ------------------- | ------------------------------------------------------ |
 | Domus           | Yes              |              n/a | `increaseCapacity +1` for `ludus`                            | Domus level 1       | `increaseCapacity +2` for `ludus`                      |
-| Canteen         | No               |              120 | `increaseSatiety +6` per hour for assigned gladiator         | Domus level 2       | `increaseSatiety +8` per hour                          |
-| Dormitory       | No               |              140 | `increaseEnergy +5` per hour and `increaseCapacity +1`       | Domus level 2       | `increaseEnergy +7` per hour and `increaseCapacity +2` |
-| Training Ground | No               |              180 | `increaseStrength +1` per hour, `decreaseEnergy +4` per hour | Domus level 2       | `increaseStrength +2`, `decreaseEnergy +4` per hour    |
-| Pleasure Hall   | No               |              160 | `increaseMorale +5` per hour                                 | Domus level 2       | `increaseMorale +7` per hour                           |
-| Infirmary       | No               |              200 | `increaseHealth +5` per hour                                 | Domus level 2       | `increaseHealth +7` per hour and `reduceInjuryRisk +5` |
+| Canteen         | Yes              |              120 | `increaseSatiety +6` per hour for assigned gladiator         | Domus level 2       | `increaseSatiety +8` per hour                          |
+| Dormitory       | Yes              |              140 | `increaseEnergy +5` per hour and `increaseCapacity +1`       | Domus level 2       | `increaseEnergy +7` per hour and `increaseCapacity +2` |
+| Training Ground | Yes              |              180 | `increaseStrength +1` per hour, `decreaseEnergy +4` per hour | Domus level 2       | `increaseStrength +2`, `decreaseEnergy +4` per hour    |
+| Pleasure Hall   | Yes              |              160 | `increaseMorale +5` per hour                                 | Domus level 2       | `increaseMorale +7` per hour                           |
+| Infirmary       | Yes              |              200 | `increaseHealth +5` per hour                                 | Domus level 2       | `increaseHealth +7` per hour and `reduceInjuryRisk +5` |
 
 ### Upgrade Cost Formula
 
