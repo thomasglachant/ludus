@@ -25,11 +25,12 @@ export function NewGameScreen() {
 
   return (
     <ScreenShell titleKey="newGame.title">
-      <form className="form-panel" onSubmit={submitNewGame}>
+      <form className="form-panel" data-testid="new-game-screen" onSubmit={submitNewGame}>
         <label>
           <span>{t('newGame.ownerName')}</span>
           <input
             autoComplete="name"
+            data-testid="new-game-owner-name"
             placeholder={t('newGame.ownerNamePlaceholder')}
             value={ownerName}
             onChange={(event) => setOwnerName(event.target.value)}
@@ -39,6 +40,7 @@ export function NewGameScreen() {
           <span>{t('newGame.ludusName')}</span>
           <input
             autoComplete="organization"
+            data-testid="new-game-ludus-name"
             placeholder={t('newGame.ludusNamePlaceholder')}
             value={ludusName}
             onChange={(event) => setLudusName(event.target.value)}
@@ -55,6 +57,7 @@ export function NewGameScreen() {
             disabled={isLoading}
             icon={<Landmark aria-hidden="true" size={18} />}
             label={isLoading ? t('common.loading') : t('newGame.submit')}
+            testId="new-game-submit"
             type="submit"
             variant="primary"
           />

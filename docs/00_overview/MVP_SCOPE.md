@@ -15,6 +15,7 @@ The MVP is not expected to implement every future system. It should deliver a pl
 - Vitest and React Testing Library.
 - Playwright coverage for critical flows where useful.
 - i18n infrastructure with French and English locale files.
+- A local and CI quality gate covering build, lint, unit tests and critical Playwright smoke tests.
 
 ### Application Flow
 
@@ -163,6 +164,7 @@ The MVP is valid if:
 
 - the app starts with `npm run dev`;
 - linting and tests can run;
+- the local quality gate passes with `npm run build`, `npm run lint`, `npm run test` and `npm run test:e2e`;
 - a new game can be created;
 - language can be changed;
 - the ludus screen shows time, treasury, buildings and gladiators;

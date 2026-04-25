@@ -233,6 +233,30 @@ Priority test areas:
 
 Playwright tests should cover high-value player flows and demo-mode visual states.
 
+## Quality Gate
+
+Every pull request should be able to prove that the baseline remains healthy before gameplay work continues.
+
+The local quality gate is:
+
+```bash
+npm run build
+npm run lint
+npm run test
+npm run test:e2e
+```
+
+Command responsibilities:
+
+- `npm run build` checks TypeScript project references and produces the Vite production build;
+- `npm run lint` checks source, tests and configuration files with ESLint;
+- `npm run test` runs the Vitest unit and component test suite;
+- `npm run test:e2e` runs Playwright smoke coverage for high-value player flows.
+
+Playwright should stay focused on critical player paths and stable demo states. It is not expected to cover every component, every balance branch or every minor UI state. Low-level rules should remain covered by Vitest domain tests whenever possible.
+
+The CI quality gate should mirror the local commands and install Playwright browsers before running the e2e suite.
+
 ## Feature Implementation Sequence
 
 When adding a durable feature:

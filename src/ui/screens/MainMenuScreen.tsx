@@ -27,7 +27,11 @@ export function MainMenuScreen() {
           ) : null}
         </div>
         <div className="main-menu-screen__buttons">
-          <button type="button" onClick={() => navigate('newGame')}>
+          <button
+            data-testid="main-menu-new-game"
+            type="button"
+            onClick={() => navigate('newGame')}
+          >
             <Play aria-hidden="true" size={20} />
             <span>{t('mainMenu.newGame')}</span>
           </button>

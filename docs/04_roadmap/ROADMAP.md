@@ -6,6 +6,8 @@ This roadmap describes product phases, not one-off setup tasks. It should evolve
 
 The project already has the core React + TypeScript application structure, local persistence, domain modules, game data modules, i18n, demo mode foundations, map-first UI direction and initial tests.
 
+The quality baseline is defined by a local and GitHub Actions CI gate covering `npm run build`, `npm run lint`, `npm run test` and `npm run test:e2e`. Playwright coverage is reserved for high-value player flows and stable demo states rather than exhaustive UI coverage, including the new-game-to-map-first-shell smoke flow.
+
 New saves start with all base buildings purchased at level 1: `domus`, `canteen`, `dormitory`, `trainingGround`, `pleasureHall` and `infirmary`. Building initialization is data-driven from `startsPurchased` and `startsAtLevel`, the dormitory provides its level 1 free bed, and purchase validation remains available for future optional buildings that start unpurchased.
 
 The next work should keep improving the playable loop while preserving the architectural split between `src/game-data`, `src/domain`, `src/state`, `src/persistence` and `src/ui`.
@@ -33,7 +35,7 @@ Product outcomes:
 Acceptance:
 
 - the app runs locally;
-- core tests pass;
+- the quality gate passes locally and in CI;
 - visible UI text uses i18n keys;
 - no building budget slider exists;
 - normal gameplay opens the map-first shell;

@@ -352,6 +352,8 @@ export function LudusMap({
           .filter(Boolean)
           .join(' ')}
         data-asset={visualAssetPath}
+        data-building-level={isBuilding ? (building?.level ?? 0) : undefined}
+        data-building-purchased={isBuilding ? String(Boolean(building?.isPurchased)) : undefined}
         data-testid={
           isBuilding ? `map-building-${location.id}` : `map-special-location-${location.id}`
         }

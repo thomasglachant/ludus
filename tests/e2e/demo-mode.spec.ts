@@ -2,6 +2,36 @@ import { expect, test } from '@playwright/test';
 
 const enabledBaseUrl = process.env.E2E_DEMO_ENABLED_BASE_URL ?? 'http://127.0.0.1:4173';
 const disabledBaseUrl = process.env.E2E_DEMO_DISABLED_BASE_URL ?? 'http://127.0.0.1:4174';
+const baseBuildingIds = [
+  'domus',
+  'canteen',
+  'dormitory',
+  'trainingGround',
+  'pleasureHall',
+  'infirmary',
+];
+
+test('creates a new game and opens the map-first shell with owned level 1 buildings', async ({
+  page,
+}) => {
+  await page.goto(disabledBaseUrl);
+  await page.getByTestId('main-menu-new-game').click();
+
+  await expect(page.getByTestId('new-game-screen')).toBeVisible();
+  await page.getByTestId('new-game-owner-name').fill('Aulus');
+  await page.getByTestId('new-game-ludus-name').fill('Ludus Primus');
+  await page.getByTestId('new-game-submit').click();
+
+  await expect(page.getByTestId('map-container')).toBeVisible();
+
+  for (const buildingId of baseBuildingIds) {
+    const building = page.getByTestId(`map-building-${buildingId}`);
+
+    await expect(building).toBeVisible();
+    await expect(building).toHaveAttribute('data-building-purchased', 'true');
+    await expect(building).toHaveAttribute('data-building-level', '1');
+  }
+});
 
 test('demo mode is visible when enabled', async ({ page }) => {
   await page.goto(enabledBaseUrl);
