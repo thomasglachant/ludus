@@ -6,6 +6,7 @@ import { useUiStore } from '../../state/ui-store';
 import { TopHud } from '../hud/TopHud';
 import { LudusMap } from '../map/LudusMap';
 import { GameMenuModal } from '../modals/GameMenuModal';
+import { LoadGameModal } from '../modals/LoadGameModal';
 import { OptionsModal } from '../modals/OptionsModal';
 import { BottomGladiatorRoster } from '../roster/BottomGladiatorRoster';
 import { ContextualPanelHost } from '../panels/ContextualPanelHost';
@@ -13,7 +14,7 @@ import type { ContextPanelKind } from './game-shell-types';
 import { LeftNavigationRail } from './LeftNavigationRail';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
 
-type GameDialog = 'menu' | 'options';
+type GameDialog = 'menu' | 'loadGame' | 'options';
 
 export function GameShell() {
   const {
@@ -184,12 +185,14 @@ export function GameShell() {
           isDemoSave={Boolean(currentSave.metadata?.isDemo)}
           isSaving={isSaving || isLoading}
           onClose={closeGameDialog}
+          onOpenLoadGame={() => setActiveDialog('loadGame')}
           onOpenOptions={() => setActiveDialog('options')}
           onQuit={requestQuit}
           onSave={saveGameFromMenu}
           onSaveAs={openSaveAsDialog}
         />
       ) : null}
+      {activeDialog === 'loadGame' ? <LoadGameModal onClose={closeGameDialog} /> : null}
       {activeDialog === 'options' ? <OptionsModal onClose={closeGameDialog} /> : null}
     </section>
   );

@@ -1,4 +1,4 @@
-import { Copy, LogOut, Save, Settings } from 'lucide-react';
+import { Copy, FolderOpen, LogOut, Save, Settings } from 'lucide-react';
 import { useUiStore } from '../../state/ui-store';
 import { ActionButton } from '../components/ActionButton';
 import { AppModal } from './AppModal';
@@ -8,6 +8,7 @@ interface GameMenuModalProps {
   isSaving: boolean;
   isDemoSave: boolean;
   onClose(): void;
+  onOpenLoadGame(): void;
   onOpenOptions(): void;
   onQuit(): void;
   onSave(): void;
@@ -19,6 +20,7 @@ export function GameMenuModal({
   isDemoSave,
   isSaving,
   onClose,
+  onOpenLoadGame,
   onOpenOptions,
   onQuit,
   onSave,
@@ -48,6 +50,12 @@ export function GameMenuModal({
             icon={<Copy aria-hidden="true" size={18} />}
             label={t('gameMenu.saveAs')}
             onClick={onSaveAs}
+          />
+          <ActionButton
+            icon={<FolderOpen aria-hidden="true" size={18} />}
+            label={t('mainMenu.loadGame')}
+            testId="main-menu-load-game"
+            onClick={onOpenLoadGame}
           />
           <ActionButton
             icon={<Settings aria-hidden="true" size={18} />}

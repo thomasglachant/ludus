@@ -67,8 +67,8 @@ interface GameStoreValue {
   refreshLocalSaves(): Promise<void>;
   refreshDemoSaves(): Promise<void>;
   createNewGame(input: NewGameInput): Promise<void>;
-  loadLocalSave(saveId: string): Promise<void>;
-  loadDemoSave(saveId: DemoSaveId): Promise<void>;
+  loadLocalSave(saveId: string): Promise<boolean>;
+  loadDemoSave(saveId: DemoSaveId): Promise<boolean>;
   resetActiveDemo(): Promise<void>;
   saveCurrentGame(): Promise<void>;
   saveCurrentGameAs(input?: { ludusName?: string }): Promise<void>;
@@ -199,8 +199,10 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         setCurrentSave(save);
         setLanguage(save.settings.language);
         navigate('ludus');
+        return true;
       } catch {
         setErrorKey('loadGame.error');
+        return false;
       } finally {
         setIsLoading(false);
       }
@@ -212,7 +214,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     async (saveId: DemoSaveId) => {
       if (!featureFlags.enableDemoMode) {
         setErrorKey('demoMode.unavailable');
-        return;
+        return false;
       }
 
       setIsLoading(true);
@@ -229,8 +231,10 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         setCurrentSave(save);
         setLanguage(save.settings.language);
         navigate('ludus');
+        return true;
       } catch {
         setErrorKey('demoMode.loadError');
+        return false;
       } finally {
         setIsLoading(false);
       }
