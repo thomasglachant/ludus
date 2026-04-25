@@ -1,9 +1,19 @@
-import { ArrowRight, Eye, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ArrowRight, Eye, Swords, X } from 'lucide-react';
 import { getArenaBettingState, validateScouting } from '../../domain/combat/combat-actions';
 import { getContractProgress } from '../../domain/contracts/contract-actions';
-import type { GameSave } from '../../domain/types';
+import type { CombatState, GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store';
+import {
+  Badge,
+  EmptyState,
+  LogRow,
+  MetricList,
+  PanelShell,
+  SectionCard,
+} from '../components/shared';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
+import { getArenaPanelViewModel } from '../view-models/arena-panel-view-model';
 import { formatOdds, getWinChancePercent } from './panel-helpers';
 
 interface PanelProps {
@@ -21,6 +31,25 @@ interface EventsPanelProps extends PanelProps {
 
 interface ArenaPanelProps extends PanelProps {
   onScoutOpponent(gladiatorId: string): void;
+}
+
+function formatSignedValue(value: number) {
+  return value > 0 ? `+${value}` : String(value);
+}
+
+function getCombatResultKey(combat: CombatState) {
+  return combat.consequence.didPlayerWin ? 'arena.result.win' : 'arena.result.loss';
+}
+
+function getCombatResultTone(combat: CombatState): 'success' | 'danger' {
+  return combat.consequence.didPlayerWin ? 'success' : 'danger';
+}
+
+function getCombatTitleParams(combat: CombatState) {
+  return {
+    gladiator: combat.gladiator.name,
+    opponent: combat.opponent.name,
+  };
 }
 
 function PanelHeader({
@@ -178,10 +207,226 @@ export function MarketPreviewPanel({ save, onClose }: PanelProps) {
 export function ArenaPanel({ save, onClose, onScoutOpponent }: ArenaPanelProps) {
   const { t } = useUiStore();
   const betting = getArenaBettingState(save);
+  const viewModel = useMemo(() => getArenaPanelViewModel(save), [save]);
+  const availableCombats = useMemo(
+    () => [...viewModel.pendingCombats, ...viewModel.resolvedCombats],
+    [viewModel.pendingCombats, viewModel.resolvedCombats],
+  );
+  const [selectedCombatId, setSelectedCombatId] = useState<string | undefined>(
+    viewModel.currentCombat?.id,
+  );
+  const selectedCombat =
+    availableCombats.find((combat) => combat.id === selectedCombatId) ?? viewModel.currentCombat;
+  const [turnProgress, setTurnProgress] = useState<{ combatId?: string; count: number }>({
+    combatId: undefined,
+    count: 1,
+  });
+  const visibleTurnCount = turnProgress.combatId === selectedCombat?.id ? turnProgress.count : 1;
+  const visibleTurns = selectedCombat?.turns.slice(0, visibleTurnCount) ?? [];
+  const isLogComplete = selectedCombat ? visibleTurnCount >= selectedCombat.turns.length : true;
+
+  if (viewModel.resolvedCombats.length > 0 || viewModel.pendingCombats.length > 0) {
+    return (
+      <PanelShell
+        eyebrowKey="arena.eyebrow"
+        titleKey="arena.title"
+        testId="arena-panel"
+        wide
+        onClose={onClose}
+      >
+        <div className="arena-panel__header">
+          <Badge
+            label={t(viewModel.statusKey)}
+            tone={viewModel.isArenaDayActive ? 'success' : 'neutral'}
+          />
+          <Badge
+            label={t('arena.combatProgress', {
+              resolved: viewModel.resolvedCombats.length,
+              total: availableCombats.length,
+            })}
+          />
+        </div>
+        <SectionCard titleKey="arena.summary" testId="arena-summary">
+          <MetricList
+            columns={3}
+            items={[
+              { labelKey: 'arena.summaryReward', value: viewModel.summary.totalReward },
+              {
+                labelKey: 'arena.summaryReputation',
+                value: formatSignedValue(viewModel.summary.reputationChange),
+              },
+              {
+                labelKey: 'arena.summaryRecord',
+                value: t('arena.summaryRecordValue', {
+                  wins: viewModel.summary.wins,
+                  losses: viewModel.summary.losses,
+                }),
+              },
+              {
+                labelKey: 'arena.healthChange',
+                value: formatSignedValue(viewModel.summary.healthChange),
+              },
+              {
+                labelKey: 'arena.energyChange',
+                value: formatSignedValue(viewModel.summary.energyChange),
+              },
+              {
+                labelKey: 'arena.moraleChange',
+                value: formatSignedValue(viewModel.summary.moraleChange),
+              },
+            ]}
+          />
+        </SectionCard>
+        <SectionCard titleKey="arena.pendingCombats">
+          {viewModel.pendingCombats.length > 0 ? (
+            <div className="combat-selector">
+              {viewModel.pendingCombats.map((combat) => (
+                <button
+                  className={selectedCombat?.id === combat.id ? 'is-selected' : ''}
+                  key={combat.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCombatId(combat.id);
+                    setTurnProgress({ combatId: combat.id, count: 1 });
+                  }}
+                >
+                  <span>{t(`arena.ranks.${combat.rank}`)}</span>
+                  <strong>{combat.gladiator.name}</strong>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <EmptyState messageKey="arena.noPendingCombats" />
+          )}
+        </SectionCard>
+        <SectionCard titleKey="arena.combatList">
+          {viewModel.resolvedCombats.length > 0 ? (
+            <div className="combat-selector">
+              {viewModel.resolvedCombats.map((combat) => (
+                <button
+                  className={selectedCombat?.id === combat.id ? 'is-selected' : ''}
+                  key={combat.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCombatId(combat.id);
+                    setTurnProgress({ combatId: combat.id, count: 1 });
+                  }}
+                >
+                  <span>{t(`arena.ranks.${combat.rank}`)}</span>
+                  <strong>{combat.gladiator.name}</strong>
+                  <Badge label={t(getCombatResultKey(combat))} tone={getCombatResultTone(combat)} />
+                </button>
+              ))}
+            </div>
+          ) : (
+            <EmptyState messageKey="arena.noResolvedCombats" />
+          )}
+        </SectionCard>
+        {selectedCombat ? (
+          <SectionCard titleKey="arena.currentCombat" testId="arena-current-combat">
+            <div className="context-panel__portrait-row">
+              <GladiatorPortrait gladiator={selectedCombat.gladiator} size="small" />
+              <div>
+                <strong>{t('arena.combatTitle', getCombatTitleParams(selectedCombat))}</strong>
+                <span>
+                  {t('arena.winnerLine', {
+                    winner:
+                      selectedCombat.winnerId === selectedCombat.gladiator.id
+                        ? selectedCombat.gladiator.name
+                        : selectedCombat.opponent.name,
+                  })}
+                </span>
+              </div>
+              <Swords aria-hidden="true" size={20} />
+            </div>
+            <MetricList
+              columns={3}
+              items={[
+                { labelKey: 'arena.rank', value: t(`arena.ranks.${selectedCombat.rank}`) },
+                {
+                  labelKey: 'arena.strategy',
+                  value: t(`combat.strategies.${selectedCombat.strategy}`),
+                },
+                {
+                  labelKey: 'arena.rewardReceived',
+                  value: selectedCombat.consequence.playerReward,
+                },
+                {
+                  labelKey: 'arena.healthChange',
+                  value: formatSignedValue(selectedCombat.consequence.healthChange),
+                },
+                {
+                  labelKey: 'arena.energyChange',
+                  value: formatSignedValue(selectedCombat.consequence.energyChange),
+                },
+                {
+                  labelKey: 'arena.reputationChange',
+                  value: formatSignedValue(selectedCombat.consequence.reputationChange),
+                },
+              ]}
+            />
+          </SectionCard>
+        ) : null}
+        {selectedCombat ? (
+          <SectionCard titleKey="arena.combatLog" testId="arena-combat-log">
+            <div className="combat-log-panel__header">
+              <span>
+                {t('arena.turnsVisible', {
+                  visible: visibleTurns.length,
+                  total: selectedCombat.turns.length,
+                })}
+              </span>
+            </div>
+            {visibleTurns.length > 0 ? (
+              <ul className="combat-log">
+                {visibleTurns.map((turn) => (
+                  <LogRow
+                    key={turn.turnNumber}
+                    label={t('arena.turnNumber', { turn: turn.turnNumber })}
+                    meta={t('arena.turnHealth', {
+                      attackerHealth: turn.attackerHealthAfterTurn,
+                      defenderHealth: turn.defenderHealthAfterTurn,
+                    })}
+                  >
+                    {t(turn.logKey, turn.logParams)}
+                  </LogRow>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState messageKey="arena.noCombatLog" />
+            )}
+            <div className="combat-log-panel__actions">
+              <button
+                disabled={isLogComplete}
+                type="button"
+                onClick={() =>
+                  setTurnProgress({
+                    combatId: selectedCombat.id,
+                    count: visibleTurnCount + 1,
+                  })
+                }
+              >
+                {isLogComplete ? t('arena.logComplete') : t('arena.nextTurn')}
+              </button>
+            </div>
+          </SectionCard>
+        ) : null}
+      </PanelShell>
+    );
+  }
 
   return (
-    <section className="context-panel context-panel--wide">
-      <PanelHeader eyebrowKey="arena.eyebrow" titleKey="arena.title" onClose={onClose} />
+    <PanelShell
+      eyebrowKey="arena.eyebrow"
+      titleKey="arena.title"
+      testId="arena-panel"
+      wide
+      onClose={onClose}
+    >
+      <Badge
+        label={t(viewModel.statusKey)}
+        tone={viewModel.isArenaDayActive ? 'success' : 'neutral'}
+      />
       {betting.odds.length > 0 ? (
         <div className="context-panel__list">
           {betting.odds.map((odds) => {
@@ -237,10 +482,8 @@ export function ArenaPanel({ save, onClose, onScoutOpponent }: ArenaPanelProps) 
           })}
         </div>
       ) : (
-        <p className="context-panel__muted">
-          {save.gladiators.length > 0 ? t('arena.nextSunday') : t('arena.noGladiators')}
-        </p>
+        <EmptyState messageKey={viewModel.emptyMessageKey ?? 'arena.nextSunday'} />
       )}
-    </section>
+    </PanelShell>
   );
 }

@@ -433,6 +433,8 @@ export interface ArenaState {
 }
 ```
 
+`currentCombatId` is a consultation pointer for the arena UI. Domain combat resolution remains deterministic for a save and week: `pendingCombats` describes the current-week queue when resolution is staged, `resolvedCombats` stores the combats whose rewards and consequences have already been applied, and `isArenaDayActive` marks that the Sunday arena panel should show the Sunday flow. Repeated synchronization for the same Sunday must not apply rewards or consequences for a combat more than once.
+
 ```ts
 export interface CombatState {
   id: string;
@@ -447,6 +449,8 @@ export interface CombatState {
   consequence: CombatConsequence;
 }
 ```
+
+`CombatState.turns` is the full resolved turn log. UI state may reveal the log progressively, but React must not recalculate combat turns or apply consequences. Combat progression controls should only choose which saved turn rows are visible or which `currentCombatId` is being inspected.
 
 ```ts
 export interface CombatTurn {

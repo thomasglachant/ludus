@@ -249,7 +249,22 @@ The market must:
 - display a clear shared empty or warning state when capacity is full;
 - keep all buy validation in domain logic rather than React.
 
-## 13. Supporting Flows
+## 13. Arena
+
+Arena should be available from the map or navigation rail as a contextual panel.
+
+The arena panel must show:
+
+- pending combats for the active Sunday when any remain;
+- the current combat with gladiator, opponent, rank, strategy and victory or defeat state;
+- combat log progression using shared log-row or list primitives and i18n-backed log text;
+- rewards and consequences for each resolved combat;
+- a Sunday summary with total treasury gained, reputation change, health, energy and morale changes, wins and losses;
+- a clear empty state when no gladiator is eligible or no arena day is active.
+
+The player should be able to advance the visible combat log when progression is used, switch to resolved combats to inspect their logs, and finish or continue the weekly flow when the Sunday summary is complete. The panel should compose shared primitives such as `PanelShell`, `SectionCard`, `Badge`, `MetricList`, `EmptyState` and reusable log rows rather than duplicating feature-specific panel chrome.
+
+## 14. Supporting Flows
 
 Supporting flows should follow the game-like visual direction instead of a SaaS dashboard style.
 
@@ -272,7 +287,7 @@ Options modal:
 - use i18n for every visible label;
 - reserve space for future audio, animation and confirmation settings.
 
-## 14. Acceptance Criteria
+## 15. Acceptance Criteria
 
 The UI is valid when:
 
@@ -288,5 +303,6 @@ The UI is valid when:
 - market and arena appear as external locations;
 - the debug dashboard is not the default game screen;
 - repeated panel, modal, empty-state, effect-list, cost and tab structures use shared UI primitives;
+- arena logs, rewards, consequences and Sunday summary are visible through i18n-backed UI;
 - all visible text uses i18n;
 - Playwright can still target stable `data-testid` values.

@@ -18,6 +18,8 @@ New saves start with all base buildings purchased at level 1: `domus`, `canteen`
 
 The market respects Dormitory capacity before buying gladiators. Buying a gladiator requires an available bed, buying a Dormitory bed or a Dormitory capacity improvement increases capacity, and sale contract completion is tied to gladiator sale flow rather than market purchase flow.
 
+The arena baseline resolves eligible Sunday combats once per week, protects rewards and consequences from repeated Sunday ticks, and exposes the Sunday results through the map-first arena panel. The panel shows the arena status, resolved combat list, selected combat details, turn log progression, victory or defeat badges, rewards, condition and reputation consequences, Sunday totals and empty states for days without eligible combatants. Before Sunday, the same panel still supports scouting odds when available.
+
 The next work should keep improving the playable loop while preserving the architectural split between `src/game-data`, `src/domain`, `src/state`, `src/persistence` and `src/ui`.
 
 ## Phase 1: MVP
@@ -37,11 +39,10 @@ Product outcomes:
 - recommendations, manual overrides and readiness warnings make 8+ gladiators manageable;
 - time advances through the week at supported speeds;
 - hourly building effects update gladiator gauges and permanent/contextual effects feed dedicated helpers;
-- Sunday triggers turn-based arena combats;
-- combat logs, rewards and consequences are visible;
 - demo saves support stable testing of early, mid and advanced states.
 - demo saves remain read-only and cannot be overwritten by manual save.
 - new panels and focused dialogs reuse shared primitives, modal infrastructure and view-model helpers where the structure is shared.
+- remaining MVP work should focus on making pre-Sunday decisions and post-Sunday review more connected, especially contracts, events, scouting, betting and strategy choices.
 
 Acceptance:
 

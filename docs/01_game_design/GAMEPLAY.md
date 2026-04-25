@@ -144,6 +144,18 @@ Main actions:
 
 Gladiators fight. Combats are turn-based and shown through a combat log. Results affect money, reputation, morale, injuries and future opportunities.
 
+Sunday is the weekly climax and should be readable as a focused arena flow:
+
+- weekly preparation is locked once Sunday arena resolution starts;
+- eligible owned gladiators are placed into a combat queue for the current week;
+- each combat has a visible opponent, rank, strategy, victory or defeat badge, rewards and consequences;
+- the player can advance through the current combat log turn by turn or review already revealed turns;
+- resolved combats stay available in the Sunday summary as pending and resolved lists change;
+- rewards and consequences are applied once per combat and cannot be doubled by repeated Sunday ticks;
+- once all combats are resolved, the player can review total treasury, reputation, condition and win/loss changes before returning to the next Monday flow.
+
+If no gladiator is eligible, the arena should show a clear empty state and let time continue back into the weekly loop.
+
 ## Weekly Objectives
 
 Each gladiator has one weekly objective.

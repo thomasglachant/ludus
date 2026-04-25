@@ -69,6 +69,12 @@ interface CostSummaryProps {
   value: ReactNode;
 }
 
+interface LogRowProps {
+  children: ReactNode;
+  label: ReactNode;
+  meta?: ReactNode;
+}
+
 export function PanelShell({
   children,
   descriptionKey,
@@ -197,4 +203,14 @@ export function Badge({ label, tone = 'neutral' }: BadgeProps) {
 
 export function CostSummary({ labelKey, value }: CostSummaryProps) {
   return <MetricList columns={2} items={[{ labelKey, value }]} />;
+}
+
+export function LogRow({ children, label, meta }: LogRowProps) {
+  return (
+    <li className="log-row">
+      <span>{label}</span>
+      <p>{children}</p>
+      {meta ? <small>{meta}</small> : null}
+    </li>
+  );
 }

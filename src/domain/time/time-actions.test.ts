@@ -164,6 +164,38 @@ describe('time actions', () => {
     expect(result.save.gladiators[0].wins + result.save.gladiators[0].losses).toBe(1);
   });
 
+  it('does not double-apply Sunday arena consequences on later Sunday ticks', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      time: {
+        year: 1,
+        week: 1,
+        dayOfWeek: 'saturday',
+        hour: 23,
+        minute: 30,
+        speed: 1,
+        isPaused: false,
+      },
+      gladiators: [createGladiator()],
+    };
+    const sundayStart = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 30_000,
+      speed: save.time.speed,
+      random: () => 0,
+    }).save;
+    const laterSunday = tickGame({
+      currentSave: sundayStart,
+      elapsedRealMilliseconds: 30_000,
+      speed: sundayStart.time.speed,
+      random: () => 0,
+    }).save;
+
+    expect(laterSunday.arena.resolvedCombats).toHaveLength(1);
+    expect(laterSunday.ludus.treasury).toBe(sundayStart.ludus.treasury);
+    expect(laterSunday.gladiators[0].wins + laterSunday.gladiators[0].losses).toBe(1);
+  });
+
   it('applies purchased building effects to assigned gladiators once per game hour', () => {
     const save: GameSave = {
       ...withPurchasedBuildings(createTestSave(), ['canteen']),

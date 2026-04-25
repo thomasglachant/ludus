@@ -94,6 +94,20 @@ describe('combat actions', () => {
     expect(resolved.ludus.reputation).toBe(gladiator.reputation);
   });
 
+  it('activates an empty Sunday arena day without rewards when no gladiator is eligible', () => {
+    const save = withSundayArena(createTestSave(), [createGladiator({ health: 0 })]);
+    const resolved = resolveArenaDay(save, () => 0);
+
+    expect(resolved.arena).toMatchObject({
+      currentCombatId: undefined,
+      isArenaDayActive: true,
+      pendingCombats: [],
+      resolvedCombats: [],
+    });
+    expect(resolved.ludus.treasury).toBe(save.ludus.treasury);
+    expect(resolved.gladiators[0].wins + resolved.gladiators[0].losses).toBe(0);
+  });
+
   it('grants the loser share and applies loss consequences when the player loses', () => {
     const save = withSundayArena(createTestSave(), [
       createGladiator({

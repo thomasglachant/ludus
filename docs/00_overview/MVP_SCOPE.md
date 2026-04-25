@@ -117,7 +117,8 @@ Simple MVP effects:
 - Opponent is generated dynamically.
 - Combat is turn-based.
 - Combat turns are logged.
-- Player can advance through the combat log.
+- Sunday arena combat logs, rewards and consequences are visible in the player interface.
+- Player can advance through or review combat logs without resolving the same consequences twice.
 - Winner and loser are determined.
 - Rewards are distributed.
 - Health, energy, morale, wins, losses and reputation are updated.
@@ -190,5 +191,6 @@ The MVP is valid if:
 - building effects update gladiator gauges;
 - Sunday combats trigger;
 - combat logs can be viewed;
+- combat rewards and consequences are visible;
 - rewards are distributed;
 - the default player screen is map-first rather than dashboard-first.
