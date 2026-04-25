@@ -126,6 +126,13 @@ Per-building level costs may replace this formula later.
 
 ### Dormitory Beds
 
+The Dormitory separates free beds from purchased beds:
+
+- `freeBedsAtLevelOne` is the free starting capacity granted by an owned level 1 Dormitory.
+- `purchasedBeds` stores only beds bought by the player with treasury.
+- total capacity is `freeBeds + purchasedBeds`.
+- purchasable beds are capped by Dormitory level.
+
 ```ts
 export const DORMITORY_BED_CONFIG = {
   freeBedsAtLevelOne: 1,
@@ -135,9 +142,21 @@ export const DORMITORY_BED_CONFIG = {
 } as const;
 ```
 
+Capacity formula:
+
+```ts
+freeBeds = freeBedsAtLevelOne + Math.max(0, dormitoryLevel - 1);
+maximumPurchasableBeds = dormitoryLevel * purchasableBedsPerLevel;
+capacity = freeBeds + purchasedBeds;
+```
+
+Bed cost formula:
+
 ```ts
 bedCost = Math.round(baseBedCost * bedCostGrowthFactor ** purchasedBeds);
 ```
+
+The first purchased bed costs 80 denarii because `purchasedBeds` is 0 before the purchase. The free level 1 bed never counts toward `purchasedBeds`.
 
 ## Building Improvements
 

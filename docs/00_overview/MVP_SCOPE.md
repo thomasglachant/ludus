@@ -67,9 +67,10 @@ Building rules:
 ### Dormitory Capacity
 
 - Dormitory controls gladiator capacity.
-- Level 1 gives one free bed.
-- Additional beds can be purchased.
-- Buying a gladiator requires an available bed.
+- New saves start with the Dormitory purchased at level 1.
+- Dormitory level 1 gives one free bed.
+- Additional beds can be purchased with treasury.
+- Buying a gladiator requires an available bed and is blocked when capacity is full.
 
 ### Gladiators
 

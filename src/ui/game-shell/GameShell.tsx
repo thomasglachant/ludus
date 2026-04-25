@@ -18,6 +18,7 @@ export function GameShell() {
     errorKey,
     isLoading,
     purchaseBuilding,
+    purchaseDormitoryBed,
     resetActiveDemo,
     resolveGameEventChoice,
     saveCurrentGame,
@@ -95,6 +96,7 @@ export function GameShell() {
         onApplyPlanningRecommendations={applyPlanningRecommendations}
         onClose={closePanel}
         onPurchaseBuilding={purchaseBuilding}
+        onPurchaseDormitoryBed={purchaseDormitoryBed}
         onResolveEventChoice={resolveGameEventChoice}
         onScoutOpponent={scoutOpponent}
         onUpdateGladiatorRoutine={updateGladiatorRoutine}

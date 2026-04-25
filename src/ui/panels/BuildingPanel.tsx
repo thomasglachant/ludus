@@ -1,4 +1,4 @@
-import { Hammer } from 'lucide-react';
+import { Bed, Hammer } from 'lucide-react';
 import { useState } from 'react';
 import type { BuildingId, GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store';
@@ -12,13 +12,17 @@ import {
   Tabs,
 } from '../components/shared';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
-import { createBuildingPanelViewModel } from '../view-models/building-panel-view-model';
+import {
+  createBuildingPanelViewModel,
+  createDormitoryCapacityViewModel,
+} from '../view-models/building-panel-view-model';
 
 interface BuildingPanelProps {
   save: GameSave;
   buildingId: BuildingId;
   onClose(): void;
   onPurchaseBuilding(buildingId: BuildingId): void;
+  onPurchaseDormitoryBed(): void;
   onUpgradeBuilding(buildingId: BuildingId): void;
 }
 
@@ -36,11 +40,14 @@ export function BuildingPanel({
   buildingId,
   onClose,
   onPurchaseBuilding,
+  onPurchaseDormitoryBed,
   onUpgradeBuilding,
 }: BuildingPanelProps) {
   const { openConfirmModal, t } = useUiStore();
   const [activeTab, setActiveTab] = useState<BuildingPanelTab>('overview');
   const viewModel = createBuildingPanelViewModel(save, buildingId, t);
+  const dormitoryCapacity =
+    buildingId === 'dormitory' ? createDormitoryCapacityViewModel(save) : null;
 
   const requestBuildingAction = () => {
     openConfirmModal({
@@ -59,6 +66,24 @@ export function BuildingPanel({
       titleKey: viewModel.isPurchased
         ? 'buildings.confirmUpgrade.title'
         : 'buildings.confirmPurchase.title',
+    });
+  };
+
+  const requestDormitoryBedPurchase = () => {
+    if (!dormitoryCapacity) {
+      return;
+    }
+
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: 'dormitoryBeds.buyAction',
+      messageKey: 'dormitoryBeds.confirmPurchase.message',
+      messageParams: {
+        cost: dormitoryCapacity.nextBedCost,
+      },
+      onConfirm: onPurchaseDormitoryBed,
+      testId: 'dormitory-bed-purchase-confirm-dialog',
+      titleKey: 'dormitoryBeds.confirmPurchase.title',
     });
   };
 
@@ -96,6 +121,45 @@ export function BuildingPanel({
           <SectionCard titleKey="buildings.currentEffects">
             <EffectList effects={viewModel.effects} />
           </SectionCard>
+          {dormitoryCapacity ? (
+            <SectionCard titleKey="dormitoryBeds.title">
+              <MetricList
+                items={[
+                  {
+                    labelKey: 'dormitoryBeds.usedCapacity',
+                    value: `${dormitoryCapacity.usedBeds}/${dormitoryCapacity.capacity}`,
+                  },
+                  {
+                    labelKey: 'dormitoryBeds.purchasedBeds',
+                    value: `${dormitoryCapacity.purchasedBeds}/${dormitoryCapacity.maximumPurchasableBeds}`,
+                  },
+                  {
+                    labelKey: 'dormitoryBeds.nextBedCost',
+                    value: dormitoryCapacity.canPurchaseBed
+                      ? t('buildings.purchaseCost', { cost: dormitoryCapacity.nextBedCost })
+                      : t('common.empty'),
+                  },
+                ]}
+              />
+              {dormitoryCapacity.validationMessageKey ? (
+                <NoticeBox tone="warning">
+                  {t(dormitoryCapacity.validationMessageKey, {
+                    cost: dormitoryCapacity.nextBedCost,
+                  })}
+                </NoticeBox>
+              ) : null}
+              <div className="context-panel__actions">
+                <button
+                  disabled={!dormitoryCapacity.canPurchaseBed}
+                  type="button"
+                  onClick={requestDormitoryBedPurchase}
+                >
+                  <Bed aria-hidden="true" size={17} />
+                  <span>{t('dormitoryBeds.buyAction')}</span>
+                </button>
+              </div>
+            </SectionCard>
+          ) : null}
           {viewModel.action.validationMessageKey ? (
             <NoticeBox tone="warning">
               {t(viewModel.action.validationMessageKey, viewModel.action.validationMessageParams)}

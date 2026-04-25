@@ -62,6 +62,41 @@ describe('App', () => {
     expect(within(buildingPanel).getByText('Domus must reach level 2 first.')).toBeInTheDocument();
   });
 
+  it('buys an additional dormitory bed through the shared confirmation modal', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /new game/i }));
+    await user.type(screen.getByLabelText(/owner name/i), 'Marcus');
+    await user.type(screen.getByLabelText(/ludus name/i), 'Ludus Magnus');
+    await user.click(screen.getByRole('button', { name: /found the ludus/i }));
+    const dormitoryButtons = await screen.findAllByRole('button', { name: /dormitory/i });
+
+    await user.click(dormitoryButtons[dormitoryButtons.length - 1]);
+
+    const buildingPanel = await screen.findByTestId('building-modal');
+
+    expect(within(buildingPanel).getByText('0/1')).toBeInTheDocument();
+    expect(within(buildingPanel).getByText('0/2')).toBeInTheDocument();
+    expect(within(buildingPanel).getByText('Cost 80')).toBeInTheDocument();
+
+    await user.click(within(buildingPanel).getByRole('button', { name: 'Buy bed' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Confirm bed purchase' });
+
+    await user.click(within(dialog).getByRole('button', { name: 'Buy bed' }));
+
+    expect(await within(buildingPanel).findByText('0/2')).toBeInTheDocument();
+    expect(within(buildingPanel).getByText('1/2')).toBeInTheDocument();
+    expect(within(buildingPanel).getByText('Cost 112')).toBeInTheDocument();
+    expect(screen.getAllByText('420')).not.toHaveLength(0);
+  });
+
   it('switches the interface language', async () => {
     const user = userEvent.setup();
 

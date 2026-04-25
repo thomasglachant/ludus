@@ -73,9 +73,12 @@ describe('building panel view models', () => {
 
     expect(createDormitoryCapacityViewModel(save)).toEqual({
       availableBeds: 0,
+      canPurchaseBed: true,
       capacity: 1,
       maximumPurchasableBeds: 2,
+      nextBedCost: 80,
       purchasedBeds: 0,
+      validationMessageKey: null,
       usedBeds: 1,
     });
   });

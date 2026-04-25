@@ -238,7 +238,7 @@ export function buyMarketGladiator(save: GameSave, candidateId: string): MarketA
 
   return {
     validation,
-    save: synchronizePlanning(completeSaleContracts(nextSave, validation.saleValue)),
+    save: synchronizePlanning(nextSave),
   };
 }
 
@@ -284,6 +284,6 @@ export function sellGladiator(save: GameSave, gladiatorId: string): MarketAction
 
   return {
     validation,
-    save: synchronizePlanning(nextSave),
+    save: synchronizePlanning(completeSaleContracts(nextSave, validation.saleValue)),
   };
 }

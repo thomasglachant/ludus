@@ -114,6 +114,15 @@ For base buildings, the primary call to action should be upgrade or configure ra
 
 Building details should not be permanently displayed below the map.
 
+The Dormitory panel must clearly show:
+
+- used beds / total capacity;
+- purchased beds;
+- maximum purchasable beds at the current Dormitory level;
+- next bed cost;
+- a purchase-bed action using the shared confirmation modal;
+- a disabled state with a clear reason when the Dormitory is not owned, the maximum purchasable beds are reached or treasury is insufficient.
+
 Suggested building panel tabs:
 
 - Overview;
@@ -208,7 +217,19 @@ It must be hidden from the normal player experience and available only through a
 
 The debug dashboard is useful for inspecting state, testing mechanics and debugging systems. It is not the intended player experience.
 
-## 12. Supporting Flows
+## 12. Market
+
+Market should follow the same shared UI primitive direction as contextual panels where practical.
+
+The market must:
+
+- show Dormitory capacity as used beds / total capacity;
+- show available beds before the player buys a gladiator;
+- block buy actions when no bed is available;
+- display a clear shared empty or warning state when capacity is full;
+- keep all buy validation in domain logic rather than React.
+
+## 13. Supporting Flows
 
 Supporting flows should follow the game-like visual direction instead of a SaaS dashboard style.
 
@@ -231,7 +252,7 @@ Options modal:
 - use i18n for every visible label;
 - reserve space for future audio, animation and confirmation settings.
 
-## 13. Acceptance Criteria
+## 14. Acceptance Criteria
 
 The UI is valid when:
 

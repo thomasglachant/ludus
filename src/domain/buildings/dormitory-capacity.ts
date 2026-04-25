@@ -12,6 +12,10 @@ function getDormitoryConfiguration(save: GameSave): DormitoryConfiguration {
   return { purchasedBeds: 0 };
 }
 
+export function getDormitoryPurchasedBeds(save: GameSave) {
+  return getDormitoryConfiguration(save).purchasedBeds;
+}
+
 export function getDormitoryCapacity(save: GameSave) {
   const dormitory = save.buildings.dormitory;
 
@@ -20,9 +24,7 @@ export function getDormitoryCapacity(save: GameSave) {
   }
 
   const freeBeds = DORMITORY_BED_CONFIG.freeBedsAtLevelOne + Math.max(0, dormitory.level - 1);
-  const configuration = getDormitoryConfiguration(save);
-
-  return freeBeds + configuration.purchasedBeds;
+  return freeBeds + getDormitoryPurchasedBeds(save);
 }
 
 export function getAvailableDormitoryBeds(save: GameSave) {

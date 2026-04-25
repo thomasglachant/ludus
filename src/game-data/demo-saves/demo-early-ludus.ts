@@ -39,7 +39,7 @@ const save = createDemoSave({
       id: 'dormitory',
       level: 1,
       configuration: {
-        purchasedBeds: 3,
+        purchasedBeds: 2,
       },
     }),
     trainingGround: createPurchasedBuilding({
