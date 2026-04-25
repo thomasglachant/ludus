@@ -21,7 +21,7 @@ The MVP is not expected to implement every future system. It should deliver a pl
 - Main menu.
 - New game flow.
 - Load local save flow.
-- Options screen with language selection.
+- Options modal with language selection.
 - Main map-first ludus screen.
 - Market access.
 - Arena access.

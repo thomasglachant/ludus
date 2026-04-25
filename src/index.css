@@ -95,12 +95,6 @@ h3 {
   padding: 18px;
 }
 
-.app-layout__toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 16px;
-}
-
 .screen-shell,
 .ludus-screen {
   display: flex;
@@ -278,6 +272,7 @@ h3 {
 .map-controls button:focus-visible,
 .map-location:focus-visible,
 .map-modal__close:focus-visible,
+.app-modal__close:focus-visible,
 .combat-selector button:focus-visible,
 .segmented-control button:focus-visible,
 .status-bar__speeds button:focus-visible {
@@ -416,7 +411,8 @@ h3 {
 }
 
 .map-controls button,
-.map-modal__close {
+.map-modal__close,
+.app-modal__close {
   display: inline-flex;
   min-height: 38px;
   align-items: center;
@@ -434,12 +430,14 @@ h3 {
 }
 
 .map-controls button:hover,
-.map-modal__close:hover {
+.map-modal__close:hover,
+.app-modal__close:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
 }
 
-.map-modal__close {
+.map-modal__close,
+.app-modal__close {
   width: 38px;
   padding: 0;
 }
@@ -892,7 +890,8 @@ h3 {
   display: none;
 }
 
-.map-modal-backdrop {
+.map-modal-backdrop,
+.app-modal-backdrop {
   position: fixed;
   inset: 0;
   z-index: 20;
@@ -902,9 +901,13 @@ h3 {
   background: rgba(29, 24, 20, 0.46);
 }
 
-.map-modal {
+.app-modal-backdrop {
+  z-index: 80;
+}
+
+.map-modal,
+.app-modal {
   display: grid;
-  width: min(520px, 100%);
   gap: 14px;
   padding: 18px;
   border: 1px solid var(--border);
@@ -913,11 +916,40 @@ h3 {
   box-shadow: var(--shadow);
 }
 
-.map-modal__header {
+.map-modal {
+  width: min(520px, 100%);
+}
+
+.app-modal {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+}
+
+.app-modal--wide {
+  width: min(760px, 100%);
+}
+
+.map-modal__header,
+.app-modal__header,
+.app-modal__title {
   display: flex;
-  justify-content: space-between;
   gap: 14px;
   align-items: flex-start;
+}
+
+.map-modal__header,
+.app-modal__header {
+  justify-content: space-between;
+}
+
+.app-modal__title {
+  color: var(--primary);
+}
+
+.app-modal__title h1 {
+  font-size: 1.75rem;
+  line-height: 1.08;
 }
 
 .map-modal p {
@@ -1799,25 +1831,6 @@ h3 {
   max-width: none;
   min-height: 100vh;
   padding: 0;
-}
-
-.app-layout--main-menu .app-layout__toolbar,
-.app-layout--game-shell .app-layout__toolbar {
-  position: fixed;
-  top: 14px;
-  right: 16px;
-  z-index: 60;
-  margin: 0;
-  padding: 8px;
-  border: 1px solid rgba(91, 65, 42, 0.28);
-  border-radius: 8px;
-  background: rgba(255, 242, 205, 0.9);
-  box-shadow: 0 10px 24px rgba(43, 31, 23, 0.18);
-  backdrop-filter: blur(10px);
-}
-
-.app-layout--game-shell .app-layout__toolbar {
-  display: none;
 }
 
 .main-menu-screen {

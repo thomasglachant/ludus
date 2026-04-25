@@ -1,15 +1,18 @@
 import { FolderOpen, Play, Settings } from 'lucide-react';
+import { useState } from 'react';
 import { featureFlags } from '../../config/features';
-import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
+import { LoadGameModal } from '../modals/LoadGameModal';
+import { OptionsModal } from '../modals/OptionsModal';
+
+type MainMenuModal = 'loadGame' | 'options';
 
 export function MainMenuScreen() {
-  const { refreshLocalSaves } = useGameStore();
   const { navigate, t } = useUiStore();
+  const [activeModal, setActiveModal] = useState<MainMenuModal | null>(null);
 
   const openLoadGame = () => {
-    void refreshLocalSaves();
-    navigate('loadGame');
+    setActiveModal('loadGame');
   };
 
   return (
@@ -32,13 +35,15 @@ export function MainMenuScreen() {
             <FolderOpen aria-hidden="true" size={20} />
             <span>{t('mainMenu.loadGame')}</span>
           </button>
-          <button type="button" onClick={() => navigate('options')}>
+          <button type="button" onClick={() => setActiveModal('options')}>
             <Settings aria-hidden="true" size={20} />
             <span>{t('mainMenu.options')}</span>
           </button>
         </div>
         <p className="main-menu-screen__status">{t('mainMenu.loginStatus')}</p>
       </div>
+      {activeModal === 'loadGame' ? <LoadGameModal onClose={() => setActiveModal(null)} /> : null}
+      {activeModal === 'options' ? <OptionsModal onClose={() => setActiveModal(null)} /> : null}
     </section>
   );
 }

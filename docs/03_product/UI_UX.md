@@ -170,10 +170,11 @@ It should use:
 - Roman countryside, ludus or arena mood;
 - stronger logo area;
 - parchment, stone or bronze styled buttons;
-- clean language switch;
+- options and load game actions that open as modal overlays;
 - demo mode indicator only when enabled.
 
 The main menu should not be dominated by a plain white card or dashboard styling.
+Language selection should not be visible directly on the main menu. The interface should use the browser language by default when no stored preference exists, and language changes should happen through Options.
 
 ## 10. Debug Dashboard
 
@@ -183,9 +184,9 @@ It must be hidden from the normal player experience and available only through a
 
 The debug dashboard is useful for inspecting state, testing mechanics and debugging systems. It is not the intended player experience.
 
-## 11. Supporting Screens
+## 11. Supporting Flows
 
-Supporting screens should follow the game-like visual direction instead of a SaaS dashboard style.
+Supporting flows should follow the game-like visual direction instead of a SaaS dashboard style.
 
 New game:
 
@@ -194,13 +195,13 @@ New game:
 - create a save with the current schema version;
 - start with Domus level 1 and initial game time.
 
-Load game:
+Load game modal:
 
 - support local saves;
 - reserve space for cloud saves behind the save abstraction;
 - show demo saves only when demo mode is enabled.
 
-Options:
+Options modal:
 
 - support French and English;
 - use i18n for every visible label;

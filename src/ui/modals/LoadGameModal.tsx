@@ -1,14 +1,18 @@
-import { ArrowLeft, CloudOff, FolderOpen } from 'lucide-react';
+import { CloudOff, FolderOpen } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { featureFlags } from '../../config/features';
-import type { GameSave } from '../../domain/types';
 import { formatClock } from '../../domain/time/format-time';
+import type { GameSave } from '../../domain/types';
 import { BUILDING_IDS } from '../../game-data/buildings';
 import { DEMO_SAVE_DEFINITIONS } from '../../game-data/demo-saves';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
 import { ActionButton } from '../components/ActionButton';
-import { ScreenShell } from '../layout/ScreenShell';
+import { AppModal } from './AppModal';
+
+interface LoadGameModalProps {
+  onClose(): void;
+}
 
 type LoadMode = 'normal' | 'demo';
 
@@ -23,7 +27,7 @@ function getPurchasedBuildingLevelRange(save: GameSave) {
   };
 }
 
-export function LoadGameScreen() {
+export function LoadGameModal({ onClose }: LoadGameModalProps) {
   const {
     demoSaves,
     errorKey,
@@ -34,7 +38,7 @@ export function LoadGameScreen() {
     refreshDemoSaves,
     refreshLocalSaves,
   } = useGameStore();
-  const { language, navigate, t } = useUiStore();
+  const { language, t } = useUiStore();
   const [loadMode, setLoadMode] = useState<LoadMode>('normal');
   const availableDemoSaveIds = new Set(demoSaves.map((save) => save.saveId));
   const demoDefinitions = DEMO_SAVE_DEFINITIONS.filter((definition) =>
@@ -47,7 +51,7 @@ export function LoadGameScreen() {
   }, [refreshDemoSaves, refreshLocalSaves]);
 
   return (
-    <ScreenShell titleKey="loadGame.title">
+    <AppModal size="wide" testId="load-game-modal" titleKey="loadGame.title" onClose={onClose}>
       <div data-testid="load-game-screen" className="load-game-content">
         {featureFlags.enableDemoMode ? (
           <div className="segmented-control load-game-tabs">
@@ -156,13 +160,6 @@ export function LoadGameScreen() {
           })}
         </div>
       )}
-      <div className="form-actions">
-        <ActionButton
-          icon={<ArrowLeft aria-hidden="true" size={18} />}
-          label={t('common.back')}
-          onClick={() => navigate('mainMenu')}
-        />
-      </div>
-    </ScreenShell>
+    </AppModal>
   );
 }

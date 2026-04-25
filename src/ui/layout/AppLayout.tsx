@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { useUiStore } from '../../state/ui-store';
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -12,12 +11,5 @@ export function AppLayout({ children }: { children: ReactNode }) {
     .filter(Boolean)
     .join(' ');
 
-  return (
-    <main className={className}>
-      <div className="app-layout__toolbar">
-        <LanguageSwitcher />
-      </div>
-      {children}
-    </main>
-  );
+  return <main className={className}>{children}</main>;
 }

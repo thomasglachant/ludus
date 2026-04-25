@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from './App';
@@ -6,6 +6,10 @@ import { AppProviders } from './providers/AppProviders';
 
 describe('App', () => {
   beforeEach(() => {
+    Object.defineProperty(window.navigator, 'language', {
+      configurable: true,
+      value: 'en-US',
+    });
     localStorage.clear();
     localStorage.setItem('ludus:language', 'en');
   });
@@ -64,8 +68,45 @@ describe('App', () => {
       </AppProviders>,
     );
 
-    await user.click(screen.getByRole('button', { name: 'French' }));
+    expect(screen.queryByRole('button', { name: 'French' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Options' }));
+    const dialog = screen.getByRole('dialog', { name: 'Options' });
+
+    await user.click(within(dialog).getByRole('button', { name: 'French' }));
 
     expect(screen.getByRole('button', { name: 'Nouvelle partie' })).toBeInTheDocument();
+  });
+
+  it('uses the browser language when no language is stored', () => {
+    localStorage.clear();
+    Object.defineProperty(window.navigator, 'language', {
+      configurable: true,
+      value: 'fr-FR',
+    });
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Nouvelle partie' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Français' })).not.toBeInTheDocument();
+  });
+
+  it('opens load game from the main menu as a modal', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Load game' }));
+
+    expect(await screen.findByRole('dialog', { name: 'Load game' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'New game' })).toBeInTheDocument();
   });
 });

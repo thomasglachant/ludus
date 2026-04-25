@@ -1,1 +1,1 @@
-export type ScreenName = 'mainMenu' | 'newGame' | 'loadGame' | 'options' | 'ludus' | 'market';
+export type ScreenName = 'mainMenu' | 'newGame' | 'ludus' | 'market';
