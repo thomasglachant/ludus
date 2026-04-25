@@ -1,20 +1,18 @@
-import { Hammer, X } from 'lucide-react';
+import { Hammer } from 'lucide-react';
 import { useState } from 'react';
-import {
-  validateBuildingPurchase,
-  validateBuildingUpgrade,
-} from '../../domain/buildings/building-actions';
-import { calculateReadiness } from '../../domain/planning/readiness';
 import type { BuildingId, GameSave } from '../../domain/types';
-import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../../game-data/building-improvements';
-import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { useUiStore } from '../../state/ui-store';
-import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 import {
-  getBuildingActionMessageKey,
-  getBuildingActionMessageParams,
-  getBuildingEffects,
-} from './panel-helpers';
+  EffectList,
+  EmptyState,
+  MetricList,
+  NoticeBox,
+  PanelShell,
+  SectionCard,
+  Tabs,
+} from '../components/shared';
+import { GladiatorPortrait } from '../roster/GladiatorPortrait';
+import { createBuildingPanelViewModel } from '../view-models/building-panel-view-model';
 
 interface BuildingPanelProps {
   save: GameSave;
@@ -26,7 +24,12 @@ interface BuildingPanelProps {
 
 type BuildingPanelTab = 'overview' | 'improvements' | 'policy' | 'gladiators';
 
-const tabs: BuildingPanelTab[] = ['overview', 'improvements', 'policy', 'gladiators'];
+const tabs: { id: BuildingPanelTab; labelKey: string }[] = [
+  { id: 'overview', labelKey: 'buildingPanel.tabs.overview' },
+  { id: 'improvements', labelKey: 'buildingPanel.tabs.improvements' },
+  { id: 'policy', labelKey: 'buildingPanel.tabs.policy' },
+  { id: 'gladiators', labelKey: 'buildingPanel.tabs.gladiators' },
+];
 
 export function BuildingPanel({
   save,
@@ -35,139 +38,101 @@ export function BuildingPanel({
   onPurchaseBuilding,
   onUpgradeBuilding,
 }: BuildingPanelProps) {
-  const { t } = useUiStore();
+  const { openConfirmModal, t } = useUiStore();
   const [activeTab, setActiveTab] = useState<BuildingPanelTab>('overview');
-  const building = save.buildings[buildingId];
-  const definition = BUILDING_DEFINITIONS[buildingId];
-  const levelDefinition = definition.levels.find((level) => level.level === building.level);
-  const purchaseValidation = validateBuildingPurchase(save, buildingId);
-  const upgradeValidation = validateBuildingUpgrade(save, buildingId);
-  const actionValidation = building.isPurchased ? upgradeValidation : purchaseValidation;
-  const validationMessageKey = getBuildingActionMessageKey(actionValidation);
-  const effects = getBuildingEffects(levelDefinition?.effects ?? [], t);
-  const assignedGladiators = save.gladiators.filter(
-    (gladiator) => gladiator.currentBuildingId === buildingId,
-  );
-  const improvements = BUILDING_IMPROVEMENTS.filter(
-    (improvement) => improvement.buildingId === buildingId,
-  );
-  const policies = BUILDING_POLICIES.filter((policy) => policy.buildingId === buildingId);
+  const viewModel = createBuildingPanelViewModel(save, buildingId, t);
+
+  const requestBuildingAction = () => {
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: viewModel.action.labelKey,
+      messageKey: viewModel.isPurchased
+        ? 'buildings.confirmUpgrade.message'
+        : 'buildings.confirmPurchase.message',
+      messageParams: {
+        building: t(viewModel.nameKey),
+        cost: viewModel.action.cost,
+      },
+      onConfirm: () =>
+        viewModel.isPurchased ? onUpgradeBuilding(buildingId) : onPurchaseBuilding(buildingId),
+      testId: 'building-action-confirm-dialog',
+      titleKey: viewModel.isPurchased
+        ? 'buildings.confirmUpgrade.title'
+        : 'buildings.confirmPurchase.title',
+    });
+  };
 
   return (
-    <section
-      className="context-panel"
-      data-testid="building-modal"
-      aria-labelledby="building-panel-title"
+    <PanelShell
+      descriptionKey={viewModel.descriptionKey}
+      eyebrowKey="buildings.panelTitle"
+      testId="building-modal"
+      titleKey={viewModel.nameKey}
+      titleTestId="building-modal-title"
+      onClose={onClose}
     >
-      <div className="context-panel__header">
-        <div>
-          <p className="eyebrow">{t('buildings.panelTitle')}</p>
-          <h2 id="building-panel-title" data-testid="building-modal-title">
-            {t(definition.nameKey)}
-          </h2>
-        </div>
-        <button aria-label={t('common.close')} type="button" onClick={onClose}>
-          <X aria-hidden="true" size={18} />
-        </button>
-      </div>
-      <p className="context-panel__description">{t(definition.descriptionKey)}</p>
-      <div className="context-panel__tabs" role="tablist" aria-label={t('buildingPanel.tabsLabel')}>
-        {tabs.map((tab) => (
-          <button
-            aria-selected={activeTab === tab}
-            className={activeTab === tab ? 'is-selected' : ''}
-            key={tab}
-            role="tab"
-            type="button"
-            onClick={() => setActiveTab(tab)}
-          >
-            {t(`buildingPanel.tabs.${tab}`)}
-          </button>
-        ))}
-      </div>
+      <Tabs<BuildingPanelTab>
+        ariaLabelKey="buildingPanel.tabsLabel"
+        items={tabs}
+        selectedId={activeTab}
+        onSelect={setActiveTab}
+      />
       {activeTab === 'overview' ? (
         <div className="context-panel__section">
-          <dl className="context-panel__stats">
-            <div>
-              <dt>{t('common.status')}</dt>
-              <dd>{building.isPurchased ? t('common.purchased') : t('common.notPurchased')}</dd>
-            </div>
-            <div>
-              <dt>{t('buildingPanel.level')}</dt>
-              <dd>{building.level}</dd>
-            </div>
-            <div>
-              <dt>
-                {building.isPurchased
-                  ? t('buildings.upgradeCost')
-                  : t('buildings.purchaseCostLabel')}
-              </dt>
-              <dd>
-                {building.isPurchased
-                  ? actionValidation.cost || t('buildings.maxLevel')
-                  : t('buildings.purchaseCost', { cost: actionValidation.cost })}
-              </dd>
-            </div>
-          </dl>
-          <div className="context-panel__callout">
-            <strong>{t('buildings.currentEffects')}</strong>
-            <ul>
-              {effects.map((effect) => (
-                <li key={effect}>{effect}</li>
-              ))}
-            </ul>
-          </div>
-          {validationMessageKey ? (
-            <p className="building-panel__validation">
-              {t(validationMessageKey, getBuildingActionMessageParams(actionValidation))}
-            </p>
+          <MetricList
+            items={[
+              { labelKey: 'common.status', value: t(viewModel.statusKey) },
+              { labelKey: 'buildingPanel.level', value: viewModel.level },
+              {
+                labelKey: viewModel.isPurchased
+                  ? 'buildings.upgradeCost'
+                  : 'buildings.purchaseCostLabel',
+                value: viewModel.action.cost
+                  ? t('buildings.purchaseCost', { cost: viewModel.action.cost })
+                  : t('buildings.maxLevel'),
+              },
+            ]}
+          />
+          <SectionCard titleKey="buildings.currentEffects">
+            <EffectList effects={viewModel.effects} />
+          </SectionCard>
+          {viewModel.action.validationMessageKey ? (
+            <NoticeBox tone="warning">
+              {t(viewModel.action.validationMessageKey, viewModel.action.validationMessageParams)}
+            </NoticeBox>
           ) : null}
           <div className="context-panel__actions">
-            {building.isPurchased ? (
-              <button
-                disabled={!actionValidation.isAllowed}
-                type="button"
-                onClick={() => onUpgradeBuilding(buildingId)}
-              >
-                <Hammer aria-hidden="true" size={17} />
-                <span>{t('buildings.upgrade')}</span>
-              </button>
-            ) : (
-              <button
-                disabled={!actionValidation.isAllowed}
-                type="button"
-                onClick={() => onPurchaseBuilding(buildingId)}
-              >
-                <Hammer aria-hidden="true" size={17} />
-                <span>{t('buildings.purchase')}</span>
-              </button>
-            )}
+            <button
+              disabled={!viewModel.action.isAllowed}
+              type="button"
+              onClick={requestBuildingAction}
+            >
+              <Hammer aria-hidden="true" size={17} />
+              <span>{t(viewModel.action.labelKey)}</span>
+            </button>
           </div>
         </div>
       ) : null}
       {activeTab === 'improvements' ? (
         <div className="context-panel__list">
-          {improvements.length > 0 ? (
-            improvements.map((improvement) => (
-              <article key={improvement.id}>
+          {viewModel.improvements.length > 0 ? (
+            viewModel.improvements.map((improvement) => (
+              <SectionCard key={improvement.id}>
                 <strong>{t(improvement.nameKey)}</strong>
                 <span>{t(improvement.descriptionKey)}</span>
                 <small>{t('buildingPanel.improvementCost', { cost: improvement.cost })}</small>
-              </article>
+              </SectionCard>
             ))
           ) : (
-            <p>{t('buildingPanel.noImprovements')}</p>
+            <EmptyState messageKey="buildingPanel.noImprovements" />
           )}
         </div>
       ) : null}
       {activeTab === 'policy' ? (
         <div className="context-panel__list">
-          {policies.length > 0 ? (
-            policies.map((policy) => (
-              <article
-                className={building.selectedPolicyId === policy.id ? 'is-selected' : ''}
-                key={policy.id}
-              >
+          {viewModel.policies.length > 0 ? (
+            viewModel.policies.map((policy) => (
+              <SectionCard className={policy.isSelected ? 'is-selected' : ''} key={policy.id}>
                 <strong>{t(policy.nameKey)}</strong>
                 <span>{t(policy.descriptionKey)}</span>
                 <small>
@@ -175,30 +140,36 @@ export function BuildingPanel({
                     ? t('buildingPanel.policyCost', { cost: policy.cost })
                     : t('common.empty')}
                 </small>
-              </article>
+              </SectionCard>
             ))
           ) : (
-            <p>{t('buildingPanel.noPolicies')}</p>
+            <EmptyState messageKey="buildingPanel.noPolicies" />
           )}
         </div>
       ) : null}
       {activeTab === 'gladiators' ? (
         <div className="context-panel__list">
-          {assignedGladiators.length > 0 ? (
-            assignedGladiators.map((gladiator) => (
-              <article className="context-panel__portrait-row" key={gladiator.id}>
-                <GladiatorPortrait gladiator={gladiator} size="small" />
-                <strong>{gladiator.name}</strong>
-                <span>
-                  {t('weeklyPlan.readinessValue', { score: calculateReadiness(gladiator) })}
-                </span>
-              </article>
-            ))
+          {viewModel.assignedGladiators.length > 0 ? (
+            viewModel.assignedGladiators.map((assignedGladiator) => {
+              const gladiator = save.gladiators.find(
+                (candidate) => candidate.id === assignedGladiator.id,
+              );
+
+              return (
+                <SectionCard className="context-panel__portrait-row" key={assignedGladiator.id}>
+                  {gladiator ? <GladiatorPortrait gladiator={gladiator} size="small" /> : null}
+                  <strong>{assignedGladiator.name}</strong>
+                  <span>
+                    {t('weeklyPlan.readinessValue', { score: assignedGladiator.readiness })}
+                  </span>
+                </SectionCard>
+              );
+            })
           ) : (
-            <p>{t('buildings.noAssignedGladiators')}</p>
+            <EmptyState messageKey="buildings.noAssignedGladiators" />
           )}
         </div>
       ) : null}
-    </section>
+    </PanelShell>
   );
 }

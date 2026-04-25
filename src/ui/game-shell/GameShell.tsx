@@ -4,7 +4,6 @@ import type { MapLocationDefinition, MapLocationId } from '../../game-data/map-l
 import { useGameStore } from '../../state/game-store';
 import { TopHud } from '../hud/TopHud';
 import { LudusMap } from '../map/LudusMap';
-import { ModalHost } from '../modals/ModalHost';
 import { BottomGladiatorRoster } from '../roster/BottomGladiatorRoster';
 import { ContextualPanelHost } from '../panels/ContextualPanelHost';
 import type { ContextPanelKind } from './game-shell-types';
@@ -106,7 +105,6 @@ export function GameShell() {
         selectedGladiatorId={selectedGladiatorId ?? undefined}
         onSelectGladiator={selectGladiator}
       />
-      <ModalHost />
       <ToastAndAlertLayer errorKey={errorKey} save={currentSave} />
     </section>
   );

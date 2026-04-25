@@ -3154,9 +3154,14 @@ h3 {
   gap: 8px;
 }
 
+.context-panel__stats--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .context-panel__stats div,
 .context-panel__callout,
-.context-panel__list article {
+.context-panel__list article,
+.section-card {
   padding: 10px;
   border: 1px solid rgba(111, 82, 54, 0.34);
   border-radius: 8px;
@@ -3175,12 +3180,14 @@ h3 {
 }
 
 .context-panel__callout ul,
+.effect-list,
 .context-panel__list {
   margin: 0;
   padding: 0;
 }
 
-.context-panel__callout ul {
+.context-panel__callout ul,
+.effect-list {
   padding-left: 18px;
 }
 
@@ -3194,12 +3201,14 @@ h3 {
   padding: 7px 11px;
 }
 
-.context-panel__list article {
+.context-panel__list article,
+.section-card {
   display: grid;
   gap: 5px;
 }
 
-.context-panel__list article.is-selected {
+.context-panel__list article.is-selected,
+.section-card.is-selected {
   border-color: #2d7c70;
   background: rgba(220, 239, 234, 0.72);
 }
@@ -3208,9 +3217,68 @@ h3 {
   gap: 10px;
 }
 
+.section-card.context-panel__portrait-row {
+  display: flex;
+  align-items: center;
+}
+
 .building-panel__validation {
   border-color: #c58b35;
   background: #fff1c7;
+}
+
+.notice-box {
+  padding: 10px;
+  border: 1px solid rgba(111, 82, 54, 0.34);
+  border-radius: 8px;
+  background: rgba(255, 248, 226, 0.72);
+  color: #4b3826;
+  font-weight: 750;
+}
+
+.notice-box--warning {
+  border-color: #c58b35;
+  background: #fff1c7;
+  color: #6b4a05;
+}
+
+.notice-box--danger {
+  border-color: #a94f3a;
+  background: #ffe3dc;
+  color: #7d2f1f;
+}
+
+.status-pill {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(95, 69, 44, 0.12);
+  color: #5f452f;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.status-pill--success {
+  background: rgba(45, 124, 112, 0.16);
+  color: #23695f;
+}
+
+.status-pill--warning {
+  background: #fff1c7;
+  color: #6b4a05;
+}
+
+.status-pill--danger {
+  background: #ffe3dc;
+  color: #7d2f1f;
+}
+
+.confirm-dialog,
+.form-panel--modal {
+  display: grid;
+  gap: 14px;
 }
 
 .gladiator-detail {

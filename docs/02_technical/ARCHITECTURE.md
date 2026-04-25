@@ -99,6 +99,22 @@ Contains React components. Components should display data, capture user intent a
 
 React components must not own gameplay formulas, hardcoded balancing values or player-facing strings.
 
+Shared UI primitives live under `src/ui/components` and should be reused before adding feature-specific panel, modal, badge, empty-state, effect-list, cost-summary or tab markup.
+
+### `src/ui/view-models`
+
+Contains UI view-model and selector helpers.
+
+View-models prepare display-ready data for React components, especially when the same concept appears in more than one panel or screen. They may format labels as i18n keys, select relevant game-data definitions and combine domain helper outputs, but they must not duplicate gameplay rules or balancing formulas.
+
+Examples:
+
+- `createBuildingPanelViewModel(save, buildingId)`;
+- `createDormitoryCapacityViewModel(save)`;
+- `createGladiatorCardViewModel(save, gladiator)`.
+
+React components should consume prepared view-model fields and call store actions. Rules such as upgrade validation, bed capacity, readiness scoring, market prices and combat resolution remain in `src/domain` and `src/game-data`.
+
 ### `src/persistence`
 
 Contains save providers and save services.
@@ -124,6 +140,20 @@ Current flags:
 
 - `VITE_ENABLE_DEMO_MODE`;
 - `VITE_ENABLE_DEBUG_UI`.
+
+## Modal Management
+
+Focused dialogs should use the centralized modal infrastructure instead of creating independent modal state in each feature.
+
+Conventions:
+
+- `src/state/ui-store.tsx` owns reusable modal state and exposes open/close actions;
+- `src/ui/modals/ModalHost.tsx` is the single rendering host for globally managed dialogs;
+- feature components open typed modal requests, such as confirmations or lightweight form modals, and pass safe callbacks through modal descriptors;
+- modal copy uses i18n keys, not hardcoded player-facing text;
+- local component state is acceptable only for strictly local modal content that is already rendered through the shared host or shared modal shell.
+
+Confirmation modals should be used for irreversible, expensive or blocking actions. Lightweight form modals should be used when a focused form does not need its own screen.
 
 ## Save Provider Abstraction
 

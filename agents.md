@@ -31,6 +31,7 @@ The player is a lanista. The core loop is weekly preparation followed by Sunday 
 - Game rules and balance data belong in `src/game-data`.
 - Business logic belongs in pure TypeScript modules under `src/domain`.
 - React components should render state and call store actions, selectors or domain services.
+- Reuse shared UI primitives and modal infrastructure before creating feature-specific components.
 - Save data must include `schemaVersion`.
 - Local save is always available.
 - Cloud save exists behind an abstraction and can remain mocked until a backend is chosen.

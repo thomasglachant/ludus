@@ -8,6 +8,8 @@ The project already has the core React + TypeScript application structure, local
 
 The quality baseline is defined by a local and GitHub Actions CI gate covering `npm run build`, `npm run lint`, `npm run test` and `npm run test:e2e`. Playwright coverage is reserved for high-value player flows and stable demo states rather than exhaustive UI coverage, including the new-game-to-map-first-shell smoke flow.
 
+The UI baseline includes shared primitives for contextual panels, section cards, tabs, empty states, notices, metric lists, effect lists, cost summaries, badges and global confirmation or lightweight form modals. Building and gladiator detail panels already use these primitives, and building panel display data is prepared through reusable view-model helpers.
+
 New saves start with all base buildings purchased at level 1: `domus`, `canteen`, `dormitory`, `trainingGround`, `pleasureHall` and `infirmary`. Building initialization is data-driven from `startsPurchased` and `startsAtLevel`, the dormitory provides its level 1 free bed, and purchase validation remains available for future optional buildings that start unpurchased.
 
 The next work should keep improving the playable loop while preserving the architectural split between `src/game-data`, `src/domain`, `src/state`, `src/persistence` and `src/ui`.
@@ -31,6 +33,7 @@ Product outcomes:
 - Sunday triggers turn-based arena combats;
 - combat logs, rewards and consequences are visible;
 - demo saves support stable testing of early, mid and advanced states.
+- new panels and focused dialogs reuse shared primitives, modal infrastructure and view-model helpers where the structure is shared.
 
 Acceptance:
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useUiStore } from '../../state/ui-store';
+import { ModalHost } from '../modals/ModalHost';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { screen } = useUiStore();
@@ -11,5 +12,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
     .filter(Boolean)
     .join(' ');
 
-  return <main className={className}>{children}</main>;
+  return (
+    <main className={className}>
+      {children}
+      <ModalHost />
+    </main>
+  );
 }

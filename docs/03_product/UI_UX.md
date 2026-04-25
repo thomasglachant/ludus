@@ -164,7 +164,27 @@ It should not be permanently visible on the main screen.
 
 The player should manage priorities, risks and exceptions. Routine assignments should be recommended or automated where possible.
 
-## 9. Main Menu
+## 9. Shared UI Primitives
+
+The player interface should reuse a small set of shared primitives instead of rebuilding the same panel, list and modal structures inside each feature.
+
+Expected shared primitives:
+
+- panel shells for contextual panels, including title, subtitle, close action and primary content layout;
+- section cards for repeated panel sections;
+- tabs for panel subviews such as overview, improvements, policies and assigned gladiators;
+- empty states for unavailable content, empty rosters, empty event queues and future feature placeholders;
+- notice boxes for warnings, recommendations, save errors and temporary informational states;
+- effect lists for building effects, policies, improvements, contract consequences and event choices;
+- cost summaries for purchases, upgrades, market buys and paid actions;
+- badges or status pills for level, ownership, readiness, risk, availability and demo state;
+- metric rows or stat lines for compact values such as health, energy, morale, satiety, beds and treasury;
+- confirmation dialogs for irreversible, expensive or blocking choices;
+- lightweight form modal layouts for focused interactions that do not need a full screen.
+
+Contextual panels should compose these primitives instead of recoding their own headers, section wrappers, empty-state markup, repeated effect rows or confirmation UI. New primitives should stay small and practical; a feature-specific component is acceptable when the structure is genuinely unique.
+
+## 10. Main Menu
 
 The main menu should feel like a game menu, not a SaaS landing page.
 
@@ -180,7 +200,7 @@ It should use:
 The main menu should not be dominated by a plain white card or dashboard styling.
 Language selection should not be visible directly on the main menu. The interface should use the browser language by default when no stored preference exists, and language changes should happen through Options.
 
-## 10. Debug Dashboard
+## 11. Debug Dashboard
 
 The previous long dashboard interface may be kept only as a debug tool.
 
@@ -188,7 +208,7 @@ It must be hidden from the normal player experience and available only through a
 
 The debug dashboard is useful for inspecting state, testing mechanics and debugging systems. It is not the intended player experience.
 
-## 11. Supporting Flows
+## 12. Supporting Flows
 
 Supporting flows should follow the game-like visual direction instead of a SaaS dashboard style.
 
@@ -211,7 +231,7 @@ Options modal:
 - use i18n for every visible label;
 - reserve space for future audio, animation and confirmation settings.
 
-## 12. Acceptance Criteria
+## 13. Acceptance Criteria
 
 The UI is valid when:
 
@@ -226,5 +246,6 @@ The UI is valid when:
 - weekly planning is not permanently visible;
 - market and arena appear as external locations;
 - the debug dashboard is not the default game screen;
+- repeated panel, modal, empty-state, effect-list, cost and tab structures use shared UI primitives;
 - all visible text uses i18n;
 - Playwright can still target stable `data-testid` values.
