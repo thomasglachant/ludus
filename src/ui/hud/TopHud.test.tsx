@@ -23,6 +23,7 @@ describe('TopHud save status', () => {
           isSaving={false}
           lastSavedAt="2026-04-25T10:00:00.000Z"
           save={createSave()}
+          onOpenMenu={vi.fn()}
           onResetDemo={vi.fn()}
           onSave={vi.fn()}
           onSpeedChange={vi.fn()}

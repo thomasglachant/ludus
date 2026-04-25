@@ -19,6 +19,7 @@ interface TopHudProps {
   lastSavedAt: string | null;
   save: GameSave;
   isSaving: boolean;
+  onOpenMenu(): void;
   onResetDemo(): void;
   onSave(): void;
   onSpeedChange(speed: GameSpeed): void;
@@ -28,12 +29,13 @@ export function TopHud({
   hasUnsavedChanges,
   isSaving,
   lastSavedAt,
+  onOpenMenu,
   onResetDemo,
   onSave,
   onSpeedChange,
   save,
 }: TopHudProps) {
-  const { language, navigate, t } = useUiStore();
+  const { language, t } = useUiStore();
   const demoDefinition = save.metadata?.demoSaveId
     ? getDemoSaveDefinition(save.metadata.demoSaveId)
     : undefined;
@@ -118,7 +120,7 @@ export function TopHud({
             <span>{t(isSaving ? 'ludus.saving' : 'common.save')}</span>
           </button>
         )}
-        <button data-testid="topbar-menu-button" type="button" onClick={() => navigate('mainMenu')}>
+        <button data-testid="topbar-menu-button" type="button" onClick={onOpenMenu}>
           <Menu aria-hidden="true" size={17} />
           <span>{t('topBar.menu')}</span>
         </button>

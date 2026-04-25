@@ -28,4 +28,25 @@ describe('SaveService demo saves', () => {
     await expect(service.listLocalSaves()).resolves.toEqual([]);
     expect(localStorage.getItem('ludus:save:demo-early-ludus')).toBeNull();
   });
+
+  it('can save an existing game as a new local save', async () => {
+    const service = new SaveService(
+      new LocalSaveProvider(),
+      new CloudSaveProvider(),
+      new DemoSaveProvider(),
+    );
+    const originalSave = await service.createLocalSave({
+      language: 'en',
+      ludusName: 'Ludus Magnus',
+      ownerName: 'Marcus',
+    });
+
+    const copiedSave = await service.createLocalSaveFromExisting(originalSave, {
+      ludusName: 'Ludus Felix',
+    });
+
+    expect(copiedSave.saveId).not.toBe(originalSave.saveId);
+    expect(copiedSave.player.ludusName).toBe('Ludus Felix');
+    await expect(service.listLocalSaves()).resolves.toHaveLength(2);
+  });
 });

@@ -33,6 +33,99 @@ describe('App', () => {
     expect(screen.getAllByText('500')).not.toHaveLength(0);
   });
 
+  it('opens the in-game menu instead of leaving the current game immediately', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /new game/i }));
+    await user.type(screen.getByLabelText(/owner name/i), 'Marcus');
+    await user.type(screen.getByLabelText(/ludus name/i), 'Ludus Magnus');
+    await user.click(screen.getByRole('button', { name: /found the ludus/i }));
+
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+
+    expect(await screen.findByRole('dialog', { name: 'Game menu' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Ludus Magnus' })).toBeInTheDocument();
+  });
+
+  it('saves the current game as a new local save from the in-game menu', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /new game/i }));
+    await user.type(screen.getByLabelText(/owner name/i), 'Marcus');
+    await user.type(screen.getByLabelText(/ludus name/i), 'Ludus Magnus');
+    await user.click(screen.getByRole('button', { name: /found the ludus/i }));
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    await user.click(
+      within(await screen.findByRole('dialog', { name: 'Game menu' })).getByRole('button', {
+        name: 'Save as',
+      }),
+    );
+
+    const saveAsDialog = await screen.findByRole('dialog', { name: 'Save as' });
+    const ludusNameInput = within(saveAsDialog).getByLabelText('Ludus name');
+
+    await user.clear(ludusNameInput);
+    await user.type(ludusNameInput, 'Ludus Felix');
+    await user.click(within(saveAsDialog).getByRole('button', { name: 'Save as' }));
+
+    expect(await screen.findByRole('heading', { name: 'Ludus Felix' })).toBeInTheDocument();
+    expect(screen.getByTestId('save-notice')).toHaveTextContent('Local save copy written.');
+  });
+
+  it('asks for confirmation before quitting with unsaved changes', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /new game/i }));
+    await user.type(screen.getByLabelText(/owner name/i), 'Marcus');
+    await user.type(screen.getByLabelText(/ludus name/i), 'Ludus Magnus');
+    await user.click(screen.getByRole('button', { name: /found the ludus/i }));
+    await user.click(screen.getByRole('button', { name: 'x2' }));
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    await user.click(
+      within(await screen.findByRole('dialog', { name: 'Game menu' })).getByRole('button', {
+        name: 'Quit',
+      }),
+    );
+
+    const confirmation = await screen.findByRole('dialog', { name: 'Quit game?' });
+
+    await user.click(within(confirmation).getByRole('button', { name: 'Cancel' }));
+
+    expect(screen.getByRole('heading', { name: 'Ludus Magnus' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    await user.click(
+      within(await screen.findByRole('dialog', { name: 'Game menu' })).getByRole('button', {
+        name: 'Quit',
+      }),
+    );
+    await user.click(
+      within(await screen.findByRole('dialog', { name: 'Quit game?' })).getByRole('button', {
+        name: 'Quit',
+      }),
+    );
+
+    expect(await screen.findByRole('button', { name: 'New game' })).toBeInTheDocument();
+  });
+
   it('opens a current building as owned with upgrade as the primary action', async () => {
     const user = userEvent.setup();
 

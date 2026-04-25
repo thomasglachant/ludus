@@ -71,6 +71,7 @@ interface GameStoreValue {
   loadDemoSave(saveId: DemoSaveId): Promise<void>;
   resetActiveDemo(): Promise<void>;
   saveCurrentGame(): Promise<void>;
+  saveCurrentGameAs(input?: { ludusName?: string }): Promise<void>;
   changeLanguage(language: LanguageCode): Promise<void>;
   setGameSpeed(speed: GameSpeed): void;
   purchaseBuilding(buildingId: BuildingId): void;
@@ -277,6 +278,34 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       setIsSaving(false);
     }
   }, [currentSave, saveService]);
+
+  const saveCurrentGameAs = useCallback(
+    async (input: { ludusName?: string } = {}) => {
+      if (!currentSave) {
+        return;
+      }
+
+      setIsSaving(true);
+      setErrorKey(null);
+      setSaveNoticeKey(null);
+
+      try {
+        const newSave = await saveService.createLocalSaveFromExisting(currentSave, input);
+
+        setCurrentSave(newSave);
+        setLocalSaves(await saveService.listLocalSaves());
+        setHasUnsavedChanges(false);
+        setLastSavedAt(newSave.updatedAt);
+        setSaveNoticeKey('ludus.saveAsSuccess');
+      } catch {
+        setErrorKey('ludus.saveError');
+        setSaveNoticeKey(null);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [currentSave, saveService],
+  );
 
   const changeLanguage = useCallback(
     async (nextLanguage: LanguageCode) => {
@@ -499,6 +528,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       loadDemoSave,
       resetActiveDemo,
       saveCurrentGame,
+      saveCurrentGameAs,
       changeLanguage,
       setGameSpeed: setGameSpeedAction,
       purchaseBuilding: purchaseBuildingAction,
@@ -541,6 +571,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     refreshDemoSaves,
     resetActiveDemo,
     saveCurrentGame,
+    saveCurrentGameAs,
     saveNoticeKey,
     resolveGameEventChoice,
     scoutOpponent,

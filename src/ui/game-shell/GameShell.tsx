@@ -2,13 +2,18 @@ import { useState } from 'react';
 import type { BuildingId } from '../../domain/types';
 import type { MapLocationDefinition, MapLocationId } from '../../game-data/map-layout';
 import { useGameStore } from '../../state/game-store';
+import { useUiStore } from '../../state/ui-store';
 import { TopHud } from '../hud/TopHud';
 import { LudusMap } from '../map/LudusMap';
+import { GameMenuModal } from '../modals/GameMenuModal';
+import { OptionsModal } from '../modals/OptionsModal';
 import { BottomGladiatorRoster } from '../roster/BottomGladiatorRoster';
 import { ContextualPanelHost } from '../panels/ContextualPanelHost';
 import type { ContextPanelKind } from './game-shell-types';
 import { LeftNavigationRail } from './LeftNavigationRail';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
+
+type GameDialog = 'menu' | 'options';
 
 export function GameShell() {
   const {
@@ -26,6 +31,7 @@ export function GameShell() {
     resetActiveDemo,
     resolveGameEventChoice,
     saveCurrentGame,
+    saveCurrentGameAs,
     saveNoticeKey,
     scoutOpponent,
     selectBuildingPolicy,
@@ -33,7 +39,9 @@ export function GameShell() {
     updateGladiatorRoutine,
     upgradeBuilding,
   } = useGameStore();
+  const { navigate, openConfirmModal, openFormModal } = useUiStore();
   const [activePanelKind, setActivePanelKind] = useState<ContextPanelKind | null>(null);
+  const [activeDialog, setActiveDialog] = useState<GameDialog | null>(null);
   const [selectedLocationId, setSelectedLocationId] = useState<MapLocationId | null>(null);
   const [selectedBuildingId, setSelectedBuildingId] = useState<BuildingId | null>(null);
   const [selectedGladiatorId, setSelectedGladiatorId] = useState<string | null>(null);
@@ -69,6 +77,57 @@ export function GameShell() {
     setActivePanelKind('gladiator');
   };
 
+  const closeGameDialog = () => {
+    setActiveDialog(null);
+  };
+
+  const saveGameFromMenu = () => {
+    void saveCurrentGame().then(closeGameDialog);
+  };
+
+  const openSaveAsDialog = () => {
+    closeGameDialog();
+    openFormModal({
+      fields: [
+        {
+          defaultValue: currentSave.player.ludusName,
+          id: 'ludusName',
+          labelKey: 'newGame.ludusName',
+          required: true,
+        },
+      ],
+      kind: 'form',
+      onSubmit: (values) => {
+        void saveCurrentGameAs({ ludusName: values.ludusName });
+      },
+      submitLabelKey: 'gameMenu.saveAs',
+      titleKey: 'gameMenu.saveAsTitle',
+    });
+  };
+
+  const quitToMainMenu = () => {
+    closeGameDialog();
+    navigate('mainMenu');
+  };
+
+  const requestQuit = () => {
+    if (!hasUnsavedChanges || currentSave.metadata?.isDemo) {
+      quitToMainMenu();
+      return;
+    }
+
+    closeGameDialog();
+    openConfirmModal({
+      confirmLabelKey: 'gameMenu.quit',
+      kind: 'confirm',
+      messageKey: 'gameMenu.quitUnsavedMessage',
+      onConfirm: quitToMainMenu,
+      testId: 'quit-unsaved-confirmation',
+      titleKey: 'gameMenu.quitUnsavedTitle',
+      tone: 'danger',
+    });
+  };
+
   return (
     <section className="game-shell">
       <TopHud
@@ -76,6 +135,7 @@ export function GameShell() {
         isSaving={isSaving || isLoading}
         lastSavedAt={lastSavedAt}
         save={currentSave}
+        onOpenMenu={() => setActiveDialog('menu')}
         onResetDemo={resetActiveDemo}
         onSave={() => void saveCurrentGame()}
         onSpeedChange={setGameSpeed}
@@ -118,6 +178,19 @@ export function GameShell() {
         onSelectGladiator={selectGladiator}
       />
       <ToastAndAlertLayer errorKey={errorKey} save={currentSave} saveNoticeKey={saveNoticeKey} />
+      {activeDialog === 'menu' ? (
+        <GameMenuModal
+          hasUnsavedChanges={hasUnsavedChanges}
+          isDemoSave={Boolean(currentSave.metadata?.isDemo)}
+          isSaving={isSaving || isLoading}
+          onClose={closeGameDialog}
+          onOpenOptions={() => setActiveDialog('options')}
+          onQuit={requestQuit}
+          onSave={saveGameFromMenu}
+          onSaveAs={openSaveAsDialog}
+        />
+      ) : null}
+      {activeDialog === 'options' ? <OptionsModal onClose={closeGameDialog} /> : null}
     </section>
   );
 }

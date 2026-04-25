@@ -10,6 +10,10 @@ export interface CreateSaveInput {
   language: LanguageCode;
 }
 
+export interface SaveAsInput {
+  ludusName?: string;
+}
+
 export class SaveService {
   private readonly localSaveProvider: SaveProvider;
   private readonly cloudSaveProvider: SaveProvider;
@@ -57,6 +61,27 @@ export class SaveService {
     await this.localSaveProvider.updateSave(updatedSave);
 
     return updatedSave;
+  }
+
+  async createLocalSaveFromExisting(save: GameSave, input: SaveAsInput = {}): Promise<GameSave> {
+    const now = new Date().toISOString();
+    const ludusName = input.ludusName?.trim() || save.player.ludusName;
+    const localSave: GameSave = {
+      ...save,
+      saveId: createId('save'),
+      createdAt: now,
+      updatedAt: now,
+      metadata: undefined,
+      player: {
+        ...save.player,
+        ludusName,
+        isCloudUser: false,
+      },
+    };
+
+    await this.localSaveProvider.createSave(localSave);
+
+    return localSave;
   }
 
   async deleteLocalSave(saveId: string): Promise<void> {

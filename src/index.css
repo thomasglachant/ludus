@@ -1718,6 +1718,7 @@ h3 {
   .building-grid,
   .combat-selector,
   .gladiator-grid,
+  .game-menu__actions,
   .status-bar {
     grid-template-columns: 1fr;
   }
@@ -3298,9 +3299,16 @@ h3 {
 }
 
 .confirm-dialog,
+.game-menu,
 .form-panel--modal {
   display: grid;
   gap: 14px;
+}
+
+.game-menu__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .gladiator-detail {

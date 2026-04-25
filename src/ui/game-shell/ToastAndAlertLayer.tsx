@@ -14,7 +14,7 @@ export function ToastAndAlertLayer({ errorKey, save, saveNoticeKey }: ToastAndAl
     .filter((alert) => alert.severity === 'critical' || alert.severity === 'warning')
     .slice(0, 3);
 
-  if (!errorKey && importantAlerts.length === 0) {
+  if (!errorKey && !saveNoticeKey && importantAlerts.length === 0) {
     return null;
   }
 
