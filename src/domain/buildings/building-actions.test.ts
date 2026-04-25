@@ -5,10 +5,15 @@ import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
 import {
   purchaseBuilding,
+  purchaseBuildingImprovement,
+  selectBuildingPolicy,
   upgradeBuilding,
+  validateBuildingImprovementPurchase,
+  validateBuildingPolicySelection,
   validateBuildingPurchase,
   validateBuildingUpgrade,
 } from './building-actions';
+import { getDormitoryCapacity } from './dormitory-capacity';
 
 function createTestSave() {
   return createInitialSave({
@@ -110,6 +115,90 @@ describe('building actions', () => {
       reason: 'missingDomusLevel',
       requiredDomusLevel: 2,
       targetLevel: 2,
+    });
+  });
+
+  it('purchases a building improvement when requirements are met', () => {
+    const save = createTestSave();
+    const result = purchaseBuildingImprovement(save, 'canteen', 'betterKitchen');
+
+    expect(result.validation).toMatchObject({
+      isAllowed: true,
+      cost: 90,
+    });
+    expect(result.save.buildings.canteen.purchasedImprovementIds).toContain('betterKitchen');
+    expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 90);
+  });
+
+  it('prevents an improvement purchase when the building level is too low', () => {
+    const validation = validateBuildingImprovementPurchase(
+      createTestSave(),
+      'trainingGround',
+      'advancedDoctoreTools',
+    );
+
+    expect(validation).toMatchObject({
+      isAllowed: false,
+      reason: 'missingBuildingLevel',
+      requiredBuildingLevel: 2,
+    });
+  });
+
+  it('prevents an improvement purchase when prerequisites are missing', () => {
+    const validation = validateBuildingImprovementPurchase(
+      createTestSave(),
+      'dormitory',
+      'woodenBeds',
+    );
+
+    expect(validation).toMatchObject({
+      isAllowed: false,
+      reason: 'missingImprovementPrerequisite',
+      missingImprovementIds: ['strawBeds'],
+    });
+  });
+
+  it('prevents buying the same improvement twice', () => {
+    const save = purchaseBuildingImprovement(createTestSave(), 'canteen', 'betterKitchen').save;
+    const validation = validateBuildingImprovementPurchase(save, 'canteen', 'betterKitchen');
+
+    expect(validation).toMatchObject({
+      isAllowed: false,
+      reason: 'alreadyPurchasedImprovement',
+    });
+  });
+
+  it('applies purchased dormitory capacity improvements to housing capacity', () => {
+    const save = createTestSave();
+    const result = purchaseBuildingImprovement(save, 'dormitory', 'strawBeds');
+
+    expect(getDormitoryCapacity(save)).toBe(1);
+    expect(getDormitoryCapacity(result.save)).toBe(2);
+  });
+
+  it('selects a building policy and pays its selection cost', () => {
+    const save = createTestSave();
+    const result = selectBuildingPolicy(save, 'canteen', 'richMeals');
+
+    expect(result.validation).toMatchObject({
+      isAllowed: true,
+      cost: 40,
+    });
+    expect(result.save.buildings.canteen.selectedPolicyId).toBe('richMeals');
+    expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 40);
+  });
+
+  it('prevents selecting a policy above the current building level', () => {
+    const validation = validateBuildingPolicySelection(
+      createTestSave(),
+      'trainingGround',
+      'brutalDiscipline',
+    );
+
+    expect(validation).toMatchObject({
+      isAllowed: false,
+      reason: 'missingBuildingLevel',
+      requiredBuildingLevel: 2,
     });
   });
 });

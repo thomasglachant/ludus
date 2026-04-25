@@ -3,7 +3,7 @@ import type { BuildingId } from '../buildings/types';
 import type { CombatStrategy } from '../combat/types';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
-import { calculateReadiness } from './readiness';
+import { calculateEffectiveReadiness } from './readiness';
 import type {
   GameAlert,
   GladiatorRoutine,
@@ -265,7 +265,7 @@ export function getGladiatorPlanningStatuses(save: GameSave): GladiatorPlanningS
     return {
       gladiator,
       routine,
-      readiness: calculateReadiness(gladiator),
+      readiness: calculateEffectiveReadiness(save, gladiator),
       alerts,
       recommendation: getPlanningRecommendation(save, gladiator, routine),
     };

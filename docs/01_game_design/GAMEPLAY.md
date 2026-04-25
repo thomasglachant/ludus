@@ -58,6 +58,16 @@ Examples:
 
 Buildings are managed through level upgrades, purchasable improvements, weekly policies, strategic actions and building-specific mechanics.
 
+Level upgrades define the building baseline. Improvements are explicit purchases that permanently expand what a building contributes. Policies are explicit weekly stance choices that shape how a building is used by assigned gladiators or the whole ludus.
+
+The player should review improvements and policies while planning the week:
+
+- buy an improvement when a permanent capability, capacity gain or persistent modifier is worth the treasury cost;
+- select a policy when the current week calls for a different priority, such as safer training, richer meals, morale support or preventive care;
+- use policies as named choices with clear tradeoffs, not as numeric budgets or sliders.
+
+Paid policies spend treasury when selected. They do not create a hidden recurring budget slider. If the same policy is already selected, selecting it again has no effect and should not charge the player again.
+
 Examples:
 
 - Canteen: economical meals, balanced meals, rich meals, protein-focused meals.

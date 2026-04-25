@@ -1,5 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
-import { calculateReadiness } from '../../domain/planning/readiness';
+import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import type { GameSave, Gladiator } from '../../domain/types';
 import { getGladiatorPlanningStatuses } from '../../domain/planning/planning-actions';
 import { useUiStore } from '../../state/ui-store';
@@ -53,7 +53,7 @@ export function BottomGladiatorRoster({
         <div className="bottom-roster__scroller">
           {save.gladiators.map((gladiator) => {
             const status = statusByGladiatorId.get(gladiator.id);
-            const readiness = calculateReadiness(gladiator);
+            const readiness = calculateEffectiveReadiness(save, gladiator);
             const primaryAlert = getPrimaryAlert(save, gladiator);
 
             return (

@@ -1,4 +1,4 @@
-import { calculateReadiness } from '../../domain/planning/readiness';
+import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import { getRoutineForGladiator } from '../../domain/planning/planning-actions';
 import type { GameSave, Gladiator } from '../../domain/types';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
@@ -25,7 +25,9 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
         <GladiatorPortrait gladiator={gladiator} size="large" />
         <div>
           <strong>
-            {t('weeklyPlan.readinessValue', { score: calculateReadiness(gladiator) })}
+            {t('weeklyPlan.readinessValue', {
+              score: calculateEffectiveReadiness(save, gladiator),
+            })}
           </strong>
           <span>{t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}</span>
           <span>{t('roster.reputation', { reputation: gladiator.reputation })}</span>

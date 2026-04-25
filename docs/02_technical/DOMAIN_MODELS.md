@@ -133,6 +133,10 @@ export interface BuildingState {
 }
 ```
 
+`purchasedImprovementIds` stores the permanent improvements bought for that building. The array contains only ids from definitions whose `buildingId` matches the building state. Domain validation prevents duplicate purchases, missing prerequisites, insufficient building level, unowned buildings and insufficient treasury.
+
+`selectedPolicyId` stores the currently selected policy for that building when the building supports policies. A policy id must belong to the same building and satisfy the current building level. If a policy has `cost`, that cost is paid once when the policy is selected. Selecting the already active policy is a no-op.
+
 ```ts
 export type BuildingConfiguration =
   | CanteenConfiguration
@@ -245,6 +249,16 @@ export interface BuildingEffect {
   target?: 'assignedGladiator' | 'allGladiators' | 'ludus';
 }
 ```
+
+Building effects can come from three sources:
+
+- the current building level;
+- purchased improvements;
+- the selected policy.
+
+`perHour: true` is the only signal that an effect may be applied during time advancement. Effects without `perHour` are permanent or contextual modifiers. Time-domain actions must filter to hourly effects before changing gladiator gauges, while non-hourly effects should be exposed through building-effect helpers for capacity, readiness, injury-risk and other contextual calculations.
+
+The default target is `assignedGladiator` when omitted. `allGladiators` affects the full roster or a roster-wide calculation. `ludus` affects school-level values such as capacity.
 
 ## Gladiators
 

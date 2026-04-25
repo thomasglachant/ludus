@@ -187,6 +187,33 @@ describe('time actions', () => {
     });
   });
 
+  it('ignores permanent building effects during hourly ticks', () => {
+    const save: GameSave = {
+      ...withPurchasedBuildings(createTestSave(), ['canteen']),
+      buildings: {
+        ...createTestSave().buildings,
+        canteen: {
+          ...createTestSave().buildings.canteen,
+          purchasedImprovementIds: ['betterKitchen'],
+          selectedPolicyId: 'richMeals',
+        },
+      },
+      gladiators: [
+        createGladiator({
+          currentBuildingId: 'canteen',
+          satiety: 50,
+        }),
+      ],
+    };
+    const result = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 30_000,
+      speed: save.time.speed,
+    });
+
+    expect(result.save.gladiators[0].satiety).toBe(56);
+  });
+
   it('applies automatic routine assignments before hourly building effects', () => {
     const saveWithGladiator: GameSave = {
       ...withPurchasedBuildings(createTestSave(), ['trainingGround']),

@@ -65,6 +65,48 @@ describe('building panel view models', () => {
     ]);
   });
 
+  it('prepares improvement and policy action status with validation reasons', () => {
+    const viewModel = createBuildingPanelViewModel(createSave(), 'dormitory', (key, params) =>
+      translate('en', key, params),
+    );
+    const woodenBeds = viewModel.improvements.find(
+      (improvement) => improvement.id === 'woodenBeds',
+    );
+    const strawBeds = viewModel.improvements.find((improvement) => improvement.id === 'strawBeds');
+
+    expect(strawBeds).toMatchObject({
+      canPurchase: true,
+      isPurchased: false,
+      requiredBuildingLevel: 1,
+      validationMessageKey: null,
+    });
+    expect(woodenBeds).toMatchObject({
+      canPurchase: false,
+      validationMessageKey: 'buildings.validation.missingImprovementPrerequisite',
+    });
+    expect(woodenBeds?.requiredImprovementNames).toEqual(['Straw beds']);
+  });
+
+  it('prepares selected policy status and paid policy actions', () => {
+    const viewModel = createBuildingPanelViewModel(createSave(), 'canteen', (key, params) =>
+      translate('en', key, params),
+    );
+    const selectedPolicy = viewModel.policies.find((policy) => policy.id === 'balancedMeals');
+    const paidPolicy = viewModel.policies.find((policy) => policy.id === 'richMeals');
+
+    expect(selectedPolicy).toMatchObject({
+      canSelect: false,
+      isSelected: true,
+      validationMessageKey: 'buildings.validation.alreadySelectedPolicy',
+    });
+    expect(paidPolicy).toMatchObject({
+      canSelect: true,
+      cost: 40,
+      isSelected: false,
+      validationMessageKey: null,
+    });
+  });
+
   it('prepares dormitory capacity display data from domain helpers', () => {
     const save = {
       ...createSave(),

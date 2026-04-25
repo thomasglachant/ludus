@@ -147,8 +147,10 @@ Capacity formula:
 ```ts
 freeBeds = freeBedsAtLevelOne + Math.max(0, dormitoryLevel - 1);
 maximumPurchasableBeds = dormitoryLevel * purchasableBedsPerLevel;
-capacity = freeBeds + purchasedBeds;
+capacity = freeBeds + purchasedBeds + purchasedDormitoryImprovementCapacityEffects;
 ```
+
+The Dormitory bed formula is the source of truth for housing capacity. Non-hourly `increaseCapacity` effects from purchased Dormitory improvements, such as `strawBeds`, add to this formula. Displayed capacity effects on building levels describe the level's capacity contribution but must not be double-counted on top of `freeBeds`.
 
 Bed cost formula:
 
@@ -161,6 +163,8 @@ The first purchased bed costs 80 denarii because `purchasedBeds` is 0 before the
 ## Building Improvements
 
 Improvements are one of the main replacements for the removed budget system.
+
+Improvement effects are permanent or contextual unless an effect explicitly declares `perHour: true`. Current improvement data has no hourly effects; purchased improvements instead expose persistent modifiers such as capacity, readiness support, stat focus or injury-risk reduction through domain helpers.
 
 | ID                     | Building        | Cost | Required level | Required improvements | Effects                                   |
 | ---------------------- | --------------- | ---: | -------------: | --------------------- | ----------------------------------------- |
@@ -184,6 +188,10 @@ Improvements are one of the main replacements for the removed budget system.
 
 Policies are explicit weekly choices, not hidden numeric budgets.
 
+Policy `cost` is a selection cost paid immediately when the player changes to that policy. The cost is not a recurring hourly or daily budget. Selecting the already active policy is a no-op and does not charge treasury.
+
+Policy effects are permanent or contextual unless an effect explicitly declares `perHour: true`. Current policy data has no hourly effects; selected policies expose contextual modifiers through domain helpers and are displayed in building panels.
+
 | ID                    | Building        | Required level | Cost | Effects                                                        |
 | --------------------- | --------------- | -------------: | ---: | -------------------------------------------------------------- |
 | `economicalMeals`     | Canteen         |              1 |   10 | `increaseSatiety +3`, `decreaseMorale +1` assigned gladiator   |
@@ -201,6 +209,36 @@ Policies are explicit weekly choices, not hidden numeric budgets.
 | `basicCare`           | Infirmary       |              1 |  n/a | `increaseHealth +3` assigned gladiator                         |
 | `preventiveCare`      | Infirmary       |              1 |   30 | `reduceInjuryRisk +4` all gladiators                           |
 | `intensiveTreatment`  | Infirmary       |              2 |   70 | `increaseHealth +8` assigned gladiator                         |
+
+## Building Effect Semantics
+
+Building effects use a shared model across levels, improvements and policies.
+
+```ts
+export interface BuildingEffect {
+  type: BuildingEffectType;
+  value: number;
+  perHour?: boolean;
+  target?: 'assignedGladiator' | 'allGladiators' | 'ludus';
+}
+```
+
+Effect timing convention:
+
+- `perHour: true` means the effect is applied by the hourly game tick.
+- absence of `perHour` means the effect is permanent or contextual and must not be applied by the hourly tick.
+
+Effect source convention:
+
+- building level effects are usually hourly operational effects, such as the Canteen restoring satiety for assigned gladiators;
+- improvement effects are purchased permanent/contextual effects unless explicitly marked hourly;
+- policy effects are selected permanent/contextual weekly modifiers unless explicitly marked hourly.
+
+Effect target convention:
+
+- `assignedGladiator`: affects gladiators assigned to the building or modifies their contextual scoring;
+- `allGladiators`: affects the full roster or provides a roster-wide contextual modifier;
+- `ludus`: affects school-level values such as capacity.
 
 ## Market
 

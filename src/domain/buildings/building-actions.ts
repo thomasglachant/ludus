@@ -1,17 +1,31 @@
+import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../../game-data/building-improvements';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import type { GameSave } from '../saves/types';
-import type { BuildingId, BuildingLevelDefinition } from './types';
+import type {
+  BuildingId,
+  BuildingImprovementDefinition,
+  BuildingLevelDefinition,
+  BuildingPolicyDefinition,
+} from './types';
 
 export type BuildingActionFailureReason =
   | 'alreadyPurchased'
+  | 'alreadyPurchasedImprovement'
+  | 'alreadySelectedPolicy'
   | 'insufficientTreasury'
+  | 'missingBuildingLevel'
   | 'missingDomusLevel'
+  | 'missingImprovementPrerequisite'
   | 'notPurchased'
-  | 'unavailableLevel';
+  | 'unavailableImprovement'
+  | 'unavailableLevel'
+  | 'unavailablePolicy';
 
 export interface BuildingActionValidation {
   isAllowed: boolean;
   cost: number;
+  missingImprovementIds?: string[];
+  requiredBuildingLevel?: number;
   targetLevel?: number;
   reason?: BuildingActionFailureReason;
   requiredDomusLevel?: number;
@@ -27,6 +41,24 @@ function findBuildingLevel(
   targetLevel: number,
 ): BuildingLevelDefinition | undefined {
   return BUILDING_DEFINITIONS[buildingId].levels.find((level) => level.level === targetLevel);
+}
+
+function findBuildingImprovement(
+  buildingId: BuildingId,
+  improvementId: string,
+): BuildingImprovementDefinition | undefined {
+  return BUILDING_IMPROVEMENTS.find(
+    (improvement) => improvement.buildingId === buildingId && improvement.id === improvementId,
+  );
+}
+
+function findBuildingPolicy(
+  buildingId: BuildingId,
+  policyId: string,
+): BuildingPolicyDefinition | undefined {
+  return BUILDING_POLICIES.find(
+    (policy) => policy.buildingId === buildingId && policy.id === policyId,
+  );
 }
 
 function validateTreasury(save: GameSave, cost: number): BuildingActionValidation | null {
@@ -150,6 +182,127 @@ export function validateBuildingUpgrade(
   };
 }
 
+export function validateBuildingImprovementPurchase(
+  save: GameSave,
+  buildingId: BuildingId,
+  improvementId: string,
+): BuildingActionValidation {
+  const building = save.buildings[buildingId];
+  const improvement = findBuildingImprovement(buildingId, improvementId);
+
+  if (!improvement) {
+    return {
+      isAllowed: false,
+      cost: 0,
+      reason: 'unavailableImprovement',
+    };
+  }
+
+  if (!building.isPurchased) {
+    return {
+      isAllowed: false,
+      cost: improvement.cost,
+      reason: 'notPurchased',
+    };
+  }
+
+  if (building.level < improvement.requiredBuildingLevel) {
+    return {
+      isAllowed: false,
+      cost: improvement.cost,
+      reason: 'missingBuildingLevel',
+      requiredBuildingLevel: improvement.requiredBuildingLevel,
+    };
+  }
+
+  if (building.purchasedImprovementIds.includes(improvement.id)) {
+    return {
+      isAllowed: false,
+      cost: improvement.cost,
+      reason: 'alreadyPurchasedImprovement',
+    };
+  }
+
+  const missingImprovementIds = (improvement.requiredImprovementIds ?? []).filter(
+    (requiredImprovementId) => !building.purchasedImprovementIds.includes(requiredImprovementId),
+  );
+
+  if (missingImprovementIds.length > 0) {
+    return {
+      isAllowed: false,
+      cost: improvement.cost,
+      reason: 'missingImprovementPrerequisite',
+      missingImprovementIds,
+    };
+  }
+
+  const treasuryValidation = validateTreasury(save, improvement.cost);
+
+  if (treasuryValidation) {
+    return treasuryValidation;
+  }
+
+  return {
+    isAllowed: true,
+    cost: improvement.cost,
+  };
+}
+
+export function validateBuildingPolicySelection(
+  save: GameSave,
+  buildingId: BuildingId,
+  policyId: string,
+): BuildingActionValidation {
+  const building = save.buildings[buildingId];
+  const policy = findBuildingPolicy(buildingId, policyId);
+
+  if (!policy) {
+    return {
+      isAllowed: false,
+      cost: 0,
+      reason: 'unavailablePolicy',
+    };
+  }
+
+  const cost = policy.cost ?? 0;
+
+  if (!building.isPurchased) {
+    return {
+      isAllowed: false,
+      cost,
+      reason: 'notPurchased',
+    };
+  }
+
+  if (building.level < policy.requiredBuildingLevel) {
+    return {
+      isAllowed: false,
+      cost,
+      reason: 'missingBuildingLevel',
+      requiredBuildingLevel: policy.requiredBuildingLevel,
+    };
+  }
+
+  if (building.selectedPolicyId === policy.id) {
+    return {
+      isAllowed: false,
+      cost,
+      reason: 'alreadySelectedPolicy',
+    };
+  }
+
+  const treasuryValidation = validateTreasury(save, cost);
+
+  if (treasuryValidation) {
+    return treasuryValidation;
+  }
+
+  return {
+    isAllowed: true,
+    cost,
+  };
+}
+
 export function purchaseBuilding(save: GameSave, buildingId: BuildingId): BuildingActionResult {
   const validation = validateBuildingPurchase(save, buildingId);
 
@@ -197,6 +350,69 @@ export function upgradeBuilding(save: GameSave, buildingId: BuildingId): Buildin
         [buildingId]: {
           ...save.buildings[buildingId],
           level: validation.targetLevel,
+        },
+      },
+    },
+  };
+}
+
+export function purchaseBuildingImprovement(
+  save: GameSave,
+  buildingId: BuildingId,
+  improvementId: string,
+): BuildingActionResult {
+  const validation = validateBuildingImprovementPurchase(save, buildingId, improvementId);
+
+  if (!validation.isAllowed) {
+    return { save, validation };
+  }
+
+  return {
+    validation,
+    save: {
+      ...save,
+      ludus: {
+        ...save.ludus,
+        treasury: save.ludus.treasury - validation.cost,
+      },
+      buildings: {
+        ...save.buildings,
+        [buildingId]: {
+          ...save.buildings[buildingId],
+          purchasedImprovementIds: [
+            ...save.buildings[buildingId].purchasedImprovementIds,
+            improvementId,
+          ],
+        },
+      },
+    },
+  };
+}
+
+export function selectBuildingPolicy(
+  save: GameSave,
+  buildingId: BuildingId,
+  policyId: string,
+): BuildingActionResult {
+  const validation = validateBuildingPolicySelection(save, buildingId, policyId);
+
+  if (!validation.isAllowed) {
+    return { save, validation };
+  }
+
+  return {
+    validation,
+    save: {
+      ...save,
+      ludus: {
+        ...save.ludus,
+        treasury: save.ludus.treasury - validation.cost,
+      },
+      buildings: {
+        ...save.buildings,
+        [buildingId]: {
+          ...save.buildings[buildingId],
+          selectedPolicyId: policyId,
         },
       },
     },

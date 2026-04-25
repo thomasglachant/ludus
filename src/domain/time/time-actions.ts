@@ -1,6 +1,5 @@
-import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../../game-data/building-improvements';
-import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { DAYS_OF_WEEK, TIME_CONFIG, TRAINING_INTENSITY_EFFECTS } from '../../game-data/time';
+import { getHourlyBuildingEffects } from '../buildings/building-effects';
 import type { BuildingEffect, BuildingId, GameSave, GameSpeed, GameTickContext } from '../types';
 import { synchronizeArena, synchronizeBetting } from '../combat/combat-actions';
 import { synchronizeContracts } from '../contracts/contract-actions';
@@ -95,54 +94,6 @@ function getAdvancedGameMinutes(elapsedRealMilliseconds: number, speed: GameSpee
     (elapsedRealMilliseconds * speed * TIME_CONFIG.minutesPerHour) /
       TIME_CONFIG.realMillisecondsPerGameHour,
   );
-}
-
-function getCurrentLevelEffects(save: GameSave, buildingId: BuildingId) {
-  const building = save.buildings[buildingId];
-
-  if (!building.isPurchased || building.level <= 0) {
-    return [];
-  }
-
-  return (
-    BUILDING_DEFINITIONS[buildingId].levels.find((level) => level.level === building.level)
-      ?.effects ?? []
-  );
-}
-
-function getPurchasedImprovementEffects(save: GameSave, buildingId: BuildingId) {
-  const building = save.buildings[buildingId];
-
-  return BUILDING_IMPROVEMENTS.filter(
-    (improvement) =>
-      improvement.buildingId === buildingId &&
-      building.purchasedImprovementIds.includes(improvement.id),
-  ).flatMap((improvement) => improvement.effects);
-}
-
-function getSelectedPolicyEffects(save: GameSave, buildingId: BuildingId) {
-  const building = save.buildings[buildingId];
-
-  if (!building.selectedPolicyId) {
-    return [];
-  }
-
-  return (
-    BUILDING_POLICIES.find(
-      (policy) =>
-        policy.buildingId === buildingId &&
-        policy.id === building.selectedPolicyId &&
-        policy.requiredBuildingLevel <= building.level,
-    )?.effects ?? []
-  );
-}
-
-function getHourlyEffects(save: GameSave, buildingId: BuildingId) {
-  return [
-    ...getCurrentLevelEffects(save, buildingId),
-    ...getPurchasedImprovementEffects(save, buildingId),
-    ...getSelectedPolicyEffects(save, buildingId),
-  ].filter((effect) => effect.perHour);
 }
 
 function getTrainingStatEffectType(gladiator: Gladiator, save: GameSave): BuildingEffect['type'] {
@@ -243,7 +194,7 @@ function applyAssignedBuildingEffects(save: GameSave, gladiator: Gladiator, hour
     return gladiator;
   }
 
-  const effects = getHourlyEffects(save, gladiator.currentBuildingId).filter(
+  const effects = getHourlyBuildingEffects(save, gladiator.currentBuildingId).filter(
     (effect) => (effect.target ?? 'assignedGladiator') === 'assignedGladiator',
   );
 
@@ -268,7 +219,9 @@ function applyAssignedBuildingEffects(save: GameSave, gladiator: Gladiator, hour
 function applyAllGladiatorEffects(save: GameSave, gladiator: Gladiator, hours: number) {
   return Object.values(save.buildings)
     .flatMap((building) =>
-      getHourlyEffects(save, building.id).filter((effect) => effect.target === 'allGladiators'),
+      getHourlyBuildingEffects(save, building.id).filter(
+        (effect) => effect.target === 'allGladiators',
+      ),
     )
     .reduce((updatedGladiator, effect) => applyEffect(updatedGladiator, effect, hours), gladiator);
 }

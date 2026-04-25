@@ -1,7 +1,10 @@
 import {
+  validateBuildingImprovementPurchase,
+  validateBuildingPolicySelection,
   validateBuildingPurchase,
   validateBuildingUpgrade,
 } from '../../domain/buildings/building-actions';
+import { getActiveBuildingEffects } from '../../domain/buildings/building-effects';
 import { validateDormitoryBedPurchase } from '../../domain/buildings/dormitory-actions';
 import {
   getAvailableDormitoryBeds,
@@ -9,7 +12,7 @@ import {
   getMaximumPurchasableDormitoryBeds,
   getDormitoryPurchasedBeds,
 } from '../../domain/buildings/dormitory-capacity';
-import { calculateReadiness } from '../../domain/planning/readiness';
+import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import type {
   BuildingActionValidation,
   BuildingEffect,
@@ -37,21 +40,34 @@ export interface BuildingPanelViewModel {
   descriptionKey: string;
   effects: string[];
   improvements: {
+    actionLabelKey: string;
+    canPurchase: boolean;
     cost: number;
     descriptionKey: string;
+    effects: string[];
     id: string;
     isPurchased: boolean;
     nameKey: string;
+    requiredBuildingLevel: number;
+    requiredImprovementNames: string[];
+    validationMessageKey: string | null;
+    validationMessageParams: Record<string, string | number>;
   }[];
   isPurchased: boolean;
   level: number;
   nameKey: string;
   policies: {
+    actionLabelKey: string;
+    canSelect: boolean;
     cost?: number;
     descriptionKey: string;
+    effects: string[];
     id: string;
     isSelected: boolean;
     nameKey: string;
+    requiredBuildingLevel: number;
+    validationMessageKey: string | null;
+    validationMessageParams: Record<string, string | number>;
   }[];
   statusKey: string;
 }
@@ -74,7 +90,15 @@ function getBuildingActionMessageKey(validation: BuildingActionValidation) {
 function getBuildingActionMessageParams(validation: BuildingActionValidation) {
   return {
     cost: validation.cost,
-    level: validation.requiredDomusLevel ?? validation.targetLevel ?? 0,
+    level:
+      validation.requiredBuildingLevel ??
+      validation.requiredDomusLevel ??
+      validation.targetLevel ??
+      0,
+    missing:
+      validation.missingImprovementIds && validation.missingImprovementIds.length > 0
+        ? validation.missingImprovementIds.join(', ')
+        : '',
   };
 }
 
@@ -97,7 +121,6 @@ export function createBuildingPanelViewModel(
 ): BuildingPanelViewModel {
   const building = save.buildings[buildingId];
   const definition = BUILDING_DEFINITIONS[buildingId];
-  const levelDefinition = definition.levels.find((level) => level.level === building.level);
   const purchaseValidation = validateBuildingPurchase(save, buildingId);
   const upgradeValidation = validateBuildingUpgrade(save, buildingId);
   const actionValidation = building.isPurchased ? upgradeValidation : purchaseValidation;
@@ -115,30 +138,65 @@ export function createBuildingPanelViewModel(
       .map((gladiator) => ({
         id: gladiator.id,
         name: gladiator.name,
-        readiness: calculateReadiness(gladiator),
+        readiness: calculateEffectiveReadiness(save, gladiator),
       })),
     descriptionKey: definition.descriptionKey,
-    effects: formatBuildingEffects(levelDefinition?.effects ?? [], t),
+    effects: formatBuildingEffects(getActiveBuildingEffects(save, buildingId), t),
     improvements: BUILDING_IMPROVEMENTS.filter(
       (improvement) => improvement.buildingId === buildingId,
-    ).map((improvement) => ({
-      cost: improvement.cost,
-      descriptionKey: improvement.descriptionKey,
-      id: improvement.id,
-      isPurchased: building.purchasedImprovementIds.includes(improvement.id),
-      nameKey: improvement.nameKey,
-    })),
+    ).map((improvement) => {
+      const validation = validateBuildingImprovementPurchase(save, buildingId, improvement.id);
+      const isPurchased = building.purchasedImprovementIds.includes(improvement.id);
+      const requiredImprovementNames = (improvement.requiredImprovementIds ?? []).map(
+        (requiredImprovementId) =>
+          t(
+            BUILDING_IMPROVEMENTS.find(
+              (candidate) =>
+                candidate.buildingId === buildingId && candidate.id === requiredImprovementId,
+            )?.nameKey ?? requiredImprovementId,
+          ),
+      );
+
+      return {
+        actionLabelKey: isPurchased ? 'common.purchased' : 'buildingPanel.purchaseImprovement',
+        canPurchase: validation.isAllowed,
+        cost: improvement.cost,
+        descriptionKey: improvement.descriptionKey,
+        effects: formatBuildingEffects(improvement.effects, t),
+        id: improvement.id,
+        isPurchased,
+        nameKey: improvement.nameKey,
+        requiredBuildingLevel: improvement.requiredBuildingLevel,
+        requiredImprovementNames,
+        validationMessageKey: getBuildingActionMessageKey(validation),
+        validationMessageParams: {
+          ...getBuildingActionMessageParams(validation),
+          missing: requiredImprovementNames.join(', '),
+        },
+      };
+    }),
     isPurchased: building.isPurchased,
     level: building.level,
     nameKey: definition.nameKey,
     policies: BUILDING_POLICIES.filter((policy) => policy.buildingId === buildingId).map(
-      (policy) => ({
-        cost: policy.cost,
-        descriptionKey: policy.descriptionKey,
-        id: policy.id,
-        isSelected: building.selectedPolicyId === policy.id,
-        nameKey: policy.nameKey,
-      }),
+      (policy) => {
+        const validation = validateBuildingPolicySelection(save, buildingId, policy.id);
+        const isSelected = building.selectedPolicyId === policy.id;
+
+        return {
+          actionLabelKey: isSelected ? 'common.selected' : 'buildingPanel.selectPolicy',
+          canSelect: validation.isAllowed,
+          cost: policy.cost,
+          descriptionKey: policy.descriptionKey,
+          effects: formatBuildingEffects(policy.effects, t),
+          id: policy.id,
+          isSelected,
+          nameKey: policy.nameKey,
+          requiredBuildingLevel: policy.requiredBuildingLevel,
+          validationMessageKey: getBuildingActionMessageKey(validation),
+          validationMessageParams: getBuildingActionMessageParams(validation),
+        };
+      },
     ),
     statusKey: building.isPurchased ? 'common.purchased' : 'common.notPurchased',
   };

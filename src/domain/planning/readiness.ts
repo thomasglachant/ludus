@@ -1,5 +1,7 @@
 import { READINESS_WEIGHTS } from '../../game-data/planning';
+import { getGladiatorReadinessEffectBonus } from '../buildings/building-effects';
 import type { Gladiator } from '../gladiators/types';
+import type { GameSave } from '../saves/types';
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -15,4 +17,14 @@ export function calculateReadiness(gladiator: Gladiator) {
     reputationStability * READINESS_WEIGHTS.reputationStability;
 
   return Math.round(clamp(score, 0, 100));
+}
+
+export function calculateEffectiveReadiness(save: GameSave, gladiator: Gladiator) {
+  return Math.round(
+    clamp(
+      calculateReadiness(gladiator) + getGladiatorReadinessEffectBonus(save, gladiator),
+      0,
+      100,
+    ),
+  );
 }

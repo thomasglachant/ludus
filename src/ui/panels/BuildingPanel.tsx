@@ -1,10 +1,11 @@
-import { Bed, Hammer } from 'lucide-react';
+import { Bed, Check, Hammer } from 'lucide-react';
 import { useState } from 'react';
 import type { BuildingId, GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store';
 import {
   EffectList,
   EmptyState,
+  CostSummary,
   MetricList,
   NoticeBox,
   PanelShell,
@@ -22,7 +23,9 @@ interface BuildingPanelProps {
   buildingId: BuildingId;
   onClose(): void;
   onPurchaseBuilding(buildingId: BuildingId): void;
+  onPurchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
   onPurchaseDormitoryBed(): void;
+  onSelectBuildingPolicy(buildingId: BuildingId, policyId: string): void;
   onUpgradeBuilding(buildingId: BuildingId): void;
 }
 
@@ -40,7 +43,9 @@ export function BuildingPanel({
   buildingId,
   onClose,
   onPurchaseBuilding,
+  onPurchaseBuildingImprovement,
   onPurchaseDormitoryBed,
+  onSelectBuildingPolicy,
   onUpgradeBuilding,
 }: BuildingPanelProps) {
   const { openConfirmModal, t } = useUiStore();
@@ -84,6 +89,41 @@ export function BuildingPanel({
       onConfirm: onPurchaseDormitoryBed,
       testId: 'dormitory-bed-purchase-confirm-dialog',
       titleKey: 'dormitoryBeds.confirmPurchase.title',
+    });
+  };
+
+  const requestImprovementPurchase = (improvement: (typeof viewModel.improvements)[number]) => {
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: 'buildingPanel.purchaseImprovement',
+      messageKey: 'buildingPanel.confirmImprovementPurchase.message',
+      messageParams: {
+        cost: improvement.cost,
+        improvement: t(improvement.nameKey),
+      },
+      onConfirm: () => onPurchaseBuildingImprovement(buildingId, improvement.id),
+      testId: 'building-improvement-purchase-confirm-dialog',
+      titleKey: 'buildingPanel.confirmImprovementPurchase.title',
+    });
+  };
+
+  const requestPolicySelection = (policy: (typeof viewModel.policies)[number]) => {
+    if (!policy.cost) {
+      onSelectBuildingPolicy(buildingId, policy.id);
+      return;
+    }
+
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: 'buildingPanel.selectPolicy',
+      messageKey: 'buildingPanel.confirmPolicySelection.message',
+      messageParams: {
+        cost: policy.cost,
+        policy: t(policy.nameKey),
+      },
+      onConfirm: () => onSelectBuildingPolicy(buildingId, policy.id),
+      testId: 'building-policy-selection-confirm-dialog',
+      titleKey: 'buildingPanel.confirmPolicySelection.title',
     });
   };
 
@@ -181,10 +221,49 @@ export function BuildingPanel({
         <div className="context-panel__list">
           {viewModel.improvements.length > 0 ? (
             viewModel.improvements.map((improvement) => (
-              <SectionCard key={improvement.id}>
+              <SectionCard
+                className={improvement.isPurchased ? 'is-selected' : ''}
+                key={improvement.id}
+                testId={`building-improvement-${improvement.id}`}
+              >
                 <strong>{t(improvement.nameKey)}</strong>
                 <span>{t(improvement.descriptionKey)}</span>
-                <small>{t('buildingPanel.improvementCost', { cost: improvement.cost })}</small>
+                <MetricList
+                  columns={2}
+                  items={[
+                    {
+                      labelKey: 'buildingPanel.requiredLevel',
+                      value: t('common.level', { level: improvement.requiredBuildingLevel }),
+                    },
+                    {
+                      labelKey: 'buildingPanel.requiredImprovements',
+                      value:
+                        improvement.requiredImprovementNames.length > 0
+                          ? improvement.requiredImprovementNames.join(', ')
+                          : t('common.empty'),
+                    },
+                  ]}
+                />
+                <CostSummary
+                  labelKey="buildingPanel.improvementCost"
+                  value={t('buildings.purchaseCost', { cost: improvement.cost })}
+                />
+                <EffectList effects={improvement.effects} />
+                {improvement.validationMessageKey ? (
+                  <NoticeBox tone={improvement.isPurchased ? 'info' : 'warning'}>
+                    {t(improvement.validationMessageKey, improvement.validationMessageParams)}
+                  </NoticeBox>
+                ) : null}
+                <div className="context-panel__actions">
+                  <button
+                    disabled={!improvement.canPurchase}
+                    type="button"
+                    onClick={() => requestImprovementPurchase(improvement)}
+                  >
+                    <Hammer aria-hidden="true" size={17} />
+                    <span>{t(improvement.actionLabelKey)}</span>
+                  </button>
+                </div>
               </SectionCard>
             ))
           ) : (
@@ -196,14 +275,50 @@ export function BuildingPanel({
         <div className="context-panel__list">
           {viewModel.policies.length > 0 ? (
             viewModel.policies.map((policy) => (
-              <SectionCard className={policy.isSelected ? 'is-selected' : ''} key={policy.id}>
+              <SectionCard
+                className={policy.isSelected ? 'is-selected' : ''}
+                key={policy.id}
+                testId={`building-policy-${policy.id}`}
+              >
                 <strong>{t(policy.nameKey)}</strong>
                 <span>{t(policy.descriptionKey)}</span>
-                <small>
-                  {policy.cost
-                    ? t('buildingPanel.policyCost', { cost: policy.cost })
-                    : t('common.empty')}
-                </small>
+                <MetricList
+                  columns={2}
+                  items={[
+                    {
+                      labelKey: 'buildingPanel.requiredLevel',
+                      value: t('common.level', { level: policy.requiredBuildingLevel }),
+                    },
+                    {
+                      labelKey: 'buildingPanel.policyStatus',
+                      value: t(policy.isSelected ? 'common.selected' : 'common.notSelected'),
+                    },
+                  ]}
+                />
+                <CostSummary
+                  labelKey="buildingPanel.policyCost"
+                  value={
+                    policy.cost
+                      ? t('buildings.purchaseCost', { cost: policy.cost })
+                      : t('common.empty')
+                  }
+                />
+                <EffectList effects={policy.effects} />
+                {policy.validationMessageKey ? (
+                  <NoticeBox tone={policy.isSelected ? 'info' : 'warning'}>
+                    {t(policy.validationMessageKey, policy.validationMessageParams)}
+                  </NoticeBox>
+                ) : null}
+                <div className="context-panel__actions">
+                  <button
+                    disabled={!policy.canSelect}
+                    type="button"
+                    onClick={() => requestPolicySelection(policy)}
+                  >
+                    <Check aria-hidden="true" size={17} />
+                    <span>{t(policy.actionLabelKey)}</span>
+                  </button>
+                </div>
               </SectionCard>
             ))
           ) : (

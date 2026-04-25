@@ -110,6 +110,13 @@ Clicking a building opens a contextual panel with:
 - current policy;
 - assigned gladiators.
 
+Building panels should use shared tabs:
+
+- Overview: ownership, level, upgrade or purchase action, current level effects and building-specific summaries.
+- Improvements: available improvements, cost, required level, required improvements, effects, purchased status and disabled purchase reasons.
+- Policy: available policies, selection cost when present, required level, effects, selected status and disabled selection reasons.
+- Gladiators: assigned gladiators with compact readiness context.
+
 For base buildings, the primary call to action should be upgrade or configure rather than purchase, because they start owned at level 1. Purchase actions should still exist for future optional buildings that start unpurchased.
 
 Building details should not be permanently displayed below the map.
@@ -131,6 +138,8 @@ Suggested building panel tabs:
 - Gladiators.
 
 Buildings should be represented by visual assets or styled placeholder art, not plain boxes or text-only cards. The removed building budget slider system must not return.
+
+Improvement and policy rows should compose shared primitives such as `SectionCard`, `EffectList`, `CostSummary`, badges and shared action buttons. Expensive or blocking purchases should use the global confirmation modal. Disabled actions must show i18n-backed reasons rather than silently disabling controls.
 
 ## 7. Gladiator Roster
 

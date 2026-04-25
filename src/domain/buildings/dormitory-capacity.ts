@@ -1,5 +1,6 @@
 import { DORMITORY_BED_CONFIG } from '../../game-data/building-levels';
 import type { GameSave } from '../saves/types';
+import { getPurchasedDormitoryImprovementCapacityBonus } from './building-effects';
 import type { DormitoryConfiguration } from './types';
 
 function getDormitoryConfiguration(save: GameSave): DormitoryConfiguration {
@@ -24,7 +25,9 @@ export function getDormitoryCapacity(save: GameSave) {
   }
 
   const freeBeds = DORMITORY_BED_CONFIG.freeBedsAtLevelOne + Math.max(0, dormitory.level - 1);
-  return freeBeds + getDormitoryPurchasedBeds(save);
+  return (
+    freeBeds + getDormitoryPurchasedBeds(save) + getPurchasedDormitoryImprovementCapacityBonus(save)
+  );
 }
 
 export function getAvailableDormitoryBeds(save: GameSave) {

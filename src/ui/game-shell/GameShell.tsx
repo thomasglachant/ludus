@@ -18,11 +18,13 @@ export function GameShell() {
     errorKey,
     isLoading,
     purchaseBuilding,
+    purchaseBuildingImprovement,
     purchaseDormitoryBed,
     resetActiveDemo,
     resolveGameEventChoice,
     saveCurrentGame,
     scoutOpponent,
+    selectBuildingPolicy,
     setGameSpeed,
     updateGladiatorRoutine,
     upgradeBuilding,
@@ -96,9 +98,11 @@ export function GameShell() {
         onApplyPlanningRecommendations={applyPlanningRecommendations}
         onClose={closePanel}
         onPurchaseBuilding={purchaseBuilding}
+        onPurchaseBuildingImprovement={purchaseBuildingImprovement}
         onPurchaseDormitoryBed={purchaseDormitoryBed}
         onResolveEventChoice={resolveGameEventChoice}
         onScoutOpponent={scoutOpponent}
+        onSelectBuildingPolicy={selectBuildingPolicy}
         onUpdateGladiatorRoutine={updateGladiatorRoutine}
         onUpgradeBuilding={upgradeBuilding}
       />

@@ -10,9 +10,11 @@ The quality baseline is defined by a local and GitHub Actions CI gate covering `
 
 The UI baseline includes shared primitives for contextual panels, section cards, tabs, empty states, notices, metric lists, effect lists, cost summaries, badges and global confirmation or lightweight form modals. Building and gladiator detail panels already use these primitives, and building panel display data is prepared through reusable view-model helpers.
 
+Building management includes domain-validated level upgrades, improvement purchases and policy selection. Building panels expose Overview, Improvements, Policy and Gladiators tabs with costs, requirements, effects, purchased or selected status and disabled action reasons. Building effects are centralized through domain helpers, and only effects marked `perHour: true` are applied during hourly time advancement.
+
 New saves start with all base buildings purchased at level 1: `domus`, `canteen`, `dormitory`, `trainingGround`, `pleasureHall` and `infirmary`. Building initialization is data-driven from `startsPurchased` and `startsAtLevel`, the dormitory provides its level 1 free bed, additional beds can be purchased with treasury up to the current level cap, and purchase validation remains available for future optional buildings that start unpurchased.
 
-The market respects Dormitory capacity before buying gladiators. Buying a gladiator requires an available bed, buying a Dormitory bed increases capacity, and sale contract completion is tied to gladiator sale flow rather than market purchase flow.
+The market respects Dormitory capacity before buying gladiators. Buying a gladiator requires an available bed, buying a Dormitory bed or a Dormitory capacity improvement increases capacity, and sale contract completion is tied to gladiator sale flow rather than market purchase flow.
 
 The next work should keep improving the playable loop while preserving the architectural split between `src/game-data`, `src/domain`, `src/state`, `src/persistence` and `src/ui`.
 
@@ -25,13 +27,13 @@ Product outcomes:
 - player can create and load a local save;
 - player can change language between French and English;
 - player sees a map-first ludus screen by default;
-- player can upgrade and configure base buildings;
+- player can upgrade buildings, buy building improvements and select building policies;
 - future optional buildings can use the existing purchase flow when they start unpurchased;
 - player can expand dormitory capacity and buy gladiators from the market when bed capacity allows;
 - each gladiator can receive a weekly objective and training intensity;
 - recommendations, manual overrides and readiness warnings make 8+ gladiators manageable;
 - time advances through the week at supported speeds;
-- building effects update gladiator gauges;
+- hourly building effects update gladiator gauges and permanent/contextual effects feed dedicated helpers;
 - Sunday triggers turn-based arena combats;
 - combat logs, rewards and consequences are visible;
 - demo saves support stable testing of early, mid and advanced states.
@@ -55,8 +57,7 @@ Focus areas:
 - deeper weekly planning recommendations;
 - clearer readiness explanations;
 - stronger alert prioritization;
-- more meaningful building policies;
-- better improvement effects;
+- deeper building policy and improvement balancing;
 - contract acceptance and resolution;
 - simple daily events with meaningful choices;
 - combat strategy selection;
