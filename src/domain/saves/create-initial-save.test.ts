@@ -48,7 +48,7 @@ describe('createInitialSave', () => {
       configuration: { carePolicyId: 'basicCare' },
       selectedPolicyId: 'basicCare',
     });
-    expect(getDormitoryCapacity(save)).toBeGreaterThanOrEqual(1);
+    expect(getDormitoryCapacity(save)).toBe(1);
     expect(save.gladiators).toEqual([]);
     expect(save.market.availableGladiators).toHaveLength(5);
   });

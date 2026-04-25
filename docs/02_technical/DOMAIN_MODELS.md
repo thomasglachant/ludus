@@ -164,6 +164,8 @@ export interface InfirmaryConfiguration {
 }
 ```
 
+`DormitoryConfiguration.purchasedBeds` stores only beds explicitly bought by the player. It does not include the free bed granted by the level 1 Dormitory. Domain helpers combine `purchasedBeds` with `DORMITORY_BED_CONFIG.freeBedsAtLevelOne` and the Dormitory level to compute total capacity.
+
 Building state must not contain a generic `budget` field.
 
 ## Building Definitions

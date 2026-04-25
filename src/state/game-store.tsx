@@ -19,6 +19,7 @@ import {
 } from 'react';
 import { featureFlags } from '../config/features';
 import { purchaseBuilding, upgradeBuilding } from '../domain/buildings/building-actions';
+import { purchaseDormitoryBed } from '../domain/buildings/dormitory-actions';
 import { buyMarketGladiator, sellGladiator } from '../domain/market/market-actions';
 import {
   applyPlanningRecommendations,
@@ -64,6 +65,7 @@ interface GameStoreValue {
   changeLanguage(language: LanguageCode): Promise<void>;
   setGameSpeed(speed: GameSpeed): void;
   purchaseBuilding(buildingId: BuildingId): void;
+  purchaseDormitoryBed(): void;
   upgradeBuilding(buildingId: BuildingId): void;
   buyMarketGladiator(candidateId: string): void;
   sellGladiator(gladiatorId: string): void;
@@ -305,6 +307,18 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const purchaseDormitoryBedAction = useCallback(() => {
+    setCurrentSave((save) => {
+      if (!save) {
+        return save;
+      }
+
+      const result = purchaseDormitoryBed(save);
+
+      return result.save;
+    });
+  }, []);
+
   const buyMarketGladiatorAction = useCallback((candidateId: string) => {
     setCurrentSave((save) => {
       if (!save) {
@@ -462,6 +476,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       changeLanguage,
       setGameSpeed: setGameSpeedAction,
       purchaseBuilding: purchaseBuildingAction,
+      purchaseDormitoryBed: purchaseDormitoryBedAction,
       upgradeBuilding: upgradeBuildingAction,
       buyMarketGladiator: buyMarketGladiatorAction,
       sellGladiator: sellGladiatorAction,
@@ -489,6 +504,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     loadLocalSave,
     localSaves,
     purchaseBuildingAction,
+    purchaseDormitoryBedAction,
     refreshLocalSaves,
     refreshDemoSaves,
     resetActiveDemo,

@@ -14,6 +14,7 @@ interface ContextualPanelHostProps {
   onApplyPlanningRecommendations(): void;
   onClose(): void;
   onPurchaseBuilding(buildingId: BuildingId): void;
+  onPurchaseDormitoryBed(): void;
   onResolveEventChoice(eventId: string, choiceId: string): void;
   onScoutOpponent(gladiatorId: string): void;
   onUpdateGladiatorRoutine(gladiatorId: string, update: GladiatorRoutineUpdate): void;
@@ -29,6 +30,7 @@ export function ContextualPanelHost({
   onApplyPlanningRecommendations,
   onClose,
   onPurchaseBuilding,
+  onPurchaseDormitoryBed,
   onResolveEventChoice,
   onScoutOpponent,
   onUpdateGladiatorRoutine,
@@ -50,6 +52,7 @@ export function ContextualPanelHost({
           save={save}
           onClose={onClose}
           onPurchaseBuilding={onPurchaseBuilding}
+          onPurchaseDormitoryBed={onPurchaseDormitoryBed}
           onUpgradeBuilding={onUpgradeBuilding}
         />
       ) : null}

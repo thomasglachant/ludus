@@ -12,6 +12,7 @@ import type { Gladiator, MarketGladiator } from '../../domain/types';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
 import { ActionButton } from '../components/ActionButton';
+import { EmptyState, MetricList, NoticeBox } from '../components/shared';
 import { StatusBar } from '../components/StatusBar';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
@@ -152,7 +153,7 @@ function OwnedGladiatorCard({
 
 export function MarketScreen() {
   const { currentSave, buyMarketGladiator, sellGladiator, setGameSpeed } = useGameStore();
-  const { navigate, t } = useUiStore();
+  const { navigate, openConfirmModal, t } = useUiStore();
 
   if (!currentSave) {
     return null;
@@ -162,9 +163,15 @@ export function MarketScreen() {
   const availableBeds = getAvailableDormitoryBeds(currentSave);
 
   const handleSell = (gladiator: Gladiator) => {
-    if (window.confirm(t('market.sellConfirmation', { name: gladiator.name }))) {
-      sellGladiator(gladiator.id);
-    }
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: 'market.sell',
+      messageKey: 'market.sellConfirmation',
+      messageParams: { name: gladiator.name },
+      onConfirm: () => sellGladiator(gladiator.id),
+      testId: 'market-sell-confirm-dialog',
+      titleKey: 'market.sellConfirmationTitle',
+    });
   };
 
   return (
@@ -186,31 +193,28 @@ export function MarketScreen() {
       </div>
       <section className="panel panel--summary">
         <h2>{t('market.capacityTitle')}</h2>
-        <dl className="stat-list">
-          <div>
-            <dt>{t('market.ownedBeds')}</dt>
-            <dd>
-              {currentSave.gladiators.length}/{dormitoryCapacity}
-            </dd>
-          </div>
-          <div>
-            <dt>{t('market.availableBeds')}</dt>
-            <dd>{availableBeds}</dd>
-          </div>
-          <div>
-            <dt>{t('market.candidates')}</dt>
-            <dd>{currentSave.market.availableGladiators.length}</dd>
-          </div>
-        </dl>
+        <MetricList
+          items={[
+            {
+              labelKey: 'market.ownedBeds',
+              value: `${currentSave.gladiators.length}/${dormitoryCapacity}`,
+            },
+            { labelKey: 'market.availableBeds', value: availableBeds },
+            { labelKey: 'market.candidates', value: currentSave.market.availableGladiators.length },
+          ]}
+        />
         {availableBeds <= 0 ? (
-          <div className="notice-row notice-row--warning">
+          <NoticeBox tone="warning" testId="market-capacity-full-notice">
             <Bed aria-hidden="true" size={18} />
             <span>{t('market.noBedWarning')}</span>
-          </div>
+          </NoticeBox>
         ) : null}
       </section>
       <section className="panel">
         <h2>{t('market.availableGladiators')}</h2>
+        {availableBeds <= 0 ? (
+          <EmptyState messageKey="market.capacityFullState" testId="market-capacity-full-state" />
+        ) : null}
         {currentSave.market.availableGladiators.length > 0 ? (
           <div className="gladiator-grid">
             {currentSave.market.availableGladiators.map((candidate) => (
@@ -222,7 +226,7 @@ export function MarketScreen() {
             ))}
           </div>
         ) : (
-          <p className="empty-state">{t('market.noCandidates')}</p>
+          <EmptyState messageKey="market.noCandidates" />
         )}
       </section>
       <section className="panel">
@@ -238,7 +242,7 @@ export function MarketScreen() {
             ))}
           </div>
         ) : (
-          <p className="empty-state">{t('market.noOwnedGladiators')}</p>
+          <EmptyState messageKey="market.noOwnedGladiators" />
         )}
       </section>
     </section>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MARKET_CONFIG } from '../../game-data/market';
+import { purchaseDormitoryBed } from '../buildings/dormitory-actions';
 import { getAvailableDormitoryBeds, getDormitoryCapacity } from '../buildings/dormitory-capacity';
 import type { Gladiator } from '../gladiators/types';
 import { createInitialSave } from '../saves/create-initial-save';
@@ -137,6 +138,48 @@ describe('market actions', () => {
       isAllowed: false,
       reason: 'noAvailableBed',
     });
+  });
+
+  it('allows buying a market gladiator after purchasing an additional bed', () => {
+    const save = {
+      ...withPurchasedDormitory(createTestSave()),
+      gladiators: [createOwnedGladiator()],
+    };
+    const candidate = save.market.availableGladiators[0];
+    const blockedValidation = validateMarketPurchase(save, candidate.id);
+    const expandedSave = purchaseDormitoryBed(save).save;
+    const result = buyMarketGladiator(expandedSave, candidate.id);
+
+    expect(blockedValidation).toMatchObject({
+      isAllowed: false,
+      reason: 'noAvailableBed',
+    });
+    expect(getAvailableDormitoryBeds(expandedSave)).toBe(1);
+    expect(result.validation.isAllowed).toBe(true);
+    expect(result.save.gladiators).toHaveLength(2);
+  });
+
+  it('does not complete sale contracts when buying a market gladiator', () => {
+    const save = withPurchasedDormitory(createTestSave());
+    const saleContract = {
+      ...save.contracts.availableContracts[0],
+      id: 'contract-sale-test',
+      status: 'accepted' as const,
+      objective: { type: 'sellGladiatorForAtLeast' as const, amount: 0 },
+      rewardTreasury: 80,
+    };
+    const saveWithContract: GameSave = {
+      ...save,
+      contracts: {
+        availableContracts: [],
+        acceptedContracts: [saleContract],
+      },
+    };
+    const candidate = save.market.availableGladiators[0];
+    const result = buyMarketGladiator(saveWithContract, candidate.id);
+
+    expect(result.save.contracts.acceptedContracts[0].status).toBe('accepted');
+    expect(result.save.ludus.treasury).toBe(save.ludus.treasury - candidate.price);
   });
 
   it('sells an owned gladiator and frees capacity', () => {

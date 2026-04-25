@@ -10,7 +10,9 @@ The quality baseline is defined by a local and GitHub Actions CI gate covering `
 
 The UI baseline includes shared primitives for contextual panels, section cards, tabs, empty states, notices, metric lists, effect lists, cost summaries, badges and global confirmation or lightweight form modals. Building and gladiator detail panels already use these primitives, and building panel display data is prepared through reusable view-model helpers.
 
-New saves start with all base buildings purchased at level 1: `domus`, `canteen`, `dormitory`, `trainingGround`, `pleasureHall` and `infirmary`. Building initialization is data-driven from `startsPurchased` and `startsAtLevel`, the dormitory provides its level 1 free bed, and purchase validation remains available for future optional buildings that start unpurchased.
+New saves start with all base buildings purchased at level 1: `domus`, `canteen`, `dormitory`, `trainingGround`, `pleasureHall` and `infirmary`. Building initialization is data-driven from `startsPurchased` and `startsAtLevel`, the dormitory provides its level 1 free bed, additional beds can be purchased with treasury up to the current level cap, and purchase validation remains available for future optional buildings that start unpurchased.
+
+The market respects Dormitory capacity before buying gladiators. Buying a gladiator requires an available bed, buying a Dormitory bed increases capacity, and sale contract completion is tied to gladiator sale flow rather than market purchase flow.
 
 The next work should keep improving the playable loop while preserving the architectural split between `src/game-data`, `src/domain`, `src/state`, `src/persistence` and `src/ui`.
 
@@ -25,7 +27,7 @@ Product outcomes:
 - player sees a map-first ludus screen by default;
 - player can upgrade and configure base buildings;
 - future optional buildings can use the existing purchase flow when they start unpurchased;
-- player can buy gladiators from the market when bed capacity allows;
+- player can expand dormitory capacity and buy gladiators from the market when bed capacity allows;
 - each gladiator can receive a weekly objective and training intensity;
 - recommendations, manual overrides and readiness warnings make 8+ gladiators manageable;
 - time advances through the week at supported speeds;
@@ -115,6 +117,7 @@ Goal: make the game readable, comfortable and emotionally sticky.
 Focus areas:
 
 - tune building upgrade costs and future optional purchase costs;
+- tune Dormitory bed costs and capacity caps;
 - tune readiness weights;
 - tune market prices and sale values;
 - tune combat hit chance, damage and consequences;

@@ -2,10 +2,12 @@ import {
   validateBuildingPurchase,
   validateBuildingUpgrade,
 } from '../../domain/buildings/building-actions';
+import { validateDormitoryBedPurchase } from '../../domain/buildings/dormitory-actions';
 import {
   getAvailableDormitoryBeds,
   getDormitoryCapacity,
   getMaximumPurchasableDormitoryBeds,
+  getDormitoryPurchasedBeds,
 } from '../../domain/buildings/dormitory-capacity';
 import { calculateReadiness } from '../../domain/planning/readiness';
 import type {
@@ -57,8 +59,11 @@ export interface BuildingPanelViewModel {
 export interface DormitoryCapacityViewModel {
   availableBeds: number;
   capacity: number;
+  canPurchaseBed: boolean;
   maximumPurchasableBeds: number;
+  nextBedCost: number;
   purchasedBeds: number;
+  validationMessageKey: string | null;
   usedBeds: number;
 }
 
@@ -140,15 +145,18 @@ export function createBuildingPanelViewModel(
 }
 
 export function createDormitoryCapacityViewModel(save: GameSave): DormitoryCapacityViewModel {
-  const configuration = save.buildings.dormitory.configuration;
-  const purchasedBeds =
-    configuration && 'purchasedBeds' in configuration ? configuration.purchasedBeds : 0;
+  const validation = validateDormitoryBedPurchase(save);
 
   return {
     availableBeds: getAvailableDormitoryBeds(save),
     capacity: getDormitoryCapacity(save),
+    canPurchaseBed: validation.isAllowed,
     maximumPurchasableBeds: getMaximumPurchasableDormitoryBeds(save),
-    purchasedBeds,
+    nextBedCost: validation.cost,
+    purchasedBeds: getDormitoryPurchasedBeds(save),
+    validationMessageKey: validation.reason
+      ? `dormitoryBeds.validation.${validation.reason}`
+      : null,
     usedBeds: save.gladiators.length,
   };
 }
