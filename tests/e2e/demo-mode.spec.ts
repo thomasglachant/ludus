@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 const enabledBaseUrl = process.env.E2E_DEMO_ENABLED_BASE_URL ?? 'http://127.0.0.1:4173';
 const disabledBaseUrl = process.env.E2E_DEMO_DISABLED_BASE_URL ?? 'http://127.0.0.1:4174';
@@ -11,10 +11,16 @@ const baseBuildingIds = [
   'infirmary',
 ];
 
+async function openFresh(page: Page, url: string) {
+  await page.goto(new URL(url).origin);
+  await page.evaluate(() => localStorage.clear());
+  await page.goto(url);
+}
+
 test('creates a new game and opens the map-first shell with owned level 1 buildings', async ({
   page,
 }) => {
-  await page.goto(disabledBaseUrl);
+  await openFresh(page, disabledBaseUrl);
   await page.getByTestId('main-menu-new-game').click();
 
   await expect(page.getByTestId('new-game-screen')).toBeVisible();
@@ -33,8 +39,56 @@ test('creates a new game and opens the map-first shell with owned level 1 buildi
   }
 });
 
+test('plays the MVP smoke path through market, save, load and arena access', async ({ page }) => {
+  await openFresh(page, disabledBaseUrl);
+  await page.getByTestId('main-menu-new-game').click();
+
+  await page.getByTestId('new-game-owner-name').fill('Aulus');
+  await page.getByTestId('new-game-ludus-name').fill('Ludus Primus');
+  await page.getByTestId('new-game-submit').click();
+
+  await expect(page.getByTestId('map-container')).toBeVisible();
+  await expect(
+    page.getByText(/No gladiators yet\.|Aucun gladiateur pour le moment\./),
+  ).toBeVisible();
+
+  await page.getByTestId('navigation-market').click();
+  await expect(page.getByTestId('market-preview-panel')).toBeVisible();
+  await page.getByTestId('market-preview-open').click();
+  await expect(page.getByTestId('market-screen')).toBeVisible();
+  await expect(page.locator('[data-testid^="market-candidate-"]')).toHaveCount(5);
+  await expect(page.getByTestId('market-empty-owned')).toBeVisible();
+
+  await page.getByTestId('market-buy-market-1-1-1').click();
+
+  await expect(page.getByTestId('market-owned-market-1-1-1')).toBeVisible();
+  await expect(page.locator('[data-testid^="market-candidate-"]')).toHaveCount(4);
+  await expect(page.getByTestId('market-capacity-full-state')).toBeVisible();
+
+  await page.getByRole('button', { name: /Back|Retour/ }).click();
+  await expect(page.getByTestId('map-container')).toBeVisible();
+  await expect(page.getByTestId('gladiator-card-market-1-1-1')).toBeVisible();
+  await expect(page.getByTestId('save-status')).toContainText(
+    /Unsaved changes|Changements non sauvegardés/,
+  );
+
+  await page.getByTestId('topbar-save-button').click();
+  await expect(page.getByTestId('save-status')).toContainText(/Saved at|Sauvegardé à/);
+
+  await page.getByTestId('topbar-menu-button').click();
+  await page.getByTestId('main-menu-load-game').click();
+  await expect(page.locator('[data-testid^="local-save-card-"]')).toHaveCount(1);
+  await page.locator('[data-testid^="local-load-button-"]').first().click();
+
+  await expect(page.getByTestId('map-container')).toBeVisible();
+  await expect(page.getByTestId('gladiator-card-market-1-1-1')).toBeVisible();
+
+  await page.getByTestId('navigation-arena').click();
+  await expect(page.getByTestId('arena-panel')).toBeVisible();
+});
+
 test('demo mode is visible when enabled', async ({ page }) => {
-  await page.goto(enabledBaseUrl);
+  await openFresh(page, enabledBaseUrl);
   await page.getByTestId('main-menu-load-game').click();
 
   await expect(page.getByTestId('load-game-screen')).toBeVisible();
@@ -48,7 +102,7 @@ test('demo mode is visible when enabled', async ({ page }) => {
 });
 
 test('demo mode is hidden when disabled', async ({ page }) => {
-  await page.goto(disabledBaseUrl);
+  await openFresh(page, disabledBaseUrl);
   await page.getByTestId('main-menu-load-game').click();
 
   await expect(page.getByTestId('load-game-screen')).toBeVisible();
@@ -58,10 +112,14 @@ test('demo mode is hidden when disabled', async ({ page }) => {
 
   await expect(page.getByTestId('dev-demo-unavailable')).toBeVisible();
   await expect(page.getByTestId('map-container')).toHaveCount(0);
+
+  await page.goto(`${disabledBaseUrl}/dev/debug-dashboard`);
+
+  await expect(page.getByTestId('debug-dashboard-unavailable')).toBeVisible();
 });
 
 test('loads the early demo directly', async ({ page }) => {
-  await page.goto(`${enabledBaseUrl}/dev/demo/demo-early-ludus`);
+  await openFresh(page, `${enabledBaseUrl}/dev/demo/demo-early-ludus`);
 
   await expect(page.getByTestId('map-container')).toBeVisible();
   await expect(page.getByTestId('map-building-domus')).toBeVisible();
@@ -77,7 +135,7 @@ test('loads the early demo directly', async ({ page }) => {
 });
 
 test('loads the mid demo directly', async ({ page }) => {
-  await page.goto(`${enabledBaseUrl}/dev/demo/demo-mid-ludus`);
+  await openFresh(page, `${enabledBaseUrl}/dev/demo/demo-mid-ludus`);
 
   await expect(page.getByTestId('map-container')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-glad-demo-mid-gaius')).toBeVisible();
@@ -86,7 +144,7 @@ test('loads the mid demo directly', async ({ page }) => {
 });
 
 test('loads and resets the advanced demo directly', async ({ page }) => {
-  await page.goto(`${enabledBaseUrl}/dev/demo/demo-advanced-ludus`);
+  await openFresh(page, `${enabledBaseUrl}/dev/demo/demo-advanced-ludus`);
 
   await expect(page.getByTestId('map-container')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-glad-demo-adv-maximus')).toBeVisible();
@@ -99,4 +157,21 @@ test('loads and resets the advanced demo directly', async ({ page }) => {
 
   await expect(page.getByTestId('topbar-treasury')).toContainText('12000');
   await expect(page.getByTestId('topbar-time')).toContainText('18:30');
+});
+
+test('advances the advanced demo into Sunday arena resolution', async ({ page }) => {
+  await openFresh(page, `${enabledBaseUrl}/dev/demo/demo-advanced-ludus`);
+
+  await expect(page.getByTestId('map-container')).toBeVisible();
+  await page.getByTestId('speed-x16').click();
+  await expect(page.getByTestId('topbar-time')).toContainText(/Sunday|Dimanche/, {
+    timeout: 15_000,
+  });
+  await page.getByTestId('speed-pause').click();
+  await page.getByTestId('navigation-arena').click();
+
+  await expect(page.getByTestId('arena-panel')).toBeVisible();
+  await expect(page.getByTestId('arena-summary')).toBeVisible();
+  await expect(page.getByTestId('arena-current-combat')).toBeVisible();
+  await expect(page.getByTestId('arena-combat-log')).toBeVisible();
 });

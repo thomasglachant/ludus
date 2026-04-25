@@ -20,29 +20,20 @@ The market respects Dormitory capacity before buying gladiators. Buying a gladia
 
 The arena baseline resolves eligible Sunday combats once per week, protects rewards and consequences from repeated Sunday ticks, and exposes the Sunday results through the map-first arena panel. The panel shows the arena status, resolved combat list, selected combat details, turn log progression, victory or defeat badges, rewards, condition and reputation consequences, Sunday totals and empty states for days without eligible combatants. Before Sunday, the same panel still supports scouting odds when available.
 
-The next work should keep improving the playable loop while preserving the architectural split between `src/game-data`, `src/domain`, `src/state`, `src/persistence` and `src/ui`.
+The Phase 1 MVP playable loop is stable enough to serve as the baseline for Phase 2. New-game smoke coverage validates the map-first shell, owned level 1 base buildings, market recruitment with Dormitory capacity, manual save, local load and arena access. Demo coverage validates deterministic early, mid and advanced states, including an advanced Saturday evening path into Sunday arena resolution. A basic i18n audit guards against obvious hardcoded visible JSX strings in app and UI components.
 
-## Phase 1: MVP
+The next work should move Phase 2 systems forward while preserving the architectural split between `src/game-data`, `src/domain`, `src/state`, `src/persistence` and `src/ui`.
 
-Goal: prove the weekly preparation loop and Sunday arena loop.
+## Phase 1: MVP Baseline Maintenance
+
+Goal: keep the weekly preparation loop and Sunday arena loop stable while Phase 2 work begins.
 
 Product outcomes:
 
-- player can create and load a local save;
-- player understands whether the active local save has unsaved changes and when it was last saved;
-- player can change language between French and English;
-- player sees a map-first ludus screen by default;
-- player can upgrade buildings, buy building improvements and select building policies;
-- future optional buildings can use the existing purchase flow when they start unpurchased;
-- player can expand dormitory capacity and buy gladiators from the market when bed capacity allows;
-- each gladiator can receive a weekly objective and training intensity;
-- recommendations, manual overrides and readiness warnings make 8+ gladiators manageable;
-- time advances through the week at supported speeds;
-- hourly building effects update gladiator gauges and permanent/contextual effects feed dedicated helpers;
-- demo saves support stable testing of early, mid and advanced states.
-- demo saves remain read-only and cannot be overwritten by manual save.
-- new panels and focused dialogs reuse shared primitives, modal infrastructure and view-model helpers where the structure is shared.
-- remaining MVP work should focus on making pre-Sunday decisions and post-Sunday review more connected, especially contracts, events, scouting, betting and strategy choices.
+- keep demo saves stable for early, mid and advanced Playwright coverage;
+- keep visible player text i18n-backed;
+- keep map-first UI, local save, building setup, market capacity, planning, time advancement, building effects and Sunday arena review working together;
+- treat regressions in the MVP smoke path as release-blocking.
 
 Acceptance:
 
@@ -52,6 +43,8 @@ Acceptance:
 - no building budget slider exists;
 - normal gameplay opens the map-first shell;
 - debug dashboard remains development-only.
+
+Phase 1 should remain a baseline, not a source of new feature scope.
 
 ## Phase 2: Gameplay Improvements
 

@@ -91,7 +91,7 @@ function MarketCandidateCard({
   const validationMessageKey = getMarketValidationMessageKey(validation);
 
   return (
-    <article className="gladiator-card">
+    <article className="gladiator-card" data-testid={`market-candidate-${candidate.id}`}>
       <div className="gladiator-card__header">
         <GladiatorPortrait gladiator={candidate} size="small" />
         <div>
@@ -110,6 +110,7 @@ function MarketCandidateCard({
           disabled={!validation.isAllowed}
           icon={<ShoppingCart aria-hidden="true" size={18} />}
           label={t('market.buy')}
+          testId={`market-buy-${candidate.id}`}
           variant="primary"
           onClick={() => onBuy(candidate.id)}
         />
@@ -129,7 +130,7 @@ function OwnedGladiatorCard({
   const saleValue = calculateGladiatorSaleValue(gladiator);
 
   return (
-    <article className="gladiator-card">
+    <article className="gladiator-card" data-testid={`market-owned-${gladiator.id}`}>
       <div className="gladiator-card__header">
         <GladiatorPortrait gladiator={gladiator} size="small" />
         <div>
@@ -175,7 +176,7 @@ export function MarketScreen() {
   };
 
   return (
-    <section className="ludus-screen">
+    <section className="ludus-screen" data-testid="market-screen">
       <StatusBar save={currentSave} onSpeedChange={setGameSpeed} />
       <div className="ludus-header">
         <div>
@@ -191,7 +192,7 @@ export function MarketScreen() {
           />
         </div>
       </div>
-      <section className="panel panel--summary">
+      <section className="panel panel--summary" data-testid="market-capacity-summary">
         <h2>{t('market.capacityTitle')}</h2>
         <MetricList
           items={[
@@ -210,7 +211,7 @@ export function MarketScreen() {
           </NoticeBox>
         ) : null}
       </section>
-      <section className="panel">
+      <section className="panel" data-testid="market-candidates-section">
         <h2>{t('market.availableGladiators')}</h2>
         {availableBeds <= 0 ? (
           <EmptyState messageKey="market.capacityFullState" testId="market-capacity-full-state" />
@@ -226,10 +227,10 @@ export function MarketScreen() {
             ))}
           </div>
         ) : (
-          <EmptyState messageKey="market.noCandidates" />
+          <EmptyState messageKey="market.noCandidates" testId="market-empty-candidates" />
         )}
       </section>
-      <section className="panel">
+      <section className="panel" data-testid="market-owned-section">
         <h2>{t('market.ownedGladiators')}</h2>
         {currentSave.gladiators.length > 0 ? (
           <div className="gladiator-grid">
@@ -242,7 +243,7 @@ export function MarketScreen() {
             ))}
           </div>
         ) : (
-          <EmptyState messageKey="market.noOwnedGladiators" />
+          <EmptyState messageKey="market.noOwnedGladiators" testId="market-empty-owned" />
         )}
       </section>
     </section>

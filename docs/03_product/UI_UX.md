@@ -213,6 +213,22 @@ Expected shared primitives:
 
 Contextual panels should compose these primitives instead of recoding their own headers, section wrappers, empty-state markup, repeated effect rows or confirmation UI. New primitives should stay small and practical; a feature-specific component is acceptable when the structure is genuinely unique.
 
+## 9.1 Empty, Warning And Error States
+
+MVP screens and panels should expose clear, i18n-backed states for missing or blocked content:
+
+- empty roster: the bottom roster shows that no gladiators have been recruited yet;
+- empty market: the market shows that no candidates remain this week;
+- full capacity: the market shows used beds, available beds and a warning before blocking recruitment;
+- no owned gladiators: the market sell section shows an empty state;
+- no contracts: the contracts panel shows that no contract is available this week;
+- no events: the events panel shows that no event needs a decision right now;
+- no combat or no eligible combatant: the arena panel shows why no Sunday combat is available;
+- save failures: the HUD/toast layer shows the local save error while preserving dirty state;
+- demo saves: the HUD marks the active demo as read-only and routes save attempts to a read-only notice.
+
+These states should use shared primitives such as `EmptyState`, `NoticeBox`, `PanelShell`, `SectionCard`, badges and modal infrastructure where practical. They should not be silent disabled controls.
+
 ## 10. Main Menu
 
 The main menu should feel like a game menu, not a SaaS landing page.
@@ -247,6 +263,8 @@ The market must:
 - show available beds before the player buys a gladiator;
 - block buy actions when no bed is available;
 - display a clear shared empty or warning state when capacity is full;
+- display a clear shared empty state when the candidate list is empty;
+- display a clear shared empty state when there are no owned gladiators to sell;
 - keep all buy validation in domain logic rather than React.
 
 ## 13. Arena
@@ -263,6 +281,8 @@ The arena panel must show:
 - a clear empty state when no gladiator is eligible or no arena day is active.
 
 The player should be able to advance the visible combat log when progression is used, switch to resolved combats to inspect their logs, and finish or continue the weekly flow when the Sunday summary is complete. The panel should compose shared primitives such as `PanelShell`, `SectionCard`, `Badge`, `MetricList`, `EmptyState` and reusable log rows rather than duplicating feature-specific panel chrome.
+
+Before Sunday, the arena panel may show betting or scouting preparation when odds exist. If no odds exist yet, it should show an empty state explaining the next useful timing.
 
 ## 14. Supporting Flows
 
@@ -302,6 +322,7 @@ The UI is valid when:
 - weekly planning is not permanently visible;
 - market and arena appear as external locations;
 - the debug dashboard is not the default game screen;
+- debug dashboard is unavailable as a normal player route unless `VITE_ENABLE_DEBUG_UI=true`;
 - repeated panel, modal, empty-state, effect-list, cost and tab structures use shared UI primitives;
 - arena logs, rewards, consequences and Sunday summary are visible through i18n-backed UI;
 - all visible text uses i18n;

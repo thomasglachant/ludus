@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import process from 'node:process';
 import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../game-data/building-improvements';
 import { BUILDING_DEFINITIONS } from '../game-data/buildings';
 import { TRAINING_INTENSITIES, WEEKLY_OBJECTIVES } from '../game-data/planning';
@@ -8,6 +11,16 @@ import fr from './locales/fr.json';
 
 const englishDictionary: Record<string, string> = en;
 const frenchDictionary: Record<string, string> = fr;
+const sourceRoot = join(process.cwd(), 'src');
+
+function getFiles(directory: string): string[] {
+  return readdirSync(directory).flatMap((entry) => {
+    const path = join(directory, entry);
+    const stat = statSync(path);
+
+    return stat.isDirectory() ? getFiles(path) : [path];
+  });
+}
 
 describe('i18n', () => {
   it('keeps English and French locale keys aligned', () => {
@@ -41,5 +54,25 @@ describe('i18n', () => {
       expect(englishDictionary[key], key).toBeDefined();
       expect(frenchDictionary[key], key).toBeDefined();
     }
+  });
+
+  it('does not include obvious hardcoded visible JSX strings', () => {
+    const files = [
+      ...getFiles(join(sourceRoot, 'app')),
+      ...getFiles(join(sourceRoot, 'ui')),
+    ].filter((file) => file.endsWith('.tsx'));
+    const visibleTextPattern = />\s*[A-Za-z][^<{]*\s*</;
+    const visibleAttributePattern = /\b(?:aria-label|placeholder|title)="[^"]+"/;
+    const violations = files.flatMap((file) => {
+      const source = readFileSync(file, 'utf8');
+      const lines = source.split('\n');
+
+      return lines
+        .map((line, index) => ({ line, lineNumber: index + 1 }))
+        .filter(({ line }) => visibleTextPattern.test(line) || visibleAttributePattern.test(line))
+        .map(({ lineNumber }) => `${file}:${lineNumber}`);
+    });
+
+    expect(violations).toEqual([]);
   });
 });

@@ -68,15 +68,18 @@ The project maintains three baseline scenarios.
 
 ID: `demo-early-ludus`
 
-Purpose: validate the first playable state.
+Purpose: validate the first playable state after the player has recruited a small roster.
 
 Expected state:
 
-- small roster;
-- Domus level 1;
-- early unpurchased building plots;
-- simple map state;
-- low UI density.
+- Year 1, Week 1, Monday 08:00, paused;
+- treasury 850 and low ludus reputation;
+- all MVP base buildings purchased at level 1;
+- Dormitory level 1 with purchased beds available for the three-gladiator roster;
+- 3 owned beginner gladiators with stable portraits, sprites, objectives and building assignments;
+- 5 predefined market candidates;
+- no active Sunday combats;
+- simple map state and low UI density.
 
 ### Mid Demo
 
@@ -86,11 +89,14 @@ Purpose: validate normal progression.
 
 Expected state:
 
-- medium progression;
+- Year 2, Week 4, Thursday 16:00, paused;
 - 4 owned gladiators;
-- several purchased buildings;
+- all MVP base buildings purchased, with levels around 3 or 4;
+- Dormitory capacity large enough for the roster and market test purchases;
+- 5 predefined market candidates;
 - active weekly planning recommendations;
 - at least one contextual alert.
+- predefined betting odds for eligible gladiators because Thursday scouting is available.
 
 ### Advanced Demo
 
@@ -100,14 +106,16 @@ Purpose: validate dense UI and late-progression visual states.
 
 Expected state:
 
+- Year 5, Week 7, Saturday 18:30, paused;
 - 8 owned gladiators;
-- advanced buildings;
+- all MVP base buildings purchased at level 8 with full improvement coverage where available;
+- Dormitory capacity large enough for the dense roster;
+- 5 predefined market candidates;
 - multiple active alerts;
-- market candidates;
-- arena preparation state;
+- arena preparation state with predefined betting odds locked for the weekend;
 - dusk or night visual coverage.
 
-The advanced demo must verify that the bottom gladiator roster remains readable with 8 gladiators.
+The advanced demo must verify that the bottom gladiator roster remains readable with 8 gladiators and that Playwright can advance from Saturday evening into the Sunday arena state without relying on random setup.
 
 ## Visual Requirements
 

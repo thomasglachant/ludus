@@ -24,8 +24,8 @@ The MVP is not expected to implement every future system. It should deliver a pl
 - Load local save flow.
 - Options modal with language selection.
 - Main map-first ludus screen.
-- Market access.
-- Arena access.
+- Market access from the map-first shell and the market external location.
+- Arena access from the map-first shell and the arena external location.
 - Development-only debug dashboard access.
 
 ### Save System
@@ -66,7 +66,7 @@ Building rules:
 - Future optional buildings may start locked or unpurchased and be bought later.
 - Building levels are gated by Domus level.
 - Buildings can have purchase costs, upgrade costs, improvements, policies and simple effects.
-- Building purchase remains available for future optional buildings.
+- Building purchase remains a domain/UI capability for future optional buildings, but it is not used by the current base building set because every MVP base building is owned from a new game.
 - The removed building budget slider system is excluded.
 
 ### Dormitory Capacity
@@ -131,6 +131,7 @@ Simple MVP effects:
 - Gladiators have portrait cards and map sprites.
 - Weekly planning, contracts, events, market, arena preparation and building details open contextually.
 - The old dashboard-style screen is allowed only as a debug interface.
+- Empty states, warnings and save errors are visible through shared UI primitives where practical.
 
 ## Explicitly Excluded From MVP
 
@@ -164,6 +165,7 @@ Simple MVP effects:
 - Betting rules are intentionally light.
 - Demo mode is developer-only and must remain disabled by default.
 - Placeholder art may be used while preserving the map-first direction.
+- Contracts and events are MVP-light systems: they can be accepted, displayed or resolved where available, but deeper chains and balancing remain Phase 2 work.
 
 ## Acceptance Criteria
 
@@ -179,11 +181,12 @@ The MVP is valid if:
 - the ludus screen exposes manual save, unsaved-changes status and latest successful save time;
 - attempting to save a demo save leaves the demo template untouched and explains that demo saves are read-only;
 - a new game starts with all base buildings purchased at level 1;
-- base buildings can be upgraded and configured;
-- building purchase applies to future optional buildings that start unpurchased;
+- base buildings can be upgraded and configured through improvements or policies where their data provides them;
+- building purchase remains valid for future optional buildings that start unpurchased, but no current MVP base building requires purchase;
 - no building has a numeric budget slider;
 - the market offers 5 gladiators;
 - the player can buy a gladiator if a bed is available;
+- market buying is blocked with a clear warning when Dormitory capacity is full;
 - gladiators can receive weekly objectives;
 - readiness score is visible;
 - basic alerts are generated;
@@ -193,4 +196,7 @@ The MVP is valid if:
 - combat logs can be viewed;
 - combat rewards and consequences are visible;
 - rewards are distributed;
-- the default player screen is map-first rather than dashboard-first.
+- roster, market, contracts, events and arena states have clear empty states;
+- the default player screen is map-first rather than dashboard-first;
+- the debug dashboard is not reachable as the normal player experience when its feature flag is disabled;
+- demo saves are deterministic, read-only and aligned with the base-building level 1 starting rule.

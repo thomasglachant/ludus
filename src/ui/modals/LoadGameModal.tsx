@@ -88,9 +88,17 @@ export function LoadGameModal({ onClose }: LoadGameModalProps) {
       {errorKey ? <p className="form-error">{t(errorKey)}</p> : null}
       {loadMode === 'normal' ? (
         <div className="save-list">
-          {localSaves.length === 0 ? <p className="empty-state">{t('loadGame.empty')}</p> : null}
+          {localSaves.length === 0 ? (
+            <p className="empty-state" data-testid="load-game-empty">
+              {t('loadGame.empty')}
+            </p>
+          ) : null}
           {localSaves.map((save) => (
-            <article className="save-card" key={save.saveId}>
+            <article
+              className="save-card"
+              data-testid={`local-save-card-${save.saveId}`}
+              key={save.saveId}
+            >
               <div>
                 <h2>{save.ludusName}</h2>
                 <p>{t('loadGame.ownerLine', { owner: save.ownerName })}</p>
@@ -100,6 +108,7 @@ export function LoadGameModal({ onClose }: LoadGameModalProps) {
                 disabled={isLoading}
                 icon={<FolderOpen aria-hidden="true" size={18} />}
                 label={t('loadGame.open')}
+                testId={`local-load-button-${save.saveId}`}
                 onClick={() => void loadLocalSave(save.saveId)}
               />
             </article>

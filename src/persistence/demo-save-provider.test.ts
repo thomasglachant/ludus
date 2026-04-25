@@ -117,4 +117,51 @@ describe('demo save definitions', () => {
       }
     }
   });
+
+  it('describe stable early, mid and advanced MVP scenarios', () => {
+    const early = DEMO_SAVE_DEFINITIONS.find((definition) => definition.id === 'demo-early-ludus');
+    const mid = DEMO_SAVE_DEFINITIONS.find((definition) => definition.id === 'demo-mid-ludus');
+    const advanced = DEMO_SAVE_DEFINITIONS.find(
+      (definition) => definition.id === 'demo-advanced-ludus',
+    );
+
+    expect(early?.save.time).toMatchObject({
+      year: 1,
+      week: 1,
+      dayOfWeek: 'monday',
+      hour: 8,
+      minute: 0,
+      speed: 0,
+      isPaused: true,
+    });
+    expect(early?.save.gladiators).toHaveLength(3);
+    expect(early?.save.market.availableGladiators).toHaveLength(5);
+    expect(early?.save.arena.resolvedCombats).toHaveLength(0);
+
+    expect(mid?.save.time).toMatchObject({
+      year: 2,
+      week: 4,
+      dayOfWeek: 'thursday',
+      hour: 16,
+      minute: 0,
+      speed: 0,
+      isPaused: true,
+    });
+    expect(mid?.save.gladiators).toHaveLength(4);
+    expect(mid?.save.arena.betting).toBeDefined();
+    expect(mid?.save.arena.betting?.odds.length).toBeGreaterThan(0);
+
+    expect(advanced?.save.time).toMatchObject({
+      year: 5,
+      week: 7,
+      dayOfWeek: 'saturday',
+      hour: 18,
+      minute: 30,
+      speed: 0,
+      isPaused: true,
+    });
+    expect(advanced?.save.gladiators).toHaveLength(8);
+    expect(advanced?.save.arena.betting).toBeDefined();
+    expect(advanced?.save.arena.betting?.areBetsLocked).toBe(true);
+  });
 });

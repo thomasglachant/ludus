@@ -390,6 +390,7 @@
   "contracts.accept": "Accept",
   "contracts.activeTitle": "Accepted contracts",
   "contracts.noAvailable": "No contract is available this week.",
+  "contracts.noActive": "No contract has been accepted yet.",
   "contracts.progressLabel": "Progress",
   "contracts.rewardLabel": "Reward",
   "contracts.progress": "{current}/{target}",

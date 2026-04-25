@@ -66,6 +66,7 @@ export function TopHud({
           <button
             aria-label={t(speed === 0 ? 'speed.pause' : `speed.x${speed}`)}
             className={save.time.speed === speed ? 'is-selected' : ''}
+            data-testid={`speed-${speed === 0 ? 'pause' : `x${speed}`}`}
             key={speed}
             type="button"
             onClick={() => onSpeedChange(speed)}
@@ -107,12 +108,17 @@ export function TopHud({
           <span>{t(saveStatusKey, savedTime ? { time: savedTime } : undefined)}</span>
         </div>
         {isDemoSave ? null : (
-          <button disabled={isSaving} type="button" onClick={onSave}>
+          <button
+            data-testid="topbar-save-button"
+            disabled={isSaving}
+            type="button"
+            onClick={onSave}
+          >
             <Save aria-hidden="true" size={17} />
             <span>{t(isSaving ? 'ludus.saving' : 'common.save')}</span>
           </button>
         )}
-        <button type="button" onClick={() => navigate('mainMenu')}>
+        <button data-testid="topbar-menu-button" type="button" onClick={() => navigate('mainMenu')}>
           <Menu aria-hidden="true" size={17} />
           <span>{t('topBar.menu')}</span>
         </button>

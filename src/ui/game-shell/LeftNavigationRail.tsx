@@ -36,6 +36,7 @@ export function LeftNavigationRail({
           <button
             aria-label={t(item.labelKey)}
             className={activePanelKind === item.panelKind ? 'is-selected' : ''}
+            data-testid={`navigation-${item.panelKind}`}
             key={item.panelKind}
             type="button"
             onClick={() => onOpenPanel(item.panelKind)}
