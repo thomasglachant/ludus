@@ -173,6 +173,29 @@ Initial implementations:
 - `CloudSaveProvider` as a mock placeholder;
 - `DemoSaveProvider` for read-only deterministic demo saves.
 
+Provider responsibilities:
+
+- providers perform storage reads and writes only;
+- providers do not own UI state such as dirty status, saving status or toast keys;
+- providers may reject invalid operations, such as write attempts against the demo provider.
+
+`SaveService` responsibilities:
+
+- create new local saves from domain initial-save helpers;
+- update `updatedAt` for successful local or cloud writes;
+- orchestrate local, mock cloud and demo providers;
+- treat demo saves as read-only and return them unchanged for local or cloud update requests;
+- avoid introducing a real backend until a future cloud-save decision is made.
+
+Store responsibilities:
+
+- keep the active `currentSave`;
+- track save UI state: `hasUnsavedChanges`, `lastSavedAt`, `isSaving` and `saveNoticeKey`;
+- mark player-driven save mutations dirty unless the action writes immediately by design;
+- clear dirty state and set `lastSavedAt` after a successful save;
+- keep dirty state after a failed save and expose a save error key;
+- handle demo save attempts as explicit no-ops with a read-only notice.
+
 ## Save Data
 
 Save data is a JSON snapshot of the full game state and includes `schemaVersion`.
@@ -180,6 +203,12 @@ Save data is a JSON snapshot of the full game state and includes `schemaVersion`
 Local save is always available. Cloud save requires authentication in the long-term product direction, but the initial implementation can remain mocked behind the provider abstraction.
 
 Demo saves are read-only templates and must not autosave or upload to cloud saves.
+
+The MVP save model is manual local save with dirty-state feedback. `hasUnsavedChanges`, `isSaving`, `saveNoticeKey` and other transient UI save state are not persisted in `GameSave`.
+
+`lastSavedAt` is session UI state derived from the last successful write timestamp. It may mirror `GameSave.updatedAt` after loading or saving, but it is still tracked by the store for display rather than added as a separate save-schema field.
+
+Language changes are the only MVP setting change that may be written immediately because language is both an app preference and a save setting. The UI language preference remains stored outside `GameSave` by `ui-store`, while the active save's `settings.language` is updated through the save service for normal local saves.
 
 ## Game Tick
 

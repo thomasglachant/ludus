@@ -30,7 +30,7 @@ Target structure:
 
 Elements:
 
-- `TopHud`: time, day, week, year, speed controls, pause, treasury, alerts and menu access.
+- `TopHud`: time, day, week, year, speed controls, pause, treasury, save status, alerts and menu access.
 - `LudusMap`: the main interactive visual map and primary screen focus.
 - `LeftNavigationRail`: access to planning, contracts, market, arena and menu.
 - `BottomGladiatorRoster`: portrait-based roster for owned gladiators.
@@ -49,6 +49,17 @@ Always visible during normal gameplay:
 - bottom gladiator roster;
 - important alerts;
 - access to planning, market, arena and menu.
+
+The top HUD must expose save state without forcing the player into a modal:
+
+- a manual save button for normal local saves;
+- an unsaved-changes status when the active save is dirty;
+- a saved status with the latest successful save time when available;
+- an in-progress saving state while the save provider write is pending;
+- a demo read-only notice when the active save comes from demo mode;
+- save success, save failure and demo read-only feedback through the shared toast or notice layer.
+
+Demo read-only saves should keep the reset-demo action visible and should not present a normal save button as if the template could be overwritten.
 
 ## 4. Hidden By Default
 

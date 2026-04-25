@@ -6,6 +6,8 @@ This roadmap describes product phases, not one-off setup tasks. It should evolve
 
 The project already has the core React + TypeScript application structure, local persistence, domain modules, game data modules, i18n, demo mode foundations, map-first UI direction and initial tests.
 
+The save UX baseline is manual local save with clear store-owned UI state. The ludus HUD exposes manual save, dirty state, in-progress saving state, latest successful save time and save success or failure notices. New local saves and loaded saves start clean. Player-driven game-state changes mark the active normal save dirty, successful saves clear dirty state, failed saves keep dirty state, and demo saves are explicit read-only no-ops that never write to local or cloud providers.
+
 The quality baseline is defined by a local and GitHub Actions CI gate covering `npm run build`, `npm run lint`, `npm run test` and `npm run test:e2e`. Playwright coverage is reserved for high-value player flows and stable demo states rather than exhaustive UI coverage, including the new-game-to-map-first-shell smoke flow.
 
 The UI baseline includes shared primitives for contextual panels, section cards, tabs, empty states, notices, metric lists, effect lists, cost summaries, badges and global confirmation or lightweight form modals. Building and gladiator detail panels already use these primitives, and building panel display data is prepared through reusable view-model helpers.
@@ -25,6 +27,7 @@ Goal: prove the weekly preparation loop and Sunday arena loop.
 Product outcomes:
 
 - player can create and load a local save;
+- player understands whether the active local save has unsaved changes and when it was last saved;
 - player can change language between French and English;
 - player sees a map-first ludus screen by default;
 - player can upgrade buildings, buy building improvements and select building policies;
@@ -37,6 +40,7 @@ Product outcomes:
 - Sunday triggers turn-based arena combats;
 - combat logs, rewards and consequences are visible;
 - demo saves support stable testing of early, mid and advanced states.
+- demo saves remain read-only and cannot be overwritten by manual save.
 - new panels and focused dialogs reuse shared primitives, modal infrastructure and view-model helpers where the structure is shared.
 
 Acceptance:

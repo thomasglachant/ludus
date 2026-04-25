@@ -16,13 +16,17 @@ export function GameShell() {
     applyPlanningRecommendations,
     currentSave,
     errorKey,
+    hasUnsavedChanges,
     isLoading,
+    isSaving,
+    lastSavedAt,
     purchaseBuilding,
     purchaseBuildingImprovement,
     purchaseDormitoryBed,
     resetActiveDemo,
     resolveGameEventChoice,
     saveCurrentGame,
+    saveNoticeKey,
     scoutOpponent,
     selectBuildingPolicy,
     setGameSpeed,
@@ -68,7 +72,9 @@ export function GameShell() {
   return (
     <section className="game-shell">
       <TopHud
-        isSaving={isLoading}
+        hasUnsavedChanges={hasUnsavedChanges}
+        isSaving={isSaving || isLoading}
+        lastSavedAt={lastSavedAt}
         save={currentSave}
         onResetDemo={resetActiveDemo}
         onSave={() => void saveCurrentGame()}
@@ -111,7 +117,7 @@ export function GameShell() {
         selectedGladiatorId={selectedGladiatorId ?? undefined}
         onSelectGladiator={selectGladiator}
       />
-      <ToastAndAlertLayer errorKey={errorKey} save={currentSave} />
+      <ToastAndAlertLayer errorKey={errorKey} save={currentSave} saveNoticeKey={saveNoticeKey} />
     </section>
   );
 }

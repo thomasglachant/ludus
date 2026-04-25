@@ -49,11 +49,14 @@ Demo saves:
 - load as cloned playable snapshots;
 - never mutate the source template;
 - do not autosave;
+- do not save through the manual save action;
 - do not upload to cloud saves;
 - do not overwrite local saves;
 - use the current save schema;
 - include a `schemaVersion` field;
 - remain deterministic.
+
+If the player changes a loaded demo snapshot, those changes exist only in memory for the current session. The save UI must clearly label the active demo as read-only and show a notice when a save attempt is ignored.
 
 All player-facing demo UI text must use i18n keys and support French and English.
 

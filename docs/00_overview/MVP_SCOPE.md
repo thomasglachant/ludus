@@ -31,12 +31,17 @@ The MVP is not expected to implement every future system. It should deliver a pl
 ### Save System
 
 - Local save using browser storage.
+- Manual local save from the player HUD.
+- Clear unsaved-changes indicator when the active save has local changes that have not been written.
+- Clear saved status with the last successful save time during a play session.
+- Clear save success and failure feedback.
 - Save schema version.
 - Save creation.
 - Save loading.
 - Basic corrupted save handling.
 - Cloud save provider abstraction with an initial mock implementation.
 - Demo saves kept separate from normal local and cloud saves.
+- Demo saves are read-only during the MVP and cannot be overwritten by the manual save action.
 
 ### Internationalization
 
@@ -170,6 +175,8 @@ The MVP is valid if:
 - language can be changed;
 - the ludus screen shows time, treasury, buildings and gladiators;
 - local save can be created and loaded;
+- the ludus screen exposes manual save, unsaved-changes status and latest successful save time;
+- attempting to save a demo save leaves the demo template untouched and explains that demo saves are read-only;
 - a new game starts with all base buildings purchased at level 1;
 - base buildings can be upgraded and configured;
 - building purchase applies to future optional buildings that start unpurchased;

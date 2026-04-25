@@ -79,6 +79,19 @@ export interface GameSettings {
 }
 ```
 
+## Transient Save UI State
+
+Dirty-state information is intentionally not part of `GameSave`.
+
+The store owns transient save UI fields such as:
+
+- `hasUnsavedChanges`: whether the active save has player-driven changes that have not been written;
+- `lastSavedAt`: the latest successful save timestamp shown in the HUD for the current session;
+- `isSaving`: whether a save write is currently in progress;
+- `saveNoticeKey`: the i18n key for the latest save success, error or read-only notice.
+
+Loading an existing local or demo save sets `hasUnsavedChanges` to `false`. Creating a new local save also starts clean because the save is written during creation. Demo saves remain read-only templates; save attempts against them do not add persisted fields or write provider data.
+
 ## Ludus and Time
 
 ```ts

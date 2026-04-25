@@ -2055,7 +2055,8 @@ h3 {
 .top-hud__speeds,
 .top-hud__actions,
 .top-hud__treasury,
-.top-hud__demo {
+.top-hud__demo,
+.top-hud__save-status {
   display: flex;
   align-items: center;
 }
@@ -2089,11 +2090,14 @@ h3 {
 }
 
 .top-hud__actions {
+  min-width: 0;
+  flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .top-hud__treasury,
-.top-hud__demo {
+.top-hud__demo,
+.top-hud__save-status {
   min-height: 38px;
   gap: 8px;
   padding: 7px 10px;
@@ -2105,6 +2109,24 @@ h3 {
 }
 
 .top-hud__demo {
+  background: #dcefea;
+  color: #1f625b;
+}
+
+.top-hud__save-status {
+  background: #eef4df;
+  color: #3f6423;
+  white-space: nowrap;
+}
+
+.top-hud__save-status--dirty {
+  border-color: rgba(148, 78, 44, 0.42);
+  background: #fff1c7;
+  color: #7a451d;
+}
+
+.top-hud__save-status--readonly {
+  border-color: rgba(57, 103, 114, 0.38);
   background: #dcefea;
   color: #1f625b;
 }
@@ -3591,6 +3613,11 @@ h3 {
 .toast-alert--warning {
   border-color: #d39942;
   background: #fff1c7;
+}
+
+.toast-alert--info {
+  border-color: #5b948a;
+  background: #dcefea;
 }
 
 @media (max-width: 1120px) {

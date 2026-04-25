@@ -1,4 +1,13 @@
-import { Banknote, CalendarDays, Menu, Pause, Play, RotateCcw, Save } from 'lucide-react';
+import {
+  Banknote,
+  CalendarDays,
+  CheckCircle2,
+  Menu,
+  Pause,
+  Play,
+  RotateCcw,
+  Save,
+} from 'lucide-react';
 import type { GameSave, GameSpeed } from '../../domain/types';
 import { formatClock } from '../../domain/time/format-time';
 import { getDemoSaveDefinition } from '../../game-data/demo-saves';
@@ -6,6 +15,8 @@ import { GAME_SPEEDS } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store';
 
 interface TopHudProps {
+  hasUnsavedChanges: boolean;
+  lastSavedAt: string | null;
   save: GameSave;
   isSaving: boolean;
   onResetDemo(): void;
@@ -13,12 +24,28 @@ interface TopHudProps {
   onSpeedChange(speed: GameSpeed): void;
 }
 
-export function TopHud({ save, isSaving, onResetDemo, onSave, onSpeedChange }: TopHudProps) {
-  const { navigate, t } = useUiStore();
+export function TopHud({
+  hasUnsavedChanges,
+  isSaving,
+  lastSavedAt,
+  onResetDemo,
+  onSave,
+  onSpeedChange,
+  save,
+}: TopHudProps) {
+  const { language, navigate, t } = useUiStore();
   const demoDefinition = save.metadata?.demoSaveId
     ? getDemoSaveDefinition(save.metadata.demoSaveId)
     : undefined;
   const isDemoSave = Boolean(save.metadata?.isDemo);
+  const savedTime = lastSavedAt ? new Date(lastSavedAt).toLocaleTimeString(language) : null;
+  const saveStatusKey = isDemoSave
+    ? 'demoMode.saveDisabled'
+    : hasUnsavedChanges
+      ? 'ludus.unsavedChanges'
+      : savedTime
+        ? 'ludus.savedAt'
+        : 'ludus.localSaveReady';
 
   return (
     <header className="top-hud" data-testid="topbar">
@@ -66,10 +93,23 @@ export function TopHud({ save, isSaving, onResetDemo, onSave, onSpeedChange }: T
           <Banknote aria-hidden="true" size={18} />
           <span>{save.ludus.treasury}</span>
         </div>
+        <div
+          className={[
+            'top-hud__save-status',
+            hasUnsavedChanges && !isDemoSave ? 'top-hud__save-status--dirty' : '',
+            isDemoSave ? 'top-hud__save-status--readonly' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          data-testid="save-status"
+        >
+          <CheckCircle2 aria-hidden="true" size={16} />
+          <span>{t(saveStatusKey, savedTime ? { time: savedTime } : undefined)}</span>
+        </div>
         {isDemoSave ? null : (
           <button disabled={isSaving} type="button" onClick={onSave}>
             <Save aria-hidden="true" size={17} />
-            <span>{t('common.save')}</span>
+            <span>{t(isSaving ? 'ludus.saving' : 'common.save')}</span>
           </button>
         )}
         <button type="button" onClick={() => navigate('mainMenu')}>

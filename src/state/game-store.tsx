@@ -59,7 +59,11 @@ interface GameStoreValue {
   localSaves: GameSaveMetadata[];
   demoSaves: GameSaveMetadata[];
   isLoading: boolean;
+  isSaving: boolean;
+  hasUnsavedChanges: boolean;
+  lastSavedAt: string | null;
   errorKey: string | null;
+  saveNoticeKey: string | null;
   refreshLocalSaves(): Promise<void>;
   refreshDemoSaves(): Promise<void>;
   createNewGame(input: NewGameInput): Promise<void>;
@@ -107,7 +111,11 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const [localSaves, setLocalSaves] = useState<GameSaveMetadata[]>([]);
   const [demoSaves, setDemoSaves] = useState<GameSaveMetadata[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [saveNoticeKey, setSaveNoticeKey] = useState<string | null>(null);
   const effectAccumulatorMinutes = useRef(0);
   const lastTickAt = useRef<number | null>(null);
   const activeSaveId = currentSave?.saveId;
@@ -159,6 +167,9 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
         effectAccumulatorMinutes.current = 0;
         lastTickAt.current = null;
+        setHasUnsavedChanges(false);
+        setLastSavedAt(save.updatedAt);
+        setSaveNoticeKey(null);
         setCurrentSave(save);
         setLocalSaves(await saveService.listLocalSaves());
         navigate('ludus');
@@ -181,6 +192,9 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
         effectAccumulatorMinutes.current = 0;
         lastTickAt.current = null;
+        setHasUnsavedChanges(false);
+        setLastSavedAt(save.updatedAt);
+        setSaveNoticeKey(null);
         setCurrentSave(save);
         setLanguage(save.settings.language);
         navigate('ludus');
@@ -208,6 +222,9 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
         effectAccumulatorMinutes.current = 0;
         lastTickAt.current = null;
+        setHasUnsavedChanges(false);
+        setLastSavedAt(save.updatedAt);
+        setSaveNoticeKey('demoMode.readOnlySaveNotice');
         setCurrentSave(save);
         setLanguage(save.settings.language);
         navigate('ludus');
@@ -237,21 +254,27 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
     if (currentSave.metadata?.isDemo) {
       setErrorKey(null);
+      setSaveNoticeKey('demoMode.readOnlySaveNotice');
       return;
     }
 
-    setIsLoading(true);
+    setIsSaving(true);
     setErrorKey(null);
+    setSaveNoticeKey(null);
 
     try {
       const updatedSave = await saveService.updateLocalSave(currentSave);
 
       setCurrentSave(updatedSave);
       setLocalSaves(await saveService.listLocalSaves());
+      setHasUnsavedChanges(false);
+      setLastSavedAt(updatedSave.updatedAt);
+      setSaveNoticeKey('ludus.saveSuccess');
     } catch {
       setErrorKey('ludus.saveError');
+      setSaveNoticeKey(null);
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   }, [currentSave, saveService]);
 
@@ -272,189 +295,149 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       };
 
       setCurrentSave(saveWithLanguage);
+      setHasUnsavedChanges(false);
+      setLastSavedAt(saveWithLanguage.updatedAt);
+      setSaveNoticeKey(null);
 
       if (!saveWithLanguage.metadata?.isDemo) {
-        await saveService.updateLocalSave(saveWithLanguage);
+        setIsSaving(true);
+        setErrorKey(null);
+
+        try {
+          const updatedSave = await saveService.updateLocalSave(saveWithLanguage);
+
+          setCurrentSave(updatedSave);
+          setLastSavedAt(updatedSave.updatedAt);
+        } catch {
+          setHasUnsavedChanges(true);
+          setErrorKey('ludus.saveError');
+        } finally {
+          setIsSaving(false);
+        }
       }
     },
     [currentSave, saveService, setLanguage],
   );
 
-  const setGameSpeedAction = useCallback((speed: GameSpeed) => {
+  const applyPlayerChange = useCallback((updateSave: (save: GameSave) => GameSave) => {
     setCurrentSave((save) => {
       if (!save) {
         return save;
       }
 
-      return setSaveGameSpeed(save, speed);
-    });
-  }, []);
+      const updatedSave = updateSave(save);
 
-  const purchaseBuildingAction = useCallback((buildingId: BuildingId) => {
-    setCurrentSave((save) => {
-      if (!save) {
-        return save;
+      if (updatedSave !== save && !save.metadata?.isDemo) {
+        setHasUnsavedChanges(true);
+        setSaveNoticeKey(null);
       }
 
-      const result = purchaseBuilding(save, buildingId);
-
-      return result.save;
+      return updatedSave;
     });
   }, []);
 
-  const upgradeBuildingAction = useCallback((buildingId: BuildingId) => {
-    setCurrentSave((save) => {
-      if (!save) {
-        return save;
-      }
+  const setGameSpeedAction = useCallback(
+    (speed: GameSpeed) => {
+      applyPlayerChange((save) => setSaveGameSpeed(save, speed));
+    },
+    [applyPlayerChange],
+  );
 
-      const result = upgradeBuilding(save, buildingId);
+  const purchaseBuildingAction = useCallback(
+    (buildingId: BuildingId) => {
+      applyPlayerChange((save) => purchaseBuilding(save, buildingId).save);
+    },
+    [applyPlayerChange],
+  );
 
-      return result.save;
-    });
-  }, []);
+  const upgradeBuildingAction = useCallback(
+    (buildingId: BuildingId) => {
+      applyPlayerChange((save) => upgradeBuilding(save, buildingId).save);
+    },
+    [applyPlayerChange],
+  );
 
   const purchaseDormitoryBedAction = useCallback(() => {
-    setCurrentSave((save) => {
-      if (!save) {
-        return save;
-      }
-
-      const result = purchaseDormitoryBed(save);
-
-      return result.save;
-    });
-  }, []);
+    applyPlayerChange((save) => purchaseDormitoryBed(save).save);
+  }, [applyPlayerChange]);
 
   const purchaseBuildingImprovementAction = useCallback(
     (buildingId: BuildingId, improvementId: string) => {
-      setCurrentSave((save) => {
-        if (!save) {
-          return save;
-        }
-
-        const result = purchaseBuildingImprovement(save, buildingId, improvementId);
-
-        return result.save;
-      });
+      applyPlayerChange(
+        (save) => purchaseBuildingImprovement(save, buildingId, improvementId).save,
+      );
     },
-    [],
+    [applyPlayerChange],
   );
 
-  const selectBuildingPolicyAction = useCallback((buildingId: BuildingId, policyId: string) => {
-    setCurrentSave((save) => {
-      if (!save) {
-        return save;
-      }
+  const selectBuildingPolicyAction = useCallback(
+    (buildingId: BuildingId, policyId: string) => {
+      applyPlayerChange((save) => selectBuildingPolicy(save, buildingId, policyId).save);
+    },
+    [applyPlayerChange],
+  );
 
-      const result = selectBuildingPolicy(save, buildingId, policyId);
+  const buyMarketGladiatorAction = useCallback(
+    (candidateId: string) => {
+      applyPlayerChange((save) => buyMarketGladiator(save, candidateId).save);
+    },
+    [applyPlayerChange],
+  );
 
-      return result.save;
-    });
-  }, []);
-
-  const buyMarketGladiatorAction = useCallback((candidateId: string) => {
-    setCurrentSave((save) => {
-      if (!save) {
-        return save;
-      }
-
-      const result = buyMarketGladiator(save, candidateId);
-
-      return result.save;
-    });
-  }, []);
-
-  const sellGladiatorAction = useCallback((gladiatorId: string) => {
-    setCurrentSave((save) => {
-      if (!save) {
-        return save;
-      }
-
-      const result = sellGladiator(save, gladiatorId);
-
-      return result.save;
-    });
-  }, []);
+  const sellGladiatorAction = useCallback(
+    (gladiatorId: string) => {
+      applyPlayerChange((save) => sellGladiator(save, gladiatorId).save);
+    },
+    [applyPlayerChange],
+  );
 
   const updateGladiatorRoutineAction = useCallback(
     (gladiatorId: string, update: GladiatorRoutineUpdate) => {
-      setCurrentSave((save) => {
-        if (!save) {
-          return save;
-        }
-
-        return updateGladiatorRoutine(save, gladiatorId, update);
-      });
+      applyPlayerChange((save) => updateGladiatorRoutine(save, gladiatorId, update));
     },
-    [],
+    [applyPlayerChange],
   );
 
   const setAutomaticAssignmentAction = useCallback(
     (gladiatorId: string, allowAutomaticAssignment: boolean) => {
-      setCurrentSave((save) => {
-        if (!save) {
-          return save;
-        }
-
-        return setAutomaticAssignment(save, gladiatorId, allowAutomaticAssignment);
-      });
+      applyPlayerChange((save) =>
+        setAutomaticAssignment(save, gladiatorId, allowAutomaticAssignment),
+      );
     },
-    [],
+    [applyPlayerChange],
   );
 
   const setManualBuildingOverrideAction = useCallback(
     (gladiatorId: string, buildingId?: BuildingId) => {
-      setCurrentSave((save) => {
-        if (!save) {
-          return save;
-        }
-
-        return setManualBuildingOverride(save, gladiatorId, buildingId);
-      });
+      applyPlayerChange((save) => setManualBuildingOverride(save, gladiatorId, buildingId));
     },
-    [],
+    [applyPlayerChange],
   );
 
   const applyPlanningRecommendationsAction = useCallback(() => {
-    setCurrentSave((save) => {
-      if (!save) {
-        return save;
-      }
+    applyPlayerChange((save) => applyPlanningRecommendations(save));
+  }, [applyPlayerChange]);
 
-      return applyPlanningRecommendations(save);
-    });
-  }, []);
+  const acceptWeeklyContract = useCallback(
+    (contractId: string) => {
+      applyPlayerChange((save) => acceptWeeklyContractAction(save, contractId).save);
+    },
+    [applyPlayerChange],
+  );
 
-  const acceptWeeklyContract = useCallback((contractId: string) => {
-    setCurrentSave((save) => {
-      if (!save) {
-        return save;
-      }
+  const resolveGameEventChoice = useCallback(
+    (eventId: string, choiceId: string) => {
+      applyPlayerChange((save) => resolveGameEventChoiceAction(save, eventId, choiceId).save);
+    },
+    [applyPlayerChange],
+  );
 
-      return acceptWeeklyContractAction(save, contractId).save;
-    });
-  }, []);
-
-  const resolveGameEventChoice = useCallback((eventId: string, choiceId: string) => {
-    setCurrentSave((save) => {
-      if (!save) {
-        return save;
-      }
-
-      return resolveGameEventChoiceAction(save, eventId, choiceId).save;
-    });
-  }, []);
-
-  const scoutOpponent = useCallback((gladiatorId: string) => {
-    setCurrentSave((save) => {
-      if (!save) {
-        return save;
-      }
-
-      return scoutOpponentAction(save, gladiatorId).save;
-    });
-  }, []);
+  const scoutOpponent = useCallback(
+    (gladiatorId: string) => {
+      applyPlayerChange((save) => scoutOpponentAction(save, gladiatorId).save);
+    },
+    [applyPlayerChange],
+  );
 
   const clearError = useCallback(() => setErrorKey(null), []);
 
@@ -486,6 +469,11 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
         effectAccumulatorMinutes.current = result.effectAccumulatorMinutes;
 
+        if (result.save !== save && !save.metadata?.isDemo) {
+          setHasUnsavedChanges(true);
+          setSaveNoticeKey(null);
+        }
+
         return result.save;
       });
     }, 1_000);
@@ -499,7 +487,11 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       localSaves,
       demoSaves,
       isLoading,
+      isSaving,
+      hasUnsavedChanges,
+      lastSavedAt,
       errorKey,
+      saveNoticeKey,
       refreshLocalSaves,
       refreshDemoSaves,
       createNewGame,
@@ -535,7 +527,10 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     currentSave,
     demoSaves,
     errorKey,
+    hasUnsavedChanges,
     isLoading,
+    isSaving,
+    lastSavedAt,
     loadDemoSave,
     loadLocalSave,
     localSaves,
@@ -546,6 +541,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     refreshDemoSaves,
     resetActiveDemo,
     saveCurrentGame,
+    saveNoticeKey,
     resolveGameEventChoice,
     scoutOpponent,
     sellGladiatorAction,
