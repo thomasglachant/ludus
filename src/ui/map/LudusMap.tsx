@@ -20,7 +20,7 @@ import {
   type MapRect,
 } from '../../game-data/map-layout';
 import {
-  getGladiatorSpriteAssetPath,
+  getGladiatorSpriteFrames,
   getGladiatorVisualIdentity,
 } from '../../game-data/gladiator-visuals';
 import { getTimeOfDayDefinition } from '../../game-data/time-of-day';
@@ -131,6 +131,9 @@ function getTimeOfDayThemeStyle(hour: number): CSSProperties {
     '--map-shadow-color': definition.visualTheme.shadowColor,
     '--map-torch-opacity': definition.visualTheme.torchOpacity,
     '--map-sprite-brightness': definition.visualTheme.spriteBrightness,
+    '--map-background-image': definition.visualTheme.mapBackgroundAssetPath
+      ? `url(${definition.visualTheme.mapBackgroundAssetPath})`
+      : 'none',
   } as CSSProperties;
 }
 
@@ -482,8 +485,8 @@ export function LudusMap({
               placement.gladiator.id,
               placement.gladiator.visualIdentity,
             );
-            const spriteAssetPath = getGladiatorSpriteAssetPath(visualIdentity);
             const animation = getGladiatorAnimationDefinition(placement.gladiator);
+            const spriteFrames = getGladiatorSpriteFrames(visualIdentity, animation.state);
 
             return (
               <button
@@ -503,6 +506,7 @@ export function LudusMap({
                   {
                     '--sprite-animation-delay': `${(placementIndex % 6) * -0.18}s`,
                     '--sprite-animation-duration': `${animation.durationSeconds}s`,
+                    '--sprite-frame-count': spriteFrames.length,
                     left: placement.x,
                     top: placement.y,
                   } as CSSProperties
@@ -513,8 +517,21 @@ export function LudusMap({
               >
                 <span className="ludus-map-sprite__shadow" aria-hidden="true" />
                 <span className="ludus-map-sprite__motion" aria-hidden="true">
-                  {spriteAssetPath ? (
-                    <img className="ludus-map-sprite__asset" src={spriteAssetPath} alt="" />
+                  {spriteFrames.length > 0 ? (
+                    <span
+                      className="ludus-map-sprite__frames"
+                      data-frame-count={spriteFrames.length}
+                    >
+                      {spriteFrames.map((spriteFrame, frameIndex) => (
+                        <img
+                          className="ludus-map-sprite__asset"
+                          data-frame-index={frameIndex}
+                          key={spriteFrame}
+                          src={spriteFrame}
+                          alt=""
+                        />
+                      ))}
+                    </span>
                   ) : null}
                   <span className="ludus-map-sprite__body" />
                 </span>

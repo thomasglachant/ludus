@@ -20,6 +20,7 @@ if (!Number.isInteger(variantCount) || variantCount < 4) {
 const timePhases = ['dawn', 'day', 'dusk', 'night'];
 const buildingIds = ['domus', 'canteen', 'dormitory', 'trainingGround', 'pleasureHall', 'infirmary'];
 const buildingLevels = [0, 1, 2, 3];
+const generatedAt = '2026-01-01T00:00:00.000Z';
 
 const phasePalettes = {
   dawn: { sky: '#d99a79', ground: '#b9965c', grass: '#6f844b', light: '#ffd39a', shadow: '#5a3a36' },
@@ -452,7 +453,7 @@ ensureDir(outputRoot);
 
 const manifest = {
   version: 1,
-  generatedAt: new Date().toISOString(),
+  generatedAt,
   homepage: { backgrounds: {}, lastSaveThumbnail: '' },
   map: { backgrounds: {}, ambient: {} },
   buildings: {},

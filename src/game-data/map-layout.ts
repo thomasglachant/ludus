@@ -1,5 +1,6 @@
 import type { BuildingId } from '../domain/buildings/types';
 import { LUDUS_MAP_DECORATIONS, type MapDecorationDefinition } from './decorations';
+import { VISUAL_ASSET_MANIFEST } from './visual-assets';
 
 export type MapExternalLocationId = 'market' | 'arena';
 export type MapLocationId = BuildingId | MapExternalLocationId;
@@ -159,7 +160,7 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       nameKey: 'map.locations.market.name',
       descriptionKey: 'map.locations.market.description',
       style: 'market',
-      assetPath: '/assets/locations/market.svg',
+      assetPath: VISUAL_ASSET_MANIFEST.locations.market.exterior,
       x: 170,
       y: 760,
       width: 260,
@@ -171,7 +172,7 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       nameKey: 'map.locations.arena.name',
       descriptionKey: 'map.locations.arena.description',
       style: 'arena',
-      assetPath: '/assets/locations/arena.svg',
+      assetPath: VISUAL_ASSET_MANIFEST.locations.arena.exterior,
       x: 1970,
       y: 420,
       width: 310,

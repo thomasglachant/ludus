@@ -1,4 +1,10 @@
 import type { BuildingId } from '../domain/buildings/types';
+import { BUILDING_IDS } from './buildings';
+import {
+  getBuildingAssetSet,
+  getPixelArtBuildingLevel,
+  PIXEL_ART_BUILDING_LEVELS,
+} from './visual-assets';
 
 export interface BuildingVisualDefinition {
   buildingId: BuildingId;
@@ -6,6 +12,7 @@ export interface BuildingVisualDefinition {
   exteriorAssetPath: string;
   roofAssetPath?: string;
   interiorAssetPath?: string;
+  propsAssetPath?: string;
   width: number;
   height: number;
 }
@@ -19,31 +26,38 @@ const buildingVisualSizes: Record<BuildingId, { width: number; height: number }>
   infirmary: { width: 240, height: 160 },
 };
 
-const visualLevels = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const;
+function getLegacyBuildingAssetPath(buildingId: BuildingId, level: number) {
+  return `/assets/buildings/${buildingId}-level-${level}.svg`;
+}
 
-export const BUILDING_VISUAL_DEFINITIONS: BuildingVisualDefinition[] = Object.entries(
-  buildingVisualSizes,
-).flatMap(([buildingId, size]) =>
-  visualLevels.map((level) => ({
-    buildingId: buildingId as BuildingId,
+function createBuildingVisualDefinition(
+  buildingId: BuildingId,
+  level: number,
+): BuildingVisualDefinition {
+  const visualLevel = getPixelArtBuildingLevel(level);
+  const assetSet = getBuildingAssetSet(buildingId, visualLevel);
+  const fallbackSize = buildingVisualSizes[buildingId];
+
+  return {
+    buildingId,
     level,
-    exteriorAssetPath: `/assets/buildings/${buildingId}-level-${level}.svg`,
-    width: size.width,
-    height: size.height,
-  })),
+    exteriorAssetPath: assetSet?.exterior ?? getLegacyBuildingAssetPath(buildingId, level),
+    roofAssetPath: assetSet?.roof,
+    interiorAssetPath: assetSet?.interior,
+    propsAssetPath: assetSet?.props,
+    width: assetSet?.width ?? fallbackSize.width,
+    height: assetSet?.height ?? fallbackSize.height,
+  };
+}
+
+export const BUILDING_VISUAL_DEFINITIONS: BuildingVisualDefinition[] = BUILDING_IDS.flatMap(
+  (buildingId) =>
+    PIXEL_ART_BUILDING_LEVELS.map((level) => createBuildingVisualDefinition(buildingId, level)),
 );
 
 export function getBuildingVisualDefinition(
   buildingId: BuildingId,
   level: number,
 ): BuildingVisualDefinition {
-  return (
-    BUILDING_VISUAL_DEFINITIONS.find(
-      (definition) => definition.buildingId === buildingId && definition.level === level,
-    ) ??
-    BUILDING_VISUAL_DEFINITIONS.find(
-      (definition) => definition.buildingId === buildingId && definition.level === 1,
-    ) ??
-    BUILDING_VISUAL_DEFINITIONS[0]
-  );
+  return createBuildingVisualDefinition(buildingId, level);
 }

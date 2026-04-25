@@ -2297,6 +2297,7 @@ h3 {
       transparent 42%
     ),
     var(--map-terrain-color);
+  background-blend-mode: normal, normal, normal, normal;
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -2341,7 +2342,7 @@ h3 {
   inset: 0 auto auto 0;
   overflow: hidden;
   background:
-    linear-gradient(90deg, rgba(96, 75, 38, 0.1) 1px, transparent 1px),
+    var(--map-background-image), linear-gradient(90deg, rgba(96, 75, 38, 0.1) 1px, transparent 1px),
     linear-gradient(180deg, rgba(96, 75, 38, 0.08) 1px, transparent 1px),
     radial-gradient(
       circle at 38% 48%,
@@ -2355,10 +2356,19 @@ h3 {
     ),
     var(--map-terrain-color);
   background-size:
+    cover,
     44px 44px,
     44px 44px,
     auto,
+    auto,
     auto;
+  background-position:
+    center,
+    0 0,
+    0 0,
+    center,
+    center,
+    center;
   image-rendering: pixelated;
   transform-origin: 0 0;
 }
@@ -2873,16 +2883,45 @@ h3 {
     0 34px 0 -11px rgba(36, 25, 19, 0.28);
 }
 
+.ludus-map-sprite__frames {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 64px;
+}
+
 .ludus-map-sprite__asset {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 48px;
   height: 64px;
   object-fit: contain;
   image-rendering: pixelated;
   filter: drop-shadow(0 5px 0 rgba(36, 25, 19, 0.24));
+  opacity: 0;
 }
 
-.ludus-map-sprite__asset + .ludus-map-sprite__body {
+.ludus-map-sprite__asset[data-frame-index='0'] {
+  opacity: 1;
+}
+
+.ludus-map-sprite__frames[data-frame-count='2'] .ludus-map-sprite__asset {
+  animation-duration: var(--sprite-animation-duration, 2s);
+  animation-iteration-count: infinite;
+  animation-timing-function: steps(1, end);
+  animation-delay: var(--sprite-animation-delay, 0s);
+}
+
+.ludus-map-sprite__frames[data-frame-count='2'] .ludus-map-sprite__asset[data-frame-index='0'] {
+  animation-name: ludus-sprite-frame-first;
+}
+
+.ludus-map-sprite__frames[data-frame-count='2'] .ludus-map-sprite__asset[data-frame-index='1'] {
+  animation-name: ludus-sprite-frame-second;
+}
+
+.ludus-map-sprite__frames + .ludus-map-sprite__body {
   display: none;
 }
 
@@ -3087,6 +3126,30 @@ h3 {
   }
 }
 
+@keyframes ludus-sprite-frame-first {
+  0%,
+  49.99% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes ludus-sprite-frame-second {
+  0%,
+  49.99% {
+    opacity: 0;
+  }
+
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+
 @keyframes ludus-torch-flicker {
   0%,
   100% {
@@ -3100,6 +3163,7 @@ h3 {
 
 @media (prefers-reduced-motion: reduce) {
   .ludus-map-sprite__motion,
+  .ludus-map-sprite__asset,
   .ludus-map-sprite__shadow,
   .ludus-map-decoration--torch::after {
     animation: none;
