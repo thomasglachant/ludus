@@ -127,7 +127,6 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       resolvedEvents: [],
     },
     metadata: {
-      isDemo: true,
       demoSaveId: input.id,
     },
   };

@@ -3,13 +3,6 @@ import { DEMO_SAVE_DEFINITIONS } from '../game-data/demo-saves';
 import { cloneJson } from '../utils/clone';
 import { SaveNotFoundError, type SaveProvider } from './save-provider';
 
-export class DemoSaveReadOnlyError extends Error {
-  constructor() {
-    super('Demo saves are read-only.');
-    this.name = 'DemoSaveReadOnlyError';
-  }
-}
-
 export class DemoSaveProvider implements SaveProvider {
   async listSaves(): Promise<GameSaveMetadata[]> {
     return DEMO_SAVE_DEFINITIONS.map((definition) => ({
@@ -35,7 +28,6 @@ export class DemoSaveProvider implements SaveProvider {
       ...definition.save,
       metadata: {
         ...definition.save.metadata,
-        isDemo: true,
         demoSaveId: definition.id,
       },
     });
@@ -43,16 +35,16 @@ export class DemoSaveProvider implements SaveProvider {
 
   async createSave(save: GameSave): Promise<void> {
     void save;
-    throw new DemoSaveReadOnlyError();
+    throw new Error('Demo templates cannot be written.');
   }
 
   async updateSave(save: GameSave): Promise<void> {
     void save;
-    throw new DemoSaveReadOnlyError();
+    throw new Error('Demo templates cannot be written.');
   }
 
   async deleteSave(saveId: string): Promise<void> {
     void saveId;
-    throw new DemoSaveReadOnlyError();
+    throw new Error('Demo templates cannot be written.');
   }
 }

@@ -130,20 +130,23 @@ describe('GameStore save UI state', () => {
     await waitFor(() => expect(screen.getByTestId('dirty')).toHaveTextContent('false'));
   });
 
-  it('treats demo saves as read-only save no-ops', async () => {
+  it('starts demo templates as normal local saves', async () => {
     const user = userEvent.setup();
 
     renderHarness();
     await user.click(screen.getByRole('button', { name: 'Load demo' }));
-    await waitFor(() =>
-      expect(screen.getByTestId('notice')).toHaveTextContent('demoMode.readOnlySaveNotice'),
-    );
+    await waitFor(() => expect(screen.getByTestId('save-id')).not.toHaveTextContent(''));
 
+    const saveId = screen.getByTestId('save-id').textContent ?? '';
+
+    expect(saveId).not.toBe('demo-early-ludus');
+    expect(screen.getByTestId('dirty')).toHaveTextContent('false');
+    expect(screen.getByTestId('notice')).toHaveTextContent('');
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
-    expect(screen.getByTestId('dirty')).toHaveTextContent('false');
-    expect(screen.getByTestId('notice')).toHaveTextContent('demoMode.readOnlySaveNotice');
-    expect(localStorage.getItem('ludus:save:demo-early-ludus')).toBeNull();
-    expect(localStorage.getItem('ludus:save-index')).toBeNull();
+    await waitFor(() =>
+      expect(screen.getByTestId('notice')).toHaveTextContent('ludus.saveSuccess'),
+    );
+    expect(localStorage.getItem(`ludus:save:${saveId}`)).not.toBeNull();
   });
 });

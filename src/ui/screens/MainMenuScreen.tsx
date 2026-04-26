@@ -1,6 +1,5 @@
 import { Coins, Flame, FolderOpen, Play, Settings, Shield, Trophy, Users } from 'lucide-react';
 import { useEffect, useState, type CSSProperties } from 'react';
-import { featureFlags } from '../../config/features';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
@@ -81,12 +80,6 @@ export function MainMenuScreen() {
             <img src={VISUAL_ASSET_MANIFEST.ui['laurel-right']} alt="" aria-hidden="true" />
           </div>
           <p>{t('app.subtitle')}</p>
-          {featureFlags.enableDemoMode ? (
-            <span className="main-menu-screen__demo">
-              <Shield aria-hidden="true" size={18} />
-              {t('mainMenu.demoMode')}
-            </span>
-          ) : null}
         </div>
 
         <nav className="main-menu-screen__buttons" aria-label={t('navigation.title')}>

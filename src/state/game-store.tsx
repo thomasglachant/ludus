@@ -221,14 +221,16 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       setErrorKey(null);
 
       try {
-        const save = synchronizeLoadedSave(await saveService.loadDemoSave(saveId));
+        const demoTemplate = synchronizeLoadedSave(await saveService.loadDemoSave(saveId));
+        const save = await saveService.createLocalSaveFromDemoTemplate(demoTemplate);
 
         effectAccumulatorMinutes.current = 0;
         lastTickAt.current = null;
         setHasUnsavedChanges(false);
         setLastSavedAt(save.updatedAt);
-        setSaveNoticeKey('demoMode.readOnlySaveNotice');
+        setSaveNoticeKey(null);
         setCurrentSave(save);
+        setLocalSaves(await saveService.listLocalSaves());
         setLanguage(save.settings.language);
         navigate('ludus');
         return true;
@@ -249,17 +251,37 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    await loadDemoSave(demoSaveId);
-  }, [currentSave, loadDemoSave]);
+    setIsLoading(true);
+    setErrorKey(null);
+
+    try {
+      const demoTemplate = synchronizeLoadedSave(await saveService.loadDemoSave(demoSaveId));
+      const resetSave = await saveService.updateLocalSave({
+        ...demoTemplate,
+        saveId: currentSave.saveId,
+        createdAt: currentSave.createdAt,
+        metadata: {
+          demoSaveId,
+        },
+      });
+
+      effectAccumulatorMinutes.current = 0;
+      lastTickAt.current = null;
+      setHasUnsavedChanges(false);
+      setLastSavedAt(resetSave.updatedAt);
+      setSaveNoticeKey(null);
+      setCurrentSave(resetSave);
+      setLocalSaves(await saveService.listLocalSaves());
+      setLanguage(resetSave.settings.language);
+    } catch {
+      setErrorKey('demoMode.loadError');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentSave, saveService, setLanguage]);
 
   const saveCurrentGame = useCallback(async () => {
     if (!currentSave) {
-      return;
-    }
-
-    if (currentSave.metadata?.isDemo) {
-      setErrorKey(null);
-      setSaveNoticeKey('demoMode.readOnlySaveNotice');
       return;
     }
 
@@ -332,21 +354,19 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       setLastSavedAt(saveWithLanguage.updatedAt);
       setSaveNoticeKey(null);
 
-      if (!saveWithLanguage.metadata?.isDemo) {
-        setIsSaving(true);
-        setErrorKey(null);
+      setIsSaving(true);
+      setErrorKey(null);
 
-        try {
-          const updatedSave = await saveService.updateLocalSave(saveWithLanguage);
+      try {
+        const updatedSave = await saveService.updateLocalSave(saveWithLanguage);
 
-          setCurrentSave(updatedSave);
-          setLastSavedAt(updatedSave.updatedAt);
-        } catch {
-          setHasUnsavedChanges(true);
-          setErrorKey('ludus.saveError');
-        } finally {
-          setIsSaving(false);
-        }
+        setCurrentSave(updatedSave);
+        setLastSavedAt(updatedSave.updatedAt);
+      } catch {
+        setHasUnsavedChanges(true);
+        setErrorKey('ludus.saveError');
+      } finally {
+        setIsSaving(false);
       }
     },
     [currentSave, saveService, setLanguage],
@@ -360,7 +380,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
       const updatedSave = updateSave(save);
 
-      if (updatedSave !== save && !save.metadata?.isDemo) {
+      if (updatedSave !== save) {
         setHasUnsavedChanges(true);
         setSaveNoticeKey(null);
       }
@@ -502,7 +522,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
         effectAccumulatorMinutes.current = result.effectAccumulatorMinutes;
 
-        if (result.save !== save && !save.metadata?.isDemo) {
+        if (result.save !== save) {
           setHasUnsavedChanges(true);
           setSaveNoticeKey(null);
         }

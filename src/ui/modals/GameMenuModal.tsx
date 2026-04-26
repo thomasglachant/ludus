@@ -6,7 +6,6 @@ import { AppModal } from './AppModal';
 interface GameMenuModalProps {
   hasUnsavedChanges: boolean;
   isSaving: boolean;
-  isDemoSave: boolean;
   onClose(): void;
   onOpenLoadGame(): void;
   onOpenOptions(): void;
@@ -17,7 +16,6 @@ interface GameMenuModalProps {
 
 export function GameMenuModal({
   hasUnsavedChanges,
-  isDemoSave,
   isSaving,
   onClose,
   onOpenLoadGame,
@@ -27,11 +25,7 @@ export function GameMenuModal({
   onSaveAs,
 }: GameMenuModalProps) {
   const { t } = useUiStore();
-  const statusKey = isDemoSave
-    ? 'gameMenu.demoSaveNotice'
-    : hasUnsavedChanges
-      ? 'gameMenu.unsavedNotice'
-      : 'gameMenu.savedNotice';
+  const statusKey = hasUnsavedChanges ? 'gameMenu.unsavedNotice' : 'gameMenu.savedNotice';
 
   return (
     <AppModal testId="game-menu-modal" titleKey="gameMenu.title" onClose={onClose}>
@@ -39,7 +33,7 @@ export function GameMenuModal({
         <p className="notice-box">{t(statusKey)}</p>
         <div className="game-menu__actions">
           <ActionButton
-            disabled={isSaving || isDemoSave}
+            disabled={isSaving}
             icon={<Save aria-hidden="true" size={18} />}
             label={t(isSaving ? 'ludus.saving' : 'common.save')}
             variant="primary"

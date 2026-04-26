@@ -56,10 +56,9 @@ The top HUD must expose save state without forcing the player into a modal:
 - an unsaved-changes status when the active save is dirty;
 - a saved status with the latest successful save time when available;
 - an in-progress saving state while the save provider write is pending;
-- a demo read-only notice when the active save comes from demo mode;
-- save success, save failure and demo read-only feedback through the shared toast or notice layer.
+- save success and save failure feedback through the shared toast or notice layer.
 
-Demo read-only saves should keep the reset-demo action visible and should not present a normal save button as if the template could be overwritten.
+Demo saves are templates exposed from the load flow. Loading one creates a normal local save that keeps a restart-from-template action visible while allowing the player to save and continue normally.
 
 ## 4. Hidden By Default
 
@@ -256,7 +255,7 @@ MVP screens and panels should expose clear, i18n-backed states for missing or bl
 - no events: the events panel shows that no event needs a decision right now;
 - no combat or no eligible combatant: the arena panel shows why no Sunday combat is available;
 - save failures: the HUD/toast layer shows the local save error while preserving dirty state;
-- demo saves: the HUD marks the active demo as read-only and routes save attempts to a read-only notice.
+- demo templates: loading one starts a normal local save, and the HUD keeps a restart-from-template action visible.
 
 These states should use shared primitives such as `EmptyState`, `NoticeBox`, `PanelShell`, `SectionCard`, badges and modal infrastructure where practical. They should not be silent disabled controls.
 

@@ -9,7 +9,7 @@ describe('SaveService demo saves', () => {
     localStorage.clear();
   });
 
-  it('does not write demo saves to local storage when updated', async () => {
+  it('can start a normal local save from a demo template', async () => {
     const service = new SaveService(
       new LocalSaveProvider(),
       new CloudSaveProvider(),
@@ -17,7 +17,7 @@ describe('SaveService demo saves', () => {
     );
     const demoSave = await service.loadDemoSave('demo-early-ludus');
 
-    await service.updateLocalSave({
+    const localSave = await service.createLocalSaveFromDemoTemplate({
       ...demoSave,
       ludus: {
         ...demoSave.ludus,
@@ -25,8 +25,25 @@ describe('SaveService demo saves', () => {
       },
     });
 
-    await expect(service.listLocalSaves()).resolves.toEqual([]);
-    expect(localStorage.getItem('ludus:save:demo-early-ludus')).toBeNull();
+    expect(localSave.saveId).not.toBe('demo-early-ludus');
+    expect(localSave.metadata).toEqual({ demoSaveId: 'demo-early-ludus' });
+    await expect(service.listLocalSaves()).resolves.toHaveLength(1);
+
+    const updatedSave = await service.updateLocalSave({
+      ...localSave,
+      ludus: {
+        ...localSave.ludus,
+        treasury: 2,
+      },
+    });
+
+    await expect(service.loadLocalSave(localSave.saveId)).resolves.toMatchObject({
+      ludus: {
+        treasury: 2,
+      },
+      saveId: localSave.saveId,
+      updatedAt: updatedSave.updatedAt,
+    });
   });
 
   it('can save an existing game as a new local save', async () => {

@@ -12,7 +12,6 @@ import type { GameTimeState } from '../time/types';
 export type DemoSaveId = 'demo-early-ludus' | 'demo-mid-ludus' | 'demo-advanced-ludus';
 
 export interface SaveMetadata {
-  isDemo?: boolean;
   demoSaveId?: DemoSaveId;
 }
 

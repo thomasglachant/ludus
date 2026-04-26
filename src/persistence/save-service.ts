@@ -52,10 +52,6 @@ export class SaveService {
   }
 
   async updateLocalSave(save: GameSave): Promise<GameSave> {
-    if (save.metadata?.isDemo) {
-      return save;
-    }
-
     const updatedSave = this.withUpdatedAt(save);
 
     await this.localSaveProvider.updateSave(updatedSave);
@@ -84,6 +80,29 @@ export class SaveService {
     return localSave;
   }
 
+  async createLocalSaveFromDemoTemplate(save: GameSave): Promise<GameSave> {
+    const now = new Date().toISOString();
+    const localSave: GameSave = {
+      ...save,
+      saveId: createId('save'),
+      createdAt: now,
+      updatedAt: now,
+      metadata: save.metadata?.demoSaveId
+        ? {
+            demoSaveId: save.metadata.demoSaveId,
+          }
+        : undefined,
+      player: {
+        ...save.player,
+        isCloudUser: false,
+      },
+    };
+
+    await this.localSaveProvider.createSave(localSave);
+
+    return localSave;
+  }
+
   async deleteLocalSave(saveId: string): Promise<void> {
     await this.localSaveProvider.deleteSave(saveId);
   }
@@ -97,10 +116,6 @@ export class SaveService {
   }
 
   async createCloudSave(save: GameSave): Promise<GameSave> {
-    if (save.metadata?.isDemo) {
-      return save;
-    }
-
     const cloudSave = this.asCloudSave(save);
 
     await this.cloudSaveProvider.createSave(cloudSave);
@@ -109,10 +124,6 @@ export class SaveService {
   }
 
   async updateCloudSave(save: GameSave): Promise<GameSave> {
-    if (save.metadata?.isDemo) {
-      return save;
-    }
-
     const cloudSave = this.asCloudSave(this.withUpdatedAt(save));
 
     await this.cloudSaveProvider.updateSave(cloudSave);

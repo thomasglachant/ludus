@@ -118,7 +118,7 @@ export function GameShell() {
   };
 
   const requestQuit = () => {
-    if (!hasUnsavedChanges || currentSave.metadata?.isDemo) {
+    if (!hasUnsavedChanges) {
       quitToMainMenu();
       return;
     }
@@ -198,7 +198,6 @@ export function GameShell() {
       {activeDialog === 'menu' ? (
         <GameMenuModal
           hasUnsavedChanges={hasUnsavedChanges}
-          isDemoSave={Boolean(currentSave.metadata?.isDemo)}
           isSaving={isSaving || isLoading}
           onClose={closeGameDialog}
           onOpenLoadGame={() => setActiveDialog('loadGame')}

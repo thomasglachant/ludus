@@ -43,6 +43,23 @@ describe('App', () => {
     expect(screen.getAllByText('500')).not.toHaveLength(0);
   });
 
+  it('fills new game names from random generators', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /new game/i }));
+    await user.click(screen.getByRole('button', { name: /random owner/i }));
+    await user.click(screen.getByRole('button', { name: /random ludus/i }));
+
+    expect(screen.getByLabelText(/owner name/i)).not.toHaveValue('');
+    expect(screen.getByLabelText(/ludus name/i)).not.toHaveValue('');
+  });
+
   it('opens the in-game menu instead of leaving the current game immediately', async () => {
     const user = userEvent.setup();
 

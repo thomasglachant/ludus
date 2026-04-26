@@ -39,15 +39,12 @@ export function TopHud({
   const demoDefinition = save.metadata?.demoSaveId
     ? getDemoSaveDefinition(save.metadata.demoSaveId)
     : undefined;
-  const isDemoSave = Boolean(save.metadata?.isDemo);
   const savedTime = lastSavedAt ? new Date(lastSavedAt).toLocaleTimeString(language) : null;
-  const saveStatusKey = isDemoSave
-    ? 'demoMode.saveDisabled'
-    : hasUnsavedChanges
-      ? 'ludus.unsavedChanges'
-      : savedTime
-        ? 'ludus.savedAt'
-        : 'ludus.localSaveReady';
+  const saveStatusKey = hasUnsavedChanges
+    ? 'ludus.unsavedChanges'
+    : savedTime
+      ? 'ludus.savedAt'
+      : 'ludus.localSaveReady';
 
   return (
     <header className="top-hud" data-testid="topbar">
@@ -99,8 +96,7 @@ export function TopHud({
         <div
           className={[
             'top-hud__save-status',
-            hasUnsavedChanges && !isDemoSave ? 'top-hud__save-status--dirty' : '',
-            isDemoSave ? 'top-hud__save-status--readonly' : '',
+            hasUnsavedChanges ? 'top-hud__save-status--dirty' : '',
           ]
             .filter(Boolean)
             .join(' ')}
@@ -109,17 +105,10 @@ export function TopHud({
           <CheckCircle2 aria-hidden="true" size={16} />
           <span>{t(saveStatusKey, savedTime ? { time: savedTime } : undefined)}</span>
         </div>
-        {isDemoSave ? null : (
-          <button
-            data-testid="topbar-save-button"
-            disabled={isSaving}
-            type="button"
-            onClick={onSave}
-          >
-            <Save aria-hidden="true" size={17} />
-            <span>{t(isSaving ? 'ludus.saving' : 'common.save')}</span>
-          </button>
-        )}
+        <button data-testid="topbar-save-button" disabled={isSaving} type="button" onClick={onSave}>
+          <Save aria-hidden="true" size={17} />
+          <span>{t(isSaving ? 'ludus.saving' : 'common.save')}</span>
+        </button>
         <button data-testid="topbar-menu-button" type="button" onClick={onOpenMenu}>
           <Menu aria-hidden="true" size={17} />
           <span>{t('topBar.menu')}</span>

@@ -89,7 +89,7 @@ export function LoadGameModal({ onClose }: LoadGameModalProps) {
         ) : (
           <div className="notice-row">
             <CloudOff aria-hidden="true" size={18} />
-            <span>{t('loadGame.demoModeEnabled')}</span>
+            <span>{t('loadGame.demoModeNotice')}</span>
           </div>
         )}
       </div>
@@ -158,7 +158,6 @@ export function LoadGameModal({ onClose }: LoadGameModalProps) {
                     })}
                   </p>
                   <p>{t(definition.descriptionKey)}</p>
-                  <p>{t('loadGame.demoSaveReadOnly')}</p>
                   <ul className="tag-list">
                     {definition.tags.map((tagKey) => (
                       <li key={tagKey}>{t(tagKey)}</li>

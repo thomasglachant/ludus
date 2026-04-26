@@ -3,7 +3,7 @@ import { getDormitoryCapacity } from '../domain/buildings/dormitory-capacity';
 import { isGameSave } from '../domain/saves/save-validation';
 import { BUILDING_IDS } from '../game-data/buildings';
 import { DEMO_SAVE_DEFINITIONS } from '../game-data/demo-saves';
-import { DemoSaveProvider, DemoSaveReadOnlyError } from './demo-save-provider';
+import { DemoSaveProvider } from './demo-save-provider';
 import { SaveNotFoundError } from './save-provider';
 
 function hasBudgetField(value: unknown): boolean {
@@ -35,7 +35,6 @@ describe('DemoSaveProvider', () => {
 
     expect(isGameSave(save)).toBe(true);
     expect(save.metadata).toEqual({
-      isDemo: true,
       demoSaveId: 'demo-early-ludus',
     });
   });
@@ -64,13 +63,15 @@ describe('DemoSaveProvider', () => {
     );
   });
 
-  it('keeps demo saves read-only', async () => {
+  it('does not expose writable template operations', async () => {
     const provider = new DemoSaveProvider();
     const save = await provider.loadSave('demo-early-ludus');
 
-    await expect(provider.createSave(save)).rejects.toBeInstanceOf(DemoSaveReadOnlyError);
-    await expect(provider.updateSave(save)).rejects.toBeInstanceOf(DemoSaveReadOnlyError);
-    await expect(provider.deleteSave(save.saveId)).rejects.toBeInstanceOf(DemoSaveReadOnlyError);
+    await expect(provider.createSave(save)).rejects.toThrow('Demo templates cannot be written.');
+    await expect(provider.updateSave(save)).rejects.toThrow('Demo templates cannot be written.');
+    await expect(provider.deleteSave(save.saveId)).rejects.toThrow(
+      'Demo templates cannot be written.',
+    );
   });
 });
 
@@ -84,7 +85,6 @@ describe('demo save definitions', () => {
       expect(isGameSave(save)).toBe(true);
       expect(save.schemaVersion).toBe(1);
       expect(save.metadata).toEqual({
-        isDemo: true,
         demoSaveId: definition.id,
       });
       expect(hasBudgetField(save.buildings)).toBe(false);
@@ -155,8 +155,8 @@ describe('demo save definitions', () => {
       year: 5,
       week: 7,
       dayOfWeek: 'saturday',
-      hour: 18,
-      minute: 30,
+      hour: 23,
+      minute: 0,
       speed: 0,
       isPaused: true,
     });

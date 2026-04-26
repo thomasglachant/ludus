@@ -6,7 +6,7 @@ This roadmap describes product phases, not one-off setup tasks. It should evolve
 
 The project already has the core React + TypeScript application structure, local persistence, domain modules, game data modules, i18n, demo mode foundations, map-first UI direction and initial tests.
 
-The save UX baseline is manual local save with clear store-owned UI state. The ludus HUD exposes manual save, dirty state, in-progress saving state, latest successful save time and save success or failure notices. New local saves and loaded saves start clean. Player-driven game-state changes mark the active normal save dirty, successful saves clear dirty state, failed saves keep dirty state, and demo saves are explicit read-only no-ops that never write to local or cloud providers.
+The save UX baseline is manual local save with clear store-owned UI state. The ludus HUD exposes manual save, dirty state, in-progress saving state, latest successful save time and save success or failure notices. New local saves and loaded saves start clean. Player-driven game-state changes mark the active save dirty, successful saves clear dirty state, and failed saves keep dirty state. Demo saves are predefined start templates exposed from the load flow; loading one creates a normal local save that can be played and saved like any other game while the template remains reusable.
 
 The quality baseline is defined by a local and GitHub Actions CI gate covering `npm run build`, `npm run lint`, `npm run test` and `npm run test:e2e`. Playwright coverage is reserved for high-value player flows and stable demo states rather than exhaustive UI coverage, including the new-game-to-map-first-shell smoke flow.
 

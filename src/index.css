@@ -289,10 +289,46 @@ h3 {
   color: var(--text);
 }
 
+.form-field-with-action {
+  position: relative;
+  display: block;
+}
+
+.form-field-with-action input {
+  padding-right: 48px;
+}
+
+.form-random-button {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  transform: translateY(-50%);
+}
+
+.form-random-button:hover {
+  border-color: rgba(111, 69, 35, 0.32);
+  background: rgba(180, 122, 51, 0.12);
+  color: var(--text);
+}
+
+.form-random-button:active {
+  background: rgba(180, 122, 51, 0.2);
+}
+
 .form-panel input:focus-visible,
 .planning-controls select:focus-visible,
 .planning-controls input:focus-visible,
 .action-button:focus-visible,
+.form-random-button:focus-visible,
 .building-card:focus-visible,
 .map-controls button:focus-visible,
 .map-location:focus-visible,
@@ -2414,12 +2450,6 @@ h3 {
   border-color: rgba(148, 78, 44, 0.42);
   background: #fff1c7;
   color: #7a451d;
-}
-
-.top-hud__save-status--readonly {
-  border-color: rgba(57, 103, 114, 0.38);
-  background: #dcefea;
-  color: #1f625b;
 }
 
 .left-navigation-rail {
@@ -4572,8 +4602,7 @@ body {
   color: #ffd77a;
 }
 
-.top-hud__demo,
-.top-hud__save-status--readonly {
+.top-hud__demo {
   border-color: rgba(93, 154, 85, 0.42);
   background: rgba(47, 110, 70, 0.18);
   color: #dce8cc;
