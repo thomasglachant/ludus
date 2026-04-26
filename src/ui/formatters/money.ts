@@ -1,7 +1,4 @@
-const COMPACT_MONEY_THRESHOLDS = [
-  { divisor: 1_000_000, minimum: 1_000_000, suffix: 'M' },
-  { divisor: 1_000, minimum: 10_000, suffix: 'K' },
-] as const;
+const COMPACT_MONEY_THRESHOLDS = [{ divisor: 1_000_000, minimum: 1_000_000, suffix: 'M' }] as const;
 
 function formatSpacedInteger(value: number) {
   return new Intl.NumberFormat('fr-FR', {

@@ -35,6 +35,10 @@ describe('SaveService demo saves', () => {
         ...localSave.ludus,
         treasury: 2,
       },
+      time: {
+        ...localSave.time,
+        speed: 4,
+      },
     });
 
     await expect(service.loadLocalSave(localSave.saveId)).resolves.toMatchObject({
@@ -42,6 +46,9 @@ describe('SaveService demo saves', () => {
         treasury: 2,
       },
       saveId: localSave.saveId,
+      time: {
+        speed: 1,
+      },
       updatedAt: updatedSave.updatedAt,
     });
   });
@@ -64,5 +71,31 @@ describe('SaveService demo saves', () => {
     expect(copiedSave.saveId).not.toBe(originalSave.saveId);
     expect(copiedSave.player.ludusName).toBe('Ludus Felix');
     await expect(service.listLocalSaves()).resolves.toHaveLength(2);
+  });
+
+  it('does not persist the current game speed when saving an existing game as a copy', async () => {
+    const service = new SaveService(
+      new LocalSaveProvider(),
+      new CloudSaveProvider(),
+      new DemoSaveProvider(),
+    );
+    const originalSave = await service.createLocalSave({
+      ludusName: 'Ludus Magnus',
+      ownerName: 'Marcus',
+    });
+    const copiedSave = await service.createLocalSaveFromExisting({
+      ...originalSave,
+      time: {
+        ...originalSave.time,
+        speed: 8,
+      },
+    });
+
+    expect(copiedSave.time.speed).toBe(8);
+    await expect(service.loadLocalSave(copiedSave.saveId)).resolves.toMatchObject({
+      time: {
+        speed: 1,
+      },
+    });
   });
 });

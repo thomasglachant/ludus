@@ -1,6 +1,6 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { UiStoreProvider, useUiStore } from './ui-store';
 import { GameStoreProvider, useGameStore } from './game-store';
 
@@ -25,6 +25,9 @@ function GameStoreHarness() {
       </button>
       <button type="button" onClick={() => store.setGameSpeed(2)}>
         Change speed
+      </button>
+      <button type="button" onClick={() => store.setGameSpeed(0)}>
+        Stop speed
       </button>
       <button type="button" onClick={() => void store.saveCurrentGame()}>
         Save
@@ -76,6 +79,10 @@ describe('GameStore save UI state', () => {
     vi.restoreAllMocks();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('starts a newly created game as clean with a last saved timestamp', async () => {
     const user = userEvent.setup();
 
@@ -107,6 +114,40 @@ describe('GameStore save UI state', () => {
 
     await waitFor(() => expect(screen.getByTestId('dirty')).toHaveTextContent('false'));
     expect(screen.getByTestId('notice')).toHaveTextContent('ludus.saveSuccess');
+    expect(screen.getByTestId('speed')).toHaveTextContent('2');
+
+    const saveId = screen.getByTestId('save-id').textContent ?? '';
+    const storedSave = JSON.parse(localStorage.getItem(`ludus:save:${saveId}`) ?? '{}') as {
+      time?: { speed?: number };
+    };
+
+    expect(storedSave.time?.speed).toBe(1);
+  });
+
+  it('automatically saves dirty local games on the autosave interval', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+
+    renderHarness();
+    await createGame(user);
+
+    const saveId = screen.getByTestId('save-id').textContent ?? '';
+
+    await user.click(screen.getByRole('button', { name: 'Stop speed' }));
+    expect(screen.getByTestId('dirty')).toHaveTextContent('true');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+    });
+
+    await waitFor(() => expect(screen.getByTestId('dirty')).toHaveTextContent('false'));
+
+    const storedSave = JSON.parse(localStorage.getItem(`ludus:save:${saveId}`) ?? '{}') as {
+      time?: { speed?: number };
+    };
+
+    expect(storedSave.time?.speed).toBe(1);
+    expect(screen.getByTestId('last-saved')).not.toHaveTextContent('');
   });
 
   it('keeps dirty state and exposes an error when save fails', async () => {
@@ -136,6 +177,7 @@ describe('GameStore save UI state', () => {
     await user.click(screen.getByRole('button', { name: 'Load local' }));
 
     await waitFor(() => expect(screen.getByTestId('dirty')).toHaveTextContent('false'));
+    expect(screen.getByTestId('speed')).toHaveTextContent('1');
   });
 
   it('restores the active browser session after a remount', async () => {

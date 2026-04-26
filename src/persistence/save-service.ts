@@ -33,7 +33,7 @@ export class SaveService {
   }
 
   async loadLocalSave(saveId: string): Promise<GameSave> {
-    return this.localSaveProvider.loadSave(saveId);
+    return this.withDefaultResumeSpeed(await this.localSaveProvider.loadSave(saveId));
   }
 
   async createLocalSave(input: CreateSaveInput): Promise<GameSave> {
@@ -52,7 +52,7 @@ export class SaveService {
   async updateLocalSave(save: GameSave): Promise<GameSave> {
     const updatedSave = this.withUpdatedAt(save);
 
-    await this.localSaveProvider.updateSave(updatedSave);
+    await this.localSaveProvider.updateSave(this.withDefaultResumeSpeed(updatedSave));
 
     return updatedSave;
   }
@@ -73,7 +73,7 @@ export class SaveService {
       },
     };
 
-    await this.localSaveProvider.createSave(localSave);
+    await this.localSaveProvider.createSave(this.withDefaultResumeSpeed(localSave));
 
     return localSave;
   }
@@ -96,9 +96,11 @@ export class SaveService {
       },
     };
 
-    await this.localSaveProvider.createSave(localSave);
+    const normalizedSave = this.withDefaultResumeSpeed(localSave);
 
-    return localSave;
+    await this.localSaveProvider.createSave(normalizedSave);
+
+    return normalizedSave;
   }
 
   async deleteLocalSave(saveId: string): Promise<void> {
@@ -110,13 +112,13 @@ export class SaveService {
   }
 
   async loadCloudSave(saveId: string): Promise<GameSave> {
-    return this.cloudSaveProvider.loadSave(saveId);
+    return this.withDefaultResumeSpeed(await this.cloudSaveProvider.loadSave(saveId));
   }
 
   async createCloudSave(save: GameSave): Promise<GameSave> {
     const cloudSave = this.asCloudSave(save);
 
-    await this.cloudSaveProvider.createSave(cloudSave);
+    await this.cloudSaveProvider.createSave(this.withDefaultResumeSpeed(cloudSave));
 
     return cloudSave;
   }
@@ -124,7 +126,7 @@ export class SaveService {
   async updateCloudSave(save: GameSave): Promise<GameSave> {
     const cloudSave = this.asCloudSave(this.withUpdatedAt(save));
 
-    await this.cloudSaveProvider.updateSave(cloudSave);
+    await this.cloudSaveProvider.updateSave(this.withDefaultResumeSpeed(cloudSave));
 
     return cloudSave;
   }
@@ -149,6 +151,16 @@ export class SaveService {
     return {
       ...save,
       updatedAt: new Date().toISOString(),
+    };
+  }
+
+  private withDefaultResumeSpeed(save: GameSave): GameSave {
+    return {
+      ...save,
+      time: {
+        ...save.time,
+        speed: 1,
+      },
     };
   }
 

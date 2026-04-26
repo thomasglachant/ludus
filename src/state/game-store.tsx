@@ -92,6 +92,7 @@ interface GameStoreValue {
 }
 
 const GameStoreContext = createContext<GameStoreValue | null>(null);
+const AUTO_SAVE_INTERVAL_MS = 30_000;
 
 function createSaveService() {
   return new SaveService(
@@ -144,6 +145,11 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const lastTickAt = useRef<number | null>(null);
   const activeSessionSaveTimeoutId = useRef<number | null>(null);
   const hasRestoredInitialActiveSession = useRef(false);
+  const currentSaveRef = useRef<GameSave | null>(initialSave);
+  const hasUnsavedChangesRef = useRef(initialActiveSession?.hasUnsavedChanges ?? false);
+  const isSavingRef = useRef(false);
+  const isAutoSavingRef = useRef(false);
+  const dirtyRevisionRef = useRef(0);
   const activeSaveId = currentSave?.saveId;
   const activeSpeed = currentSave?.time.speed;
   const isPaused = currentSave?.time.isPaused;
@@ -192,6 +198,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
         effectAccumulatorMinutes.current = 0;
         lastTickAt.current = null;
+        dirtyRevisionRef.current = 0;
         setHasUnsavedChanges(false);
         setLastSavedAt(save.updatedAt);
         setSaveNoticeKey(null);
@@ -217,6 +224,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
         effectAccumulatorMinutes.current = 0;
         lastTickAt.current = null;
+        dirtyRevisionRef.current = 0;
         setHasUnsavedChanges(false);
         setLastSavedAt(save.updatedAt);
         setSaveNoticeKey(null);
@@ -249,6 +257,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
         effectAccumulatorMinutes.current = 0;
         lastTickAt.current = null;
+        dirtyRevisionRef.current = 0;
         setHasUnsavedChanges(false);
         setLastSavedAt(save.updatedAt);
         setSaveNoticeKey(null);
@@ -289,6 +298,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
       effectAccumulatorMinutes.current = 0;
       lastTickAt.current = null;
+      dirtyRevisionRef.current = 0;
       setHasUnsavedChanges(false);
       setLastSavedAt(resetSave.updatedAt);
       setSaveNoticeKey(null);
@@ -315,6 +325,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
       setCurrentSave(updatedSave);
       setLocalSaves(await saveService.listLocalSaves());
+      dirtyRevisionRef.current = 0;
       setHasUnsavedChanges(false);
       setLastSavedAt(updatedSave.updatedAt);
       setSaveNoticeKey('ludus.saveSuccess');
@@ -341,6 +352,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
         setCurrentSave(newSave);
         setLocalSaves(await saveService.listLocalSaves());
+        dirtyRevisionRef.current = 0;
         setHasUnsavedChanges(false);
         setLastSavedAt(newSave.updatedAt);
         setSaveNoticeKey('ludus.saveAsSuccess');
@@ -371,6 +383,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       const updatedSave = updateSave(save);
 
       if (updatedSave !== save) {
+        dirtyRevisionRef.current += 1;
         setHasUnsavedChanges(true);
         setSaveNoticeKey(null);
       }
@@ -481,6 +494,18 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const clearError = useCallback(() => setErrorKey(null), []);
 
   useEffect(() => {
+    currentSaveRef.current = currentSave;
+  }, [currentSave]);
+
+  useEffect(() => {
+    hasUnsavedChangesRef.current = hasUnsavedChanges;
+  }, [hasUnsavedChanges]);
+
+  useEffect(() => {
+    isSavingRef.current = isSaving;
+  }, [isSaving]);
+
+  useEffect(() => {
     if (!initialActiveSession || hasRestoredInitialActiveSession.current) {
       return undefined;
     }
@@ -545,6 +570,57 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   }, [activeSessionProvider, currentSave, hasUnsavedChanges, screen]);
 
   useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      const save = currentSaveRef.current;
+
+      if (
+        !save ||
+        !hasUnsavedChangesRef.current ||
+        isSavingRef.current ||
+        isAutoSavingRef.current
+      ) {
+        return;
+      }
+
+      const savedDirtyRevision = dirtyRevisionRef.current;
+
+      isAutoSavingRef.current = true;
+      setIsSaving(true);
+      setErrorKey(null);
+
+      void saveService
+        .updateLocalSave(save)
+        .then(async (updatedSave) => {
+          setCurrentSave((latestSave) => {
+            if (!latestSave || latestSave.saveId !== updatedSave.saveId) {
+              return latestSave;
+            }
+
+            return {
+              ...latestSave,
+              updatedAt: updatedSave.updatedAt,
+            };
+          });
+          setLocalSaves(await saveService.listLocalSaves());
+          setLastSavedAt(updatedSave.updatedAt);
+
+          if (dirtyRevisionRef.current === savedDirtyRevision) {
+            setHasUnsavedChanges(false);
+          }
+        })
+        .catch(() => {
+          setErrorKey('ludus.saveError');
+        })
+        .finally(() => {
+          isAutoSavingRef.current = false;
+          setIsSaving(false);
+        });
+    }, AUTO_SAVE_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [saveService]);
+
+  useEffect(() => {
     if (!activeSaveId || activeSpeed === undefined || activeSpeed === 0 || isPaused) {
       lastTickAt.current = null;
       return undefined;
@@ -573,6 +649,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         effectAccumulatorMinutes.current = result.effectAccumulatorMinutes;
 
         if (result.save !== save) {
+          dirtyRevisionRef.current += 1;
           setHasUnsavedChanges(true);
           setSaveNoticeKey(null);
         }
