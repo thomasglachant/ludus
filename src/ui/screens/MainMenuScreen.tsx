@@ -1,13 +1,12 @@
-import { Coins, Flame, FolderOpen, Play, Settings, Shield, Trophy, Users } from 'lucide-react';
+import { Flame, FolderOpen, Play, Settings } from 'lucide-react';
 import { useEffect, type CSSProperties } from 'react';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
-import { formatMoneyAmount } from '../formatters/money';
 
 export function MainMenuScreen() {
-  const { language, navigate, openModal, t } = useUiStore();
-  const { currentSave, isLoading, loadLocalSave, localSaves, refreshLocalSaves } = useGameStore();
+  const { language, openModal, t } = useUiStore();
+  const { isLoading, loadLocalSave, localSaves, refreshLocalSaves } = useGameStore();
   const latestSave = localSaves[0];
   const backgroundPath =
     VISUAL_ASSET_MANIFEST.homepage.backgrounds.day ??
@@ -34,44 +33,6 @@ export function MainMenuScreen() {
 
   return (
     <section className="main-menu-screen" style={mainMenuStyle}>
-      <div className="main-menu-screen__utility-bar">
-        <div className="main-menu-screen__resource-capsule">
-          {currentSave ? (
-            <>
-              <span
-                aria-label={`${t('common.treasury')}: ${formatMoneyAmount(
-                  currentSave.ludus.treasury,
-                )}`}
-              >
-                <Coins aria-hidden="true" size={18} />
-                {formatMoneyAmount(currentSave.ludus.treasury)}
-              </span>
-              <span aria-label={`${t('ludus.gladiators')}: ${currentSave.gladiators.length}`}>
-                <Users aria-hidden="true" size={18} />
-                {currentSave.gladiators.length}
-              </span>
-              <span aria-label={`${t('ludus.reputation')}: ${currentSave.ludus.reputation}`}>
-                <Trophy aria-hidden="true" size={18} />
-                {currentSave.ludus.reputation}
-              </span>
-            </>
-          ) : (
-            <span aria-label={t('mainMenu.resourceDefaultLabel')}>
-              <Shield aria-hidden="true" size={18} />
-              {t('common.local')}
-            </span>
-          )}
-        </div>
-        <button
-          className="main-menu-screen__settings-button"
-          type="button"
-          aria-label={t('mainMenu.openOptions')}
-          onClick={() => openModal({ kind: 'options' })}
-        >
-          <Settings aria-hidden="true" size={22} />
-        </button>
-      </div>
-
       <div className="main-menu-screen__content">
         <div className="main-menu-screen__brand">
           <div className="main-menu-screen__title-row">
@@ -79,7 +40,6 @@ export function MainMenuScreen() {
             <h1>{t('app.title')}</h1>
             <img src={VISUAL_ASSET_MANIFEST.ui['laurel-right']} alt="" aria-hidden="true" />
           </div>
-          <p>{t('app.subtitle')}</p>
         </div>
 
         <nav className="main-menu-screen__buttons" aria-label={t('navigation.title')}>
@@ -87,7 +47,7 @@ export function MainMenuScreen() {
             className="main-menu-screen__button--primary"
             data-testid="main-menu-new-game"
             type="button"
-            onClick={() => navigate('newGame')}
+            onClick={() => openModal({ kind: 'newGame' })}
           >
             <Play aria-hidden="true" size={20} />
             <span>{t('mainMenu.newGame')}</span>

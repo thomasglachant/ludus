@@ -55,6 +55,10 @@ export interface LoadGameModalRequest {
   kind: 'loadGame';
 }
 
+export interface NewGameModalRequest {
+  kind: 'newGame';
+}
+
 export interface MarketModalRequest {
   kind: 'market';
 }
@@ -91,6 +95,7 @@ export type UiModalRequest =
   | GameMenuModalRequest
   | OptionsModalRequest
   | LoadGameModalRequest
+  | NewGameModalRequest
   | MarketModalRequest
   | BuildingModalRequest
   | GladiatorModalRequest

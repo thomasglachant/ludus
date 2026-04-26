@@ -12,6 +12,7 @@ import { AppModal } from './AppModal';
 import { GameMenuModal } from './GameMenuModal';
 import { LoadGameModal } from './LoadGameModal';
 import { MarketModal } from './MarketModal';
+import { NewGameModal } from './NewGameModal';
 import { OptionsModal } from './OptionsModal';
 
 function createInitialFormValues(fields: FormModalField[]) {
@@ -203,7 +204,6 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
   if (modal.kind === 'gameMenu') {
     return (
       <GameMenuModal
-        hasUnsavedChanges={hasUnsavedChanges}
         isSaving={isSaving || isLoading}
         onBack={onBack}
         onClose={closeAllModals}
@@ -221,6 +221,10 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
 
   if (modal.kind === 'loadGame') {
     return <LoadGameModal onBack={onBack} onClose={closeAllModals} />;
+  }
+
+  if (modal.kind === 'newGame') {
+    return <NewGameModal onBack={onBack} onClose={closeAllModals} />;
   }
 
   if (modal.kind === 'market') {

@@ -1,14 +1,19 @@
-import { ArrowLeft, Dices, Landmark } from 'lucide-react';
+import { Dices, Landmark } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { generateLudusName, generateLudusOwnerName } from '../../domain/ludus/name-generator';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
 import { ActionButton } from '../components/ActionButton';
-import { ScreenShell } from '../layout/ScreenShell';
+import { AppModal } from './AppModal';
 
-export function NewGameScreen() {
+interface NewGameModalProps {
+  onBack?(): void;
+  onClose(): void;
+}
+
+export function NewGameModal({ onBack, onClose }: NewGameModalProps) {
   const { createNewGame, isLoading } = useGameStore();
-  const { navigate, t } = useUiStore();
+  const { t } = useUiStore();
   const [ownerName, setOwnerName] = useState(() => generateLudusOwnerName(''));
   const [ludusName, setLudusName] = useState(() => generateLudusName(''));
   const [showValidation, setShowValidation] = useState(false);
@@ -35,8 +40,36 @@ export function NewGameScreen() {
   };
 
   return (
-    <ScreenShell titleKey="newGame.title">
-      <form className="form-panel" data-testid="new-game-screen" onSubmit={submitNewGame}>
+    <AppModal
+      size="md"
+      testId="new-game-modal"
+      titleKey="newGame.title"
+      onBack={onBack}
+      onClose={onClose}
+      footer={
+        <div className="form-actions">
+          <ActionButton label={t('common.cancel')} onClick={onClose} />
+          <ActionButton
+            disabled={isLoading}
+            icon={<Landmark aria-hidden="true" size={18} />}
+            label={isLoading ? t('common.loading') : t('newGame.submit')}
+            testId="new-game-submit"
+            type="submit"
+            variant="primary"
+            onClick={() => {
+              const form = document.querySelector<HTMLFormElement>('[data-new-game-form="active"]');
+              form?.requestSubmit();
+            }}
+          />
+        </div>
+      }
+    >
+      <form
+        className="form-panel form-panel--modal"
+        data-new-game-form="active"
+        data-testid="new-game-screen"
+        onSubmit={submitNewGame}
+      >
         <label>
           <span>{t('newGame.ownerName')}</span>
           <div className="form-field-with-action">
@@ -80,22 +113,7 @@ export function NewGameScreen() {
           </div>
         </label>
         {showValidation ? <p className="form-error">{t('newGame.validation')}</p> : null}
-        <div className="form-actions">
-          <ActionButton
-            icon={<ArrowLeft aria-hidden="true" size={18} />}
-            label={t('common.back')}
-            onClick={() => navigate('mainMenu')}
-          />
-          <ActionButton
-            disabled={isLoading}
-            icon={<Landmark aria-hidden="true" size={18} />}
-            label={isLoading ? t('common.loading') : t('newGame.submit')}
-            testId="new-game-submit"
-            type="submit"
-            variant="primary"
-          />
-        </div>
       </form>
-    </ScreenShell>
+    </AppModal>
   );
 }

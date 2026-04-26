@@ -6,7 +6,6 @@ import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { AppModal } from './AppModal';
 
 interface GameMenuModalProps {
-  hasUnsavedChanges: boolean;
   isSaving: boolean;
   onBack?(): void;
   onClose(): void;
@@ -19,7 +18,6 @@ interface GameMenuModalProps {
 type GameMenuView = 'menu' | 'options';
 
 export function GameMenuModal({
-  hasUnsavedChanges,
   isSaving,
   onBack,
   onClose,
@@ -30,7 +28,6 @@ export function GameMenuModal({
 }: GameMenuModalProps) {
   const { t } = useUiStore();
   const [view, setView] = useState<GameMenuView>('menu');
-  const statusKey = hasUnsavedChanges ? 'gameMenu.unsavedNotice' : 'gameMenu.savedNotice';
   const back = view === 'options' ? () => setView('menu') : onBack;
 
   return (
@@ -43,7 +40,6 @@ export function GameMenuModal({
     >
       {view === 'menu' ? (
         <div className="game-menu">
-          <p className="notice-box">{t(statusKey)}</p>
           <div className="game-menu__actions">
             <ActionButton
               disabled={isSaving}
