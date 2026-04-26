@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
-import type { ScreenName } from '../app/routes';
+import { GAME_SESSION_PATH, type ScreenName } from '../app/routes';
 import type { LanguageCode } from '../domain/types';
 import { translate } from '../i18n';
 
@@ -67,6 +67,18 @@ function getInitialLanguage(): LanguageCode {
   return navigator.language.startsWith('fr') ? 'fr' : 'en';
 }
 
+function getPathForScreen(screen: ScreenName) {
+  return screen === 'ludus' || screen === 'market' ? GAME_SESSION_PATH : '/';
+}
+
+function writeScreenPath(screen: ScreenName) {
+  const nextPath = getPathForScreen(screen);
+
+  if (window.location.pathname !== nextPath) {
+    window.history.pushState(null, '', nextPath);
+  }
+}
+
 export function UiStoreProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<LanguageCode>(getInitialLanguage);
   const [screen, setScreen] = useState<ScreenName>('mainMenu');
@@ -93,7 +105,10 @@ export function UiStoreProvider({ children }: { children: ReactNode }) {
       openConfirmModal: openModal,
       openFormModal: openModal,
       setLanguage,
-      navigate: setScreen,
+      navigate: (nextScreen) => {
+        writeScreenPath(nextScreen);
+        setScreen(nextScreen);
+      },
       t: (key, params) => translate(language, key, params),
     };
   }, [activeModal, language, screen]);

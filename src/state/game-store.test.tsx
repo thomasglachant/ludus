@@ -47,6 +47,8 @@ function GameStoreHarness() {
       <output data-testid="error">{store.errorKey ?? ''}</output>
       <output data-testid="notice">{store.saveNoticeKey ?? ''}</output>
       <output data-testid="save-id">{store.currentSave?.saveId ?? ''}</output>
+      <output data-testid="speed">{store.currentSave?.time.speed ?? ''}</output>
+      <output data-testid="screen">{uiStore.screen}</output>
       <output data-testid="language">{uiStore.language}</output>
     </div>
   );
@@ -70,6 +72,7 @@ async function createGame(user: ReturnType<typeof userEvent.setup>) {
 describe('GameStore save UI state', () => {
   beforeEach(() => {
     localStorage.clear();
+    window.history.replaceState(null, '', '/');
     vi.restoreAllMocks();
   });
 
@@ -133,6 +136,34 @@ describe('GameStore save UI state', () => {
     await user.click(screen.getByRole('button', { name: 'Load local' }));
 
     await waitFor(() => expect(screen.getByTestId('dirty')).toHaveTextContent('false'));
+  });
+
+  it('restores the active browser session after a remount', async () => {
+    const user = userEvent.setup();
+
+    const { unmount } = renderHarness();
+    await createGame(user);
+    await waitFor(() => expect(screen.getByTestId('screen')).toHaveTextContent('ludus'));
+
+    const saveId = screen.getByTestId('save-id').textContent ?? '';
+
+    await user.click(screen.getByRole('button', { name: 'Change speed' }));
+    await waitFor(() => {
+      const rawSession = localStorage.getItem('ludus:active-session');
+      const session = rawSession
+        ? (JSON.parse(rawSession) as { save?: { time?: { speed?: number } } })
+        : null;
+
+      expect(session?.save?.time?.speed).toBe(2);
+    });
+
+    unmount();
+    renderHarness();
+
+    await waitFor(() => expect(screen.getByTestId('save-id')).toHaveTextContent(saveId));
+    await waitFor(() => expect(screen.getByTestId('screen')).toHaveTextContent('ludus'));
+    expect(screen.getByTestId('dirty')).toHaveTextContent('true');
+    expect(screen.getByTestId('speed')).toHaveTextContent('2');
   });
 
   it('starts demo templates as normal local saves', async () => {

@@ -223,6 +223,7 @@ export interface SaveProvider {
 Initial implementations:
 
 - `LocalSaveProvider` using browser storage;
+- `ActiveSessionProvider` using browser storage for the current browser session;
 - `CloudSaveProvider` as a mock placeholder;
 - `DemoSaveProvider` for read-only deterministic demo saves.
 
@@ -231,6 +232,14 @@ Provider responsibilities:
 - providers perform storage reads and writes only;
 - providers do not own UI state such as dirty status, saving status or toast keys;
 - providers may reject invalid operations, such as write attempts against the demo provider.
+
+`ActiveSessionProvider` responsibilities:
+
+- store the current in-browser session separately from the manual local save list;
+- persist the latest `GameSave`, the current screen and the manual dirty state;
+- restore only resumable player screens such as `ludus` or `market`, falling back to `ludus` for non-game screens;
+- validate stored session data with the normal save parser before restore;
+- clear corrupted active-session data instead of exposing invalid state to the store.
 
 `SaveService` responsibilities:
 
@@ -244,6 +253,9 @@ Store responsibilities:
 
 - keep the active `currentSave`;
 - track save UI state: `hasUnsavedChanges`, `lastSavedAt`, `isSaving` and `saveNoticeKey`;
+- restore a valid active browser session on startup only when the browser path is `/play`, then navigate back to its stored game screen;
+- write the active browser session continuously while gameplay state changes;
+- flush the active browser session during `pagehide` to survive browser refresh or tab close;
 - mark player-driven save mutations dirty unless the action writes immediately by design;
 - clear dirty state and set `lastSavedAt` after a successful save;
 - keep dirty state after a failed save and expose a save error key;
@@ -255,9 +267,16 @@ Save data is a JSON snapshot of the full game state and includes `schemaVersion`
 
 Local save is always available. Cloud save requires authentication in the long-term product direction, but the initial implementation can remain mocked behind the provider abstraction.
 
-Demo saves are read-only templates and must not autosave or upload to cloud saves.
+Demo saves are read-only templates and must not upload to cloud saves. Starting a demo creates a normal local save copy before it can become the active browser session.
 
-The MVP save model is manual local save with dirty-state feedback. `hasUnsavedChanges`, `isSaving`, `saveNoticeKey` and other transient UI save state are not persisted in `GameSave`.
+The MVP save model has two layers:
+
+- the active browser session is auto-persisted under a dedicated browser-storage key so refresh, tab close or accidental reload can resume the current play session;
+- manual local saves remain explicit player snapshots listed by the normal save provider.
+
+The active browser session is resumed only from the dedicated play URL, `/play`. Loading the normal root URL, `/`, always shows the homepage/main menu even when an active session exists. Internal navigation to game screens writes `/play`; navigation back to homepage-oriented screens writes `/`.
+
+`hasUnsavedChanges`, `isSaving`, `saveNoticeKey` and other transient UI save state are not persisted in `GameSave`. The active browser session may store the current manual dirty flag beside the save payload, but it does not add fields to the save schema.
 
 `lastSavedAt` is session UI state derived from the last successful write timestamp. It may mirror `GameSave.updatedAt` after loading or saving, but it is still tracked by the store for display rather than added as a separate save-schema field.
 

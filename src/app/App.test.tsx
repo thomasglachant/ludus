@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from './App';
@@ -12,6 +12,7 @@ describe('App', () => {
     });
     localStorage.clear();
     localStorage.setItem('ludus:language', 'en');
+    window.history.replaceState(null, '', '/');
   });
 
   it('creates a new game and reaches the ludus screen', async () => {
@@ -151,6 +152,49 @@ describe('App', () => {
     );
 
     expect(await screen.findByRole('button', { name: 'New game' })).toBeInTheDocument();
+  });
+
+  it('keeps the homepage on the normal URL even when an active session exists', async () => {
+    const user = userEvent.setup();
+
+    const { unmount } = render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /new game/i }));
+    await user.type(screen.getByLabelText(/owner name/i), 'Marcus');
+    await user.type(screen.getByLabelText(/ludus name/i), 'Ludus Magnus');
+    await user.click(screen.getByRole('button', { name: /found the ludus/i }));
+    await screen.findByRole('heading', { name: 'Ludus Magnus' });
+    await user.click(screen.getByRole('button', { name: 'x2' }));
+    await waitFor(() => expect(localStorage.getItem('ludus:active-session')).not.toBeNull());
+
+    unmount();
+    window.history.replaceState(null, '', '/');
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    expect(await screen.findByRole('button', { name: 'New game' })).toBeInTheDocument();
+    expect(screen.queryByTestId('map-container')).not.toBeInTheDocument();
+  });
+
+  it('redirects the play URL to the homepage when no active session exists', async () => {
+    window.history.replaceState(null, '', '/play');
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    expect(await screen.findByRole('button', { name: 'New game' })).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/');
   });
 
   it('opens a current building as owned with upgrade as the primary action', async () => {

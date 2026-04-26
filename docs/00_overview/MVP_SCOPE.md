@@ -31,13 +31,17 @@ The MVP is not expected to implement every future system. It should deliver a pl
 ### Save System
 
 - Local save using browser storage.
-- Manual local save from the player HUD.
-- Clear unsaved-changes indicator when the active save has local changes that have not been written.
+- Active browser session auto-persisted separately from the manual local save list.
+- Browser refresh, tab close or accidental reload can resume the current active session from the dedicated play URL.
+- The normal root URL remains the homepage/main menu even when an active session exists.
+- Manual local save from the player HUD as an explicit snapshot.
+- Clear unsaved-changes indicator when the active session has local changes that have not been written as a manual snapshot.
 - Clear saved status with the last successful save time during a play session.
 - Clear save success and failure feedback.
 - Save schema version.
 - Save creation.
 - Save loading.
+- Active-session restore on app startup when valid session data exists and the browser path is the dedicated play URL.
 - Basic corrupted save handling.
 - Cloud save provider abstraction with an initial mock implementation.
 - Demo saves kept separate from normal local and cloud saves.
@@ -178,7 +182,9 @@ The MVP is valid if:
 - language can be changed;
 - the ludus screen shows time, treasury, buildings and gladiators;
 - local save can be created and loaded;
-- the ludus screen exposes manual save, unsaved-changes status and latest successful save time;
+- refreshing the browser on the dedicated play URL resumes the current game state;
+- opening the root URL shows the homepage/main menu instead of auto-resuming the active session;
+- the ludus screen exposes manual snapshot save, unsaved-changes status and latest successful manual save time;
 - attempting to save a demo save leaves the demo template untouched and explains that demo saves are read-only;
 - a new game starts with all base buildings purchased at level 1;
 - base buildings can be upgraded and configured through improvements or policies where their data provides them;

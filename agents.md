@@ -86,6 +86,7 @@ The player is a lanista. The core loop is weekly preparation followed by Sunday 
 - The codebase has the React/Vite/TypeScript baseline.
 - Domain modules, game-data modules, persistence providers, i18n, state and UI folders exist.
 - Local save, mock cloud save and demo save provider concepts are represented.
+- Browser play sessions are auto-persisted separately from manual local saves so refresh on `/play` can resume the current session; `/` remains the homepage; manual saves remain player snapshots.
 - Demo mode is controlled by `VITE_ENABLE_DEMO_MODE=true`.
 - Debug UI is controlled by `VITE_ENABLE_DEBUG_UI=true`.
 - Current demo saves are `demo-early-ludus`, `demo-mid-ludus` and `demo-advanced-ludus`.
