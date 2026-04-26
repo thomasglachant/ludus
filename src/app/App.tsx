@@ -6,7 +6,6 @@ import { DevDebugDashboardRoute } from './DevDebugDashboardRoute';
 import { AppLayout } from '../ui/layout/AppLayout';
 import { LudusScreen } from '../ui/screens/LudusScreen';
 import { MainMenuScreen } from '../ui/screens/MainMenuScreen';
-import { MarketScreen } from '../ui/screens/MarketScreen';
 import { NewGameScreen } from '../ui/screens/NewGameScreen';
 
 function renderScreen(screen: ScreenName) {
@@ -15,8 +14,6 @@ function renderScreen(screen: ScreenName) {
       return <NewGameScreen />;
     case 'ludus':
       return <LudusScreen />;
-    case 'market':
-      return <MarketScreen />;
     case 'mainMenu':
       return <MainMenuScreen />;
   }

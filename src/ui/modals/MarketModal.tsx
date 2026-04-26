@@ -5,10 +5,11 @@ import { MarketContent } from '../market/MarketContent';
 import { AppModal } from './AppModal';
 
 interface MarketModalProps {
+  onBack?(): void;
   onClose(): void;
 }
 
-export function MarketModal({ onClose }: MarketModalProps) {
+export function MarketModal({ onBack, onClose }: MarketModalProps) {
   const { buyMarketGladiator, currentSave, sellGladiator } = useGameStore();
   const { openConfirmModal, t } = useUiStore();
 
@@ -29,7 +30,13 @@ export function MarketModal({ onClose }: MarketModalProps) {
   };
 
   return (
-    <AppModal size="large" testId="market-modal" titleKey="market.title" onClose={onClose}>
+    <AppModal
+      size="xl"
+      testId="market-modal"
+      titleKey="market.title"
+      onBack={onBack}
+      onClose={onClose}
+    >
       <p className="market-modal__subtitle">{t('market.subtitle')}</p>
       <MarketContent save={currentSave} onBuy={buyMarketGladiator} onSell={handleSell} />
     </AppModal>

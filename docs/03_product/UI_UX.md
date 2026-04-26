@@ -22,7 +22,6 @@ Target structure:
   <LudusMap />
   <LeftNavigationRail />
   <BottomGladiatorRoster />
-  <ContextualPanelHost />
   <ModalHost />
   <ToastAndAlertLayer />
 </GameShell>
@@ -34,8 +33,7 @@ Elements:
 - `LudusMap`: the main interactive visual map and primary screen focus.
 - `LeftNavigationRail`: access to planning, contracts, market, arena and menu.
 - `BottomGladiatorRoster`: portrait-based roster for owned gladiators.
-- `ContextualPanelHost`: building, gladiator, planning, contract, market and arena panels.
-- `ModalHost`: focused confirmations and important interactions.
+- `ModalHost`: focused confirmations, menu/options flows and centered feature modals for building, gladiator, planning, contracts, market, events and arena.
 - `ToastAndAlertLayer`: warnings, recommendations and notifications.
 
 The shell should occupy the full viewport. It should avoid the visual language of a web admin dashboard.
@@ -73,7 +71,7 @@ The following must not be permanently displayed on the main screen:
 - arena preparation;
 - debug data.
 
-They should open through contextual panels, modals or dedicated screens.
+They should open through centered modals or dedicated full-screen presentations when a system needs a theatrical scene, such as combat.
 
 ## 5. Main Map
 
@@ -127,7 +125,7 @@ transform/opacity animation and must respect `prefers-reduced-motion`.
 
 Buildings are clickable.
 
-Clicking a building opens a contextual panel with:
+Clicking a building opens a centered modal with:
 
 - overview;
 - level;
@@ -145,7 +143,7 @@ Building panels should use shared tabs:
 
 For base buildings, the primary call to action should be upgrade or configure rather than purchase, because they start owned at level 1. Purchase actions should still exist for future optional buildings that start unpurchased.
 
-Building details should not be permanently displayed below the map.
+Building details should not be permanently displayed below the map or in a separate side panel.
 
 The Dormitory panel must clearly show:
 
@@ -170,7 +168,7 @@ expected flow is:
 
 - click a building on the map;
 - inspect current level, effects, improvements, policies and assigned
-  gladiators in the contextual panel;
+  gladiators in the building modal;
 - trigger purchase or upgrade from the panel;
 - see a parchment/bronze modal with building art, current-to-next level
   comparison, effect changes and resource cost;
@@ -199,13 +197,13 @@ Clicking a gladiator should:
 
 - select the gladiator;
 - focus the map on the gladiator when possible;
-- open the gladiator detail panel.
+- open the gladiator detail modal.
 
 Gladiators should also have map sprites used by `LudusMap`. Demo saves must provide stable portrait and sprite references for visual testing.
 
 ## 8. Weekly Planning
 
-Weekly planning should be a dedicated panel.
+Weekly planning should be a dedicated `XL` modal.
 
 It should display:
 
@@ -226,7 +224,7 @@ The player interface should reuse a small set of shared primitives instead of re
 
 Expected shared primitives:
 
-- panel shells for contextual panels, including title, subtitle, close action and primary content layout;
+- modal shells for centered feature modals, including title, close action, optional back action, scrollable body and optional footer actions;
 - section cards for repeated panel sections;
 - tabs for panel subviews such as overview, improvements, policies and assigned gladiators;
 - empty states for unavailable content, empty rosters, empty event queues and future feature placeholders;
@@ -238,7 +236,7 @@ Expected shared primitives:
 - confirmation dialogs for irreversible, expensive or blocking choices;
 - lightweight form modal layouts for focused interactions that do not need a full screen.
 
-Contextual panels should compose these primitives instead of recoding their own headers, section wrappers, empty-state markup, repeated effect rows or confirmation UI. New primitives should stay small and practical; a feature-specific component is acceptable when the structure is genuinely unique.
+Feature modals should compose these primitives instead of recoding their own headers, section wrappers, empty-state markup, repeated effect rows or confirmation UI. New primitives should stay small and practical; a feature-specific component is acceptable when the structure is genuinely unique.
 
 ## 9.1 Empty, Warning And Error States
 
@@ -254,7 +252,7 @@ MVP screens and panels should expose clear, i18n-backed states for missing or bl
 - save failures: the HUD/toast layer shows the local save error while preserving dirty state;
 - demo templates: loading one starts a normal local save, and the HUD keeps a restart-from-template action visible.
 
-These states should use shared primitives such as `EmptyState`, `NoticeBox`, `PanelShell`, `SectionCard`, badges and modal infrastructure where practical. They should not be silent disabled controls.
+These states should use shared primitives such as `EmptyState`, `NoticeBox`, modal content shells, `SectionCard`, badges and modal infrastructure where practical. They should not be silent disabled controls.
 
 ## 10. Main Menu
 
@@ -282,7 +280,7 @@ The debug dashboard is useful for inspecting state, testing mechanics and debugg
 
 ## 12. Market
 
-Market should follow the same shared UI primitive direction as contextual panels where practical.
+Market should open as a centered `XL` modal and follow the same shared UI primitive direction as other feature modals where practical.
 
 The market must:
 
@@ -296,7 +294,7 @@ The market must:
 
 ## 13. Arena
 
-Arena should be available from the map or navigation rail as a contextual panel.
+Arena should be available from the map or navigation rail as a centered `XL` modal.
 
 The arena panel must show:
 
@@ -307,7 +305,7 @@ The arena panel must show:
 - a Sunday summary with total treasury gained, reputation change, health, energy and morale changes, wins and losses;
 - a clear empty state when no gladiator is eligible or no arena day is active.
 
-The player should be able to advance the visible combat log when progression is used, switch to resolved combats to inspect their logs, and finish or continue the weekly flow when the Sunday summary is complete. The panel should compose shared primitives such as `PanelShell`, `SectionCard`, `Badge`, `MetricList`, `EmptyState` and reusable log rows rather than duplicating feature-specific panel chrome.
+The player should be able to advance the visible combat log when progression is used, switch to resolved combats to inspect their logs, and finish or continue the weekly flow when the Sunday summary is complete. The arena modal should compose shared primitives such as modal content shells, `SectionCard`, `Badge`, `MetricList`, `EmptyState` and reusable log rows rather than duplicating feature-specific modal chrome.
 
 Before Sunday, the arena panel may show betting or scouting preparation when odds exist. If no odds exist yet, it should show an empty state explaining the next useful timing.
 
@@ -365,7 +363,7 @@ The UI is valid when:
 - gladiators have portraits;
 - gladiators have map sprites;
 - the bottom roster is portrait-based;
-- panels open contextually;
+- feature modals open contextually from the map, roster or navigation rail;
 - weekly planning is not permanently visible;
 - market and arena appear as external locations;
 - the debug dashboard is not the default game screen;

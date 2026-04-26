@@ -29,8 +29,7 @@ visible building art, memorable gladiator portraits and animated sprites.
 ### Map-First World
 
 The map is the player's main mental model. It should occupy most of the normal
-game screen and remain visible behind contextual panels and focused modals when
-possible.
+game screen and remain visible behind focused modals when possible.
 
 Future features should answer where they live in the world:
 
@@ -194,7 +193,7 @@ deterministically from the gladiator id rather than requiring a save migration.
 
 ## Modal And Panel Style
 
-Focused choices use shared modal and panel infrastructure.
+Focused choices and detailed feature views use the shared centered modal infrastructure.
 
 The target modal style is:
 
@@ -203,13 +202,16 @@ The target modal style is:
 - parchment body;
 - bronze/stone frame;
 - building or feature artwork when useful;
+- optional back button for nested modal flows;
 - clear current/next comparison;
 - effect rows with old and new values;
 - resource cost bar;
 - strong primary and secondary actions.
 
 New feature modals should reuse `AppModal`, `ModalHost` and shared UI primitives
-before introducing custom chrome.
+before introducing custom chrome. The normal player UI should not add new local
+modal backdrops, feature-specific title bars or side-panel chrome for gameplay
+systems.
 
 ## Combat Presentation
 

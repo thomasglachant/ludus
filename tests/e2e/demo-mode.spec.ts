@@ -53,9 +53,7 @@ test('plays the MVP smoke path through market, save, load and arena access', asy
   ).toBeVisible();
 
   await page.getByTestId('navigation-market').click();
-  await expect(page.getByTestId('market-preview-panel')).toBeVisible();
-  await page.getByTestId('market-preview-open').click();
-  await expect(page.getByTestId('market-screen')).toBeVisible();
+  await expect(page.getByTestId('market-modal')).toBeVisible();
   await expect(page.locator('[data-testid^="market-candidate-"]')).toHaveCount(5);
   await expect(page.getByTestId('market-empty-owned')).toBeVisible();
 
@@ -65,7 +63,7 @@ test('plays the MVP smoke path through market, save, load and arena access', asy
   await expect(page.locator('[data-testid^="market-candidate-"]')).toHaveCount(4);
   await expect(page.getByTestId('market-capacity-full-state')).toBeVisible();
 
-  await page.getByRole('button', { name: /Back|Retour/ }).click();
+  await page.getByRole('button', { name: /Close|Fermer/ }).click();
   await expect(page.getByTestId('map-container')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-market-1-1-1')).toBeVisible();
   await expect(page.getByTestId('save-status')).toContainText(
@@ -129,7 +127,7 @@ test('loads the early demo directly', async ({ page }) => {
   await expect(domus).toBeVisible();
   await expect(domus).toHaveAttribute(
     'data-asset',
-    /\/assets\/pixel-art\/buildings\/domus\/level-1\/exterior\.svg/,
+    /\/assets\/pixel-art\/buildings\/domus\/level-3\/exterior\.svg/,
   );
   await expect(page.getByTestId('gladiator-list')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-glad-demo-early-marcus')).toBeVisible();
@@ -156,15 +154,15 @@ test('loads and resets the advanced demo directly', async ({ page }) => {
 
   await expect(page.getByTestId('map-container')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-glad-demo-adv-maximus')).toBeVisible();
-  await expect(page.getByTestId('gladiator-card-glad-demo-adv-felix')).toBeVisible();
+  await expect(page.getByTestId('gladiator-card-glad-demo-adv-syrianus')).toBeAttached();
   await expect(page.getByTestId('topbar-treasury')).toContainText('12000');
 
   await page.getByRole('button', { name: 'x1', exact: true }).click();
-  await expect(page.getByTestId('topbar-time')).toContainText('18:30');
-  await page.getByText(/Reset demo|Réinitialiser la démo/).click();
+  await expect(page.getByTestId('topbar-time')).toContainText(/23:0[1-9]/);
+  await page.getByRole('button', { name: /Restart from template|Relancer le template/ }).click();
 
   await expect(page.getByTestId('topbar-treasury')).toContainText('12000');
-  await expect(page.getByTestId('topbar-time')).toContainText('18:30');
+  await expect(page.getByTestId('topbar-time')).toContainText('23:00');
 });
 
 test('advances the advanced demo into Sunday arena resolution', async ({ page }) => {

@@ -4,7 +4,7 @@ import type { GameSave } from '../domain/types';
 
 const ACTIVE_SESSION_KEY = 'ludus:active-session';
 
-const resumableScreens: ScreenName[] = ['ludus', 'market'];
+const resumableScreens: ScreenName[] = ['ludus'];
 
 export interface ActiveSessionSnapshot {
   hasUnsavedChanges: boolean;

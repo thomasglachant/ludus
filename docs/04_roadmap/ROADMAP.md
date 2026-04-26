@@ -10,7 +10,7 @@ The save UX baseline is manual local save with clear store-owned UI state. The l
 
 The quality baseline is defined by a local and GitHub Actions CI gate covering `npm run build`, `npm run lint`, `npm run test` and `npm run test:e2e`. Playwright coverage is reserved for high-value player flows and stable demo states rather than exhaustive UI coverage, including the new-game-to-map-first-shell smoke flow.
 
-The UI baseline includes shared primitives for contextual panels, section cards, tabs, empty states, notices, metric lists, effect lists, cost summaries, badges and global confirmation or lightweight form modals. Building and gladiator detail panels already use these primitives, and building panel display data is prepared through reusable view-model helpers.
+The UI baseline includes shared primitives for centered feature modals, section cards, tabs, empty states, notices, metric lists, effect lists, cost summaries, badges and global confirmation or lightweight form modals. Building and gladiator detail views already use these primitives, and building display data is prepared through reusable view-model helpers.
 
 Building management includes domain-validated level upgrades, improvement purchases and policy selection. Building panels expose Overview, Improvements, Policy and Gladiators tabs with costs, requirements, effects, purchased or selected status and disabled action reasons. Building effects are centralized through domain helpers, and only effects marked `perHour: true` are applied during hourly time advancement.
 
@@ -18,7 +18,7 @@ New saves start with all base buildings purchased at level 1: `domus`, `canteen`
 
 The market respects ludus capacity before buying gladiators. Buying a gladiator requires an available roster place, Domus upgrades increase capacity, and sale contract completion is tied to gladiator sale flow rather than market purchase flow.
 
-The arena baseline resolves eligible Sunday combats once per week, protects rewards and consequences from repeated Sunday ticks, and exposes the Sunday results through the map-first arena panel. The panel shows the arena status, resolved combat list, selected combat details, turn log progression, victory or defeat badges, rewards, condition and reputation consequences, Sunday totals and empty states for days without eligible combatants. Before Sunday, the same panel still supports scouting odds when available.
+The arena baseline resolves eligible Sunday combats once per week, protects rewards and consequences from repeated Sunday ticks, and exposes the Sunday results through the map-first arena modal. The modal shows the arena status, resolved combat list, selected combat details, turn log progression, victory or defeat badges, rewards, condition and reputation consequences, Sunday totals and empty states for days without eligible combatants. Before Sunday, the same modal still supports scouting odds when available.
 
 The Phase 1 MVP playable loop is stable enough to serve as the baseline for Phase 2. New-game smoke coverage validates the map-first shell, owned level 1 base buildings, market recruitment with ludus capacity, manual save, local load and arena access. Demo coverage validates deterministic early, mid and advanced states, including an advanced Saturday evening path into Sunday arena resolution. A basic i18n audit guards against obvious hardcoded visible JSX strings in app and UI components.
 

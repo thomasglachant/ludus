@@ -79,7 +79,7 @@ export function BuildingPanel({
       },
       onConfirm: () =>
         viewModel.isPurchased ? onUpgradeBuilding(buildingId) : onPurchaseBuilding(buildingId),
-      size: actionPreview ? 'wide' : undefined,
+      size: actionPreview ? 'lg' : undefined,
       testId: 'building-action-confirm-dialog',
       titleKey: viewModel.isPurchased
         ? 'buildings.confirmUpgrade.modalTitle'

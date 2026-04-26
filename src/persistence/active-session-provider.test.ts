@@ -25,7 +25,7 @@ describe('ActiveSessionProvider', () => {
           speed: 2,
         },
       },
-      screen: 'market',
+      screen: 'ludus',
     });
 
     expect(localStorage.getItem('ludus:save:save-local')).toBeNull();
@@ -37,7 +37,7 @@ describe('ActiveSessionProvider', () => {
           speed: 2,
         },
       },
-      screen: 'market',
+      screen: 'ludus',
     });
   });
 

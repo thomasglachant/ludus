@@ -29,7 +29,7 @@ The week is played through:
 
 The player defines priorities and handles exceptions. The game handles routine assignments where possible.
 
-Weekly planning, building policies and readiness alerts open as contextual panels or dedicated screens in the player UI. They should not turn the main game screen into a permanent dashboard.
+Weekly planning, building policies and readiness alerts open as centered feature modals in the player UI. They should not turn the main game screen into a permanent dashboard.
 
 ## Removed Mechanic: Building Budgets
 

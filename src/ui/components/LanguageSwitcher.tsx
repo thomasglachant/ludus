@@ -1,4 +1,3 @@
-import { Languages } from 'lucide-react';
 import type { LanguageCode } from '../../domain/types';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
@@ -12,24 +11,28 @@ export function LanguageSwitcher() {
   };
 
   return (
-    <div className="language-switcher" aria-label={t('options.language')}>
-      <Languages aria-hidden="true" size={18} />
-      <div className="segmented-control">
+    <div className="language-switcher">
+      <p>{t('options.language')}</p>
+      <div className="language-switcher__choices" aria-label={t('options.language')}>
         <button
+          aria-label={t('options.english')}
           className={language === 'en' ? 'is-selected' : ''}
           disabled={isLoading}
           type="button"
           onClick={() => handleChange('en')}
         >
-          {t('options.english')}
+          <span aria-hidden="true">{t('options.englishCode')}</span>
+          <strong>{t('options.english')}</strong>
         </button>
         <button
+          aria-label={t('options.french')}
           className={language === 'fr' ? 'is-selected' : ''}
           disabled={isLoading}
           type="button"
           onClick={() => handleChange('fr')}
         >
-          {t('options.french')}
+          <span aria-hidden="true">{t('options.frenchCode')}</span>
+          <strong>{t('options.french')}</strong>
         </button>
       </div>
     </div>

@@ -1,17 +1,12 @@
 import { Coins, Flame, FolderOpen, Play, Settings, Shield, Trophy, Users } from 'lucide-react';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, type CSSProperties } from 'react';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
-import { LoadGameModal } from '../modals/LoadGameModal';
-import { OptionsModal } from '../modals/OptionsModal';
-
-type MainMenuModal = 'loadGame' | 'options';
 
 export function MainMenuScreen() {
-  const { language, navigate, t } = useUiStore();
+  const { language, navigate, openModal, t } = useUiStore();
   const { currentSave, isLoading, loadLocalSave, localSaves, refreshLocalSaves } = useGameStore();
-  const [activeModal, setActiveModal] = useState<MainMenuModal | null>(null);
   const latestSave = localSaves[0];
   const backgroundPath =
     VISUAL_ASSET_MANIFEST.homepage.backgrounds.day ??
@@ -21,7 +16,7 @@ export function MainMenuScreen() {
   } as CSSProperties;
 
   const openLoadGame = () => {
-    setActiveModal('loadGame');
+    openModal({ kind: 'loadGame' });
   };
 
   const continueLatestSave = () => {
@@ -66,7 +61,7 @@ export function MainMenuScreen() {
           className="main-menu-screen__settings-button"
           type="button"
           aria-label={t('mainMenu.openOptions')}
-          onClick={() => setActiveModal('options')}
+          onClick={() => openModal({ kind: 'options' })}
         >
           <Settings aria-hidden="true" size={22} />
         </button>
@@ -96,7 +91,7 @@ export function MainMenuScreen() {
             <FolderOpen aria-hidden="true" size={20} />
             <span>{t('mainMenu.loadGame')}</span>
           </button>
-          <button type="button" onClick={() => setActiveModal('options')}>
+          <button type="button" onClick={() => openModal({ kind: 'options' })}>
             <Settings aria-hidden="true" size={20} />
             <span>{t('mainMenu.options')}</span>
           </button>
@@ -143,9 +138,6 @@ export function MainMenuScreen() {
           </button>
         ) : null}
       </aside>
-
-      {activeModal === 'loadGame' ? <LoadGameModal onClose={() => setActiveModal(null)} /> : null}
-      {activeModal === 'options' ? <OptionsModal onClose={() => setActiveModal(null)} /> : null}
     </section>
   );
 }

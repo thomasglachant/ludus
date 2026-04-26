@@ -1,5 +1,4 @@
-import { X } from 'lucide-react';
-import { useId, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useUiStore } from '../../state/ui-store';
 
 interface PanelShellProps {
@@ -75,38 +74,11 @@ interface LogRowProps {
   meta?: ReactNode;
 }
 
-export function PanelShell({
-  children,
-  descriptionKey,
-  eyebrowKey,
-  onClose,
-  testId,
-  title,
-  titleKey,
-  titleTestId,
-  wide = false,
-}: PanelShellProps) {
+export function PanelShell({ children, descriptionKey, wide = false }: PanelShellProps) {
   const { t } = useUiStore();
-  const fallbackTitleId = useId();
-  const headingId = titleTestId ?? fallbackTitleId;
 
   return (
-    <section
-      aria-labelledby={headingId}
-      className={wide ? 'context-panel context-panel--wide' : 'context-panel'}
-      data-testid={testId}
-    >
-      <div className="context-panel__header">
-        <div>
-          <p className="eyebrow">{t(eyebrowKey)}</p>
-          <h2 id={headingId} data-testid={titleTestId}>
-            {titleKey ? t(titleKey) : title}
-          </h2>
-        </div>
-        <button aria-label={t('common.close')} type="button" onClick={onClose}>
-          <X aria-hidden="true" size={18} />
-        </button>
-      </div>
+    <section className={wide ? 'modal-panel modal-panel--wide' : 'modal-panel'}>
       {descriptionKey ? <p className="context-panel__description">{t(descriptionKey)}</p> : null}
       {children}
     </section>

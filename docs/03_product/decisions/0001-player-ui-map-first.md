@@ -17,7 +17,7 @@ The current dashboard-style interface may remain available only as a development
 The main game screen will prioritize:
 
 - a large living ludus map;
-- contextual panels;
+- centered feature modals;
 - portrait-based gladiator roster;
 - visual building assets;
 - time-of-day atmosphere;

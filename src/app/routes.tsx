@@ -1,4 +1,4 @@
-export type ScreenName = 'mainMenu' | 'newGame' | 'ludus' | 'market';
+export type ScreenName = 'mainMenu' | 'newGame' | 'ludus';
 
 export const GAME_SESSION_PATH = '/play';
 

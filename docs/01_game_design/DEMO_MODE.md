@@ -9,7 +9,7 @@ Demo mode is useful for:
 - testing the map-first player interface;
 - testing building visuals at different progression levels;
 - testing portrait-based gladiator rosters;
-- testing contextual panels;
+- testing centered feature modals;
 - testing time-of-day themes;
 - testing market and arena external locations;
 - reproducing gameplay states without manually recreating a save.
@@ -144,7 +144,7 @@ Demo saves should help test:
 - building visuals;
 - gladiator portraits;
 - gladiator map sprites;
-- contextual panels;
+- centered feature modals;
 - time-of-day themes;
 - market and arena external locations;
 - Playwright selectors.
@@ -198,7 +198,7 @@ Stable `data-testid` values should exist for:
 - building locations;
 - gladiator roster;
 - gladiator portrait cards;
-- contextual panel host;
+- modal host;
 - market location;
 - arena location.
 
@@ -243,7 +243,7 @@ Playwright tests should cover:
 - early, mid and advanced map states render;
 - portrait-based roster renders;
 - advanced demo remains readable with 6 gladiators;
-- contextual panels can open from stable selectors.
+- feature modals can open from stable selectors.
 
 ## Acceptance Criteria
 

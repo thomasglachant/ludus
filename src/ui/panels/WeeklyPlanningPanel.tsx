@@ -1,4 +1,4 @@
-import { Sparkles, X } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { calculateReadiness } from '../../domain/planning/readiness';
 import { getGladiatorPlanningStatuses } from '../../domain/planning/planning-actions';
 import type { GameSave, GladiatorRoutineUpdate } from '../../domain/types';
@@ -18,7 +18,6 @@ interface WeeklyPlanningPanelProps {
 export function WeeklyPlanningPanel({
   save,
   onApplyRecommendations,
-  onClose,
   onUpdateRoutine,
 }: WeeklyPlanningPanelProps) {
   const { t } = useUiStore();
@@ -32,16 +31,7 @@ export function WeeklyPlanningPanel({
   );
 
   return (
-    <section className="context-panel context-panel--wide" aria-labelledby="weekly-panel-title">
-      <div className="context-panel__header">
-        <div>
-          <p className="eyebrow">{t('weeklyPlan.title')}</p>
-          <h2 id="weekly-panel-title">{t('weeklyPlan.dashboard')}</h2>
-        </div>
-        <button aria-label={t('common.close')} type="button" onClick={onClose}>
-          <X aria-hidden="true" size={18} />
-        </button>
-      </div>
+    <section className="modal-panel modal-panel--wide">
       <div className="context-panel__actions">
         <button type="button" onClick={onApplyRecommendations}>
           <Sparkles aria-hidden="true" size={17} />

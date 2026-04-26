@@ -196,17 +196,26 @@ same manifest/data boundary.
 
 ## Modal Management
 
-Focused dialogs should use the centralized modal infrastructure instead of creating independent modal state in each feature.
+Focused player interactions use the centralized modal framework instead of local modal state, side-panel chrome or standalone feature screens.
 
 Conventions:
 
-- `src/state/ui-store.tsx` owns reusable modal state and exposes open/close actions;
-- `src/ui/modals/ModalHost.tsx` is the single rendering host for globally managed dialogs;
-- feature components open typed modal requests, such as confirmations or lightweight form modals, and pass safe callbacks through modal descriptors;
+- `src/state/ui-store.tsx` owns a modal stack and exposes `openModal`, `pushModal`, `replaceModal`, `backModal`, `closeModal` and `closeAllModals`;
+- `src/ui/modals/ModalHost.tsx` is the single rendering host for globally managed dialogs and game feature modals;
+- `src/ui/modals/AppModal.tsx` owns shared modal chrome: centered backdrop, dark title strip, optional back button, close button, scrollable body, footer actions and `sm`, `md`, `lg`, `xl` sizes;
+- feature components open typed modal requests instead of rendering their own backdrop, header or footer;
+- `pushModal` is used for sub-flows such as Game menu -> Options; the back button returns to the previous modal and `X` closes the whole stack;
 - modal copy uses i18n keys, not hardcoded player-facing text;
-- local component state is acceptable only for strictly local modal content that is already rendered through the shared host or shared modal shell.
+- local component state is acceptable only for state inside modal content, such as selected tabs, local filters or progressive combat-log display.
 
-Confirmation modals should be used for irreversible, expensive or blocking actions. Lightweight form modals should be used when a focused form does not need its own screen.
+Size guidance:
+
+- `sm`: menu, simple confirmation;
+- `md`: options, lightweight forms, focused gladiator details;
+- `lg`: building details, building action previews, load game, contracts and events;
+- `xl`: dense systems such as market, weekly planning and arena preparation/results.
+
+Confirmation modals should be used for irreversible, expensive or blocking actions. Lightweight form modals should be used when a focused form does not need its own screen. New gameplay panels should be implemented as modal content rendered by `ModalHost`, not as independently positioned contextual panels.
 
 ## Save Provider Abstraction
 

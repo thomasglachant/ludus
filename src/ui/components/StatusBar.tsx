@@ -13,7 +13,7 @@ interface StatusBarProps {
 }
 
 export function StatusBar({ save, onResetDemo, onSpeedChange }: StatusBarProps) {
-  const { navigate, t } = useUiStore();
+  const { navigate, openModal, t } = useUiStore();
   const demoDefinition = save.metadata?.demoSaveId
     ? getDemoSaveDefinition(save.metadata.demoSaveId)
     : undefined;
@@ -62,7 +62,7 @@ export function StatusBar({ save, onResetDemo, onSpeedChange }: StatusBarProps) 
         <ActionButton
           icon={<Store aria-hidden="true" size={17} />}
           label={t('topBar.market')}
-          onClick={() => navigate('market')}
+          onClick={() => openModal({ kind: 'market' })}
         />
         <ActionButton
           icon={<Menu aria-hidden="true" size={17} />}

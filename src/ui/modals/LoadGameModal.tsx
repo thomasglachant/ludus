@@ -11,6 +11,7 @@ import { ActionButton } from '../components/ActionButton';
 import { AppModal } from './AppModal';
 
 interface LoadGameModalProps {
+  onBack?(): void;
   onClose(): void;
 }
 
@@ -27,7 +28,7 @@ function getPurchasedBuildingLevelRange(save: GameSave) {
   };
 }
 
-export function LoadGameModal({ onClose }: LoadGameModalProps) {
+export function LoadGameModal({ onBack, onClose }: LoadGameModalProps) {
   const {
     demoSaves,
     errorKey,
@@ -59,7 +60,13 @@ export function LoadGameModal({ onClose }: LoadGameModalProps) {
   }, [refreshDemoSaves, refreshLocalSaves]);
 
   return (
-    <AppModal size="wide" testId="load-game-modal" titleKey="loadGame.title" onClose={onClose}>
+    <AppModal
+      size="lg"
+      testId="load-game-modal"
+      titleKey="loadGame.title"
+      onBack={onBack}
+      onClose={onClose}
+    >
       <div data-testid="load-game-screen" className="load-game-content">
         {featureFlags.enableDemoMode ? (
           <div className="segmented-control load-game-tabs">
