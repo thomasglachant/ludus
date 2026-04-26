@@ -5,7 +5,7 @@ import { useUiStore } from '../../state/ui-store';
 interface AppModalProps {
   children: ReactNode;
   onClose(): void;
-  size?: 'default' | 'wide';
+  size?: 'default' | 'wide' | 'large';
   testId?: string;
   titleKey: string;
   titleParams?: Record<string, string | number>;

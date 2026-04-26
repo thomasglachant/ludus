@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowRight, Eye, Swords } from 'lucide-react';
+import { Eye, Swords } from 'lucide-react';
 import { getArenaBettingState, validateScouting } from '../../domain/combat/combat-actions';
 import { getContractProgress } from '../../domain/contracts/contract-actions';
 import type { CombatState, GameSave } from '../../domain/types';
@@ -165,43 +165,6 @@ export function EventsPanel({ save, onClose, onResolveEventChoice }: EventsPanel
       ) : (
         <EmptyState messageKey="events.noPending" testId="events-empty-pending" />
       )}
-    </PanelShell>
-  );
-}
-
-export function MarketPreviewPanel({ save, onClose }: PanelProps) {
-  const { navigate, t } = useUiStore();
-
-  return (
-    <PanelShell
-      eyebrowKey="market.eyebrow"
-      titleKey="market.title"
-      testId="market-preview-panel"
-      onClose={onClose}
-    >
-      <SectionCard titleKey="market.availableGladiators">
-        <div className="context-panel__list">
-          {save.market.availableGladiators.length > 0 ? (
-            save.market.availableGladiators.slice(0, 4).map((candidate) => (
-              <article className="context-panel__portrait-row" key={candidate.id}>
-                <GladiatorPortrait gladiator={candidate} size="small" />
-                <div>
-                  <strong>{candidate.name}</strong>
-                  <span>{t('market.price', { price: candidate.price })}</span>
-                </div>
-              </article>
-            ))
-          ) : (
-            <EmptyState messageKey="market.noCandidates" testId="market-preview-empty" />
-          )}
-        </div>
-      </SectionCard>
-      <div className="context-panel__actions">
-        <button data-testid="market-preview-open" type="button" onClick={() => navigate('market')}>
-          <span>{t('common.open')}</span>
-          <ArrowRight aria-hidden="true" size={17} />
-        </button>
-      </div>
     </PanelShell>
   );
 }

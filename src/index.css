@@ -4906,6 +4906,20 @@ body {
   width: min(700px, 100%);
 }
 
+.app-modal--large {
+  width: min(1040px, 100%);
+}
+
+.market-modal__subtitle {
+  color: #4d3927;
+  font-weight: 750;
+}
+
+.market-content {
+  display: grid;
+  gap: 14px;
+}
+
 .app-modal__header {
   align-items: center;
   border-bottom-color: rgba(180, 122, 51, 0.62);

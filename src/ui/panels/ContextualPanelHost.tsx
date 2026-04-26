@@ -1,6 +1,6 @@
 import type { BuildingId, GameSave, GladiatorRoutineUpdate } from '../../domain/types';
 import type { ContextPanelKind } from '../game-shell/game-shell-types';
-import { ArenaPanel, ContractsPanel, EventsPanel, MarketPreviewPanel } from './ActivityPanels';
+import { ArenaPanel, ContractsPanel, EventsPanel } from './ActivityPanels';
 import { BuildingPanel } from './BuildingPanel';
 import { GladiatorDetailPanel } from './GladiatorDetailPanel';
 import { WeeklyPlanningPanel } from './WeeklyPlanningPanel';
@@ -44,7 +44,7 @@ export function ContextualPanelHost({
     ? save.gladiators.find((gladiator) => gladiator.id === selectedGladiatorId)
     : undefined;
 
-  if (!activePanelKind) {
+  if (!activePanelKind || activePanelKind === 'market') {
     return null;
   }
 
@@ -78,7 +78,6 @@ export function ContextualPanelHost({
       {activePanelKind === 'events' ? (
         <EventsPanel save={save} onClose={onClose} onResolveEventChoice={onResolveEventChoice} />
       ) : null}
-      {activePanelKind === 'market' ? <MarketPreviewPanel save={save} onClose={onClose} /> : null}
       {activePanelKind === 'arena' ? (
         <ArenaPanel
           save={save}

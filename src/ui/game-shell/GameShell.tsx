@@ -8,6 +8,7 @@ import { TopHud } from '../hud/TopHud';
 import { LudusMap } from '../map/LudusMap';
 import { GameMenuModal } from '../modals/GameMenuModal';
 import { LoadGameModal } from '../modals/LoadGameModal';
+import { MarketModal } from '../modals/MarketModal';
 import { OptionsModal } from '../modals/OptionsModal';
 import { BottomGladiatorRoster } from '../roster/BottomGladiatorRoster';
 import { ContextualPanelHost } from '../panels/ContextualPanelHost';
@@ -187,6 +188,7 @@ export function GameShell() {
           onSpeedChange={setGameSpeed}
         />
       ) : null}
+      {activePanelKind === 'market' ? <MarketModal onClose={closePanel} /> : null}
       <BottomGladiatorRoster
         save={currentSave}
         selectedGladiatorId={selectedGladiatorId ?? undefined}
