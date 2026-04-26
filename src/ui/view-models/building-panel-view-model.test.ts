@@ -10,7 +10,6 @@ import {
 function createSave() {
   return createInitialSave({
     createdAt: '2026-04-25T12:00:00.000Z',
-    language: 'en',
     ludusName: 'Ludus Magnus',
     ownerName: 'Marcus',
     saveId: 'save-test',
@@ -115,12 +114,7 @@ describe('building panel view models', () => {
 
     expect(createDormitoryCapacityViewModel(save)).toEqual({
       availableBeds: 0,
-      canPurchaseBed: true,
       capacity: 1,
-      maximumPurchasableBeds: 2,
-      nextBedCost: 80,
-      purchasedBeds: 0,
-      validationMessageKey: null,
       usedBeds: 1,
     });
   });

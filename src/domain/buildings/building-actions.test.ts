@@ -13,13 +13,12 @@ import {
   validateBuildingPurchase,
   validateBuildingUpgrade,
 } from './building-actions';
-import { getDormitoryCapacity } from './dormitory-capacity';
+import { getLudusGladiatorCapacity } from '../ludus/capacity';
 
 function createTestSave() {
   return createInitialSave({
     ownerName: 'Marcus',
     ludusName: 'Ludus Magnus',
-    language: 'en',
     saveId: 'save-test',
     createdAt: '2026-04-25T12:00:00.000Z',
   });
@@ -168,12 +167,12 @@ describe('building actions', () => {
     });
   });
 
-  it('applies purchased dormitory capacity improvements to housing capacity', () => {
+  it('does not let dormitory improvements change Domus-governed capacity', () => {
     const save = createTestSave();
     const result = purchaseBuildingImprovement(save, 'dormitory', 'strawBeds');
 
-    expect(getDormitoryCapacity(save)).toBe(1);
-    expect(getDormitoryCapacity(result.save)).toBe(2);
+    expect(getLudusGladiatorCapacity(save)).toBe(1);
+    expect(getLudusGladiatorCapacity(result.save)).toBe(1);
   });
 
   it('selects a building policy and pays its selection cost', () => {

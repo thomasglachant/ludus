@@ -117,7 +117,7 @@ Examples:
 - `createDormitoryCapacityViewModel(save)`;
 - `createGladiatorCardViewModel(save, gladiator)`.
 
-React components should consume prepared view-model fields and call store actions. Rules such as upgrade validation, bed capacity, readiness scoring, market prices and combat resolution remain in `src/domain` and `src/game-data`.
+React components should consume prepared view-model fields and call store actions. Rules such as upgrade validation, ludus capacity, readiness scoring, market prices and combat resolution remain in `src/domain` and `src/game-data`.
 
 ### `src/persistence`
 
@@ -261,7 +261,7 @@ The MVP save model is manual local save with dirty-state feedback. `hasUnsavedCh
 
 `lastSavedAt` is session UI state derived from the last successful write timestamp. It may mirror `GameSave.updatedAt` after loading or saving, but it is still tracked by the store for display rather than added as a separate save-schema field.
 
-Language changes are the only MVP setting change that may be written immediately because language is both an app preference and a save setting. The UI language preference remains stored outside `GameSave` by `ui-store`, while the active save's `settings.language` is updated through the save service for normal local saves.
+Language is an app preference owned by the browser and `ui-store`, not game data. The UI uses the browser language by default when no stored preference exists, and manual language changes are stored outside `GameSave`.
 
 ## Game Tick
 
@@ -331,7 +331,7 @@ Priority test areas:
 - week/year rollover;
 - save validation;
 - building purchase and upgrade rules;
-- dormitory capacity;
+- ludus capacity;
 - market generation;
 - readiness score;
 - automatic planning recommendations;

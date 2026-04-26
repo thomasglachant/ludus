@@ -1,5 +1,5 @@
 import { createInitialSave } from '../domain/saves/create-initial-save';
-import type { GameSave, GameSaveMetadata, LanguageCode } from '../domain/types';
+import type { GameSave, GameSaveMetadata } from '../domain/types';
 import { createId } from '../utils/id';
 import { SaveNotFoundError } from './save-provider';
 import type { SaveProvider } from './save-provider';
@@ -7,7 +7,6 @@ import type { SaveProvider } from './save-provider';
 export interface CreateSaveInput {
   ownerName: string;
   ludusName: string;
-  language: LanguageCode;
 }
 
 export interface SaveAsInput {
@@ -41,7 +40,6 @@ export class SaveService {
     const save = createInitialSave({
       ownerName: input.ownerName,
       ludusName: input.ludusName,
-      language: input.language,
       saveId: createId('save'),
       createdAt: new Date().toISOString(),
     });

@@ -16,7 +16,6 @@ interface ContextualPanelHostProps {
   onOpenArenaCombat(combatId: string): void;
   onPurchaseBuilding(buildingId: BuildingId): void;
   onPurchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
-  onPurchaseDormitoryBed(): void;
   onResolveEventChoice(eventId: string, choiceId: string): void;
   onScoutOpponent(gladiatorId: string): void;
   onSelectBuildingPolicy(buildingId: BuildingId, policyId: string): void;
@@ -35,7 +34,6 @@ export function ContextualPanelHost({
   onOpenArenaCombat,
   onPurchaseBuilding,
   onPurchaseBuildingImprovement,
-  onPurchaseDormitoryBed,
   onResolveEventChoice,
   onScoutOpponent,
   onSelectBuildingPolicy,
@@ -59,7 +57,6 @@ export function ContextualPanelHost({
           onClose={onClose}
           onPurchaseBuilding={onPurchaseBuilding}
           onPurchaseBuildingImprovement={onPurchaseBuildingImprovement}
-          onPurchaseDormitoryBed={onPurchaseDormitoryBed}
           onSelectBuildingPolicy={onSelectBuildingPolicy}
           onUpgradeBuilding={onUpgradeBuilding}
         />

@@ -1,4 +1,4 @@
-import { Bed, Check, Hammer } from 'lucide-react';
+import { Check, Hammer } from 'lucide-react';
 import { useState } from 'react';
 import type { BuildingId, GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store';
@@ -25,7 +25,6 @@ interface BuildingPanelProps {
   onClose(): void;
   onPurchaseBuilding(buildingId: BuildingId): void;
   onPurchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
-  onPurchaseDormitoryBed(): void;
   onSelectBuildingPolicy(buildingId: BuildingId, policyId: string): void;
   onUpgradeBuilding(buildingId: BuildingId): void;
 }
@@ -45,7 +44,6 @@ export function BuildingPanel({
   onClose,
   onPurchaseBuilding,
   onPurchaseBuildingImprovement,
-  onPurchaseDormitoryBed,
   onSelectBuildingPolicy,
   onUpgradeBuilding,
 }: BuildingPanelProps) {
@@ -89,24 +87,6 @@ export function BuildingPanel({
       titleParams: {
         building: t(viewModel.nameKey),
       },
-    });
-  };
-
-  const requestDormitoryBedPurchase = () => {
-    if (!dormitoryCapacity) {
-      return;
-    }
-
-    openConfirmModal({
-      kind: 'confirm',
-      confirmLabelKey: 'dormitoryBeds.buyAction',
-      messageKey: 'dormitoryBeds.confirmPurchase.message',
-      messageParams: {
-        cost: dormitoryCapacity.nextBedCost,
-      },
-      onConfirm: onPurchaseDormitoryBed,
-      testId: 'dormitory-bed-purchase-confirm-dialog',
-      titleKey: 'dormitoryBeds.confirmPurchase.title',
     });
   };
 
@@ -188,34 +168,11 @@ export function BuildingPanel({
                     value: `${dormitoryCapacity.usedBeds}/${dormitoryCapacity.capacity}`,
                   },
                   {
-                    labelKey: 'dormitoryBeds.purchasedBeds',
-                    value: `${dormitoryCapacity.purchasedBeds}/${dormitoryCapacity.maximumPurchasableBeds}`,
-                  },
-                  {
-                    labelKey: 'dormitoryBeds.nextBedCost',
-                    value: dormitoryCapacity.canPurchaseBed
-                      ? t('buildings.purchaseCost', { cost: dormitoryCapacity.nextBedCost })
-                      : t('common.empty'),
+                    labelKey: 'dormitoryBeds.availableCapacity',
+                    value: dormitoryCapacity.availableBeds,
                   },
                 ]}
               />
-              {dormitoryCapacity.validationMessageKey ? (
-                <NoticeBox tone="warning">
-                  {t(dormitoryCapacity.validationMessageKey, {
-                    cost: dormitoryCapacity.nextBedCost,
-                  })}
-                </NoticeBox>
-              ) : null}
-              <div className="context-panel__actions">
-                <button
-                  disabled={!dormitoryCapacity.canPurchaseBed}
-                  type="button"
-                  onClick={requestDormitoryBedPurchase}
-                >
-                  <Bed aria-hidden="true" size={17} />
-                  <span>{t('dormitoryBeds.buyAction')}</span>
-                </button>
-              </div>
             </SectionCard>
           ) : null}
           {viewModel.action.validationMessageKey ? (

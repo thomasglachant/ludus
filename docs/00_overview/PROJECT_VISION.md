@@ -43,7 +43,7 @@ The removed 1-to-10 building budget system must not return unless a future desig
 
 ### Economy
 
-Money and reputation connect the whole game. The player earns rewards through arena results, contracts and sales, then reinvests in buildings, beds, market gladiators, treatment, scouting and future systems.
+Money and reputation connect the whole game. The player earns rewards through arena results, contracts and sales, then reinvests in buildings, market gladiators, treatment, scouting and future systems.
 
 ## Structural Constraints
 

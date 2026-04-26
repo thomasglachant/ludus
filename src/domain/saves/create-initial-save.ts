@@ -1,6 +1,5 @@
 import { INITIAL_TREASURY } from '../../game-data/economy';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
-import type { LanguageCode } from '../common/types';
 import { createInitialBuildings } from '../buildings/initial-buildings';
 import { createWeeklyContracts } from '../contracts/contract-actions';
 import { createMarketState } from '../market/market-actions';
@@ -9,7 +8,6 @@ import type { GameSave } from './types';
 export interface InitialSaveInput {
   ownerName: string;
   ludusName: string;
-  language: LanguageCode;
   saveId: string;
   createdAt: string;
 }
@@ -26,9 +24,6 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
       ownerName: input.ownerName.trim(),
       ludusName: input.ludusName.trim(),
       isCloudUser: false,
-    },
-    settings: {
-      language: input.language,
     },
     ludus: {
       treasury: INITIAL_TREASURY,

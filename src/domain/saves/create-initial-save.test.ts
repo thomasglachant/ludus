@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BUILDING_IDS } from '../../game-data/buildings';
 import { INITIAL_TREASURY } from '../../game-data/economy';
-import { getDormitoryCapacity } from '../buildings/dormitory-capacity';
+import { getLudusGladiatorCapacity } from '../ludus/capacity';
 import { createInitialSave } from './create-initial-save';
 
 describe('createInitialSave', () => {
@@ -9,7 +9,6 @@ describe('createInitialSave', () => {
     const save = createInitialSave({
       ownerName: 'Marcus',
       ludusName: 'Ludus Magnus',
-      language: 'en',
       saveId: 'save-test',
       createdAt: '2026-04-25T12:00:00.000Z',
     });
@@ -35,7 +34,7 @@ describe('createInitialSave', () => {
       configuration: { mealPlanId: 'balancedMeals' },
       selectedPolicyId: 'balancedMeals',
     });
-    expect(save.buildings.dormitory.configuration).toEqual({ purchasedBeds: 0 });
+    expect(save.buildings.dormitory.configuration).toBeUndefined();
     expect(save.buildings.trainingGround).toMatchObject({
       configuration: { defaultDoctrineId: 'balancedTraining' },
       selectedPolicyId: 'balancedTraining',
@@ -48,7 +47,7 @@ describe('createInitialSave', () => {
       configuration: { carePolicyId: 'basicCare' },
       selectedPolicyId: 'basicCare',
     });
-    expect(getDormitoryCapacity(save)).toBe(1);
+    expect(getLudusGladiatorCapacity(save)).toBe(1);
     expect(save.gladiators).toEqual([]);
     expect(save.market.availableGladiators).toHaveLength(5);
   });

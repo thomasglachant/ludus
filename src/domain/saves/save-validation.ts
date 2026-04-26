@@ -14,7 +14,6 @@ const requiredBuildingIds: BuildingId[] = [
 const dayOfWeeks = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 const gameSpeeds = [0, 1, 2, 4, 8, 16];
-const languageCodes = ['en', 'fr'];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -144,10 +143,6 @@ export function isGameSave(value: unknown): value is GameSave {
     return false;
   }
 
-  if (!isRecord(value.settings) || !hasStringFrom(value.settings, 'language', languageCodes)) {
-    return false;
-  }
-
   if (
     !isRecord(value.ludus) ||
     !hasNumber(value.ludus, 'treasury') ||
@@ -177,11 +172,19 @@ export function isGameSave(value: unknown): value is GameSave {
   );
 }
 
+export function normalizeGameSave(save: GameSave): GameSave {
+  const normalizedSave: GameSave & { settings?: unknown } = { ...save };
+
+  delete normalizedSave.settings;
+
+  return normalizedSave;
+}
+
 export function parseGameSave(value: string): GameSave | null {
   try {
     const parsed = JSON.parse(value) as unknown;
 
-    return isGameSave(parsed) ? parsed : null;
+    return isGameSave(parsed) ? normalizeGameSave(parsed) : null;
   } catch {
     return null;
   }

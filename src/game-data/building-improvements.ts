@@ -38,7 +38,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.strawBeds.description',
     cost: 70,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseCapacity', value: 1, target: 'ludus' }],
+    effects: [{ type: 'increaseEnergy', value: 1, target: 'assignedGladiator' }],
   },
   {
     id: 'woodenBeds',

@@ -29,7 +29,6 @@ export function GameShell() {
     lastSavedAt,
     purchaseBuilding,
     purchaseBuildingImprovement,
-    purchaseDormitoryBed,
     resetActiveDemo,
     resolveGameEventChoice,
     saveCurrentGame,
@@ -173,7 +172,6 @@ export function GameShell() {
         onOpenArenaCombat={openArenaCombat}
         onPurchaseBuilding={purchaseBuilding}
         onPurchaseBuildingImprovement={purchaseBuildingImprovement}
-        onPurchaseDormitoryBed={purchaseDormitoryBed}
         onResolveEventChoice={resolveGameEventChoice}
         onScoutOpponent={scoutOpponent}
         onSelectBuildingPolicy={selectBuildingPolicy}

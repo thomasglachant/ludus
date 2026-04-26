@@ -28,7 +28,6 @@ interface DemoSaveInput {
   id: DemoSaveId;
   ownerName: string;
   ludusName: string;
-  language?: GameSave['settings']['language'];
   ludus: GameSave['ludus'];
   time: GameSave['time'];
   buildings: Record<BuildingId, BuildingState>;
@@ -87,9 +86,6 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       ownerName: input.ownerName,
       ludusName: input.ludusName,
       isCloudUser: false,
-    },
-    settings: {
-      language: input.language ?? 'en',
     },
     ludus: input.ludus,
     time: input.time,

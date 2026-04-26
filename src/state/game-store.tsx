@@ -24,7 +24,6 @@ import {
   selectBuildingPolicy,
   upgradeBuilding,
 } from '../domain/buildings/building-actions';
-import { purchaseDormitoryBed } from '../domain/buildings/dormitory-actions';
 import { buyMarketGladiator, sellGladiator } from '../domain/market/market-actions';
 import {
   applyPlanningRecommendations,
@@ -76,7 +75,6 @@ interface GameStoreValue {
   setGameSpeed(speed: GameSpeed): void;
   purchaseBuilding(buildingId: BuildingId): void;
   purchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
-  purchaseDormitoryBed(): void;
   selectBuildingPolicy(buildingId: BuildingId, policyId: string): void;
   upgradeBuilding(buildingId: BuildingId): void;
   buyMarketGladiator(candidateId: string): void;
@@ -106,7 +104,7 @@ function synchronizeLoadedSave(save: GameSave): GameSave {
 }
 
 export function GameStoreProvider({ children }: { children: ReactNode }) {
-  const { language, setLanguage, navigate } = useUiStore();
+  const { setLanguage, navigate } = useUiStore();
   const [saveService] = useState(createSaveService);
   const [currentSave, setCurrentSave] = useState<GameSave | null>(null);
   const [localSaves, setLocalSaves] = useState<GameSaveMetadata[]>([]);
@@ -163,7 +161,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         const save = await saveService.createLocalSave({
           ownerName: input.ownerName,
           ludusName: input.ludusName,
-          language,
         });
 
         effectAccumulatorMinutes.current = 0;
@@ -180,7 +177,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [language, navigate, saveService],
+    [navigate, saveService],
   );
 
   const loadLocalSave = useCallback(
@@ -197,7 +194,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         setLastSavedAt(save.updatedAt);
         setSaveNoticeKey(null);
         setCurrentSave(save);
-        setLanguage(save.settings.language);
         navigate('ludus');
         return true;
       } catch {
@@ -207,7 +203,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [navigate, saveService, setLanguage],
+    [navigate, saveService],
   );
 
   const loadDemoSave = useCallback(
@@ -231,7 +227,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         setSaveNoticeKey(null);
         setCurrentSave(save);
         setLocalSaves(await saveService.listLocalSaves());
-        setLanguage(save.settings.language);
         navigate('ludus');
         return true;
       } catch {
@@ -241,7 +236,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [navigate, saveService, setLanguage],
+    [navigate, saveService],
   );
 
   const resetActiveDemo = useCallback(async () => {
@@ -272,13 +267,12 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       setSaveNoticeKey(null);
       setCurrentSave(resetSave);
       setLocalSaves(await saveService.listLocalSaves());
-      setLanguage(resetSave.settings.language);
     } catch {
       setErrorKey('demoMode.loadError');
     } finally {
       setIsLoading(false);
     }
-  }, [currentSave, saveService, setLanguage]);
+  }, [currentSave, saveService]);
 
   const saveCurrentGame = useCallback(async () => {
     if (!currentSave) {
@@ -336,40 +330,9 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const changeLanguage = useCallback(
     async (nextLanguage: LanguageCode) => {
       setLanguage(nextLanguage);
-
-      if (!currentSave) {
-        return;
-      }
-
-      const saveWithLanguage = {
-        ...currentSave,
-        settings: {
-          ...currentSave.settings,
-          language: nextLanguage,
-        },
-      };
-
-      setCurrentSave(saveWithLanguage);
-      setHasUnsavedChanges(false);
-      setLastSavedAt(saveWithLanguage.updatedAt);
       setSaveNoticeKey(null);
-
-      setIsSaving(true);
-      setErrorKey(null);
-
-      try {
-        const updatedSave = await saveService.updateLocalSave(saveWithLanguage);
-
-        setCurrentSave(updatedSave);
-        setLastSavedAt(updatedSave.updatedAt);
-      } catch {
-        setHasUnsavedChanges(true);
-        setErrorKey('ludus.saveError');
-      } finally {
-        setIsSaving(false);
-      }
     },
-    [currentSave, saveService, setLanguage],
+    [setLanguage],
   );
 
   const applyPlayerChange = useCallback((updateSave: (save: GameSave) => GameSave) => {
@@ -409,10 +372,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     },
     [applyPlayerChange],
   );
-
-  const purchaseDormitoryBedAction = useCallback(() => {
-    applyPlayerChange((save) => purchaseDormitoryBed(save).save);
-  }, [applyPlayerChange]);
 
   const purchaseBuildingImprovementAction = useCallback(
     (buildingId: BuildingId, improvementId: string) => {
@@ -557,7 +516,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       setGameSpeed: setGameSpeedAction,
       purchaseBuilding: purchaseBuildingAction,
       purchaseBuildingImprovement: purchaseBuildingImprovementAction,
-      purchaseDormitoryBed: purchaseDormitoryBedAction,
       selectBuildingPolicy: selectBuildingPolicyAction,
       upgradeBuilding: upgradeBuildingAction,
       buyMarketGladiator: buyMarketGladiatorAction,
@@ -590,7 +548,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     localSaves,
     purchaseBuildingAction,
     purchaseBuildingImprovementAction,
-    purchaseDormitoryBedAction,
     refreshLocalSaves,
     refreshDemoSaves,
     resetActiveDemo,

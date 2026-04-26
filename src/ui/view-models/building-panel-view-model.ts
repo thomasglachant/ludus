@@ -5,13 +5,10 @@ import {
   validateBuildingUpgrade,
 } from '../../domain/buildings/building-actions';
 import { getActiveBuildingEffects } from '../../domain/buildings/building-effects';
-import { validateDormitoryBedPurchase } from '../../domain/buildings/dormitory-actions';
 import {
-  getAvailableDormitoryBeds,
-  getDormitoryCapacity,
-  getMaximumPurchasableDormitoryBeds,
-  getDormitoryPurchasedBeds,
-} from '../../domain/buildings/dormitory-capacity';
+  getAvailableLudusGladiatorPlaces,
+  getLudusGladiatorCapacity,
+} from '../../domain/ludus/capacity';
 import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import type {
   BuildingActionValidation,
@@ -92,11 +89,6 @@ export interface BuildingPanelViewModel {
 export interface DormitoryCapacityViewModel {
   availableBeds: number;
   capacity: number;
-  canPurchaseBed: boolean;
-  maximumPurchasableBeds: number;
-  nextBedCost: number;
-  purchasedBeds: number;
-  validationMessageKey: string | null;
   usedBeds: number;
 }
 
@@ -283,18 +275,9 @@ export function createBuildingPanelViewModel(
 }
 
 export function createDormitoryCapacityViewModel(save: GameSave): DormitoryCapacityViewModel {
-  const validation = validateDormitoryBedPurchase(save);
-
   return {
-    availableBeds: getAvailableDormitoryBeds(save),
-    capacity: getDormitoryCapacity(save),
-    canPurchaseBed: validation.isAllowed,
-    maximumPurchasableBeds: getMaximumPurchasableDormitoryBeds(save),
-    nextBedCost: validation.cost,
-    purchasedBeds: getDormitoryPurchasedBeds(save),
-    validationMessageKey: validation.reason
-      ? `dormitoryBeds.validation.${validation.reason}`
-      : null,
+    availableBeds: getAvailableLudusGladiatorPlaces(save),
+    capacity: getLudusGladiatorCapacity(save),
     usedBeds: save.gladiators.length,
   };
 }

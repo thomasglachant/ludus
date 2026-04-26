@@ -220,7 +220,7 @@ Examples:
 - health is too low for Sunday;
 - energy is too low;
 - morale collapse risk;
-- no bed available for a new gladiator;
+- no roster place available for a new gladiator;
 - a contract is at risk;
 - a champion is overtraining;
 - a gladiator is ready for a more difficult rank.

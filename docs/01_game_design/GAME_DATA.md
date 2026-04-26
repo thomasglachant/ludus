@@ -87,16 +87,16 @@ All base buildings start purchased at level 1:
 
 - `domus`: purchased, level 1.
 - `canteen`: purchased, level 1, default policy `balancedMeals`.
-- `dormitory`: purchased, level 1, `purchasedBeds: 0`.
+- `dormitory`: purchased, level 1.
 - `trainingGround`: purchased, level 1, default policy `balancedTraining`.
 - `pleasureHall`: purchased, level 1, default policy `quietEvenings`.
 - `infirmary`: purchased, level 1, default policy `basicCare`.
 
-The dormitory starts with `purchasedBeds: 0`, but level 1 provides one free bed through `DORMITORY_BED_CONFIG.freeBedsAtLevelOne`.
+The Domus level is the source of truth for owned gladiator capacity. Each Domus level grants one roster place, capped at 6.
 
 ### Purchase and Upgrade Values
 
-Current MVP building definitions include levels 1 and 2.
+Current MVP building definitions include levels 1 and 2 for most buildings. Domus includes levels 1 through 6 because it drives global ludus capacity.
 
 Level 1 purchase costs on base buildings are not used when creating a new game because those buildings start owned. Purchase costs remain part of building data so future optional buildings can start unpurchased and be bought later.
 
@@ -104,7 +104,7 @@ Level 1 purchase costs on base buildings are not used when creating a new game b
 | --------------- | ---------------- | ---------------: | ------------------------------------------------------------ | ------------------- | ------------------------------------------------------ |
 | Domus           | Yes              |              n/a | `increaseCapacity +1` for `ludus`                            | Domus level 1       | `increaseCapacity +2` for `ludus`                      |
 | Canteen         | Yes              |              120 | `increaseSatiety +6` per hour for assigned gladiator         | Domus level 2       | `increaseSatiety +8` per hour                          |
-| Dormitory       | Yes              |              140 | `increaseEnergy +5` per hour and `increaseCapacity +1`       | Domus level 2       | `increaseEnergy +7` per hour and `increaseCapacity +2` |
+| Dormitory       | Yes              |              140 | `increaseEnergy +5` per hour                                 | Domus level 2       | `increaseEnergy +7` per hour                           |
 | Training Ground | Yes              |              180 | `increaseStrength +1` per hour, `decreaseEnergy +4` per hour | Domus level 2       | `increaseStrength +2`, `decreaseEnergy +4` per hour    |
 | Pleasure Hall   | Yes              |              160 | `increaseMorale +5` per hour                                 | Domus level 2       | `increaseMorale +7` per hour                           |
 | Infirmary       | Yes              |              200 | `increaseHealth +5` per hour                                 | Domus level 2       | `increaseHealth +7` per hour and `reduceInjuryRisk +5` |
@@ -124,41 +124,29 @@ upgradeCost = Math.round(baseCost * growthFactor ** (targetLevel - 1));
 
 Per-building level costs may replace this formula later.
 
-### Dormitory Beds
+### Ludus Capacity
 
-The Dormitory separates free beds from purchased beds:
+The player cannot buy individual beds. Capacity comes only from the Domus level:
 
-- `freeBedsAtLevelOne` is the free starting capacity granted by an owned level 1 Dormitory.
-- `purchasedBeds` stores only beds bought by the player with treasury.
-- total capacity is `freeBeds + purchasedBeds`.
-- purchasable beds are capped by Dormitory level.
+- Domus level 1 allows 1 owned gladiator.
+- Each Domus upgrade adds 1 owned gladiator slot.
+- Capacity is capped at 6 gladiators.
+- Other buildings use the same global capacity direction; if the ludus can hold another gladiator, building assignment surfaces can support that larger roster.
 
 ```ts
-export const DORMITORY_BED_CONFIG = {
-  freeBedsAtLevelOne: 1,
-  purchasableBedsPerLevel: 2,
-  baseBedCost: 80,
-  bedCostGrowthFactor: 1.4,
+export const LUDUS_CAPACITY_CONFIG = {
+  minimumGladiators: 1,
+  maximumGladiators: 6,
 } as const;
 ```
 
 Capacity formula:
 
 ```ts
-freeBeds = freeBedsAtLevelOne + Math.max(0, dormitoryLevel - 1);
-maximumPurchasableBeds = dormitoryLevel * purchasableBedsPerLevel;
-capacity = freeBeds + purchasedBeds + purchasedDormitoryImprovementCapacityEffects;
+capacity = Math.min(Math.max(domusLevel, minimumGladiators), maximumGladiators);
 ```
 
-The Dormitory bed formula is the source of truth for housing capacity. Non-hourly `increaseCapacity` effects from purchased Dormitory improvements, such as `strawBeds`, add to this formula. Displayed capacity effects on building levels describe the level's capacity contribution but must not be double-counted on top of `freeBeds`.
-
-Bed cost formula:
-
-```ts
-bedCost = Math.round(baseBedCost * bedCostGrowthFactor ** purchasedBeds);
-```
-
-The first purchased bed costs 80 denarii because `purchasedBeds` is 0 before the purchase. The free level 1 bed never counts toward `purchasedBeds`.
+Dormitory upgrades and improvements can improve recovery, but they do not increase roster capacity.
 
 ## Building Improvements
 

@@ -8,7 +8,6 @@ function createTestSave() {
   return createInitialSave({
     ownerName: 'Marcus',
     ludusName: 'Ludus Magnus',
-    language: 'en',
     saveId: 'save-test',
     createdAt: '2026-04-25T12:00:00.000Z',
   });

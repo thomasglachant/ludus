@@ -1,4 +1,3 @@
-import type { LanguageCode } from '../common/types';
 import type { ContractState } from '../contracts/types';
 import type { ArenaState } from '../combat/types';
 import type { BuildingId, BuildingState } from '../buildings/types';
@@ -21,7 +20,6 @@ export interface GameSave {
   createdAt: string;
   updatedAt: string;
   player: PlayerProfile;
-  settings: GameSettings;
   ludus: LudusState;
   time: GameTimeState;
   buildings: Record<BuildingId, BuildingState>;
@@ -49,8 +47,4 @@ export interface PlayerProfile {
   ownerName: string;
   ludusName: string;
   isCloudUser: boolean;
-}
-
-export interface GameSettings {
-  language: LanguageCode;
 }

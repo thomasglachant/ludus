@@ -14,13 +14,13 @@ The UI baseline includes shared primitives for contextual panels, section cards,
 
 Building management includes domain-validated level upgrades, improvement purchases and policy selection. Building panels expose Overview, Improvements, Policy and Gladiators tabs with costs, requirements, effects, purchased or selected status and disabled action reasons. Building effects are centralized through domain helpers, and only effects marked `perHour: true` are applied during hourly time advancement.
 
-New saves start with all base buildings purchased at level 1: `domus`, `canteen`, `dormitory`, `trainingGround`, `pleasureHall` and `infirmary`. Building initialization is data-driven from `startsPurchased` and `startsAtLevel`, the dormitory provides its level 1 free bed, additional beds can be purchased with treasury up to the current level cap, and purchase validation remains available for future optional buildings that start unpurchased.
+New saves start with all base buildings purchased at level 1: `domus`, `canteen`, `dormitory`, `trainingGround`, `pleasureHall` and `infirmary`. Building initialization is data-driven from `startsPurchased` and `startsAtLevel`, and the Domus level controls owned gladiator capacity up to a maximum of 6.
 
-The market respects Dormitory capacity before buying gladiators. Buying a gladiator requires an available bed, buying a Dormitory bed or a Dormitory capacity improvement increases capacity, and sale contract completion is tied to gladiator sale flow rather than market purchase flow.
+The market respects ludus capacity before buying gladiators. Buying a gladiator requires an available roster place, Domus upgrades increase capacity, and sale contract completion is tied to gladiator sale flow rather than market purchase flow.
 
 The arena baseline resolves eligible Sunday combats once per week, protects rewards and consequences from repeated Sunday ticks, and exposes the Sunday results through the map-first arena panel. The panel shows the arena status, resolved combat list, selected combat details, turn log progression, victory or defeat badges, rewards, condition and reputation consequences, Sunday totals and empty states for days without eligible combatants. Before Sunday, the same panel still supports scouting odds when available.
 
-The Phase 1 MVP playable loop is stable enough to serve as the baseline for Phase 2. New-game smoke coverage validates the map-first shell, owned level 1 base buildings, market recruitment with Dormitory capacity, manual save, local load and arena access. Demo coverage validates deterministic early, mid and advanced states, including an advanced Saturday evening path into Sunday arena resolution. A basic i18n audit guards against obvious hardcoded visible JSX strings in app and UI components.
+The Phase 1 MVP playable loop is stable enough to serve as the baseline for Phase 2. New-game smoke coverage validates the map-first shell, owned level 1 base buildings, market recruitment with ludus capacity, manual save, local load and arena access. Demo coverage validates deterministic early, mid and advanced states, including an advanced Saturday evening path into Sunday arena resolution. A basic i18n audit guards against obvious hardcoded visible JSX strings in app and UI components.
 
 The next work should move Phase 2 systems forward while preserving the architectural split between `src/game-data`, `src/domain`, `src/state`, `src/persistence` and `src/ui`.
 
@@ -116,7 +116,7 @@ Goal: make the game readable, comfortable and emotionally sticky.
 Focus areas:
 
 - tune building upgrade costs and future optional purchase costs;
-- tune Dormitory bed costs and capacity caps;
+- tune Domus upgrade costs and capacity pacing;
 - tune readiness weights;
 - tune market prices and sale values;
 - tune combat hit chance, damage and consequences;
@@ -131,7 +131,7 @@ Focus areas:
 Acceptance:
 
 - the weekly loop is understandable;
-- managing 8 gladiators is comfortable;
+- managing up to 6 gladiators is comfortable;
 - the player has meaningful decisions before Sunday;
 - Sunday feels like a clear climax;
 - the ludus feels alive on the map.

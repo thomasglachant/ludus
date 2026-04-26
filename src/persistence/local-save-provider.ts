@@ -1,5 +1,5 @@
 import type { GameSave, GameSaveMetadata } from '../domain/types';
-import { parseGameSave } from '../domain/saves/save-validation';
+import { normalizeGameSave, parseGameSave } from '../domain/saves/save-validation';
 import {
   CorruptedSaveError,
   SaveNotFoundError,
@@ -69,7 +69,7 @@ export class LocalSaveProvider implements SaveProvider {
   }
 
   private writeSave(save: GameSave) {
-    localStorage.setItem(getSaveKey(save.saveId), JSON.stringify(save));
+    localStorage.setItem(getSaveKey(save.saveId), JSON.stringify(normalizeGameSave(save)));
     this.writeIndex([...new Set([...this.readIndex(), save.saveId])]);
   }
 

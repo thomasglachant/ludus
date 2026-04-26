@@ -1,4 +1,5 @@
 import type { GameSave, GameSaveMetadata } from '../domain/types';
+import { normalizeGameSave } from '../domain/saves/save-validation';
 import { cloneJson } from '../utils/clone';
 import { SaveNotFoundError, createGameSaveMetadata, type SaveProvider } from './save-provider';
 
@@ -18,15 +19,15 @@ export class CloudSaveProvider implements SaveProvider {
       throw new SaveNotFoundError(saveId);
     }
 
-    return cloneJson(save);
+    return cloneJson(normalizeGameSave(save));
   }
 
   async createSave(save: GameSave): Promise<void> {
-    this.saves.set(save.saveId, cloneJson(save));
+    this.saves.set(save.saveId, cloneJson(normalizeGameSave(save)));
   }
 
   async updateSave(save: GameSave): Promise<void> {
-    this.saves.set(save.saveId, cloneJson(save));
+    this.saves.set(save.saveId, cloneJson(normalizeGameSave(save)));
   }
 
   async deleteSave(saveId: string): Promise<void> {

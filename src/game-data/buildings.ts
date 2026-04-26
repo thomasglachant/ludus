@@ -33,6 +33,30 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         requiredDomusLevel: 1,
         effects: [{ type: 'increaseCapacity', value: 2, target: 'ludus' }],
       },
+      {
+        level: 3,
+        upgradeCost: calculateBuildingUpgradeCost(3),
+        requiredDomusLevel: 2,
+        effects: [{ type: 'increaseCapacity', value: 3, target: 'ludus' }],
+      },
+      {
+        level: 4,
+        upgradeCost: calculateBuildingUpgradeCost(4),
+        requiredDomusLevel: 3,
+        effects: [{ type: 'increaseCapacity', value: 4, target: 'ludus' }],
+      },
+      {
+        level: 5,
+        upgradeCost: calculateBuildingUpgradeCost(5),
+        requiredDomusLevel: 4,
+        effects: [{ type: 'increaseCapacity', value: 5, target: 'ludus' }],
+      },
+      {
+        level: 6,
+        upgradeCost: calculateBuildingUpgradeCost(6),
+        requiredDomusLevel: 5,
+        effects: [{ type: 'increaseCapacity', value: 6, target: 'ludus' }],
+      },
     ],
     improvementIds: [],
   },
@@ -73,19 +97,13 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         level: 1,
         purchaseCost: 140,
         requiredDomusLevel: 1,
-        effects: [
-          { type: 'increaseEnergy', value: 5, perHour: true, target: 'assignedGladiator' },
-          { type: 'increaseCapacity', value: 1, target: 'ludus' },
-        ],
+        effects: [{ type: 'increaseEnergy', value: 5, perHour: true, target: 'assignedGladiator' }],
       },
       {
         level: 2,
         upgradeCost: calculateBuildingUpgradeCost(2),
         requiredDomusLevel: 2,
-        effects: [
-          { type: 'increaseEnergy', value: 7, perHour: true, target: 'assignedGladiator' },
-          { type: 'increaseCapacity', value: 2, target: 'ludus' },
-        ],
+        effects: [{ type: 'increaseEnergy', value: 7, perHour: true, target: 'assignedGladiator' }],
       },
     ],
     improvementIds: ['strawBeds', 'woodenBeds', 'quietQuarters'],
@@ -169,7 +187,6 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
 
 export const INITIAL_BUILDING_CONFIGURATIONS: Partial<Record<BuildingId, BuildingConfiguration>> = {
   canteen: { mealPlanId: 'balancedMeals' },
-  dormitory: { purchasedBeds: 0 },
   trainingGround: { defaultDoctrineId: 'balancedTraining' },
   pleasureHall: { entertainmentPlanId: 'quietEvenings' },
   infirmary: { carePolicyId: 'basicCare' },

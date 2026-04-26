@@ -220,7 +220,7 @@ describe('App', () => {
     expect(screen.getAllByText('170')).not.toHaveLength(0);
   });
 
-  it('buys an additional dormitory bed through the shared confirmation modal', async () => {
+  it('shows Domus-governed ludus capacity in the dormitory panel', async () => {
     const user = userEvent.setup();
 
     render(
@@ -240,19 +240,11 @@ describe('App', () => {
     const buildingPanel = await screen.findByTestId('building-modal');
 
     expect(within(buildingPanel).getByText('0/1')).toBeInTheDocument();
-    expect(within(buildingPanel).getByText('0/2')).toBeInTheDocument();
-    expect(within(buildingPanel).getByText('Cost 80')).toBeInTheDocument();
-
-    await user.click(within(buildingPanel).getByRole('button', { name: 'Buy bed' }));
-
-    const dialog = await screen.findByRole('dialog', { name: 'Confirm bed purchase' });
-
-    await user.click(within(dialog).getByRole('button', { name: 'Buy bed' }));
-
-    expect(await within(buildingPanel).findByText('0/2')).toBeInTheDocument();
-    expect(within(buildingPanel).getByText('1/2')).toBeInTheDocument();
-    expect(within(buildingPanel).getByText('Cost 112')).toBeInTheDocument();
-    expect(screen.getAllByText('420')).not.toHaveLength(0);
+    expect(within(buildingPanel).getByText('Available places')).toBeInTheDocument();
+    expect(within(buildingPanel).getAllByText('1').length).toBeGreaterThan(0);
+    expect(
+      within(buildingPanel).queryByRole('button', { name: 'Buy bed' }),
+    ).not.toBeInTheDocument();
   });
 
   it('switches the interface language', async () => {

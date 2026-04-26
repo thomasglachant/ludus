@@ -7,7 +7,6 @@ import { TopHud } from './TopHud';
 function createSave() {
   return createInitialSave({
     createdAt: '2026-04-25T10:00:00.000Z',
-    language: 'en',
     ludusName: 'Test Ludus',
     ownerName: 'Marcus',
     saveId: 'save-test',

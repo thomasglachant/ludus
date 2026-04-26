@@ -149,12 +149,9 @@ Building details should not be permanently displayed below the map.
 
 The Dormitory panel must clearly show:
 
-- used beds / total capacity;
-- purchased beds;
-- maximum purchasable beds at the current Dormitory level;
-- next bed cost;
-- a purchase-bed action using the shared confirmation modal;
-- a disabled state with a clear reason when the Dormitory is not owned, the maximum purchasable beds are reached or treasury is insufficient.
+- used places / total ludus capacity;
+- available places;
+- that capacity is governed by the Domus level rather than purchasable beds.
 
 Suggested building panel tabs:
 
@@ -237,7 +234,7 @@ Expected shared primitives:
 - effect lists for building effects, policies, improvements, contract consequences and event choices;
 - cost summaries for purchases, upgrades, market buys and paid actions;
 - badges or status pills for level, ownership, readiness, risk, availability and demo state;
-- metric rows or stat lines for compact values such as health, energy, morale, satiety, beds and treasury;
+- metric rows or stat lines for compact values such as health, energy, morale, satiety, capacity and treasury;
 - confirmation dialogs for irreversible, expensive or blocking choices;
 - lightweight form modal layouts for focused interactions that do not need a full screen.
 
@@ -249,7 +246,7 @@ MVP screens and panels should expose clear, i18n-backed states for missing or bl
 
 - empty roster: the bottom roster shows that no gladiators have been recruited yet;
 - empty market: the market shows that no candidates remain this week;
-- full capacity: the market shows used beds, available beds and a warning before blocking recruitment;
+- full capacity: the market shows used places, available places and a warning before blocking recruitment;
 - no owned gladiators: the market sell section shows an empty state;
 - no contracts: the contracts panel shows that no contract is available this week;
 - no events: the events panel shows that no event needs a decision right now;
@@ -289,9 +286,9 @@ Market should follow the same shared UI primitive direction as contextual panels
 
 The market must:
 
-- show Dormitory capacity as used beds / total capacity;
-- show available beds before the player buys a gladiator;
-- block buy actions when no bed is available;
+- show ludus capacity as used places / total capacity;
+- show available places before the player buys a gladiator;
+- block buy actions when no place is available;
 - display a clear shared empty or warning state when capacity is full;
 - display a clear shared empty state when the candidate list is empty;
 - display a clear shared empty state when there are no owned gladiators to sell;

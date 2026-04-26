@@ -13,7 +13,6 @@ describe('LocalSaveProvider', () => {
     const save = createInitialSave({
       ownerName: 'Flavia',
       ludusName: 'Aquila',
-      language: 'en',
       saveId: 'save-local',
       createdAt: '2026-04-25T12:00:00.000Z',
     });
@@ -29,6 +28,31 @@ describe('LocalSaveProvider', () => {
         schemaVersion: 1,
       },
     ]);
+    await expect(provider.loadSave('save-local')).resolves.toEqual(save);
+    expect(localStorage.getItem('ludus:save:save-local')).not.toContain('language');
+    expect(localStorage.getItem('ludus:save:save-local')).not.toContain('settings');
+  });
+
+  it('loads old saves without keeping persisted language settings', async () => {
+    const provider = new LocalSaveProvider();
+    const save = createInitialSave({
+      ownerName: 'Flavia',
+      ludusName: 'Aquila',
+      saveId: 'save-local',
+      createdAt: '2026-04-25T12:00:00.000Z',
+    });
+
+    localStorage.setItem('ludus:save-index', JSON.stringify(['save-local']));
+    localStorage.setItem(
+      'ludus:save:save-local',
+      JSON.stringify({
+        ...save,
+        settings: {
+          language: 'fr',
+        },
+      }),
+    );
+
     await expect(provider.loadSave('save-local')).resolves.toEqual(save);
   });
 

@@ -1,7 +1,7 @@
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { MARKET_CONFIG } from '../../game-data/market';
-import { getAvailableDormitoryBeds } from '../buildings/dormitory-capacity';
+import { getAvailableLudusGladiatorPlaces } from '../ludus/capacity';
 import { completeSaleContracts } from '../contracts/contract-actions';
 import type { Gladiator, GladiatorTrait } from '../gladiators/types';
 import { synchronizePlanning } from '../planning/planning-actions';
@@ -152,7 +152,7 @@ export function validateMarketPurchase(
     };
   }
 
-  if (getAvailableDormitoryBeds(save) <= 0) {
+  if (getAvailableLudusGladiatorPlaces(save) <= 0) {
     return {
       isAllowed: false,
       cost: candidate.price,

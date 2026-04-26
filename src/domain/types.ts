@@ -23,11 +23,6 @@ export type {
   BuildingActionResult,
 } from './buildings/building-actions';
 export type {
-  DormitoryBedPurchaseFailureReason,
-  DormitoryBedPurchaseValidation,
-  DormitoryBedPurchaseResult,
-} from './buildings/dormitory-actions';
-export type {
   Gladiator,
   GladiatorTrait,
   GladiatorTrainingPlan,
@@ -82,7 +77,6 @@ export type {
   DemoSaveId,
   GameSave,
   GameSaveMetadata,
-  GameSettings,
   PlayerProfile,
   SaveMetadata,
 } from './saves/types';

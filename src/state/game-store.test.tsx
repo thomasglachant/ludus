@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { UiStoreProvider } from './ui-store';
+import { UiStoreProvider, useUiStore } from './ui-store';
 import { GameStoreProvider, useGameStore } from './game-store';
 
 vi.mock('../config/features', () => ({
@@ -13,6 +13,7 @@ vi.mock('../config/features', () => ({
 
 function GameStoreHarness() {
   const store = useGameStore();
+  const uiStore = useUiStore();
 
   return (
     <div>
@@ -37,12 +38,16 @@ function GameStoreHarness() {
       <button type="button" onClick={() => void store.loadDemoSave('demo-early-ludus')}>
         Load demo
       </button>
+      <button type="button" onClick={() => void store.changeLanguage('fr')}>
+        Change language
+      </button>
       <output data-testid="dirty">{String(store.hasUnsavedChanges)}</output>
       <output data-testid="saving">{String(store.isSaving)}</output>
       <output data-testid="last-saved">{store.lastSavedAt ?? ''}</output>
       <output data-testid="error">{store.errorKey ?? ''}</output>
       <output data-testid="notice">{store.saveNoticeKey ?? ''}</output>
       <output data-testid="save-id">{store.currentSave?.saveId ?? ''}</output>
+      <output data-testid="language">{uiStore.language}</output>
     </div>
   );
 }
@@ -148,5 +153,22 @@ describe('GameStore save UI state', () => {
       expect(screen.getByTestId('notice')).toHaveTextContent('ludus.saveSuccess'),
     );
     expect(localStorage.getItem(`ludus:save:${saveId}`)).not.toBeNull();
+  });
+
+  it('changes language as browser UI preference without updating save data', async () => {
+    const user = userEvent.setup();
+
+    renderHarness();
+    await createGame(user);
+
+    const saveId = screen.getByTestId('save-id').textContent ?? '';
+    const storedSaveBeforeChange = localStorage.getItem(`ludus:save:${saveId}`);
+
+    await user.click(screen.getByRole('button', { name: 'Change language' }));
+
+    expect(screen.getByTestId('language')).toHaveTextContent('fr');
+    expect(screen.getByTestId('dirty')).toHaveTextContent('false');
+    expect(localStorage.getItem('ludus:language')).toBe('fr');
+    expect(localStorage.getItem(`ludus:save:${saveId}`)).toBe(storedSaveBeforeChange);
   });
 });

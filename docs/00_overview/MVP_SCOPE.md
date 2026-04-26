@@ -74,7 +74,7 @@ Building rules:
 - Dormitory controls gladiator capacity.
 - New saves start with the Dormitory purchased at level 1.
 - Dormitory level 1 gives one free bed.
-- Additional beds can be purchased with treasury.
+- Additional roster capacity comes from Domus upgrades.
 - Buying a gladiator requires an available bed and is blocked when capacity is full.
 
 ### Gladiators
@@ -186,7 +186,7 @@ The MVP is valid if:
 - no building has a numeric budget slider;
 - the market offers 5 gladiators;
 - the player can buy a gladiator if a bed is available;
-- market buying is blocked with a clear warning when Dormitory capacity is full;
+- market buying is blocked with a clear warning when ludus capacity is full;
 - gladiators can receive weekly objectives;
 - readiness score is visible;
 - basic alerts are generated;

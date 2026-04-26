@@ -1,8 +1,8 @@
-import { ArrowLeft, Bed, ShoppingCart, UserMinus } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, UserMinus, Users } from 'lucide-react';
 import {
-  getAvailableDormitoryBeds,
-  getDormitoryCapacity,
-} from '../../domain/buildings/dormitory-capacity';
+  getAvailableLudusGladiatorPlaces,
+  getLudusGladiatorCapacity,
+} from '../../domain/ludus/capacity';
 import {
   calculateGladiatorSaleValue,
   validateMarketPurchase,
@@ -160,8 +160,8 @@ export function MarketScreen() {
     return null;
   }
 
-  const dormitoryCapacity = getDormitoryCapacity(currentSave);
-  const availableBeds = getAvailableDormitoryBeds(currentSave);
+  const ludusCapacity = getLudusGladiatorCapacity(currentSave);
+  const availablePlaces = getAvailableLudusGladiatorPlaces(currentSave);
 
   const handleSell = (gladiator: Gladiator) => {
     openConfirmModal({
@@ -198,22 +198,22 @@ export function MarketScreen() {
           items={[
             {
               labelKey: 'market.ownedBeds',
-              value: `${currentSave.gladiators.length}/${dormitoryCapacity}`,
+              value: `${currentSave.gladiators.length}/${ludusCapacity}`,
             },
-            { labelKey: 'market.availableBeds', value: availableBeds },
+            { labelKey: 'market.availableBeds', value: availablePlaces },
             { labelKey: 'market.candidates', value: currentSave.market.availableGladiators.length },
           ]}
         />
-        {availableBeds <= 0 ? (
+        {availablePlaces <= 0 ? (
           <NoticeBox tone="warning" testId="market-capacity-full-notice">
-            <Bed aria-hidden="true" size={18} />
+            <Users aria-hidden="true" size={18} />
             <span>{t('market.noBedWarning')}</span>
           </NoticeBox>
         ) : null}
       </section>
       <section className="panel" data-testid="market-candidates-section">
         <h2>{t('market.availableGladiators')}</h2>
-        {availableBeds <= 0 ? (
+        {availablePlaces <= 0 ? (
           <EmptyState messageKey="market.capacityFullState" testId="market-capacity-full-state" />
         ) : null}
         {currentSave.market.availableGladiators.length > 0 ? (

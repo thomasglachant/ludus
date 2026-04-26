@@ -74,8 +74,8 @@ Expected state:
 
 - Year 1, Week 1, Monday 08:00, paused;
 - treasury 850 and low ludus reputation;
-- all MVP base buildings purchased at level 1;
-- Dormitory level 1 with purchased beds available for the three-gladiator roster;
+- all MVP base buildings purchased, with Domus level 3 for the three-gladiator roster;
+- Dormitory level 1 focused on recovery rather than purchasable beds;
 - 3 owned beginner gladiators with stable portraits, sprites, objectives and building assignments;
 - 5 predefined market candidates;
 - no active Sunday combats;
@@ -92,7 +92,7 @@ Expected state:
 - Year 2, Week 4, Thursday 16:00, paused;
 - 4 owned gladiators;
 - all MVP base buildings purchased, with levels around 3 or 4;
-- Dormitory capacity large enough for the roster and market test purchases;
+- Domus capacity large enough for the roster and market test purchases;
 - 5 predefined market candidates;
 - active weekly planning recommendations;
 - at least one contextual alert.
@@ -107,15 +107,15 @@ Purpose: validate dense UI and late-progression visual states.
 Expected state:
 
 - Year 5, Week 7, Saturday 18:30, paused;
-- 8 owned gladiators;
-- all MVP base buildings purchased at level 8 with full improvement coverage where available;
-- Dormitory capacity large enough for the dense roster;
+- 6 owned gladiators;
+- all MVP base buildings purchased at level 6 with full improvement coverage where available;
+- Domus capacity at the maximum roster size;
 - 5 predefined market candidates;
 - multiple active alerts;
 - arena preparation state with predefined betting odds locked for the weekend;
 - dusk or night visual coverage.
 
-The advanced demo must verify that the bottom gladiator roster remains readable with 8 gladiators and that Playwright can advance from Saturday evening into the Sunday arena state without relying on random setup.
+The advanced demo must verify that the bottom gladiator roster remains readable with 6 gladiators and that Playwright can advance from Saturday evening into the Sunday arena state without relying on random setup.
 
 ## Visual Requirements
 
@@ -242,7 +242,7 @@ Playwright tests should cover:
 - each demo route loads when enabled;
 - early, mid and advanced map states render;
 - portrait-based roster renders;
-- advanced demo remains readable with 8 gladiators;
+- advanced demo remains readable with 6 gladiators;
 - contextual panels can open from stable selectors.
 
 ## Acceptance Criteria
@@ -257,7 +257,7 @@ Demo mode is valid when:
 - demo gladiators have map sprite references;
 - demo buildings appear on the map;
 - Playwright can open each demo directly;
-- the advanced demo can test UI density with 8 gladiators;
+- the advanced demo can test UI density with 6 gladiators;
 - demo saves are static and deterministic;
 - loading a demo save does not mutate the template;
 - demo saves are not autosaved;

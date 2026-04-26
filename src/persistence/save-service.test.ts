@@ -53,7 +53,6 @@ describe('SaveService demo saves', () => {
       new DemoSaveProvider(),
     );
     const originalSave = await service.createLocalSave({
-      language: 'en',
       ludusName: 'Ludus Magnus',
       ownerName: 'Marcus',
     });

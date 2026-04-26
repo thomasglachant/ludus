@@ -14,7 +14,6 @@ describe('CloudSaveProvider', () => {
     const save = createInitialSave({
       ownerName: 'Flavia',
       ludusName: 'Aquila',
-      language: 'en',
       saveId: 'save-cloud',
       createdAt: '2026-04-25T12:00:00.000Z',
     });
@@ -33,11 +32,28 @@ describe('CloudSaveProvider', () => {
     await expect(provider.loadSave('save-cloud')).resolves.toEqual(save);
   });
 
+  it('does not persist language settings in mocked cloud saves', async () => {
+    const save = createInitialSave({
+      ownerName: 'Flavia',
+      ludusName: 'Aquila',
+      saveId: 'save-cloud',
+      createdAt: '2026-04-25T12:00:00.000Z',
+    });
+
+    await provider.createSave({
+      ...save,
+      settings: {
+        language: 'fr',
+      },
+    } as typeof save & { settings: { language: 'fr' } });
+
+    await expect(provider.loadSave('save-cloud')).resolves.toEqual(save);
+  });
+
   it('does not expose stored save references', async () => {
     const save = createInitialSave({
       ownerName: 'Flavia',
       ludusName: 'Aquila',
-      language: 'en',
       saveId: 'save-cloud',
       createdAt: '2026-04-25T12:00:00.000Z',
     });

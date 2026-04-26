@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MARKET_CONFIG } from '../../game-data/market';
-import { purchaseDormitoryBed } from '../buildings/dormitory-actions';
-import { getAvailableDormitoryBeds, getDormitoryCapacity } from '../buildings/dormitory-capacity';
+import { getAvailableLudusGladiatorPlaces, getLudusGladiatorCapacity } from '../ludus/capacity';
 import type { Gladiator } from '../gladiators/types';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
@@ -18,13 +17,12 @@ function createTestSave() {
   return createInitialSave({
     ownerName: 'Marcus',
     ludusName: 'Ludus Magnus',
-    language: 'en',
     saveId: 'save-test',
     createdAt: '2026-04-25T12:00:00.000Z',
   });
 }
 
-function withPurchasedDormitory(save: GameSave, purchasedBeds = 0): GameSave {
+function withDomusCapacity(save: GameSave, capacity = 1): GameSave {
   return {
     ...save,
     ludus: {
@@ -33,11 +31,10 @@ function withPurchasedDormitory(save: GameSave, purchasedBeds = 0): GameSave {
     },
     buildings: {
       ...save.buildings,
-      dormitory: {
-        ...save.buildings.dormitory,
+      domus: {
+        ...save.buildings.domus,
         isPurchased: true,
-        level: 1,
-        configuration: { purchasedBeds },
+        level: capacity,
       },
     },
   };
@@ -93,7 +90,7 @@ describe('market actions', () => {
     const candidate = save.market.availableGladiators[0];
     const validation = validateMarketPurchase(save, candidate.id);
 
-    expect(getDormitoryCapacity(save)).toBe(1);
+    expect(getLudusGladiatorCapacity(save)).toBe(1);
     expect(validation).toMatchObject({
       isAllowed: false,
       reason: 'noAvailableBed',
@@ -101,8 +98,8 @@ describe('market actions', () => {
     });
   });
 
-  it('buys a market gladiator when treasury and bed capacity are available', () => {
-    const save = withPurchasedDormitory(createTestSave());
+  it('buys a market gladiator when treasury and ludus capacity are available', () => {
+    const save = withDomusCapacity(createTestSave());
     const candidate = save.market.availableGladiators[0];
     const result = buyMarketGladiator(save, candidate.id);
 
@@ -122,8 +119,8 @@ describe('market actions', () => {
     );
   });
 
-  it('enforces dormitory capacity including purchased beds', () => {
-    const save = withPurchasedDormitory(createTestSave(), 1);
+  it('enforces Domus-governed ludus capacity', () => {
+    const save = withDomusCapacity(createTestSave(), 2);
     const firstCandidate = save.market.availableGladiators[0];
     const secondCandidate = save.market.availableGladiators[1];
     const thirdCandidate = save.market.availableGladiators[2];
@@ -131,8 +128,8 @@ describe('market actions', () => {
     const secondPurchase = buyMarketGladiator(firstPurchase, secondCandidate.id).save;
     const thirdValidation = validateMarketPurchase(secondPurchase, thirdCandidate.id);
 
-    expect(getDormitoryCapacity(save)).toBe(2);
-    expect(getAvailableDormitoryBeds(secondPurchase)).toBe(0);
+    expect(getLudusGladiatorCapacity(save)).toBe(2);
+    expect(getAvailableLudusGladiatorPlaces(secondPurchase)).toBe(0);
     expect(secondPurchase.gladiators).toHaveLength(2);
     expect(thirdValidation).toMatchObject({
       isAllowed: false,
@@ -140,27 +137,27 @@ describe('market actions', () => {
     });
   });
 
-  it('allows buying a market gladiator after purchasing an additional bed', () => {
+  it('allows buying a market gladiator after upgrading Domus capacity', () => {
     const save = {
-      ...withPurchasedDormitory(createTestSave()),
+      ...withDomusCapacity(createTestSave()),
       gladiators: [createOwnedGladiator()],
     };
     const candidate = save.market.availableGladiators[0];
     const blockedValidation = validateMarketPurchase(save, candidate.id);
-    const expandedSave = purchaseDormitoryBed(save).save;
+    const expandedSave = withDomusCapacity(save, 2);
     const result = buyMarketGladiator(expandedSave, candidate.id);
 
     expect(blockedValidation).toMatchObject({
       isAllowed: false,
       reason: 'noAvailableBed',
     });
-    expect(getAvailableDormitoryBeds(expandedSave)).toBe(1);
+    expect(getAvailableLudusGladiatorPlaces(expandedSave)).toBe(1);
     expect(result.validation.isAllowed).toBe(true);
     expect(result.save.gladiators).toHaveLength(2);
   });
 
   it('does not complete sale contracts when buying a market gladiator', () => {
-    const save = withPurchasedDormitory(createTestSave());
+    const save = withDomusCapacity(createTestSave());
     const saleContract = {
       ...save.contracts.availableContracts[0],
       id: 'contract-sale-test',
@@ -183,7 +180,7 @@ describe('market actions', () => {
   });
 
   it('sells an owned gladiator and frees capacity', () => {
-    const save = withPurchasedDormitory(createTestSave());
+    const save = withDomusCapacity(createTestSave());
     const candidate = save.market.availableGladiators[0];
     const purchased = buyMarketGladiator(save, candidate.id).save;
     const saleValue = calculateGladiatorSaleValue(purchased.gladiators[0]);
@@ -195,6 +192,6 @@ describe('market actions', () => {
     });
     expect(result.save.gladiators).toEqual([]);
     expect(result.save.ludus.treasury).toBe(purchased.ludus.treasury + saleValue);
-    expect(getAvailableDormitoryBeds(result.save)).toBe(1);
+    expect(getAvailableLudusGladiatorPlaces(result.save)).toBe(1);
   });
 });

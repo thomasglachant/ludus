@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getDormitoryCapacity } from '../domain/buildings/dormitory-capacity';
+import { getLudusGladiatorCapacity } from '../domain/ludus/capacity';
 import { isGameSave } from '../domain/saves/save-validation';
 import { BUILDING_IDS } from '../game-data/buildings';
 import { DEMO_SAVE_DEFINITIONS } from '../game-data/demo-saves';
@@ -88,7 +88,7 @@ describe('demo save definitions', () => {
         demoSaveId: definition.id,
       });
       expect(hasBudgetField(save.buildings)).toBe(false);
-      expect(getDormitoryCapacity(save)).toBeGreaterThanOrEqual(save.gladiators.length);
+      expect(getLudusGladiatorCapacity(save)).toBeGreaterThanOrEqual(save.gladiators.length);
       for (const buildingId of BUILDING_IDS) {
         expect(save.buildings[buildingId]).toMatchObject({
           isPurchased: true,
@@ -160,7 +160,7 @@ describe('demo save definitions', () => {
       speed: 0,
       isPaused: true,
     });
-    expect(advanced?.save.gladiators).toHaveLength(8);
+    expect(advanced?.save.gladiators).toHaveLength(6);
     expect(advanced?.save.arena.betting).toBeDefined();
     expect(advanced?.save.arena.betting?.areBetsLocked).toBe(true);
   });

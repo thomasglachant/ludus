@@ -40,7 +40,6 @@ export interface GameSave {
   createdAt: string;
   updatedAt: string;
   player: PlayerProfile;
-  settings: GameSettings;
   ludus: LudusState;
   time: GameTimeState;
   buildings: Record<BuildingId, BuildingState>;
@@ -73,15 +72,12 @@ export interface PlayerProfile {
   ludusName: string;
   isCloudUser: boolean;
 }
-
-export interface GameSettings {
-  language: LanguageCode;
-}
 ```
 
 ## Transient Save UI State
 
 Dirty-state information is intentionally not part of `GameSave`.
+Language is also intentionally outside `GameSave`; the browser language and any local UI preference determine the current locale.
 
 The store owns transient save UI fields such as:
 
@@ -181,7 +177,7 @@ export interface InfirmaryConfiguration {
 }
 ```
 
-`DormitoryConfiguration.purchasedBeds` stores only beds explicitly bought by the player. It does not include the free bed granted by the level 1 Dormitory. Domain helpers combine `purchasedBeds` with `DORMITORY_BED_CONFIG.freeBedsAtLevelOne` and the Dormitory level to compute total capacity.
+Owned gladiator capacity is derived from the Domus level and capped at 6. Legacy save data may still contain dormitory `purchasedBeds` configuration, but domain capacity helpers ignore it.
 
 Building state must not contain a generic `budget` field.
 

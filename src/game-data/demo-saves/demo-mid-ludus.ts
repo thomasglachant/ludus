@@ -44,9 +44,6 @@ const save = createDemoSave({
     dormitory: createPurchasedBuilding({
       id: 'dormitory',
       level: 4,
-      configuration: {
-        purchasedBeds: 7,
-      },
       purchasedImprovementIds: ['strawBeds', 'woodenBeds', 'quietQuarters'],
     }),
     trainingGround: createPurchasedBuilding({
