@@ -208,6 +208,31 @@ describe('GameStore save UI state', () => {
     expect(screen.getByTestId('speed')).toHaveTextContent('2');
   });
 
+  it('throttles active browser session writes while game time is ticking', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const setItemSpy = vi.spyOn(localStorage, 'setItem');
+
+    renderHarness();
+    await createGame(user);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+
+    setItemSpy.mockClear();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000);
+    });
+
+    const activeSessionWrites = setItemSpy.mock.calls.filter(
+      ([key]) => key === 'ludus:active-session',
+    );
+
+    expect(activeSessionWrites).toHaveLength(1);
+  });
+
   it('starts demo templates as normal local saves', async () => {
     const user = userEvent.setup();
 

@@ -92,6 +92,8 @@ interface GameStoreValue {
 }
 
 const GameStoreContext = createContext<GameStoreValue | null>(null);
+const ACTIVE_SESSION_WRITE_DELAY_MS = 750;
+const ACTIVE_SESSION_SYNC_INTERVAL_MS = 10_000;
 const AUTO_SAVE_INTERVAL_MS = 30_000;
 
 function createSaveService() {
@@ -150,6 +152,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const isSavingRef = useRef(false);
   const isAutoSavingRef = useRef(false);
   const dirtyRevisionRef = useRef(0);
+  const screenRef = useRef(screen);
   const activeSaveId = currentSave?.saveId;
   const activeSpeed = currentSave?.time.speed;
   const isPaused = currentSave?.time.isPaused;
@@ -493,6 +496,29 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
   const clearError = useCallback(() => setErrorKey(null), []);
 
+  const writeActiveSession = useCallback(
+    (input: { showError: boolean }) => {
+      const save = currentSaveRef.current;
+
+      if (!save) {
+        return;
+      }
+
+      try {
+        activeSessionProvider.writeSession({
+          hasUnsavedChanges: hasUnsavedChangesRef.current,
+          save,
+          screen: screenRef.current,
+        });
+      } catch {
+        if (input.showError) {
+          setErrorKey('ludus.saveError');
+        }
+      }
+    },
+    [activeSessionProvider],
+  );
+
   useEffect(() => {
     currentSaveRef.current = currentSave;
   }, [currentSave]);
@@ -506,6 +532,10 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   }, [isSaving]);
 
   useEffect(() => {
+    screenRef.current = screen;
+  }, [screen]);
+
+  useEffect(() => {
     if (!initialActiveSession || hasRestoredInitialActiveSession.current) {
       return undefined;
     }
@@ -517,7 +547,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   }, [initialActiveSession, navigate]);
 
   useEffect(() => {
-    if (!currentSave) {
+    if (!activeSaveId) {
       return undefined;
     }
 
@@ -526,18 +556,9 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     }
 
     activeSessionSaveTimeoutId.current = window.setTimeout(() => {
-      try {
-        activeSessionProvider.writeSession({
-          hasUnsavedChanges,
-          save: currentSave,
-          screen,
-        });
-      } catch {
-        setErrorKey('ludus.saveError');
-      } finally {
-        activeSessionSaveTimeoutId.current = null;
-      }
-    }, 750);
+      writeActiveSession({ showError: true });
+      activeSessionSaveTimeoutId.current = null;
+    }, ACTIVE_SESSION_WRITE_DELAY_MS);
 
     return () => {
       if (activeSessionSaveTimeoutId.current !== null) {
@@ -545,29 +566,25 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         activeSessionSaveTimeoutId.current = null;
       }
     };
-  }, [activeSessionProvider, currentSave, hasUnsavedChanges, screen]);
+  }, [activeSaveId, hasUnsavedChanges, lastSavedAt, screen, writeActiveSession]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      writeActiveSession({ showError: true });
+    }, ACTIVE_SESSION_SYNC_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [writeActiveSession]);
 
   useEffect(() => {
     const flushActiveSession = () => {
-      if (!currentSave) {
-        return;
-      }
-
-      try {
-        activeSessionProvider.writeSession({
-          hasUnsavedChanges,
-          save: currentSave,
-          screen,
-        });
-      } catch {
-        // The page is unloading; normal save error UI may not render here.
-      }
+      writeActiveSession({ showError: false });
     };
 
     window.addEventListener('pagehide', flushActiveSession);
 
     return () => window.removeEventListener('pagehide', flushActiveSession);
-  }, [activeSessionProvider, currentSave, hasUnsavedChanges, screen]);
+  }, [writeActiveSession]);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
