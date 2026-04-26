@@ -1,5 +1,6 @@
 import { Footprints, Shield, Swords, Target, Trophy } from 'lucide-react';
 import { useUiStore } from '../../state/ui-store';
+import { formatMoneyAmount } from '../formatters/money';
 import type { CombatScreenViewModel } from './combat-screen-view-model';
 
 interface CombatSkillBarProps {
@@ -49,7 +50,7 @@ export function CombatSkillBar({ onAdvance, onClose, viewModel }: CombatSkillBar
             <strong>{t(viewModel.consequence.resultKey)}</strong>
             <span>
               {t('combatScreen.resultSummary', {
-                reward: viewModel.consequence.playerReward,
+                reward: formatMoneyAmount(viewModel.consequence.playerReward),
                 reputation: formatSignedValue(viewModel.consequence.reputationChange),
               })}
             </span>

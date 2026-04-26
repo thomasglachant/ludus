@@ -13,24 +13,43 @@ function createSave() {
   });
 }
 
-describe('TopHud save status', () => {
-  it('shows dirty state and manual save action for normal saves', () => {
+describe('TopHud', () => {
+  it('keeps save status hidden while preserving the manual save action', () => {
     render(
       <UiStoreProvider>
         <TopHud
-          hasUnsavedChanges
+          alertCount={0}
+          areAlertsOpen={false}
           isSaving={false}
-          lastSavedAt="2026-04-25T10:00:00.000Z"
           save={createSave()}
+          onAlertsToggle={vi.fn()}
           onOpenMenu={vi.fn()}
-          onResetDemo={vi.fn()}
           onSave={vi.fn()}
           onSpeedChange={vi.fn()}
         />
       </UiStoreProvider>,
     );
 
-    expect(screen.getByTestId('save-status')).toHaveTextContent('Unsaved changes');
+    expect(screen.queryByTestId('save-status')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Save/i })).toBeInTheDocument();
+  });
+
+  it('shows the alert count in the top bar action', () => {
+    render(
+      <UiStoreProvider>
+        <TopHud
+          alertCount={3}
+          areAlertsOpen={false}
+          isSaving={false}
+          save={createSave()}
+          onAlertsToggle={vi.fn()}
+          onOpenMenu={vi.fn()}
+          onSave={vi.fn()}
+          onSpeedChange={vi.fn()}
+        />
+      </UiStoreProvider>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Alerts (3)' })).toHaveTextContent('3');
   });
 });

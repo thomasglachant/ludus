@@ -3,6 +3,7 @@ import { useEffect, type CSSProperties } from 'react';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
+import { formatMoneyAmount } from '../formatters/money';
 
 export function MainMenuScreen() {
   const { language, navigate, openModal, t } = useUiStore();
@@ -37,9 +38,13 @@ export function MainMenuScreen() {
         <div className="main-menu-screen__resource-capsule">
           {currentSave ? (
             <>
-              <span aria-label={`${t('common.treasury')}: ${currentSave.ludus.treasury}`}>
+              <span
+                aria-label={`${t('common.treasury')}: ${formatMoneyAmount(
+                  currentSave.ludus.treasury,
+                )}`}
+              >
                 <Coins aria-hidden="true" size={18} />
-                {currentSave.ludus.treasury}
+                {formatMoneyAmount(currentSave.ludus.treasury)}
               </span>
               <span aria-label={`${t('ludus.gladiators')}: ${currentSave.gladiators.length}`}>
                 <Users aria-hidden="true" size={18} />

@@ -12,6 +12,7 @@ import {
   PanelShell,
   SectionCard,
 } from '../components/shared';
+import { formatMoneyAmount } from '../formatters/money';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 import { getArenaPanelViewModel } from '../view-models/arena-panel-view-model';
 import { formatOdds, getWinChancePercent } from './panel-helpers';
@@ -78,7 +79,7 @@ export function ContractsPanel({ save, onAcceptContract, onClose }: ContractsPan
                 <span>{t(contract.descriptionKey)}</span>
                 <small>
                   {t('contracts.reward', {
-                    treasury: contract.rewardTreasury,
+                    treasury: formatMoneyAmount(contract.rewardTreasury),
                     reputation: contract.rewardReputation ?? 0,
                   })}
                 </small>
@@ -215,7 +216,10 @@ export function ArenaPanel({ save, onClose, onOpenCombat, onScoutOpponent }: Are
           <MetricList
             columns={3}
             items={[
-              { labelKey: 'arena.summaryReward', value: viewModel.summary.totalReward },
+              {
+                labelKey: 'arena.summaryReward',
+                value: formatMoneyAmount(viewModel.summary.totalReward),
+              },
               {
                 labelKey: 'arena.summaryReputation',
                 value: formatSignedValue(viewModel.summary.reputationChange),
@@ -314,7 +318,7 @@ export function ArenaPanel({ save, onClose, onOpenCombat, onScoutOpponent }: Are
                 },
                 {
                   labelKey: 'arena.rewardReceived',
-                  value: selectedCombat.consequence.playerReward,
+                  value: formatMoneyAmount(selectedCombat.consequence.playerReward),
                 },
                 {
                   labelKey: 'arena.healthChange',
@@ -449,7 +453,7 @@ export function ArenaPanel({ save, onClose, onOpenCombat, onScoutOpponent }: Are
                   <span>
                     {odds.isScouted
                       ? t('betting.scouted')
-                      : t('betting.scout', { cost: validation.cost })}
+                      : t('betting.scout', { cost: formatMoneyAmount(validation.cost) })}
                   </span>
                 </button>
               </article>

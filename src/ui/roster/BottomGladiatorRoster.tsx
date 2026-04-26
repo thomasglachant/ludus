@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import type { GameSave, Gladiator } from '../../domain/types';
 import { getGladiatorPlanningStatuses } from '../../domain/planning/planning-actions';
@@ -42,15 +43,15 @@ export function BottomGladiatorRoster({
 
   return (
     <section className="bottom-roster" data-testid="gladiator-list" aria-label={t('roster.title')}>
-      <div className="bottom-roster__heading">
-        <div>
-          <p className="eyebrow">{t('roster.eyebrow')}</p>
-          <h2>{t('roster.title')}</h2>
-        </div>
-        <span>{t('roster.count', { count: save.gladiators.length })}</span>
-      </div>
       {save.gladiators.length > 0 ? (
-        <div className="bottom-roster__scroller">
+        <div
+          className="bottom-roster__scroller"
+          style={
+            {
+              '--roster-card-min': save.gladiators.length > 6 ? '154px' : '220px',
+            } as CSSProperties
+          }
+        >
           {save.gladiators.map((gladiator) => {
             const status = statusByGladiatorId.get(gladiator.id);
             const readiness = calculateEffectiveReadiness(save, gladiator);
@@ -71,7 +72,7 @@ export function BottomGladiatorRoster({
                 type="button"
                 onClick={() => onSelectGladiator(gladiator.id)}
               >
-                <GladiatorPortrait gladiator={gladiator} />
+                <GladiatorPortrait gladiator={gladiator} size="small" />
                 <span className="roster-card__body">
                   <span className="roster-card__topline">
                     <strong>{gladiator.name}</strong>

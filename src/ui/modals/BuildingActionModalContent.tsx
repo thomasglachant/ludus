@@ -15,6 +15,7 @@ import {
 import type { BuildingEffectType, BuildingId } from '../../domain/types';
 import { getBuildingVisualDefinition } from '../../game-data/building-visuals';
 import { useUiStore } from '../../state/ui-store';
+import { formatMoneyAmount } from '../formatters/money';
 import type { BuildingActionEffectPreview } from '../view-models/building-panel-view-model';
 
 interface BuildingActionModalContentProps {
@@ -136,7 +137,7 @@ export function BuildingActionModalContent({
         <div className="building-action-modal__resources">
           <span className="building-action-modal__resource-chip">
             <Coins aria-hidden="true" size={18} />
-            <strong>{cost}</strong>
+            <strong>{formatMoneyAmount(cost)}</strong>
           </span>
           <span className="building-action-modal__resource-slot" aria-hidden="true" />
           <span className="building-action-modal__resource-slot" aria-hidden="true" />

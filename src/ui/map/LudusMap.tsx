@@ -1,4 +1,3 @@
-import { Home, Minus, Plus, Store, Swords } from 'lucide-react';
 import {
   useCallback,
   useEffect,
@@ -47,8 +46,6 @@ interface ViewportSize {
 interface GladiatorPlacement extends MapPoint {
   gladiator: Gladiator;
 }
-
-const ZOOM_STEP = 0.16;
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(Math.max(value, minimum), maximum);
@@ -214,21 +211,6 @@ export function LudusMap({
     setCamera(constrainCamera(nextCamera, clampedZoom, viewport));
   }, []);
 
-  const focusLocation = useCallback(
-    (locationId: MapLocationId) => {
-      const location = LUDUS_MAP_DEFINITION.locations.find(
-        (candidate) => candidate.id === locationId,
-      );
-
-      if (!location) {
-        return;
-      }
-
-      focusMapPoint(getRectCenter(location), Math.max(zoom, 0.74));
-    },
-    [focusMapPoint, zoom],
-  );
-
   useEffect(() => {
     if (!focusGladiatorId) {
       return;
@@ -242,38 +224,6 @@ export function LudusMap({
       focusMapPoint(placement, Math.max(zoom, 0.95));
     }
   }, [focusGladiatorId, focusMapPoint, gladiatorPlacements, zoom]);
-
-  const changeZoom = useCallback(
-    (zoomDelta: number) => {
-      const viewport = getViewportSize(viewportRef.current);
-
-      if (!viewport) {
-        return;
-      }
-
-      const nextZoom = clamp(
-        zoom + zoomDelta,
-        LUDUS_MAP_DEFINITION.minZoom,
-        LUDUS_MAP_DEFINITION.maxZoom,
-      );
-      const viewportCenter = {
-        x: viewport.width / 2,
-        y: viewport.height / 2,
-      };
-      const mapPointAtCenter = {
-        x: (viewportCenter.x - camera.x) / zoom,
-        y: (viewportCenter.y - camera.y) / zoom,
-      };
-      const nextCamera = {
-        x: viewportCenter.x - mapPointAtCenter.x * nextZoom,
-        y: viewportCenter.y - mapPointAtCenter.y * nextZoom,
-      };
-
-      setZoom(nextZoom);
-      setCamera(constrainCamera(nextCamera, nextZoom, viewport));
-    },
-    [camera, zoom],
-  );
 
   const handleWheel = useCallback(
     (event: WheelEvent<HTMLDivElement>) => {
@@ -431,29 +381,6 @@ export function LudusMap({
 
   return (
     <section className="ludus-map" aria-label={t('map.viewportLabel')}>
-      <div className="ludus-map__controls" aria-label={t('map.controls')}>
-        <button
-          type="button"
-          onClick={() => focusMapPoint(getRectCenter(LUDUS_MAP_DEFINITION.ludusBounds), 0.72)}
-        >
-          <Home aria-hidden="true" size={16} />
-          <span>{t('map.focusLudus')}</span>
-        </button>
-        <button type="button" onClick={() => focusLocation('market')}>
-          <Store aria-hidden="true" size={16} />
-          <span>{t('map.focusMarket')}</span>
-        </button>
-        <button type="button" onClick={() => focusLocation('arena')}>
-          <Swords aria-hidden="true" size={16} />
-          <span>{t('map.focusArena')}</span>
-        </button>
-        <button aria-label={t('map.zoomOut')} type="button" onClick={() => changeZoom(-ZOOM_STEP)}>
-          <Minus aria-hidden="true" size={18} />
-        </button>
-        <button aria-label={t('map.zoomIn')} type="button" onClick={() => changeZoom(ZOOM_STEP)}>
-          <Plus aria-hidden="true" size={18} />
-        </button>
-      </div>
       <div
         className={[
           'ludus-map__viewport',

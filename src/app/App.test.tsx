@@ -1,8 +1,42 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { createInitialSave } from '../domain/saves/create-initial-save';
+import type { Gladiator } from '../domain/types';
 import { App } from './App';
 import { AppProviders } from './providers/AppProviders';
+
+const alertGladiator: Gladiator = {
+  id: 'glad-alert-aulus',
+  name: 'Aulus Niger',
+  age: 23,
+  strength: 9,
+  agility: 8,
+  defense: 7,
+  energy: 90,
+  health: 90,
+  morale: 40,
+  satiety: 90,
+  reputation: 12,
+  wins: 1,
+  losses: 0,
+  traits: ['disciplined'],
+  currentBuildingId: 'pleasureHall',
+};
+
+function createAlertSessionSave() {
+  const save = createInitialSave({
+    createdAt: '2026-04-25T10:00:00.000Z',
+    ludusName: 'Ludus Alerts',
+    ownerName: 'Marcus',
+    saveId: 'save-alert-session',
+  });
+
+  return {
+    ...save,
+    gladiators: [alertGladiator],
+  };
+}
 
 describe('App', () => {
   beforeEach(() => {
@@ -39,8 +73,7 @@ describe('App', () => {
     expect(domusMapLocation.getAttribute('data-asset')).toContain(
       '/assets/pixel-art/buildings/domus/level-1/exterior.svg',
     );
-    expect(await screen.findByRole('heading', { name: 'Ludus Magnus' })).toBeInTheDocument();
-    expect(screen.getByText('Domus level 1')).toBeInTheDocument();
+    expect(screen.getByTestId('topbar-time')).toBeInTheDocument();
     expect(screen.getAllByText('500')).not.toHaveLength(0);
   });
 
@@ -78,7 +111,39 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Menu' }));
 
     expect(await screen.findByRole('dialog', { name: 'Game menu' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Ludus Magnus' })).toBeInTheDocument();
+    expect(screen.getByTestId('topbar-time')).toBeInTheDocument();
+  });
+
+  it('opens a gladiator detail from the top bar alerts', async () => {
+    const user = userEvent.setup();
+
+    localStorage.setItem(
+      'ludus:active-session',
+      JSON.stringify({
+        hasUnsavedChanges: false,
+        save: createAlertSessionSave(),
+        screen: 'ludus',
+      }),
+    );
+    window.history.replaceState(null, '', '/play');
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+
+    await user.click(await screen.findByRole('button', { name: 'Alerts (1)' }));
+
+    const alertActions = document.querySelectorAll<HTMLButtonElement>('.toast-alert--action');
+
+    expect(alertActions.length).toBeGreaterThan(0);
+
+    await user.click(alertActions[0]);
+
+    expect(await screen.findByRole('dialog', { name: 'Aulus Niger' })).toBeInTheDocument();
   });
 
   it('saves the current game as a new local save from the in-game menu', async () => {
@@ -108,7 +173,6 @@ describe('App', () => {
     await user.type(ludusNameInput, 'Ludus Felix');
     await user.click(within(saveAsDialog).getByRole('button', { name: 'Save as' }));
 
-    expect(await screen.findByRole('heading', { name: 'Ludus Felix' })).toBeInTheDocument();
     expect(screen.getByTestId('save-notice')).toHaveTextContent('Local save copy written.');
   });
 
@@ -137,7 +201,7 @@ describe('App', () => {
 
     await user.click(within(confirmation).getByRole('button', { name: 'Cancel' }));
 
-    expect(screen.getByRole('heading', { name: 'Ludus Magnus' })).toBeInTheDocument();
+    expect(screen.getByTestId('topbar-time')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Menu' }));
     await user.click(
@@ -167,7 +231,7 @@ describe('App', () => {
     await user.type(screen.getByLabelText(/owner name/i), 'Marcus');
     await user.type(screen.getByLabelText(/ludus name/i), 'Ludus Magnus');
     await user.click(screen.getByRole('button', { name: /found the ludus/i }));
-    await screen.findByRole('heading', { name: 'Ludus Magnus' });
+    await screen.findByTestId('topbar-time');
     await user.click(screen.getByRole('button', { name: 'x2' }));
     await waitFor(() => expect(localStorage.getItem('ludus:active-session')).not.toBeNull());
 

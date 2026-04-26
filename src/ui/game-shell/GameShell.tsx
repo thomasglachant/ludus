@@ -13,11 +13,8 @@ export function GameShell() {
   const {
     currentSave,
     errorKey,
-    hasUnsavedChanges,
     isLoading,
     isSaving,
-    lastSavedAt,
-    resetActiveDemo,
     saveCurrentGame,
     saveNoticeKey,
     setGameSpeed,
@@ -26,6 +23,7 @@ export function GameShell() {
   const [selectedLocationId, setSelectedLocationId] = useState<MapLocationId | null>(null);
   const [selectedGladiatorId, setSelectedGladiatorId] = useState<string | null>(null);
   const [focusGladiatorId, setFocusGladiatorId] = useState<string | undefined>();
+  const [areAlertsOpen, setAreAlertsOpen] = useState(false);
 
   if (!currentSave) {
     return null;
@@ -47,10 +45,12 @@ export function GameShell() {
       return;
     }
 
+    setAreAlertsOpen(false);
     openModal({ kind: panelKind });
   };
 
   const selectLocation = (location: MapLocationDefinition) => {
+    setAreAlertsOpen(false);
     setSelectedLocationId(location.id);
 
     if (location.kind === 'building') {
@@ -62,6 +62,7 @@ export function GameShell() {
   };
 
   const selectGladiator = (gladiatorId: string) => {
+    setAreAlertsOpen(false);
     setSelectedGladiatorId(gladiatorId);
     setFocusGladiatorId(gladiatorId);
     openModal({ gladiatorId, kind: 'gladiator' });
@@ -70,20 +71,19 @@ export function GameShell() {
   return (
     <section className="game-shell">
       <TopHud
-        hasUnsavedChanges={hasUnsavedChanges}
+        alertCount={currentSave.planning.alerts.length}
+        areAlertsOpen={areAlertsOpen}
         isSaving={isSaving || isLoading}
-        lastSavedAt={lastSavedAt}
         save={currentSave}
-        onOpenMenu={() => openModal({ kind: 'gameMenu' })}
-        onResetDemo={resetActiveDemo}
+        onAlertsToggle={() => setAreAlertsOpen((isOpen) => !isOpen)}
+        onOpenMenu={() => {
+          setAreAlertsOpen(false);
+          openModal({ kind: 'gameMenu' });
+        }}
         onSave={() => void saveCurrentGame()}
         onSpeedChange={setGameSpeed}
       />
-      <LeftNavigationRail
-        activePanelKind={activePanelKind}
-        alertCount={currentSave.planning.alerts.length}
-        onOpenPanel={openPanel}
-      />
+      <LeftNavigationRail activePanelKind={activePanelKind} onOpenPanel={openPanel} />
       <main className="game-shell__map-stage">
         <LudusMap
           focusGladiatorId={focusGladiatorId}
@@ -99,7 +99,13 @@ export function GameShell() {
         selectedGladiatorId={selectedGladiatorId ?? undefined}
         onSelectGladiator={selectGladiator}
       />
-      <ToastAndAlertLayer errorKey={errorKey} save={currentSave} saveNoticeKey={saveNoticeKey} />
+      <ToastAndAlertLayer
+        errorKey={errorKey}
+        save={currentSave}
+        saveNoticeKey={saveNoticeKey}
+        showAlerts={areAlertsOpen}
+        onGladiatorSelect={selectGladiator}
+      />
     </section>
   );
 }

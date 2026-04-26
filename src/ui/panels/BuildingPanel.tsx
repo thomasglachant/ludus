@@ -14,6 +14,7 @@ import {
 } from '../components/shared';
 import { BuildingActionModalContent } from '../modals/BuildingActionModalContent';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
+import { formatMoneyAmount } from '../formatters/money';
 import {
   createBuildingPanelViewModel,
   createDormitoryCapacityViewModel,
@@ -75,7 +76,7 @@ export function BuildingPanel({
         : 'buildings.confirmPurchase.message',
       messageParams: {
         building: t(viewModel.nameKey),
-        cost: viewModel.action.cost,
+        cost: formatMoneyAmount(viewModel.action.cost),
       },
       onConfirm: () =>
         viewModel.isPurchased ? onUpgradeBuilding(buildingId) : onPurchaseBuilding(buildingId),
@@ -96,7 +97,7 @@ export function BuildingPanel({
       confirmLabelKey: 'buildingPanel.purchaseImprovement',
       messageKey: 'buildingPanel.confirmImprovementPurchase.message',
       messageParams: {
-        cost: improvement.cost,
+        cost: formatMoneyAmount(improvement.cost),
         improvement: t(improvement.nameKey),
       },
       onConfirm: () => onPurchaseBuildingImprovement(buildingId, improvement.id),
@@ -116,7 +117,7 @@ export function BuildingPanel({
       confirmLabelKey: 'buildingPanel.selectPolicy',
       messageKey: 'buildingPanel.confirmPolicySelection.message',
       messageParams: {
-        cost: policy.cost,
+        cost: formatMoneyAmount(policy.cost),
         policy: t(policy.nameKey),
       },
       onConfirm: () => onSelectBuildingPolicy(buildingId, policy.id),
@@ -151,7 +152,7 @@ export function BuildingPanel({
                   ? 'buildings.upgradeCost'
                   : 'buildings.purchaseCostLabel',
                 value: viewModel.action.cost
-                  ? t('buildings.purchaseCost', { cost: viewModel.action.cost })
+                  ? t('buildings.purchaseCost', { cost: formatMoneyAmount(viewModel.action.cost) })
                   : t('buildings.maxLevel'),
               },
             ]}
@@ -221,7 +222,7 @@ export function BuildingPanel({
                 />
                 <CostSummary
                   labelKey="buildingPanel.improvementCost"
-                  value={t('buildings.purchaseCost', { cost: improvement.cost })}
+                  value={t('buildings.purchaseCost', { cost: formatMoneyAmount(improvement.cost) })}
                 />
                 <EffectList effects={improvement.effects} />
                 {improvement.validationMessageKey ? (
@@ -274,7 +275,7 @@ export function BuildingPanel({
                   labelKey="buildingPanel.policyCost"
                   value={
                     policy.cost
-                      ? t('buildings.purchaseCost', { cost: policy.cost })
+                      ? t('buildings.purchaseCost', { cost: formatMoneyAmount(policy.cost) })
                       : t('common.empty')
                   }
                 />

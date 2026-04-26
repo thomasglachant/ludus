@@ -4,6 +4,7 @@ import type { GameSave, GameSpeed } from '../../domain/types';
 import { formatClock } from '../../domain/time/format-time';
 import { GAME_SPEEDS } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store';
+import { formatMoneyAmount } from '../formatters/money';
 import { CombatArenaStage } from './CombatArenaStage';
 import { CombatantPanel } from './CombatantPanel';
 import { CombatLog } from './CombatLog';
@@ -99,7 +100,7 @@ export function CombatScreen({
         <div className="combat-screen__resources">
           <span>
             <Banknote aria-hidden="true" size={18} />
-            {save.ludus.treasury}
+            {formatMoneyAmount(save.ludus.treasury)}
           </span>
           <button type="button" onClick={onOpenMenu}>
             <Menu aria-hidden="true" size={18} />

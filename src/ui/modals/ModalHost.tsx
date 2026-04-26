@@ -264,7 +264,7 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
 
     return (
       <AppModal
-        size="md"
+        size="lg"
         testId="gladiator-modal"
         title={gladiator.name}
         onBack={onBack}

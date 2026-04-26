@@ -1,117 +1,158 @@
 import {
   Banknote,
-  CalendarDays,
-  CheckCircle2,
+  ChevronRight,
+  ChevronsRight,
   Menu,
+  Moon,
   Pause,
   Play,
-  RotateCcw,
   Save,
+  Sun,
+  Sunrise,
+  Sunset,
+  TriangleAlert,
+  type LucideIcon,
 } from 'lucide-react';
 import type { GameSave, GameSpeed } from '../../domain/types';
 import { formatClock } from '../../domain/time/format-time';
-import { getDemoSaveDefinition } from '../../game-data/demo-saves';
-import { GAME_SPEEDS } from '../../game-data/time';
+import { getTimeOfDayDefinition, type TimeOfDayPhase } from '../../game-data/time-of-day';
 import { useUiStore } from '../../state/ui-store';
+import { formatMoneyAmount } from '../formatters/money';
 
 interface TopHudProps {
-  hasUnsavedChanges: boolean;
-  lastSavedAt: string | null;
+  alertCount: number;
+  areAlertsOpen: boolean;
   save: GameSave;
   isSaving: boolean;
+  onAlertsToggle(): void;
   onOpenMenu(): void;
-  onResetDemo(): void;
   onSave(): void;
   onSpeedChange(speed: GameSpeed): void;
 }
 
+const TIME_OF_DAY_ICONS: Record<TimeOfDayPhase, LucideIcon> = {
+  dawn: Sunrise,
+  day: Sun,
+  dusk: Sunset,
+  night: Moon,
+};
+
+const TOP_HUD_SPEEDS = [2, 4, 8, 16] as const satisfies GameSpeed[];
+
+function SpeedMultiplierIcon({ speed }: { speed: GameSpeed }) {
+  if (speed === 2) {
+    return <ChevronsRight aria-hidden="true" size={18} />;
+  }
+
+  const chevronCount = speed === 4 ? 3 : speed === 8 ? 4 : 5;
+
+  return (
+    <span className="top-hud__speed-icon" aria-hidden="true">
+      {Array.from({ length: chevronCount }, (_, index) => (
+        <ChevronRight key={index} size={15} strokeWidth={2.8} />
+      ))}
+    </span>
+  );
+}
+
 export function TopHud({
-  hasUnsavedChanges,
+  alertCount,
+  areAlertsOpen,
   isSaving,
-  lastSavedAt,
+  onAlertsToggle,
   onOpenMenu,
-  onResetDemo,
   onSave,
   onSpeedChange,
   save,
 }: TopHudProps) {
-  const { language, t } = useUiStore();
-  const demoDefinition = save.metadata?.demoSaveId
-    ? getDemoSaveDefinition(save.metadata.demoSaveId)
-    : undefined;
-  const savedTime = lastSavedAt ? new Date(lastSavedAt).toLocaleTimeString(language) : null;
-  const saveStatusKey = hasUnsavedChanges
-    ? 'ludus.unsavedChanges'
-    : savedTime
-      ? 'ludus.savedAt'
-      : 'ludus.localSaveReady';
+  const { t } = useUiStore();
+  const timeOfDayDefinition = getTimeOfDayDefinition(save.time.hour);
+  const TimeOfDayIcon = TIME_OF_DAY_ICONS[timeOfDayDefinition.phase];
+  const playPauseLabel = save.time.speed === 0 ? t('speed.play') : t('speed.pause');
 
   return (
     <header className="top-hud" data-testid="topbar">
-      <div className="top-hud__identity">
-        <p className="eyebrow">{t('ludus.title')}</p>
-        <h1>{save.player.ludusName}</h1>
-        <span>{t('ludus.domusLevel', { level: save.buildings.domus.level })}</span>
-      </div>
       <div className="top-hud__time" data-testid="topbar-time">
-        <CalendarDays aria-hidden="true" size={18} />
-        <span>{t(`days.${save.time.dayOfWeek}`)}</span>
-        <span>{t('topBar.week', { week: save.time.week })}</span>
-        <span>{t('topBar.year', { year: save.time.year })}</span>
+        <TimeOfDayIcon
+          aria-label={t(`timeOfDay.${timeOfDayDefinition.phase}`)}
+          className="top-hud__time-icon"
+          size={20}
+        />
+        <span className="top-hud__date-lines">
+          <span>{t(`days.${save.time.dayOfWeek}`)}</span>
+          <span>
+            <span>{t('topBar.week', { week: save.time.week })}</span>
+            <span>{t('topBar.year', { year: save.time.year })}</span>
+          </span>
+        </span>
         <strong>{formatClock(save.time)}</strong>
       </div>
       <div className="top-hud__speeds">
-        {GAME_SPEEDS.map((speed) => (
+        <button
+          aria-label={playPauseLabel}
+          className={save.time.speed === 0 ? 'is-selected' : ''}
+          data-testid="speed-pause"
+          type="button"
+          onClick={() => onSpeedChange(save.time.speed === 0 ? 1 : 0)}
+        >
+          {save.time.speed === 0 ? (
+            <Play aria-hidden="true" size={17} />
+          ) : (
+            <Pause aria-hidden="true" size={17} />
+          )}
+        </button>
+        {TOP_HUD_SPEEDS.map((speed) => (
           <button
-            aria-label={t(speed === 0 ? 'speed.pause' : `speed.x${speed}`)}
+            aria-label={t(`speed.x${speed}`)}
             className={save.time.speed === speed ? 'is-selected' : ''}
-            data-testid={`speed-${speed === 0 ? 'pause' : `x${speed}`}`}
+            data-testid={`speed-x${speed}`}
             key={speed}
             type="button"
             onClick={() => onSpeedChange(speed)}
           >
-            {speed === 0 ? (
-              <Pause aria-hidden="true" size={14} />
-            ) : (
-              <Play aria-hidden="true" size={14} />
-            )}
-            <span>{t(speed === 0 ? 'speed.pause' : `speed.x${speed}`)}</span>
+            <SpeedMultiplierIcon speed={speed} />
           </button>
         ))}
       </div>
       <div className="top-hud__actions">
-        {demoDefinition ? (
-          <div className="top-hud__demo" data-testid="active-demo-indicator">
-            <span>{t('demoMode.activeLabel', { name: t(demoDefinition.nameKey) })}</span>
-            <button type="button" onClick={onResetDemo}>
-              <RotateCcw aria-hidden="true" size={14} />
-              <span>{t('demoMode.resetDemo')}</span>
-            </button>
-          </div>
-        ) : null}
         <div className="top-hud__treasury" data-testid="topbar-treasury">
           <Banknote aria-hidden="true" size={18} />
-          <span>{save.ludus.treasury}</span>
+          <span>{formatMoneyAmount(save.ludus.treasury)}</span>
         </div>
-        <div
+        <button
+          aria-label={t('topBar.alerts', { count: alertCount })}
+          aria-pressed={alertCount > 0 ? areAlertsOpen : undefined}
           className={[
-            'top-hud__save-status',
-            hasUnsavedChanges ? 'top-hud__save-status--dirty' : '',
+            'top-hud__alert-button',
+            alertCount === 0 ? 'top-hud__alert-button--muted' : '',
+            areAlertsOpen ? 'is-selected' : '',
           ]
             .filter(Boolean)
             .join(' ')}
-          data-testid="save-status"
+          data-testid="topbar-alerts-button"
+          disabled={alertCount === 0}
+          type="button"
+          onClick={onAlertsToggle}
         >
-          <CheckCircle2 aria-hidden="true" size={16} />
-          <span>{t(saveStatusKey, savedTime ? { time: savedTime } : undefined)}</span>
-        </div>
-        <button data-testid="topbar-save-button" disabled={isSaving} type="button" onClick={onSave}>
-          <Save aria-hidden="true" size={17} />
-          <span>{t(isSaving ? 'ludus.saving' : 'common.save')}</span>
+          <TriangleAlert aria-hidden="true" size={17} />
+          {alertCount > 0 ? <strong>{alertCount}</strong> : null}
         </button>
-        <button data-testid="topbar-menu-button" type="button" onClick={onOpenMenu}>
+        <button
+          aria-label={t(isSaving ? 'ludus.saving' : 'common.save')}
+          data-testid="topbar-save-button"
+          disabled={isSaving}
+          type="button"
+          onClick={onSave}
+        >
+          <Save aria-hidden="true" size={17} />
+        </button>
+        <button
+          aria-label={t('topBar.menu')}
+          data-testid="topbar-menu-button"
+          type="button"
+          onClick={onOpenMenu}
+        >
           <Menu aria-hidden="true" size={17} />
-          <span>{t('topBar.menu')}</span>
         </button>
       </div>
     </header>

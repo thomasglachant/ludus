@@ -1,10 +1,9 @@
-import { CalendarCheck, ScrollText, Store, Swords, TriangleAlert, Trophy } from 'lucide-react';
+import { CalendarCheck, ScrollText, Store, Swords, TriangleAlert } from 'lucide-react';
 import type { ContextPanelKind } from './game-shell-types';
 import { useUiStore } from '../../state/ui-store';
 
 interface LeftNavigationRailProps {
   activePanelKind: ContextPanelKind | null;
-  alertCount: number;
   onOpenPanel(panelKind: ContextPanelKind): void;
 }
 
@@ -20,11 +19,7 @@ const navigationItems: Array<{
   { panelKind: 'arena', labelKey: 'navigation.arena', icon: Swords },
 ];
 
-export function LeftNavigationRail({
-  activePanelKind,
-  alertCount,
-  onOpenPanel,
-}: LeftNavigationRailProps) {
+export function LeftNavigationRail({ activePanelKind, onOpenPanel }: LeftNavigationRailProps) {
   const { t } = useUiStore();
 
   return (
@@ -43,13 +38,9 @@ export function LeftNavigationRail({
           >
             <Icon aria-hidden="true" size={19} />
             <span>{t(item.labelKey)}</span>
-            {item.panelKind === 'events' && alertCount > 0 ? <strong>{alertCount}</strong> : null}
           </button>
         );
       })}
-      <div className="left-navigation-rail__crest" aria-hidden="true">
-        <Trophy size={20} />
-      </div>
     </nav>
   );
 }

@@ -1,9 +1,31 @@
+import {
+  CalendarDays,
+  Dumbbell,
+  Footprints,
+  Gauge,
+  HeartPulse,
+  MapPin,
+  Medal,
+  Shield,
+  Smile,
+  Sparkles,
+  Swords,
+  Target,
+  Trophy,
+  Utensils,
+  Wind,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react';
 import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
-import { getRoutineForGladiator } from '../../domain/planning/planning-actions';
+import {
+  getPlanningRecommendation,
+  getRoutineForGladiator,
+} from '../../domain/planning/planning-actions';
 import type { GameSave, Gladiator } from '../../domain/types';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { useUiStore } from '../../state/ui-store';
-import { MetricList, PanelShell, SectionCard } from '../components/shared';
+import { PanelShell } from '../components/shared';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface GladiatorDetailPanelProps {
@@ -12,50 +34,288 @@ interface GladiatorDetailPanelProps {
   onClose(): void;
 }
 
+interface StatChipProps {
+  Icon: LucideIcon;
+  label: string;
+  value: number | string;
+}
+
+interface ResourceMeterProps {
+  Icon: LucideIcon;
+  label: string;
+  tone: 'health' | 'energy' | 'morale' | 'satiety';
+  value: number;
+}
+
+function clampMeterValue(value: number) {
+  return Math.min(Math.max(value, 0), 100);
+}
+
+function StatChip({ Icon, label, value }: StatChipProps) {
+  return (
+    <div className="gladiator-stat-chip">
+      <Icon aria-hidden="true" size={19} />
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function ResourceMeter({ Icon, label, tone, value }: ResourceMeterProps) {
+  const clampedValue = clampMeterValue(value);
+
+  return (
+    <div className={`gladiator-resource-meter gladiator-resource-meter--${tone}`}>
+      <div className="gladiator-resource-meter__label">
+        <Icon aria-hidden="true" size={18} />
+        <span>{label}</span>
+        <strong>{value}/100</strong>
+      </div>
+      <span className="gladiator-resource-meter__track" aria-hidden="true">
+        <span className="gladiator-resource-meter__value" style={{ width: `${clampedValue}%` }} />
+      </span>
+    </div>
+  );
+}
+
+function getCurrentArenaRecord(save: GameSave, gladiator: Gladiator) {
+  const combatIdPrefix = `combat-${save.time.year}-${save.time.week}-`;
+  const combats = save.arena.resolvedCombats.filter(
+    (combat) => combat.id.startsWith(combatIdPrefix) && combat.gladiator.id === gladiator.id,
+  );
+
+  return {
+    losses: combats.filter((combat) => combat.loserId === gladiator.id).length,
+    wins: combats.filter((combat) => combat.winnerId === gladiator.id).length,
+  };
+}
+
 export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDetailPanelProps) {
   const { t } = useUiStore();
   const routine = getRoutineForGladiator(save, gladiator.id);
+  const recommendation = getPlanningRecommendation(save, gladiator, routine);
+  const readiness = calculateEffectiveReadiness(save, gladiator);
   const currentBuildingName = gladiator.currentBuildingId
     ? t(BUILDING_DEFINITIONS[gladiator.currentBuildingId].nameKey)
     : t('weeklyPlan.noAssignment');
+  const recommendedBuildingName = recommendation.buildingId
+    ? t(BUILDING_DEFINITIONS[recommendation.buildingId].nameKey)
+    : t('weeklyPlan.noAssignment');
+  const currentArenaRecord = getCurrentArenaRecord(save, gladiator);
+  const bettingOdds = save.arena.betting?.odds.find((odds) => odds.gladiatorId === gladiator.id);
+  const skillStats = [
+    { Icon: Dumbbell, label: t('market.stats.strength'), value: gladiator.strength },
+    { Icon: Wind, label: t('market.stats.agility'), value: gladiator.agility },
+    { Icon: Shield, label: t('market.stats.defense'), value: gladiator.defense },
+  ];
+  const resourceStats = [
+    {
+      Icon: HeartPulse,
+      label: t('market.stats.health'),
+      tone: 'health' as const,
+      value: gladiator.health,
+    },
+    {
+      Icon: Zap,
+      label: t('market.stats.energy'),
+      tone: 'energy' as const,
+      value: gladiator.energy,
+    },
+    {
+      Icon: Smile,
+      label: t('market.stats.morale'),
+      tone: 'morale' as const,
+      value: gladiator.morale,
+    },
+    {
+      Icon: Utensils,
+      label: t('market.stats.satiety'),
+      tone: 'satiety' as const,
+      value: gladiator.satiety,
+    },
+  ];
 
   return (
     <PanelShell eyebrowKey="gladiatorPanel.eyebrow" title={gladiator.name} onClose={onClose}>
-      <div className="gladiator-detail">
-        <GladiatorPortrait gladiator={gladiator} size="large" />
-        <div>
-          <strong>
-            {t('weeklyPlan.readinessValue', {
-              score: calculateEffectiveReadiness(save, gladiator),
-            })}
-          </strong>
-          <span>{t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}</span>
-          <span>{t('roster.reputation', { reputation: gladiator.reputation })}</span>
+      <div className="gladiator-profile-card">
+        <div className="gladiator-profile-card__portrait">
+          <GladiatorPortrait gladiator={gladiator} size="large" />
+          {gladiator.traits.length > 0 ? (
+            <ul className="trait-list trait-list--featured" aria-label={t('market.traits')}>
+              {gladiator.traits.map((trait) => (
+                <li key={trait}>{t(`traits.${trait}`)}</li>
+              ))}
+            </ul>
+          ) : (
+            <span className="gladiator-profile-card__empty-traits">
+              {t('gladiatorPanel.noTraits')}
+            </span>
+          )}
+        </div>
+
+        <div className="gladiator-profile-card__main">
+          <div className="gladiator-profile-card__summary">
+            <StatChip
+              Icon={Gauge}
+              label={t('weeklyPlan.readiness')}
+              value={t('weeklyPlan.readinessValue', { score: readiness })}
+            />
+            <StatChip Icon={CalendarDays} label={t('gladiatorPanel.age')} value={gladiator.age} />
+            <StatChip
+              Icon={Medal}
+              label={t('gladiatorPanel.reputation')}
+              value={gladiator.reputation}
+            />
+          </div>
+
+          <section className="gladiator-profile-section">
+            <h2>{t('gladiatorPanel.combatSkills')}</h2>
+            <div className="gladiator-skill-grid">
+              {skillStats.map((stat) => (
+                <StatChip key={stat.label} Icon={stat.Icon} label={stat.label} value={stat.value} />
+              ))}
+            </div>
+          </section>
+
+          <section className="gladiator-profile-section">
+            <h2>{t('gladiatorPanel.condition')}</h2>
+            <div className="gladiator-resource-grid">
+              {resourceStats.map((stat) => (
+                <ResourceMeter
+                  key={stat.label}
+                  Icon={stat.Icon}
+                  label={stat.label}
+                  tone={stat.tone}
+                  value={stat.value}
+                />
+              ))}
+            </div>
+          </section>
         </div>
       </div>
-      <MetricList
-        items={[
-          { labelKey: 'market.stats.strength', value: gladiator.strength },
-          { labelKey: 'market.stats.agility', value: gladiator.agility },
-          { labelKey: 'market.stats.defense', value: gladiator.defense },
-          { labelKey: 'market.stats.health', value: gladiator.health },
-          { labelKey: 'market.stats.energy', value: gladiator.energy },
-          { labelKey: 'market.stats.morale', value: gladiator.morale },
-        ]}
-      />
-      <SectionCard titleKey="weeklyPlan.objective">
-        <span>{t(`weeklyPlan.objectives.${routine.objective}`)}</span>
-      </SectionCard>
-      <SectionCard titleKey="weeklyPlan.suggestedAssignment">
-        <span>{currentBuildingName}</span>
-      </SectionCard>
-      {gladiator.traits.length > 0 ? (
-        <ul className="trait-list" aria-label={t('market.traits')}>
-          {gladiator.traits.map((trait) => (
-            <li key={trait}>{t(`traits.${trait}`)}</li>
-          ))}
-        </ul>
-      ) : null}
+
+      <div className="gladiator-info-grid">
+        <section className="gladiator-info-panel">
+          <h2>
+            <Swords aria-hidden="true" size={18} />
+            {t('gladiatorPanel.record')}
+          </h2>
+          <dl>
+            <div>
+              <dt>{t('gladiatorPanel.careerRecord')}</dt>
+              <dd>
+                <Trophy aria-hidden="true" size={16} />
+                {t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}
+              </dd>
+            </div>
+            <div>
+              <dt>{t('gladiatorPanel.todayRecord')}</dt>
+              <dd>
+                <Trophy aria-hidden="true" size={16} />
+                {t('market.record', {
+                  wins: currentArenaRecord.wins,
+                  losses: currentArenaRecord.losses,
+                })}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="gladiator-info-panel">
+          <h2>
+            <Target aria-hidden="true" size={18} />
+            {t('gladiatorPanel.planning')}
+          </h2>
+          <dl>
+            <div>
+              <dt>{t('weeklyPlan.objective')}</dt>
+              <dd>{t(`weeklyPlan.objectives.${routine.objective}`)}</dd>
+            </div>
+            <div>
+              <dt>{t('weeklyPlan.intensity')}</dt>
+              <dd>{t(`weeklyPlan.intensities.${routine.intensity}`)}</dd>
+            </div>
+            <div>
+              <dt>{t('weeklyPlan.strategy')}</dt>
+              <dd>{t(`combat.strategies.${routine.combatStrategy ?? 'balanced'}`)}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="gladiator-info-panel">
+          <h2>
+            <MapPin aria-hidden="true" size={18} />
+            {t('gladiatorPanel.assignment')}
+          </h2>
+          <dl>
+            <div>
+              <dt>{t('gladiatorPanel.currentAssignment')}</dt>
+              <dd>{currentBuildingName}</dd>
+            </div>
+            <div>
+              <dt>{t('weeklyPlan.suggestedAssignment')}</dt>
+              <dd>{recommendedBuildingName}</dd>
+            </div>
+            <div>
+              <dt>{t('weeklyPlan.automaticAssignment')}</dt>
+              <dd>
+                {routine.allowAutomaticAssignment
+                  ? t('common.enabled')
+                  : t('weeklyPlan.manualOverride')}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        {bettingOdds ? (
+          <section className="gladiator-info-panel">
+            <h2>
+              <Sparkles aria-hidden="true" size={18} />
+              {t('gladiatorPanel.arenaIntel')}
+            </h2>
+            <dl>
+              <div>
+                <dt>{t('gladiatorPanel.nextOpponent')}</dt>
+                <dd>{bettingOdds.opponent.name}</dd>
+              </div>
+              <div>
+                <dt>{t('arena.rank')}</dt>
+                <dd>{t(`arena.ranks.${bettingOdds.rank}`)}</dd>
+              </div>
+              <div>
+                <dt>{t('gladiatorPanel.winChance')}</dt>
+                <dd>{Math.round(bettingOdds.playerWinChance * 100)}%</dd>
+              </div>
+            </dl>
+          </section>
+        ) : null}
+
+        {gladiator.trainingPlan ? (
+          <section className="gladiator-info-panel gladiator-info-panel--wide">
+            <h2>
+              <Footprints aria-hidden="true" size={18} />
+              {t('gladiatorPanel.trainingPlan')}
+            </h2>
+            <div className="gladiator-skill-grid">
+              <StatChip
+                Icon={Dumbbell}
+                label={t('market.stats.strength')}
+                value={gladiator.trainingPlan.strength}
+              />
+              <StatChip
+                Icon={Wind}
+                label={t('market.stats.agility')}
+                value={gladiator.trainingPlan.agility}
+              />
+              <StatChip
+                Icon={Shield}
+                label={t('market.stats.defense')}
+                value={gladiator.trainingPlan.defense}
+              />
+            </div>
+          </section>
+        ) : null}
+      </div>
     </PanelShell>
   );
 }

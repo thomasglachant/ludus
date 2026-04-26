@@ -12,6 +12,7 @@ import type { GameSave, Gladiator, MarketGladiator } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store';
 import { ActionButton } from '../components/ActionButton';
 import { EmptyState, MetricList, NoticeBox } from '../components/shared';
+import { formatMoneyAmount } from '../formatters/money';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface MarketContentProps {
@@ -98,7 +99,7 @@ function MarketCandidateCard({
           <h3>{candidate.name}</h3>
           <p>{t('market.age', { age: candidate.age })}</p>
         </div>
-        <strong>{t('market.price', { price: candidate.price })}</strong>
+        <strong>{t('market.price', { price: formatMoneyAmount(candidate.price) })}</strong>
       </div>
       <StatBlock gladiator={candidate} />
       <TraitList gladiator={candidate} />
@@ -137,7 +138,7 @@ function OwnedGladiatorCard({
           <h3>{gladiator.name}</h3>
           <p>{t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}</p>
         </div>
-        <strong>{t('market.saleValue', { price: saleValue })}</strong>
+        <strong>{t('market.saleValue', { price: formatMoneyAmount(saleValue) })}</strong>
       </div>
       <StatBlock gladiator={gladiator} />
       <TraitList gladiator={gladiator} />

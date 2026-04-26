@@ -143,6 +143,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const effectAccumulatorMinutes = useRef(0);
   const lastTickAt = useRef<number | null>(null);
   const activeSessionSaveTimeoutId = useRef<number | null>(null);
+  const hasRestoredInitialActiveSession = useRef(false);
   const activeSaveId = currentSave?.saveId;
   const activeSpeed = currentSave?.time.speed;
   const isPaused = currentSave?.time.isPaused;
@@ -480,10 +481,11 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const clearError = useCallback(() => setErrorKey(null), []);
 
   useEffect(() => {
-    if (!initialActiveSession) {
+    if (!initialActiveSession || hasRestoredInitialActiveSession.current) {
       return undefined;
     }
 
+    hasRestoredInitialActiveSession.current = true;
     const timeoutId = window.setTimeout(() => navigate(initialActiveSession.screen), 0);
 
     return () => window.clearTimeout(timeoutId);

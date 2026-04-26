@@ -4,6 +4,7 @@ import { formatClock } from '../../domain/time/format-time';
 import { getDemoSaveDefinition } from '../../game-data/demo-saves';
 import { GAME_SPEEDS } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store';
+import { formatMoneyAmount } from '../formatters/money';
 import { ActionButton } from './ActionButton';
 
 interface StatusBarProps {
@@ -57,7 +58,7 @@ export function StatusBar({ save, onResetDemo, onSpeedChange }: StatusBarProps) 
         ) : null}
         <div className="treasury-pill" data-testid="topbar-treasury">
           <Banknote aria-hidden="true" size={18} />
-          <span>{save.ludus.treasury}</span>
+          <span>{formatMoneyAmount(save.ludus.treasury)}</span>
         </div>
         <ActionButton
           icon={<Store aria-hidden="true" size={17} />}

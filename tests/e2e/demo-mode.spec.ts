@@ -66,12 +66,10 @@ test('plays the MVP smoke path through market, save, load and arena access', asy
   await page.getByRole('button', { name: /Close|Fermer/ }).click();
   await expect(page.getByTestId('map-container')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-market-1-1-1')).toBeVisible();
-  await expect(page.getByTestId('save-status')).toContainText(
-    /Unsaved changes|Changements non sauvegardés/,
-  );
+  await expect(page.getByTestId('save-status')).toHaveCount(0);
 
   await page.getByTestId('topbar-save-button').click();
-  await expect(page.getByTestId('save-status')).toContainText(/Saved at|Sauvegardé à/);
+  await expect(page.getByTestId('save-status')).toHaveCount(0);
 
   await page.getByTestId('topbar-menu-button').click();
   await page.getByTestId('main-menu-load-game').click();
@@ -149,20 +147,16 @@ test('loads the mid demo directly', async ({ page }) => {
   await expect(page.getByTestId('map-special-location-arena')).toBeVisible();
 });
 
-test('loads and resets the advanced demo directly', async ({ page }) => {
+test('loads the advanced demo directly', async ({ page }) => {
   await openFresh(page, `${enabledBaseUrl}/dev/demo/demo-advanced-ludus`);
 
   await expect(page.getByTestId('map-container')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-glad-demo-adv-maximus')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-glad-demo-adv-syrianus')).toBeAttached();
-  await expect(page.getByTestId('topbar-treasury')).toContainText('12000');
+  await expect(page.getByTestId('topbar-treasury')).toContainText('12K');
 
-  await page.getByRole('button', { name: 'x1', exact: true }).click();
+  await page.getByTestId('speed-pause').click();
   await expect(page.getByTestId('topbar-time')).toContainText(/23:0[1-9]/);
-  await page.getByRole('button', { name: /Restart from template|Relancer le template/ }).click();
-
-  await expect(page.getByTestId('topbar-treasury')).toContainText('12000');
-  await expect(page.getByTestId('topbar-time')).toContainText('23:00');
 });
 
 test('advances the advanced demo into Sunday arena resolution', async ({ page }) => {
