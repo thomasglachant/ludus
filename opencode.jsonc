@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 12000,
+  },
+  "watcher": {
+    "ignore": [
+      "node_modules/**",
+      "dist/**",
+      "coverage/**",
+      ".git/**",
+      ".vite/**",
+      "playwright-report/**",
+      "test-results/**",
+      "public/assets/pixel-art/**",
+      "docs/visual-migration/**",
+      "ludus_visual_migration_pr_ready/**",
+      "src-stubs/**",
+    ],
+  },
+}

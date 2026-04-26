@@ -20,7 +20,7 @@ The application is a browser game built with:
 
 ```text
 ludus/
-├── agents.md
+├── AGENTS.md
 ├── README.md
 ├── docs/
 │   ├── 00_overview/
