@@ -65,7 +65,7 @@ export const GLADIATOR_ANIMATION_DEFINITIONS: Record<
     state: 'celebrating',
     className: 'ludus-map-sprite--celebrating',
     durationSeconds: 1.1,
-    frameKey: 'map-train',
+    frameKey: 'map-celebrate',
   },
   healing: {
     state: 'healing',

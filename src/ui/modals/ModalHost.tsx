@@ -19,13 +19,23 @@ function ConfirmDialog({ modal }: { modal: Extract<UiModalState, { kind: 'confir
 
   return (
     <AppModal
+      size={modal.size}
       testId={modal.testId ?? 'confirm-dialog'}
       titleKey={modal.titleKey}
+      titleParams={modal.titleParams}
       onClose={closeModal}
     >
-      <div className={`confirm-dialog confirm-dialog--${modal.tone ?? 'default'}`}>
-        <p>{t(modal.messageKey, modal.messageParams)}</p>
-        <div className="form-actions">
+      <div
+        className={[
+          'confirm-dialog',
+          `confirm-dialog--${modal.tone ?? 'default'}`,
+          modal.content ? 'confirm-dialog--rich' : null,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {modal.content ?? <p>{t(modal.messageKey, modal.messageParams)}</p>}
+        <div className="form-actions confirm-dialog__actions">
           <ActionButton label={t(modal.cancelLabelKey ?? 'common.cancel')} onClick={closeModal} />
           <ActionButton
             label={t(modal.confirmLabelKey ?? 'common.confirm')}
@@ -52,7 +62,12 @@ function FormDialog({ modal }: { modal: Extract<UiModalState, { kind: 'form' }> 
   };
 
   return (
-    <AppModal testId={modal.testId ?? 'form-dialog'} titleKey={modal.titleKey} onClose={closeModal}>
+    <AppModal
+      testId={modal.testId ?? 'form-dialog'}
+      titleKey={modal.titleKey}
+      titleParams={modal.titleParams}
+      onClose={closeModal}
+    >
       <form className="form-panel form-panel--modal" onSubmit={submit}>
         {modal.fields.map((field) => (
           <label key={field.id}>

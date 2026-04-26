@@ -1,5 +1,8 @@
 # Asset Contract
 
+> Historical note: this contract informed the migration. Current asset
+> boundaries are documented in `docs/02_technical/ARCHITECTURE.md`.
+
 ## Manifest Schema
 
 Generated assets should produce a JSON manifest with this conceptual shape:

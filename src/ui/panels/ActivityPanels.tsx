@@ -30,6 +30,7 @@ interface EventsPanelProps extends PanelProps {
 }
 
 interface ArenaPanelProps extends PanelProps {
+  onOpenCombat(combatId: string): void;
   onScoutOpponent(gladiatorId: string): void;
 }
 
@@ -205,7 +206,7 @@ export function MarketPreviewPanel({ save, onClose }: PanelProps) {
   );
 }
 
-export function ArenaPanel({ save, onClose, onScoutOpponent }: ArenaPanelProps) {
+export function ArenaPanel({ save, onClose, onOpenCombat, onScoutOpponent }: ArenaPanelProps) {
   const { t } = useUiStore();
   const betting = getArenaBettingState(save);
   const viewModel = useMemo(() => getArenaPanelViewModel(save), [save]);
@@ -366,6 +367,16 @@ export function ArenaPanel({ save, onClose, onScoutOpponent }: ArenaPanelProps) 
                 },
               ]}
             />
+            <div className="context-panel__actions">
+              <button
+                data-testid="arena-open-combat-presentation"
+                type="button"
+                onClick={() => onOpenCombat(selectedCombat.id)}
+              >
+                <Swords aria-hidden="true" size={17} />
+                <span>{t('arena.openCombatPresentation')}</span>
+              </button>
+            </div>
           </SectionCard>
         ) : null}
         {selectedCombat ? (

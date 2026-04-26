@@ -12,6 +12,7 @@ import {
   SectionCard,
   Tabs,
 } from '../components/shared';
+import { BuildingActionModalContent } from '../modals/BuildingActionModalContent';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 import {
   createBuildingPanelViewModel,
@@ -55,9 +56,22 @@ export function BuildingPanel({
     buildingId === 'dormitory' ? createDormitoryCapacityViewModel(save) : null;
 
   const requestBuildingAction = () => {
+    const actionPreview = viewModel.action.preview;
+
     openConfirmModal({
       kind: 'confirm',
       confirmLabelKey: viewModel.action.labelKey,
+      content: actionPreview ? (
+        <BuildingActionModalContent
+          buildingId={buildingId}
+          buildingNameKey={viewModel.nameKey}
+          cost={viewModel.action.cost}
+          currentLevel={actionPreview.currentLevel}
+          descriptionKey={viewModel.descriptionKey}
+          effects={actionPreview.effects}
+          nextLevel={actionPreview.nextLevel}
+        />
+      ) : undefined,
       messageKey: viewModel.isPurchased
         ? 'buildings.confirmUpgrade.message'
         : 'buildings.confirmPurchase.message',
@@ -67,10 +81,14 @@ export function BuildingPanel({
       },
       onConfirm: () =>
         viewModel.isPurchased ? onUpgradeBuilding(buildingId) : onPurchaseBuilding(buildingId),
+      size: actionPreview ? 'wide' : undefined,
       testId: 'building-action-confirm-dialog',
       titleKey: viewModel.isPurchased
-        ? 'buildings.confirmUpgrade.title'
-        : 'buildings.confirmPurchase.title',
+        ? 'buildings.confirmUpgrade.modalTitle'
+        : 'buildings.confirmPurchase.modalTitle',
+      titleParams: {
+        building: t(viewModel.nameKey),
+      },
     });
   };
 

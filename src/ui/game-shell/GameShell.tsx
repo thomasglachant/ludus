@@ -3,6 +3,7 @@ import type { BuildingId } from '../../domain/types';
 import type { MapLocationDefinition, MapLocationId } from '../../game-data/map-layout';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
+import { CombatScreen } from '../combat/CombatScreen';
 import { TopHud } from '../hud/TopHud';
 import { LudusMap } from '../map/LudusMap';
 import { GameMenuModal } from '../modals/GameMenuModal';
@@ -47,6 +48,7 @@ export function GameShell() {
   const [selectedBuildingId, setSelectedBuildingId] = useState<BuildingId | null>(null);
   const [selectedGladiatorId, setSelectedGladiatorId] = useState<string | null>(null);
   const [focusGladiatorId, setFocusGladiatorId] = useState<string | undefined>();
+  const [activeCombatId, setActiveCombatId] = useState<string | undefined>();
 
   if (!currentSave) {
     return null;
@@ -80,6 +82,10 @@ export function GameShell() {
 
   const closeGameDialog = () => {
     setActiveDialog(null);
+  };
+
+  const openArenaCombat = (combatId: string) => {
+    setActiveCombatId(combatId);
   };
 
   const saveGameFromMenu = () => {
@@ -164,6 +170,7 @@ export function GameShell() {
         onAcceptContract={acceptWeeklyContract}
         onApplyPlanningRecommendations={applyPlanningRecommendations}
         onClose={closePanel}
+        onOpenArenaCombat={openArenaCombat}
         onPurchaseBuilding={purchaseBuilding}
         onPurchaseBuildingImprovement={purchaseBuildingImprovement}
         onPurchaseDormitoryBed={purchaseDormitoryBed}
@@ -173,6 +180,15 @@ export function GameShell() {
         onUpdateGladiatorRoutine={updateGladiatorRoutine}
         onUpgradeBuilding={upgradeBuilding}
       />
+      {activeCombatId ? (
+        <CombatScreen
+          combatId={activeCombatId}
+          save={currentSave}
+          onClose={() => setActiveCombatId(undefined)}
+          onOpenMenu={() => setActiveDialog('menu')}
+          onSpeedChange={setGameSpeed}
+        />
+      ) : null}
       <BottomGladiatorRoster
         save={currentSave}
         selectedGladiatorId={selectedGladiatorId ?? undefined}

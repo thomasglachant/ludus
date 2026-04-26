@@ -28,6 +28,16 @@ describe('App', () => {
     await user.type(screen.getByLabelText(/ludus name/i), 'Ludus Magnus');
     await user.click(screen.getByRole('button', { name: /found the ludus/i }));
 
+    const map = await screen.findByTestId('map-container');
+    const domusMapLocation = screen.getByTestId('map-building-domus');
+
+    expect(map).toHaveAttribute('data-time-of-day', 'day');
+    expect(map.style.getPropertyValue('--map-background-image')).toContain(
+      '/assets/pixel-art/map/backgrounds/ludus-map-day.svg',
+    );
+    expect(domusMapLocation.getAttribute('data-asset')).toContain(
+      '/assets/pixel-art/buildings/domus/level-1/exterior.svg',
+    );
     expect(await screen.findByRole('heading', { name: 'Ludus Magnus' })).toBeInTheDocument();
     expect(screen.getByText('Domus level 1')).toBeInTheDocument();
     expect(screen.getAllByText('500')).not.toHaveLength(0);
@@ -153,6 +163,44 @@ describe('App', () => {
     ).not.toBeInTheDocument();
     expect(within(buildingPanel).getByRole('button', { name: 'Upgrade' })).toBeDisabled();
     expect(within(buildingPanel).getByText('Domus must reach level 2 first.')).toBeInTheDocument();
+  });
+
+  it('upgrades a building through the rich building action confirmation modal', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /new game/i }));
+    await user.type(screen.getByLabelText(/owner name/i), 'Marcus');
+    await user.type(screen.getByLabelText(/ludus name/i), 'Ludus Magnus');
+    await user.click(screen.getByRole('button', { name: /found the ludus/i }));
+    await user.click(await screen.findByTestId('map-building-domus'));
+
+    const buildingPanel = await screen.findByTestId('building-modal');
+
+    expect(within(buildingPanel).getByRole('button', { name: 'Upgrade' })).toBeEnabled();
+
+    await user.click(within(buildingPanel).getByRole('button', { name: 'Upgrade' }));
+
+    const dialogBackdrop = await screen.findByTestId('building-action-confirm-dialog');
+    const dialog = within(dialogBackdrop).getByRole('dialog', { name: 'Upgrade Domus' });
+
+    expect(within(dialog).getByText('Current level')).toBeInTheDocument();
+    expect(within(dialog).getByText('Next level')).toBeInTheDocument();
+    expect(within(dialog).getByText('Improvements')).toBeInTheDocument();
+    expect(within(dialog).getByText('Cost')).toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Upgrade' }));
+
+    expect(await screen.findByTestId('map-building-domus')).toHaveAttribute(
+      'data-building-level',
+      '2',
+    );
+    expect(screen.getAllByText('170')).not.toHaveLength(0);
   });
 
   it('buys an additional dormitory bed through the shared confirmation modal', async () => {

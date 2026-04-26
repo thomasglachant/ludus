@@ -64,6 +64,10 @@ Examples:
 - contract definitions;
 - event definitions;
 - map layout and visual definitions;
+- pixel-art asset manifest helpers;
+- time-of-day visual themes;
+- ambient map element definitions;
+- gladiator portrait and sprite frame resolution;
 - demo saves;
 - initial game configuration.
 
@@ -140,6 +144,55 @@ Current flags:
 
 - `VITE_ENABLE_DEMO_MODE`;
 - `VITE_ENABLE_DEBUG_UI`.
+
+## Visual Asset Pipeline
+
+The player UI uses generated or authored pixel-art assets from:
+
+```text
+public/assets/pixel-art/
+```
+
+The generated baseline manifest is:
+
+```text
+public/assets/pixel-art/asset-manifest.visual-migration.json
+```
+
+The generator command is:
+
+```bash
+node scripts/generate-visual-migration-assets.mjs
+```
+
+Use `--clean` when intentionally regenerating the complete scaffold:
+
+```bash
+node scripts/generate-visual-migration-assets.mjs --clean
+```
+
+The manifest is exposed to TypeScript through `src/game-data/visual-assets.ts`.
+React components should not import the JSON manifest directly and should not
+hardcode individual generated asset paths.
+
+Current visual data boundaries:
+
+- `src/game-data/visual-assets.ts` owns manifest types and low-level asset set
+  helpers;
+- `src/game-data/building-visuals.ts` maps building ids and levels to rendered
+  building assets;
+- `src/game-data/gladiator-visuals.ts` resolves deterministic gladiator
+  identities, portraits, map frames and combat frames;
+- `src/game-data/gladiator-animations.ts` maps gladiator state to animation
+  states;
+- `src/game-data/map-visuals.ts` defines ambient map elements and their asset
+  paths;
+- `src/game-data/time-of-day.ts` defines phase timing, background assets,
+  lighting variables and ambient multipliers.
+
+Generated SVG scaffolding is a durable development baseline, not a license to
+place visual paths directly in React. Future hand-authored art should enter the
+same manifest/data boundary.
 
 ## Modal Management
 

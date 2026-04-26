@@ -16,6 +16,7 @@ import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import type {
   BuildingActionValidation,
   BuildingEffect,
+  BuildingEffectType,
   BuildingId,
   GameSave,
 } from '../../domain/types';
@@ -24,11 +25,27 @@ import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
 
+export interface BuildingActionEffectPreview {
+  currentValue: number | null;
+  id: string;
+  isPerHour: boolean;
+  nextValue: number | null;
+  type: BuildingEffectType;
+}
+
+export interface BuildingActionPreview {
+  currentLevel: number;
+  effects: BuildingActionEffectPreview[];
+  nextLevel: number;
+}
+
 export interface BuildingPanelViewModel {
   action: {
     cost: number;
     isAllowed: boolean;
+    kind: 'purchase' | 'upgrade';
     labelKey: string;
+    preview: BuildingActionPreview | null;
     validationMessageKey: string | null;
     validationMessageParams: Record<string, string | number>;
   };
@@ -114,6 +131,49 @@ function formatBuildingEffects(effects: BuildingEffect[], t: Translate) {
   });
 }
 
+function getEffectPreviewId(effect: BuildingEffect) {
+  return [effect.type, effect.target ?? 'default', effect.perHour ? 'perHour' : 'flat'].join('-');
+}
+
+function createEffectPreviewMap(effects: BuildingEffect[]) {
+  return new Map(effects.map((effect) => [getEffectPreviewId(effect), effect]));
+}
+
+function createActionEffectPreviews(
+  currentEffects: BuildingEffect[],
+  nextEffects: BuildingEffect[],
+): BuildingActionEffectPreview[] {
+  const currentEffectMap = createEffectPreviewMap(currentEffects);
+  const nextEffectMap = createEffectPreviewMap(nextEffects);
+  const ids = nextEffects.map(getEffectPreviewId);
+
+  for (const effect of currentEffects) {
+    const id = getEffectPreviewId(effect);
+
+    if (!ids.includes(id)) {
+      ids.push(id);
+    }
+  }
+
+  return ids.map((id) => {
+    const currentEffect = currentEffectMap.get(id);
+    const nextEffect = nextEffectMap.get(id);
+    const effect = nextEffect ?? currentEffect;
+
+    if (!effect) {
+      throw new Error(`Missing building effect preview for ${id}`);
+    }
+
+    return {
+      currentValue: currentEffect?.value ?? null,
+      id,
+      isPerHour: Boolean(effect.perHour),
+      nextValue: nextEffect?.value ?? null,
+      type: effect.type,
+    };
+  });
+}
+
 export function createBuildingPanelViewModel(
   save: GameSave,
   buildingId: BuildingId,
@@ -124,12 +184,32 @@ export function createBuildingPanelViewModel(
   const purchaseValidation = validateBuildingPurchase(save, buildingId);
   const upgradeValidation = validateBuildingUpgrade(save, buildingId);
   const actionValidation = building.isPurchased ? upgradeValidation : purchaseValidation;
+  const actionKind = building.isPurchased ? 'upgrade' : 'purchase';
+  const targetLevel =
+    actionValidation.targetLevel ??
+    (building.isPurchased ? building.level + 1 : definition.startsAtLevel || 1);
+  const currentLevelDefinition = building.isPurchased
+    ? definition.levels.find((level) => level.level === building.level)
+    : null;
+  const nextLevelDefinition = definition.levels.find((level) => level.level === targetLevel);
+  const actionPreview = nextLevelDefinition
+    ? {
+        currentLevel: building.isPurchased ? building.level : 0,
+        effects: createActionEffectPreviews(
+          currentLevelDefinition?.effects ?? [],
+          nextLevelDefinition.effects,
+        ),
+        nextLevel: targetLevel,
+      }
+    : null;
 
   return {
     action: {
       cost: actionValidation.cost,
       isAllowed: actionValidation.isAllowed,
+      kind: actionKind,
       labelKey: building.isPurchased ? 'buildings.upgrade' : 'buildings.purchase',
+      preview: actionPreview,
       validationMessageKey: getBuildingActionMessageKey(actionValidation),
       validationMessageParams: getBuildingActionMessageParams(actionValidation),
     },

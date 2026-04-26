@@ -8,9 +8,17 @@ interface AppModalProps {
   size?: 'default' | 'wide';
   testId?: string;
   titleKey: string;
+  titleParams?: Record<string, string | number>;
 }
 
-export function AppModal({ children, onClose, size = 'default', testId, titleKey }: AppModalProps) {
+export function AppModal({
+  children,
+  onClose,
+  size = 'default',
+  testId,
+  titleKey,
+  titleParams,
+}: AppModalProps) {
   const { t } = useUiStore();
   const titleId = useId();
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -49,10 +57,7 @@ export function AppModal({ children, onClose, size = 'default', testId, titleKey
         <div className="app-modal__header">
           <div className="app-modal__title">
             <Shield aria-hidden="true" size={26} />
-            <div>
-              <p className="eyebrow">{t('app.title')}</p>
-              <h1 id={titleId}>{t(titleKey)}</h1>
-            </div>
+            <h1 id={titleId}>{t(titleKey, titleParams)}</h1>
           </div>
           <button
             aria-label={t('common.close')}

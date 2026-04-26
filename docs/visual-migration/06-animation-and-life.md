@@ -1,5 +1,9 @@
 # Animation and Living Map Brief
 
+> Historical note: this brief informed the migration. Current durable animation
+> guidance lives in `docs/03_product/ART_DIRECTION.md` and
+> `docs/03_product/UI_UX.md`.
+
 ## Goal
 
 The map must feel alive even before complex pathfinding or detailed routine simulation is implemented.

@@ -67,6 +67,7 @@ describe('combat actions', () => {
       winnerReward: expectedWinnerReward,
       loserReward: ARENA_REWARDS.bronze3 - expectedWinnerReward,
     });
+    expect(combat.opponent.visualIdentity?.portraitAssetId).toMatch(/^gladiator-/);
     expect(combat.consequence.didPlayerWin).toBe(true);
     expect(combat.consequence.playerReward).toBe(expectedWinnerReward);
   });

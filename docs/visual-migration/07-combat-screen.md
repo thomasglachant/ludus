@@ -1,5 +1,9 @@
 # Combat Screen Brief
 
+> Historical note: this brief informed the migration. Current durable combat UI
+> guidance lives in `docs/03_product/ART_DIRECTION.md` and
+> `docs/03_product/UI_UX.md`.
+
 ## Goal
 
 Add a dedicated combat presentation inspired by `references/fight.jpeg` while keeping existing combat domain logic intact.

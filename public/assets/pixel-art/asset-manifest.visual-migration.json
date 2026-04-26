@@ -266,6 +266,10 @@
           "/assets/pixel-art/characters/gladiators/gladiator-01/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-01/map-rest-1.svg"
         ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-01/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-01/map-celebrate-1.svg"
+        ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-01/map-healing-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-01/map-healing-1.svg"
@@ -306,6 +310,10 @@
         "map-rest": [
           "/assets/pixel-art/characters/gladiators/gladiator-02/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-02/map-rest-1.svg"
+        ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-02/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-02/map-celebrate-1.svg"
         ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-02/map-healing-0.svg",
@@ -348,6 +356,10 @@
           "/assets/pixel-art/characters/gladiators/gladiator-03/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-03/map-rest-1.svg"
         ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-03/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-03/map-celebrate-1.svg"
+        ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-03/map-healing-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-03/map-healing-1.svg"
@@ -388,6 +400,10 @@
         "map-rest": [
           "/assets/pixel-art/characters/gladiators/gladiator-04/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-04/map-rest-1.svg"
+        ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-04/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-04/map-celebrate-1.svg"
         ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-04/map-healing-0.svg",
@@ -430,6 +446,10 @@
           "/assets/pixel-art/characters/gladiators/gladiator-05/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-05/map-rest-1.svg"
         ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-05/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-05/map-celebrate-1.svg"
+        ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-05/map-healing-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-05/map-healing-1.svg"
@@ -470,6 +490,10 @@
         "map-rest": [
           "/assets/pixel-art/characters/gladiators/gladiator-06/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-06/map-rest-1.svg"
+        ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-06/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-06/map-celebrate-1.svg"
         ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-06/map-healing-0.svg",
@@ -512,6 +536,10 @@
           "/assets/pixel-art/characters/gladiators/gladiator-07/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-07/map-rest-1.svg"
         ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-07/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-07/map-celebrate-1.svg"
+        ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-07/map-healing-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-07/map-healing-1.svg"
@@ -552,6 +580,10 @@
         "map-rest": [
           "/assets/pixel-art/characters/gladiators/gladiator-08/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-08/map-rest-1.svg"
+        ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-08/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-08/map-celebrate-1.svg"
         ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-08/map-healing-0.svg",
@@ -594,6 +626,10 @@
           "/assets/pixel-art/characters/gladiators/gladiator-09/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-09/map-rest-1.svg"
         ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-09/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-09/map-celebrate-1.svg"
+        ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-09/map-healing-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-09/map-healing-1.svg"
@@ -634,6 +670,10 @@
         "map-rest": [
           "/assets/pixel-art/characters/gladiators/gladiator-10/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-10/map-rest-1.svg"
+        ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-10/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-10/map-celebrate-1.svg"
         ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-10/map-healing-0.svg",
@@ -676,6 +716,10 @@
           "/assets/pixel-art/characters/gladiators/gladiator-11/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-11/map-rest-1.svg"
         ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-11/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-11/map-celebrate-1.svg"
+        ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-11/map-healing-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-11/map-healing-1.svg"
@@ -716,6 +760,10 @@
         "map-rest": [
           "/assets/pixel-art/characters/gladiators/gladiator-12/map-rest-0.svg",
           "/assets/pixel-art/characters/gladiators/gladiator-12/map-rest-1.svg"
+        ],
+        "map-celebrate": [
+          "/assets/pixel-art/characters/gladiators/gladiator-12/map-celebrate-0.svg",
+          "/assets/pixel-art/characters/gladiators/gladiator-12/map-celebrate-1.svg"
         ],
         "map-healing": [
           "/assets/pixel-art/characters/gladiators/gladiator-12/map-healing-0.svg",

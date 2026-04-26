@@ -1,6 +1,8 @@
 # Future Feature Guardrails
 
-This document is the durable design guardrail for future work after the visual migration.
+This document is historical migration context. Durable guardrails for future
+work now live in `docs/03_product/ART_DIRECTION.md` and
+`docs/03_product/UI_UX.md`.
 
 ## Visual Direction Must Remain Game-First
 

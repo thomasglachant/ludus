@@ -1,5 +1,9 @@
 # Implementation Strategy
 
+> Historical note: this strategy records how the visual migration was planned.
+> The active source of truth is now `docs/03_product/ART_DIRECTION.md`,
+> `docs/03_product/UI_UX.md`, and `docs/02_technical/ARCHITECTURE.md`.
+
 ## Migration Principle
 
 Do not attempt to rebuild the entire app in one PR. Execute a sequence of small PRs where each one keeps the app buildable and testable.
@@ -153,10 +157,10 @@ Tasks:
 - merge durable decisions from this folder into `docs/03_product/ART_DIRECTION.md` and `docs/03_product/UI_UX.md`;
 - update `agents.md` with the new DA guardrails;
 - document the asset-generation command and manifest in technical docs;
-- remove obsolete placeholder generator only after new generator fully replaces it.
+- remove obsolete placeholder guidance after the new generator fully replaces it.
 
 Acceptance:
 
 - future Codex work can discover the visual direction without this migration pack;
-- temporary prompts are either archived or clearly marked as migration-only;
+- one-off Codex prompts are removed from the repository;
 - quality gate passes.

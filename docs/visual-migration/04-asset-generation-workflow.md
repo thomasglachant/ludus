@@ -1,5 +1,9 @@
 # Asset Generation Workflow
 
+> Historical note: this workflow introduced the generated pixel-art baseline.
+> Current asset boundaries are documented in
+> `docs/02_technical/ARCHITECTURE.md`.
+
 ## Goal
 
 Create enough assets for Codex to implement the new visual direction without waiting for hand-authored art.
@@ -141,7 +145,8 @@ public/assets/pixel-art/ui/
    - `gladiator-visuals.ts`;
    - `map-layout.ts` or an adjacent `map-visuals.ts`;
    - `time-of-day.ts` if background asset paths are added.
-5. Keep old placeholder paths as temporary fallback only.
+5. Remove old placeholder-only paths once generated or authored pixel-art assets
+   cover the same surface.
 6. Add tests for manifest shape or visual mapping helpers when practical.
 
 ## Asset Quality Criteria

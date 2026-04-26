@@ -60,12 +60,12 @@ The player is a lanista. The core loop is weekly preparation followed by Sunday 
 
 ## Visual Migration Guardrails
 
-- The visual migration execution pack lives in `docs/visual-migration/`. Use it when executing the pixel-art redesign work.
+- Durable visual direction lives in `docs/03_product/ART_DIRECTION.md` and `docs/03_product/UI_UX.md`.
 - The target DA is a Roman pixel-art management game: dark bronze/stone HUDs, parchment panels, warm countryside map, visible buildings, portraits, animated sprites and a theatrical arena combat screen.
 - Future player-facing UI must preserve the map-first, game-like direction and avoid reverting to plain white dashboard cards.
-- Asset paths, map visuals, animation definitions and time-of-day themes should remain data-driven through `src/game-data` or adjacent visual data modules.
-- The script `scripts/generate-visual-migration-assets.mjs` is the deterministic scaffold for generated pixel-art assets during this migration.
-- Migration-only prompts may remain under `docs/visual-migration/prompts` while work is active; durable decisions should eventually live in `docs/03_product/ART_DIRECTION.md` and `docs/03_product/UI_UX.md`.
+- Asset paths, map visuals, animation definitions and time-of-day themes must remain data-driven through `src/game-data` or adjacent visual data modules.
+- Generated pixel-art assets live under `public/assets/pixel-art/` and are wired through `src/game-data/visual-assets.ts`.
+- The historical migration archive in `docs/visual-migration/` is context only, not the primary source for future decisions.
 
 ## Current Documentation Map
 

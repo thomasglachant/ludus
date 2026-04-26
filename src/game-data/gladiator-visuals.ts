@@ -1,4 +1,4 @@
-import type { GladiatorVisualIdentity } from '../domain/gladiators/types';
+import type { Gladiator, GladiatorVisualIdentity } from '../domain/gladiators/types';
 import type { GladiatorAnimationState } from './gladiator-animations';
 import {
   getFallbackGladiatorAssetSet,
@@ -6,6 +6,8 @@ import {
   GLADIATOR_VISUAL_ASSET_IDS,
 } from './visual-assets';
 import type { CombatFrameKey, MapFrameKey } from './visual-assets';
+
+export type CombatSpriteAnimationState = 'idle' | 'attack' | 'hit' | 'defeat';
 
 const LEGACY_GLADIATOR_PORTRAIT_ASSET_IDS = [
   'portrait-bronze-crop',
@@ -49,17 +51,16 @@ const mapFrameKeyByAnimationState: Record<GladiatorAnimationState, MapFrameKey> 
   training: 'map-train',
   eating: 'map-eat',
   resting: 'map-rest',
-  celebrating: 'map-train',
+  celebrating: 'map-celebrate',
   healing: 'map-healing',
 };
 
-const combatFrameKeyByAnimationState: Record<'idle' | 'attack' | 'hit' | 'defeat', CombatFrameKey> =
-  {
-    idle: 'combat-idle',
-    attack: 'combat-attack',
-    hit: 'combat-idle',
-    defeat: 'combat-idle',
-  };
+const combatFrameKeyByAnimationState: Record<CombatSpriteAnimationState, CombatFrameKey> = {
+  idle: 'combat-idle',
+  attack: 'combat-attack',
+  hit: 'combat-idle',
+  defeat: 'combat-idle',
+};
 
 function getStableIndex(seed: string, length: number) {
   const total = Array.from(seed).reduce((value, character) => value + character.charCodeAt(0), 0);
@@ -89,7 +90,14 @@ export function getGladiatorVisualIdentity(
   return visualIdentity ?? createGladiatorVisualIdentity(seed);
 }
 
-function getGeneratedAssetSet(visualIdentity: GladiatorVisualIdentity) {
+function getGeneratedPortraitAssetSet(visualIdentity: GladiatorVisualIdentity) {
+  return (
+    getGladiatorAssetSet(visualIdentity.portraitAssetId) ??
+    getGladiatorAssetSet(visualIdentity.spriteAssetId)
+  );
+}
+
+function getGeneratedSpriteAssetSet(visualIdentity: GladiatorVisualIdentity) {
   return (
     getGladiatorAssetSet(visualIdentity.spriteAssetId) ??
     getGladiatorAssetSet(visualIdentity.portraitAssetId)
@@ -98,7 +106,7 @@ function getGeneratedAssetSet(visualIdentity: GladiatorVisualIdentity) {
 
 export function getGladiatorPortraitAssetPath(visualIdentity: GladiatorVisualIdentity) {
   return (
-    getGeneratedAssetSet(visualIdentity)?.portrait ??
+    getGeneratedPortraitAssetSet(visualIdentity)?.portrait ??
     LEGACY_GLADIATOR_PORTRAIT_ASSET_PATHS[visualIdentity.portraitAssetId] ??
     getFallbackGladiatorAssetSet().portrait
   );
@@ -113,7 +121,7 @@ export function getGladiatorSpriteFrames(
   animation: GladiatorAnimationState,
 ) {
   const frameKey = mapFrameKeyByAnimationState[animation];
-  const frames = getGeneratedAssetSet(visualIdentity)?.frames[frameKey];
+  const frames = getGeneratedSpriteAssetSet(visualIdentity)?.frames[frameKey];
 
   if (frames?.length) {
     return frames;
@@ -126,14 +134,24 @@ export function getGladiatorSpriteFrames(
 
 export function getCombatSpriteFrames(
   visualIdentity: GladiatorVisualIdentity,
-  animation: 'idle' | 'attack' | 'hit' | 'defeat',
+  animation: CombatSpriteAnimationState,
 ) {
   const frameKey = combatFrameKeyByAnimationState[animation];
-  const frames = getGeneratedAssetSet(visualIdentity)?.frames[frameKey];
+  const frames = getGeneratedSpriteAssetSet(visualIdentity)?.frames[frameKey];
 
   if (frames?.length) {
     return frames;
   }
 
   return getFallbackGladiatorAssetSet().frames[frameKey] ?? [];
+}
+
+export function getGladiatorCombatSpriteFrames(
+  gladiator: Pick<Gladiator, 'id' | 'visualIdentity'>,
+  animation: CombatSpriteAnimationState,
+) {
+  return getCombatSpriteFrames(
+    getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity),
+    animation,
+  );
 }

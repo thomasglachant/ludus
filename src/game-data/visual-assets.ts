@@ -9,6 +9,7 @@ export type MapFrameKey =
   | 'map-train'
   | 'map-eat'
   | 'map-rest'
+  | 'map-celebrate'
   | 'map-healing';
 export type CombatFrameKey = 'combat-idle' | 'combat-attack';
 export type GladiatorFrameKey = MapFrameKey | CombatFrameKey;

@@ -77,6 +77,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     allowAutomaticAssignment: true,
     combatStrategy: gladiator.combatStrategy ?? 'balanced',
   }));
+  const marketGladiators = input.market.map(createMarketGladiator);
   const baseSave: GameSave = {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     saveId: input.id,
@@ -97,7 +98,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     market: {
       year: input.time.year,
       week: input.time.week,
-      availableGladiators: input.market,
+      availableGladiators: marketGladiators,
     },
     arena: {
       pendingCombats: [],
@@ -155,7 +156,10 @@ export function createBettingOdds(input: {
   return {
     id: `odds-${input.year}-${input.week}-${input.gladiatorId}`,
     gladiatorId: input.gladiatorId,
-    opponent: input.opponent,
+    opponent: {
+      ...input.opponent,
+      visualIdentity: getGladiatorVisualIdentity(input.opponent.id, input.opponent.visualIdentity),
+    },
     rank: input.rank,
     playerWinChance: input.playerWinChance,
     playerDecimalOdds: input.playerDecimalOdds,
