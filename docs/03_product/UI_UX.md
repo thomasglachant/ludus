@@ -29,7 +29,7 @@ Target structure:
 
 Elements:
 
-- `TopHud`: time, day, week, year, speed controls, pause, treasury, save status, alerts and menu access.
+- `TopHud`: day, week, year, day-night cycle gauge, speed controls, pause, treasury, save status, alerts and menu access.
 - `LudusMap`: the main interactive visual map and primary screen focus.
 - `LeftNavigationRail`: access to planning, contracts, market, arena and menu.
 - `BottomGladiatorRoster`: portrait-based roster for owned gladiators.
@@ -108,6 +108,10 @@ Building positions, paths, decorations and visual definitions must be data-drive
 The map viewport must expose a stable `data-testid="map-container"` and a
 `data-time-of-day` attribute for the active visual phase. Current supported
 phases are `dawn`, `day`, `dusk` and `night`.
+
+The normal player HUD should show time as a readable day-night cycle gauge, not
+as an exact hour clock. Internal hour and minute values may remain part of the
+domain model for ticks, building effects and synchronization rules.
 
 Map visuals should render generated or authored pixel-art assets through visual
 data helpers:

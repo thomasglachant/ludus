@@ -1,11 +1,11 @@
 import { Banknote, CalendarDays, Menu, Pause, Play, RotateCcw, Store } from 'lucide-react';
 import type { GameSave, GameSpeed } from '../../domain/types';
-import { formatClock } from '../../domain/time/format-time';
 import { getDemoSaveDefinition } from '../../game-data/demo-saves';
 import { GAME_SPEEDS } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store';
 import { formatMoneyAmount } from '../formatters/money';
 import { ActionButton } from './ActionButton';
+import { DayCycleGauge } from './DayCycleGauge';
 
 interface StatusBarProps {
   save: GameSave;
@@ -26,7 +26,7 @@ export function StatusBar({ save, onResetDemo, onSpeedChange }: StatusBarProps) 
         <span>{t(`days.${save.time.dayOfWeek}`)}</span>
         <span>{t('topBar.week', { week: save.time.week })}</span>
         <span>{t('topBar.year', { year: save.time.year })}</span>
-        <span>{formatClock(save.time)}</span>
+        <DayCycleGauge size="compact" time={save.time} />
       </div>
       <div className="status-bar__speeds">
         {GAME_SPEEDS.map((speed) => (

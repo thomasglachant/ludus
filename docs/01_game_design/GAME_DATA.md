@@ -36,7 +36,7 @@ export const GAME_SPEEDS = [0, 1, 2, 4, 8, 16] as const;
 
 ```ts
 export const TIME_CONFIG = {
-  realMillisecondsPerGameHour: 30_000,
+  realMillisecondsPerGameHour: 5_000,
   minutesPerHour: 60,
   hoursPerDay: 24,
 } as const;
@@ -481,6 +481,10 @@ Current hour mapping:
 - `day`: 08:00 to 18:00;
 - `dusk`: 18:00 to 21:00;
 - `night`: 21:00 to 05:00.
+
+The player-facing HUD presents these phases as a day-night cycle gauge instead
+of an exact clock. Hour and minute values remain internal timing data for rules
+that still need precise advancement.
 
 Visual themes are defined in `src/game-data/time-of-day.ts` with sky, terrain, overlay, light, shadow, torch opacity and sprite brightness values.
 

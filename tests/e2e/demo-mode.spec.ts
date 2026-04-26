@@ -153,10 +153,10 @@ test('loads the advanced demo directly', async ({ page }) => {
   await expect(page.getByTestId('map-container')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-glad-demo-adv-maximus')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-glad-demo-adv-syrianus')).toBeAttached();
-  await expect(page.getByTestId('topbar-treasury')).toContainText('12K');
+  await expect(page.getByTestId('topbar-treasury')).toContainText('12 000');
 
   await page.getByTestId('speed-pause').click();
-  await expect(page.getByTestId('topbar-time')).toContainText(/23:0[1-9]/);
+  await expect(page.getByTestId('topbar-time')).toContainText(/Night|Nuit/);
 });
 
 test('advances the advanced demo into Sunday arena resolution', async ({ page }) => {

@@ -72,7 +72,7 @@ Purpose: validate the first playable state after the player has recruited a smal
 
 Expected state:
 
-- Year 1, Week 1, Monday 08:00, paused;
+- Year 1, Week 1, Monday, day phase, paused;
 - treasury 850 and low ludus reputation;
 - all MVP base buildings purchased, with Domus level 3 for the three-gladiator roster;
 - Dormitory level 1 focused on recovery rather than purchasable beds;
@@ -89,7 +89,7 @@ Purpose: validate normal progression.
 
 Expected state:
 
-- Year 2, Week 4, Thursday 16:00, paused;
+- Year 2, Week 4, Thursday, day phase, paused;
 - 4 owned gladiators;
 - all MVP base buildings purchased, with levels around 3 or 4;
 - Domus capacity large enough for the roster and market test purchases;
@@ -106,7 +106,7 @@ Purpose: validate dense UI and late-progression visual states.
 
 Expected state:
 
-- Year 5, Week 7, Saturday 18:30, paused;
+- Year 5, Week 7, Saturday, dusk phase, paused;
 - 6 owned gladiators;
 - all MVP base buildings purchased at level 6 with full improvement coverage where available;
 - Domus capacity at the maximum roster size;

@@ -2335,7 +2335,8 @@ h3 {
   z-index: 30;
   display: grid;
   grid-column: 1 / -1;
-  grid-template-columns: minmax(250px, auto) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(380px, auto) minmax(0, 1fr) auto;
+  grid-template-areas: 'time speeds actions';
   gap: 12px;
   align-items: center;
   min-height: var(--shell-top);
@@ -2347,8 +2348,10 @@ h3 {
 }
 
 .top-hud__time {
+  grid-area: time;
   color: #6d5035;
   font-weight: 800;
+  min-width: 0;
   min-height: 38px;
   padding: 7px 10px;
 }
@@ -2368,17 +2371,9 @@ h3 {
   flex-wrap: nowrap;
 }
 
-.top-hud__time strong {
-  color: #33251b;
-  font-variant-numeric: tabular-nums;
-}
-
-.top-hud__time-icon {
-  flex: 0 0 auto;
-}
-
 .top-hud__date-lines {
   display: grid;
+  flex: 0 0 auto;
   gap: 1px;
   line-height: 1.05;
 }
@@ -2391,6 +2386,121 @@ h3 {
   text-transform: uppercase;
 }
 
+.day-cycle-gauge {
+  display: grid;
+  width: 230px;
+  min-width: 170px;
+  gap: 4px;
+  color: currentColor;
+}
+
+.day-cycle-gauge--compact {
+  width: 150px;
+  min-width: 130px;
+}
+
+.day-cycle-gauge__status {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  color: currentColor;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.day-cycle-gauge--compact .day-cycle-gauge__status {
+  font-size: 0.64rem;
+}
+
+.day-cycle-gauge__status span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-cycle-gauge__track {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 14px;
+  border: 1px solid rgba(45, 33, 23, 0.54);
+  border-radius: 999px;
+  background: #1b1820;
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.42),
+    0 1px 0 rgba(255, 246, 222, 0.16);
+}
+
+.day-cycle-gauge--compact .day-cycle-gauge__track {
+  height: 11px;
+}
+
+.day-cycle-gauge__segment {
+  min-width: 0;
+  height: 100%;
+  border-right: 1px solid rgba(25, 18, 13, 0.28);
+}
+
+.day-cycle-gauge__segment--dawn {
+  border-radius: 999px 0 0 999px;
+  background: linear-gradient(180deg, #f2bd74, #b85d52);
+}
+
+.day-cycle-gauge__segment--day {
+  background: linear-gradient(180deg, #ffe9a3, #7fb783);
+}
+
+.day-cycle-gauge__segment--dusk {
+  background: linear-gradient(180deg, #d7825c, #74456b);
+}
+
+.day-cycle-gauge__segment--night {
+  border-right: 0;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(180deg, #233f63, #111928);
+}
+
+.day-cycle-gauge__marker {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 2px solid #fff2c6;
+  border-radius: 999px;
+  background: #34261c;
+  color: #fff4c7;
+  box-shadow:
+    0 0 0 2px rgba(44, 29, 19, 0.56),
+    0 3px 6px rgba(0, 0, 0, 0.34);
+  transform: translate(-50%, -50%);
+}
+
+.day-cycle-gauge--compact .day-cycle-gauge__marker {
+  width: 18px;
+  height: 18px;
+}
+
+.day-cycle-gauge__marker--dawn {
+  background: #b85d52;
+}
+
+.day-cycle-gauge__marker--day {
+  background: #d3a947;
+}
+
+.day-cycle-gauge__marker--dusk {
+  background: #74456b;
+}
+
+.day-cycle-gauge__marker--night {
+  background: #17283d;
+}
+
 .top-hud__speeds button {
   display: grid;
   width: 38px;
@@ -2399,6 +2509,10 @@ h3 {
   padding: 5px;
   place-items: center;
   box-shadow: none;
+}
+
+.top-hud__speeds {
+  grid-area: speeds;
 }
 
 .top-hud__speed-icon {
@@ -2419,6 +2533,7 @@ h3 {
 }
 
 .top-hud__actions {
+  grid-area: actions;
   min-width: 0;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -4532,11 +4647,6 @@ h3 {
 }
 
 @media (max-width: 1120px) {
-  .top-hud {
-    grid-template-columns: 1fr;
-    padding-right: 16px;
-  }
-
   .contextual-panel-host {
     width: min(410px, calc(100vw - 94px));
   }
@@ -4820,7 +4930,7 @@ body {
 
 .top-hud {
   z-index: 30;
-  grid-template-columns: minmax(250px, auto) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(380px, auto) minmax(0, 1fr) auto;
   border-bottom: 2px solid rgba(214, 163, 74, 0.58);
   background:
     linear-gradient(180deg, rgba(42, 33, 24, 0.98), rgba(21, 17, 13, 0.98)),
@@ -4851,8 +4961,7 @@ body {
   top: 6px;
 }
 
-.top-hud__time,
-.top-hud__time strong {
+.top-hud__time {
   color: #fff1c7;
 }
 
@@ -4922,6 +5031,56 @@ body {
 .event-choice-grid button:hover {
   border-color: var(--gold);
   filter: brightness(1.07);
+}
+
+@media (max-width: 1120px) {
+  .top-hud {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'time actions'
+      'speeds actions';
+    align-items: start;
+    padding-right: 16px;
+  }
+
+  .top-hud__speeds {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .top-hud__actions {
+    align-self: start;
+  }
+
+  .day-cycle-gauge {
+    width: min(230px, 46vw);
+  }
+}
+
+@media (max-width: 760px) {
+  .top-hud {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'actions'
+      'time'
+      'speeds';
+  }
+
+  .top-hud__actions,
+  .top-hud__speeds {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .top-hud__time {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .day-cycle-gauge {
+    flex: 1 1 170px;
+    width: min(230px, 100%);
+  }
 }
 
 .left-navigation-rail {

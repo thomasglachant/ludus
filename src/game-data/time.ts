@@ -13,7 +13,7 @@ export const DAYS_OF_WEEK = [
 ] as const satisfies DayOfWeek[];
 
 export const TIME_CONFIG = {
-  realMillisecondsPerGameHour: 30_000,
+  realMillisecondsPerGameHour: 5_000,
   minutesPerHour: 60,
   hoursPerDay: 24,
 } as const;

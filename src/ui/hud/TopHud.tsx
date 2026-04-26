@@ -3,20 +3,14 @@ import {
   ChevronRight,
   ChevronsRight,
   Menu,
-  Moon,
   Pause,
   Play,
   Save,
-  Sun,
-  Sunrise,
-  Sunset,
   TriangleAlert,
-  type LucideIcon,
 } from 'lucide-react';
 import type { GameSave, GameSpeed } from '../../domain/types';
-import { formatClock } from '../../domain/time/format-time';
-import { getTimeOfDayDefinition, type TimeOfDayPhase } from '../../game-data/time-of-day';
 import { useUiStore } from '../../state/ui-store';
+import { DayCycleGauge } from '../components/DayCycleGauge';
 import { formatMoneyAmount } from '../formatters/money';
 
 interface TopHudProps {
@@ -29,13 +23,6 @@ interface TopHudProps {
   onSave(): void;
   onSpeedChange(speed: GameSpeed): void;
 }
-
-const TIME_OF_DAY_ICONS: Record<TimeOfDayPhase, LucideIcon> = {
-  dawn: Sunrise,
-  day: Sun,
-  dusk: Sunset,
-  night: Moon,
-};
 
 const TOP_HUD_SPEEDS = [2, 4, 8, 16] as const satisfies GameSpeed[];
 
@@ -66,18 +53,11 @@ export function TopHud({
   save,
 }: TopHudProps) {
   const { t } = useUiStore();
-  const timeOfDayDefinition = getTimeOfDayDefinition(save.time.hour);
-  const TimeOfDayIcon = TIME_OF_DAY_ICONS[timeOfDayDefinition.phase];
   const playPauseLabel = save.time.speed === 0 ? t('speed.play') : t('speed.pause');
 
   return (
     <header className="top-hud" data-testid="topbar">
       <div className="top-hud__time" data-testid="topbar-time">
-        <TimeOfDayIcon
-          aria-label={t(`timeOfDay.${timeOfDayDefinition.phase}`)}
-          className="top-hud__time-icon"
-          size={20}
-        />
         <span className="top-hud__date-lines">
           <span>{t(`days.${save.time.dayOfWeek}`)}</span>
           <span>
@@ -85,7 +65,7 @@ export function TopHud({
             <span>{t('topBar.year', { year: save.time.year })}</span>
           </span>
         </span>
-        <strong>{formatClock(save.time)}</strong>
+        <DayCycleGauge time={save.time} />
       </div>
       <div className="top-hud__speeds">
         <button

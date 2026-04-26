@@ -53,11 +53,11 @@ function withPurchasedBuildings(save: GameSave, buildingIds: BuildingId[]): Game
 }
 
 describe('time actions', () => {
-  it('advances one game hour after thirty real seconds at x1 speed', () => {
+  it('advances one game hour after five real seconds at x1 speed', () => {
     const save = createTestSave();
     const result = tickGame({
       currentSave: save,
-      elapsedRealMilliseconds: 30_000,
+      elapsedRealMilliseconds: 5_000,
       speed: save.time.speed,
     });
 
@@ -69,11 +69,27 @@ describe('time actions', () => {
     });
   });
 
+  it('advances one game day after two real minutes at x1 speed', () => {
+    const save = createTestSave();
+    const result = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 120_000,
+      speed: save.time.speed,
+    });
+
+    expect(result.advancedGameMinutes).toBe(1_440);
+    expect(result.save.time).toMatchObject({
+      dayOfWeek: 'tuesday',
+      hour: 8,
+      minute: 0,
+    });
+  });
+
   it('does not advance while paused', () => {
     const save = setGameSpeed(createTestSave(), 0);
     const result = tickGame({
       currentSave: save,
-      elapsedRealMilliseconds: 30_000,
+      elapsedRealMilliseconds: 5_000,
       speed: save.time.speed,
     });
 
@@ -102,7 +118,7 @@ describe('time actions', () => {
     };
     const result = tickGame({
       currentSave: save,
-      elapsedRealMilliseconds: 30_000,
+      elapsedRealMilliseconds: 5_000,
       speed: save.time.speed,
     });
 
@@ -120,7 +136,7 @@ describe('time actions', () => {
     const save = setGameSpeed(createTestSave(), 16);
     const result = tickGame({
       currentSave: save,
-      elapsedRealMilliseconds: 30_000,
+      elapsedRealMilliseconds: 5_000,
       speed: save.time.speed,
     });
 
@@ -148,7 +164,7 @@ describe('time actions', () => {
     };
     const result = tickGame({
       currentSave: save,
-      elapsedRealMilliseconds: 30_000,
+      elapsedRealMilliseconds: 5_000,
       speed: save.time.speed,
       random: () => 0,
     });
@@ -179,13 +195,13 @@ describe('time actions', () => {
     };
     const sundayStart = tickGame({
       currentSave: save,
-      elapsedRealMilliseconds: 30_000,
+      elapsedRealMilliseconds: 5_000,
       speed: save.time.speed,
       random: () => 0,
     }).save;
     const laterSunday = tickGame({
       currentSave: sundayStart,
-      elapsedRealMilliseconds: 30_000,
+      elapsedRealMilliseconds: 5_000,
       speed: sundayStart.time.speed,
       random: () => 0,
     }).save;
@@ -207,7 +223,7 @@ describe('time actions', () => {
     };
     const result = tickGame({
       currentSave: save,
-      elapsedRealMilliseconds: 30_000,
+      elapsedRealMilliseconds: 5_000,
       speed: save.time.speed,
     });
 
@@ -238,7 +254,7 @@ describe('time actions', () => {
     };
     const result = tickGame({
       currentSave: save,
-      elapsedRealMilliseconds: 30_000,
+      elapsedRealMilliseconds: 5_000,
       speed: save.time.speed,
     });
 
@@ -256,7 +272,7 @@ describe('time actions', () => {
     });
     const result = tickGame({
       currentSave: save,
-      elapsedRealMilliseconds: 30_000,
+      elapsedRealMilliseconds: 5_000,
       speed: save.time.speed,
     });
 

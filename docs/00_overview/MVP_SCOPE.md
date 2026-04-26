@@ -101,7 +101,7 @@ Building rules:
 
 - Time advances through ticks.
 - Speeds: pause, x1, x2, x4, x8 and x16.
-- 1 in-game hour equals 30 real seconds at x1.
+- 1 in-game day equals 2 real minutes at x1.
 - 8 weeks per in-game year.
 - Sunday triggers arena combats.
 
@@ -180,7 +180,7 @@ The MVP is valid if:
 - the local quality gate passes with `npm run build`, `npm run lint`, `npm run test` and `npm run test:e2e`;
 - a new game can be created;
 - language can be changed;
-- the ludus screen shows time, treasury, buildings and gladiators;
+- the ludus screen shows the day-night cycle, treasury, buildings and gladiators;
 - local save can be created and loaded;
 - refreshing the browser on the dedicated play URL resumes the current game state;
 - opening the root URL shows the homepage/main menu instead of auto-resuming the active session;

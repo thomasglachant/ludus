@@ -1,9 +1,9 @@
 import { ArrowLeft, Banknote, CalendarDays, Menu, Pause, Play } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { GameSave, GameSpeed } from '../../domain/types';
-import { formatClock } from '../../domain/time/format-time';
 import { GAME_SPEEDS } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store';
+import { DayCycleGauge } from '../components/DayCycleGauge';
 import { formatMoneyAmount } from '../formatters/money';
 import { CombatArenaStage } from './CombatArenaStage';
 import { CombatantPanel } from './CombatantPanel';
@@ -69,7 +69,7 @@ export function CombatScreen({
           <CalendarDays aria-hidden="true" size={18} />
           <span>{t(`days.${save.time.dayOfWeek}`)}</span>
           <span>{t('topBar.week', { week: save.time.week })}</span>
-          <strong>{formatClock(save.time)}</strong>
+          <DayCycleGauge size="compact" time={save.time} />
         </div>
         <div className="combat-screen__round">
           <span>

@@ -34,6 +34,26 @@ describe('TopHud', () => {
     expect(screen.getByRole('button', { name: /Save/i })).toBeInTheDocument();
   });
 
+  it('shows the day cycle without exposing an exact clock', () => {
+    render(
+      <UiStoreProvider>
+        <TopHud
+          alertCount={0}
+          areAlertsOpen={false}
+          isSaving={false}
+          save={createSave()}
+          onAlertsToggle={vi.fn()}
+          onOpenMenu={vi.fn()}
+          onSave={vi.fn()}
+          onSpeedChange={vi.fn()}
+        />
+      </UiStoreProvider>,
+    );
+
+    expect(screen.getByTestId('day-cycle-gauge')).toHaveTextContent('Day');
+    expect(screen.queryByText('08:00')).not.toBeInTheDocument();
+  });
+
   it('shows the alert count in the top bar action', () => {
     render(
       <UiStoreProvider>

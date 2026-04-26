@@ -1,10 +1,10 @@
 import { CloudOff, FolderOpen } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { featureFlags } from '../../config/features';
-import { formatClock } from '../../domain/time/format-time';
 import type { GameSave } from '../../domain/types';
 import { BUILDING_IDS } from '../../game-data/buildings';
 import { DEMO_SAVE_DEFINITIONS } from '../../game-data/demo-saves';
+import { getTimeOfDayDefinition } from '../../game-data/time-of-day';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
 import { ActionButton } from '../components/ActionButton';
@@ -155,7 +155,9 @@ export function LoadGameModal({ onBack, onClose }: LoadGameModalProps) {
                       day: t(`days.${definition.save.time.dayOfWeek}`),
                       week: definition.save.time.week,
                       year: definition.save.time.year,
-                      time: formatClock(definition.save.time),
+                      phase: t(
+                        `timeOfDay.${getTimeOfDayDefinition(definition.save.time.hour).phase}`,
+                      ),
                     })}
                   </p>
                   <p>
