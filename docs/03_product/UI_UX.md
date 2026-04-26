@@ -108,6 +108,22 @@ The map should support:
 
 Building positions, paths, decorations and visual definitions must be data-driven through `src/game-data` or adjacent game-data modules. React map components should render definitions and interaction state, not own gameplay formulas or hardcoded layout rules.
 
+The map viewport must expose a stable `data-testid="map-container"` and a
+`data-time-of-day` attribute for the active visual phase. Current supported
+phases are `dawn`, `day`, `dusk` and `night`.
+
+Map visuals should render generated or authored pixel-art assets through visual
+data helpers:
+
+- time-of-day background assets;
+- building exterior/interior/roof/prop assets;
+- external Market and Arena assets;
+- ambient cloud, grass, banner, torch, smoke and crowd assets;
+- gladiator sprite frame arrays.
+
+Ambient map motion should be subtle and continuous. It should use CSS
+transform/opacity animation and must respect `prefers-reduced-motion`.
+
 ## 6. Building Interaction
 
 Buildings are clickable.
@@ -148,9 +164,24 @@ Suggested building panel tabs:
 - Policy;
 - Gladiators.
 
-Buildings should be represented by visual assets or styled placeholder art, not plain boxes or text-only cards. The removed building budget slider system must not return.
+Buildings should be represented by generated or authored visual assets, not plain boxes or text-only cards. The removed building budget slider system must not return.
 
 Improvement and policy rows should compose shared primitives such as `SectionCard`, `EffectList`, `CostSummary`, badges and shared action buttons. Expensive or blocking purchases should use the global confirmation modal. Disabled actions must show i18n-backed reasons rather than silently disabling controls.
+
+Upgrade and purchase confirmations for buildings should use the shared modal
+host with rich building action content when preview data is available. The
+expected flow is:
+
+- click a building on the map;
+- inspect current level, effects, improvements, policies and assigned
+  gladiators in the contextual panel;
+- trigger purchase or upgrade from the panel;
+- see a parchment/bronze modal with building art, current-to-next level
+  comparison, effect changes and resource cost;
+- confirm the action and return to the same map-first context.
+
+Simple confirmation modals remain acceptable for small focused actions such as
+buying a Dormitory bed or selecting a paid policy.
 
 ## 7. Gladiator Roster
 
@@ -284,6 +315,26 @@ The player should be able to advance the visible combat log when progression is 
 
 Before Sunday, the arena panel may show betting or scouting preparation when odds exist. If no odds exist yet, it should show an empty state explaining the next useful timing.
 
+When combat presentation is available, the arena panel should provide an entry
+point into a dedicated full-screen or overlay combat view instead of forcing the
+weekly climax into the side panel.
+
+The combat presentation should:
+
+- use the generated Arena combat background;
+- show left and right combatant panels with portraits, health, energy, morale
+  and active effects;
+- render central fighter sprites with combat idle/attack frames;
+- expose the selected strategy or skill area;
+- progress the visible combat log one turn at a time for replay-based MVP
+  combat;
+- show final reward, reputation and consequence summary from existing combat
+  state;
+- return cleanly to the arena/map context.
+
+Combat UI may reveal turns from an already resolved `CombatState`. It must not
+reimplement hit chance, damage, rewards or consequences in React.
+
 ## 14. Supporting Flows
 
 Supporting flows should follow the game-like visual direction instead of a SaaS dashboard style.
@@ -325,5 +376,9 @@ The UI is valid when:
 - debug dashboard is unavailable as a normal player route unless `VITE_ENABLE_DEBUG_UI=true`;
 - repeated panel, modal, empty-state, effect-list, cost and tab structures use shared UI primitives;
 - arena logs, rewards, consequences and Sunday summary are visible through i18n-backed UI;
+- dedicated combat presentation can progress at least one visible turn when a
+  resolved combat exists;
+- map time-of-day and asset rendering can be smoke-tested through stable
+  attributes and generated asset paths;
 - all visible text uses i18n;
 - Playwright can still target stable `data-testid` values.

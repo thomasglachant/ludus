@@ -7,6 +7,7 @@ import {
   COMBAT_CONFIG,
   COMBAT_STRATEGY_MODIFIERS,
 } from '../../game-data/combat';
+import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
 import { DAYS_OF_WEEK } from '../../game-data/time';
 import type { Gladiator } from '../gladiators/types';
@@ -343,9 +344,10 @@ export function generateOpponent(
 ): Gladiator {
   const rank = getArenaRank(gladiator.reputation);
   const nameOffset = pickIndex(GLADIATOR_NAMES.length, random);
+  const opponentId = getOpponentId(save, gladiator.id);
 
   return {
-    id: getOpponentId(save, gladiator.id),
+    id: opponentId,
     name: GLADIATOR_NAMES[nameOffset],
     age: clamp(18 + pickIndex(17, random), 18, 34),
     strength: createOpponentStat(gladiator.strength, rank, random),
@@ -359,6 +361,7 @@ export function generateOpponent(
     wins: 0,
     losses: 0,
     traits: [],
+    visualIdentity: createGladiatorVisualIdentity(opponentId),
   };
 }
 

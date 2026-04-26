@@ -1,5 +1,8 @@
 # Visual Target
 
+> Historical note: this target brief informed the migration. Current durable
+> art direction lives in `docs/03_product/ART_DIRECTION.md`.
+
 ## Overall Feeling
 
 The game should feel like a handcrafted pixel-art Roman management game. It should not feel like a SaaS admin dashboard, a generic card UI, or a debug tool.

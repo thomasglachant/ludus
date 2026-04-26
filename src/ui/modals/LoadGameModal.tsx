@@ -45,6 +45,14 @@ export function LoadGameModal({ onClose }: LoadGameModalProps) {
     availableDemoSaveIds.has(definition.id),
   );
 
+  const closeAfterSuccessfulLoad = (loadPromise: Promise<boolean>) => {
+    void loadPromise.then((didLoad) => {
+      if (didLoad) {
+        onClose();
+      }
+    });
+  };
+
   useEffect(() => {
     void refreshLocalSaves();
     void refreshDemoSaves();
@@ -109,7 +117,7 @@ export function LoadGameModal({ onClose }: LoadGameModalProps) {
                 icon={<FolderOpen aria-hidden="true" size={18} />}
                 label={t('loadGame.open')}
                 testId={`local-load-button-${save.saveId}`}
-                onClick={() => void loadLocalSave(save.saveId)}
+                onClick={() => closeAfterSuccessfulLoad(loadLocalSave(save.saveId))}
               />
             </article>
           ))}
@@ -162,7 +170,7 @@ export function LoadGameModal({ onClose }: LoadGameModalProps) {
                   icon={<FolderOpen aria-hidden="true" size={18} />}
                   label={t('loadGame.loadDemoSave')}
                   testId={`demo-load-button-${definition.id}`}
-                  onClick={() => void loadDemoSave(definition.id)}
+                  onClick={() => closeAfterSuccessfulLoad(loadDemoSave(definition.id))}
                 />
               </article>
             );

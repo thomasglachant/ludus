@@ -121,8 +121,16 @@ test('demo mode is hidden when disabled', async ({ page }) => {
 test('loads the early demo directly', async ({ page }) => {
   await openFresh(page, `${enabledBaseUrl}/dev/demo/demo-early-ludus`);
 
-  await expect(page.getByTestId('map-container')).toBeVisible();
-  await expect(page.getByTestId('map-building-domus')).toBeVisible();
+  const map = page.getByTestId('map-container');
+  const domus = page.getByTestId('map-building-domus');
+
+  await expect(map).toBeVisible();
+  await expect(map).toHaveAttribute('data-time-of-day', 'day');
+  await expect(domus).toBeVisible();
+  await expect(domus).toHaveAttribute(
+    'data-asset',
+    /\/assets\/pixel-art\/buildings\/domus\/level-1\/exterior\.svg/,
+  );
   await expect(page.getByTestId('gladiator-list')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-glad-demo-early-marcus')).toBeVisible();
   await expect(page.getByTestId('topbar-treasury')).toContainText('850');
@@ -174,4 +182,11 @@ test('advances the advanced demo into Sunday arena resolution', async ({ page })
   await expect(page.getByTestId('arena-summary')).toBeVisible();
   await expect(page.getByTestId('arena-current-combat')).toBeVisible();
   await expect(page.getByTestId('arena-combat-log')).toBeVisible();
+
+  await page.getByTestId('arena-open-combat-presentation').click();
+  await expect(page.getByTestId('combat-screen')).toBeVisible();
+  await expect(page.getByTestId('combat-stage')).toBeVisible();
+  await expect(page.getByTestId('combat-screen-log')).toContainText(/Arena gates|Portes/);
+  await page.getByRole('button', { name: /Advance turn|Avancer le tour/ }).click();
+  await expect(page.getByTestId('combat-screen-log')).toContainText(/Turn 1|Tour 1/);
 });

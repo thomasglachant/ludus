@@ -20,6 +20,7 @@ if (!Number.isInteger(variantCount) || variantCount < 4) {
 const timePhases = ['dawn', 'day', 'dusk', 'night'];
 const buildingIds = ['domus', 'canteen', 'dormitory', 'trainingGround', 'pleasureHall', 'infirmary'];
 const buildingLevels = [0, 1, 2, 3];
+const generatedAt = '2026-01-01T00:00:00.000Z';
 
 const phasePalettes = {
   dawn: { sky: '#d99a79', ground: '#b9965c', grass: '#6f844b', light: '#ffd39a', shadow: '#5a3a36' },
@@ -398,21 +399,26 @@ function makePortrait(variant) {
 
 function makeMapSprite(variant, animation, frame) {
   const p = gladiatorPalettes[variant % gladiatorPalettes.length];
-  const dy = frame === 1 ? (animation === 'rest' ? 1 : -2) : 0;
-  const armOffset = frame === 1 ? 3 : -2;
+  const isCelebrating = animation === 'celebrate';
+  const dy = frame === 1 ? (animation === 'rest' ? 1 : isCelebrating ? -6 : -2) : 0;
+  const armOffset = isCelebrating ? (frame === 1 ? -8 : -5) : frame === 1 ? 3 : -2;
   const legOffset = frame === 1 ? 2 : -2;
   const weapon = animation === 'train' || animation === 'combat' || animation === 'attack';
+  const leftArmY = isCelebrating ? 32 + dy : 46 + dy;
+  const rightArmY = isCelebrating ? 30 + dy : 46 + dy;
+  const celebrationMarker = isCelebrating ? `${rect(26, 6 + dy, 14, 4, '#d6a34a')}\n    ` : '';
+  const weaponSprite = weapon ? `<rect x="${50 - armOffset}" y="${24 + dy}" width="5" height="38" fill="#d7c7a1" transform="rotate(35 ${50 - armOffset} ${24 + dy})"/>` : '';
   return svg(64, 80, `
     ${ellipse(32,74,18,5,'#201813','opacity="0.28"')}
     ${rect(23,9 + dy,18,14,p.hair)}
     ${rect(21,20 + dy,22,22,p.skin,'stroke="#4d3425" stroke-width="3"')}
     ${rect(20,42 + dy,24,24,p.tunic,'stroke="#4d3425" stroke-width="3"')}
-    ${rect(15 + armOffset,46 + dy,8,18,p.skin,'stroke="#4d3425" stroke-width="3"')}
-    ${rect(42 - armOffset,46 + dy,8,18,p.skin,'stroke="#4d3425" stroke-width="3"')}
+    ${rect(15 + armOffset,leftArmY,8,18,p.skin,'stroke="#4d3425" stroke-width="3"')}
+    ${rect(42 - armOffset,rightArmY,8,18,p.skin,'stroke="#4d3425" stroke-width="3"')}
     ${rect(23 + legOffset,64,7,12,'#5b3929')}
     ${rect(34 - legOffset,64,7,12,'#5b3929')}
     ${rect(24,44 + dy,20,8,p.armor)}
-    ${weapon ? `<rect x="${50 - armOffset}" y="${24 + dy}" width="5" height="38" fill="#d7c7a1" transform="rotate(35 ${50 - armOffset} ${24 + dy})"/>` : ''}
+    ${celebrationMarker}${weaponSprite}
   `);
 }
 
@@ -452,7 +458,7 @@ ensureDir(outputRoot);
 
 const manifest = {
   version: 1,
-  generatedAt: new Date().toISOString(),
+  generatedAt,
   homepage: { backgrounds: {}, lastSaveThumbnail: '' },
   map: { backgrounds: {}, ambient: {} },
   buildings: {},
@@ -501,7 +507,7 @@ for (let index = 0; index < variantCount; index += 1) {
   const meta = variantMeta(index);
   const frames = {};
 
-  const frameAnimations = ['map-idle', 'map-walk', 'map-train', 'map-eat', 'map-rest', 'map-healing', 'combat-idle', 'combat-attack'];
+  const frameAnimations = ['map-idle', 'map-walk', 'map-train', 'map-eat', 'map-rest', 'map-celebrate', 'map-healing', 'combat-idle', 'combat-attack'];
 
   for (const animation of frameAnimations) {
     frames[animation] = [];
@@ -524,7 +530,7 @@ for (const name of ['parchment-tile', 'bronze-frame-tile', 'roman-divider', 'lau
   manifest.ui[name] = writeAsset(`ui/${name}.svg`, makeUiAsset(name));
 }
 
-writeAsset('asset-manifest.visual-migration.json', JSON.stringify(manifest, null, 2));
+writeAsset('asset-manifest.visual-migration.json', `${JSON.stringify(manifest, null, 2)}\n`);
 
 if (dryRun) {
   console.log(JSON.stringify(manifest, null, 2));

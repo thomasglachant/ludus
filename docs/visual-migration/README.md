@@ -1,8 +1,17 @@
-# Visual Migration Execution Pack
+# Visual Migration Archive
 
-This folder is a Codex-ready execution pack for replacing the current prototype visuals with the target pixel-art Roman management-game direction.
+This folder preserves the visual migration background that led to the current
+Roman pixel-art direction.
 
-It is intentionally stored separately from the long-term product docs so migration tasks can be executed step by step without losing the durable design constraints. Once the migration is complete, keep the guardrails from `08-future-feature-guardrails.md` and archive or delete one-off task prompts if they become obsolete.
+It is historical context, not the primary source for future implementation
+decisions. Durable visual direction now lives in:
+
+- `docs/03_product/ART_DIRECTION.md`;
+- `docs/03_product/UI_UX.md`;
+- `docs/02_technical/ARCHITECTURE.md` for visual asset/data boundaries.
+
+The one-off Codex prompts and task index used to execute the migration were
+removed after the durable decisions were moved into permanent documentation.
 
 ## Target Outcome
 
@@ -16,11 +25,17 @@ The default player experience should match the attached references in feeling an
 - ambient motion: moving clouds, torch flicker, banner flutter, grass sway, subtle crowd and building life;
 - multiple gladiator identities, portraits, map sprites, and at least two-frame idle/combat motion.
 
-## How to Use This Pack
+## Asset Generator
 
-Run the migration as multiple small PRs. The recommended sequence is documented in `03-codex-task-index.md`, and each step has a copy-paste prompt in `prompts/`.
+The asset generator script remains active:
 
-The asset generator script is intentionally included in `scripts/generate-visual-migration-assets.mjs`. It creates deterministic SVG pixel-art scaffolding and an asset manifest. Codex should run it early, then wire generated assets into the React/game-data layers. The generated assets are not meant to be final hand-authored art; they are a production-shaped asset baseline that makes the game immediately look much closer to the target references.
+```bash
+node scripts/generate-visual-migration-assets.mjs
+```
+
+It creates deterministic SVG pixel-art scaffolding and a manifest under
+`public/assets/pixel-art/`. The generated assets are not final hand-authored
+art; they are a production-shaped baseline wired through `src/game-data`.
 
 ## Reference Images
 
@@ -45,15 +60,13 @@ Do not copy the reference images pixel-for-pixel. Use them as art-direction refe
 
 ## Files in This Folder
 
-| File                              | Purpose                                                |
-| --------------------------------- | ------------------------------------------------------ |
-| `00-current-repo-audit.md`        | Current implementation audit and migration impact.     |
-| `01-visual-target.md`             | Target art direction distilled from the references.    |
-| `02-implementation-strategy.md`   | Phased technical strategy.                             |
-| `03-codex-task-index.md`          | PR-by-PR task order and dependency graph.              |
-| `04-asset-generation-workflow.md` | How Codex should generate and wire assets.             |
-| `05-asset-contract.md`            | File paths, manifest schema, and visual data contract. |
-| `06-animation-and-life.md`        | Ambient and character animation brief.                 |
-| `07-combat-screen.md`             | Dedicated combat screen brief.                         |
-| `08-future-feature-guardrails.md` | Durable guardrails for future feature work.            |
-| `prompts/`                        | Copy-paste prompts for Codex execution PRs.            |
+| File                              | Purpose                                            |
+| --------------------------------- | -------------------------------------------------- |
+| `00-current-repo-audit.md`        | Pre-migration implementation audit.                |
+| `01-visual-target.md`             | Historical target brief distilled from references. |
+| `02-implementation-strategy.md`   | Historical phased migration strategy.              |
+| `04-asset-generation-workflow.md` | Historical generated asset workflow.               |
+| `05-asset-contract.md`            | Historical manifest/data contract notes.           |
+| `06-animation-and-life.md`        | Historical ambient and character animation brief.  |
+| `07-combat-screen.md`             | Historical dedicated combat screen brief.          |
+| `08-future-feature-guardrails.md` | Historical guardrails merged into permanent docs.  |

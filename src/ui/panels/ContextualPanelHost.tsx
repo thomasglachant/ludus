@@ -13,6 +13,7 @@ interface ContextualPanelHostProps {
   onAcceptContract(contractId: string): void;
   onApplyPlanningRecommendations(): void;
   onClose(): void;
+  onOpenArenaCombat(combatId: string): void;
   onPurchaseBuilding(buildingId: BuildingId): void;
   onPurchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
   onPurchaseDormitoryBed(): void;
@@ -31,6 +32,7 @@ export function ContextualPanelHost({
   onAcceptContract,
   onApplyPlanningRecommendations,
   onClose,
+  onOpenArenaCombat,
   onPurchaseBuilding,
   onPurchaseBuildingImprovement,
   onPurchaseDormitoryBed,
@@ -81,7 +83,12 @@ export function ContextualPanelHost({
       ) : null}
       {activePanelKind === 'market' ? <MarketPreviewPanel save={save} onClose={onClose} /> : null}
       {activePanelKind === 'arena' ? (
-        <ArenaPanel save={save} onClose={onClose} onScoutOpponent={onScoutOpponent} />
+        <ArenaPanel
+          save={save}
+          onClose={onClose}
+          onOpenCombat={onOpenArenaCombat}
+          onScoutOpponent={onScoutOpponent}
+        />
       ) : null}
     </aside>
   );

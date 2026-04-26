@@ -1,5 +1,9 @@
 # Current Repository Audit
 
+> Historical note: this audit describes the repository before the visual
+> migration was completed. Use permanent docs in `docs/03_product/` and
+> `docs/02_technical/ARCHITECTURE.md` for current durable guidance.
+
 ## Current Stack
 
 `ludus` is a Vite + React + TypeScript browser game with Vitest, React Testing Library, Playwright, ESLint, Prettier, Husky, lint-staged, and commitlint.
@@ -57,13 +61,15 @@ This should remain data-driven. Codex should not hardcode new positions directly
 
 ## Asset State
 
-Current asset definitions are placeholder-oriented:
+At the time of this audit, asset definitions used simple SVG scaffolding:
 
 - `src/game-data/building-visuals.ts` points to `/assets/buildings/{buildingId}-level-{level}.svg`;
 - `src/game-data/gladiator-visuals.ts` points to `/assets/portraits/*.svg` and `/assets/sprites/*.svg`;
 - `scripts/generate-placeholder-assets.mjs` creates simple SVG placeholders.
 
-The migration should replace the placeholder asset system with a richer `public/assets/pixel-art/` hierarchy and a generated manifest. The old paths may remain temporarily as fallback but should stop being the primary visual source once the migration is complete.
+The migration replaced this direction with the generated
+`public/assets/pixel-art/` hierarchy and manifest-driven visual data. Permanent
+asset guidance now lives in `docs/02_technical/ARCHITECTURE.md`.
 
 ## Gladiators
 

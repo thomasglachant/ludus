@@ -7,6 +7,7 @@ type TranslationParams = Record<string, string | number>;
 
 interface ModalBase {
   titleKey: string;
+  titleParams?: TranslationParams;
   testId?: string;
 }
 
@@ -14,9 +15,11 @@ export interface ConfirmModalRequest extends ModalBase {
   kind: 'confirm';
   cancelLabelKey?: string;
   confirmLabelKey?: string;
+  content?: ReactNode;
   messageKey: string;
   messageParams?: TranslationParams;
   onConfirm(): void;
+  size?: 'default' | 'wide';
   tone?: 'default' | 'danger';
 }
 

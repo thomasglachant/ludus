@@ -20,7 +20,11 @@ import {
   type MapRect,
 } from '../../game-data/map-layout';
 import {
-  getGladiatorSpriteAssetPath,
+  LUDUS_MAP_AMBIENT_ELEMENTS,
+  type MapAmbientElementDefinition,
+} from '../../game-data/map-visuals';
+import {
+  getGladiatorSpriteFrames,
   getGladiatorVisualIdentity,
 } from '../../game-data/gladiator-visuals';
 import { getTimeOfDayDefinition } from '../../game-data/time-of-day';
@@ -131,7 +135,46 @@ function getTimeOfDayThemeStyle(hour: number): CSSProperties {
     '--map-shadow-color': definition.visualTheme.shadowColor,
     '--map-torch-opacity': definition.visualTheme.torchOpacity,
     '--map-sprite-brightness': definition.visualTheme.spriteBrightness,
+    '--map-cloud-opacity': definition.visualTheme.cloudOpacity ?? 1,
+    '--map-background-image': definition.visualTheme.mapBackgroundAssetPath
+      ? `url(${definition.visualTheme.mapBackgroundAssetPath})`
+      : 'none',
   } as CSSProperties;
+}
+
+function getAmbientElementStyle(
+  element: MapAmbientElementDefinition,
+  durationFactor: number,
+): CSSProperties {
+  return {
+    '--ambient-delay': `${element.animationDelaySeconds ?? 0}s`,
+    '--ambient-duration': `${(element.animationDurationSeconds ?? 4) * durationFactor}s`,
+    '--ambient-opacity': element.opacity ?? 1,
+    '--ambient-rotation': `${element.rotation ?? 0}deg`,
+    '--ambient-scale': element.scale ?? 1,
+    height: element.height,
+    left: element.x,
+    top: element.y,
+    width: element.width,
+    zIndex: element.zIndex,
+  } as CSSProperties;
+}
+
+function LudusMapAmbientLayer({ durationFactor }: { durationFactor: number }) {
+  return (
+    <div className="ludus-map-ambient-layer" aria-hidden="true">
+      {LUDUS_MAP_AMBIENT_ELEMENTS.map((element) => (
+        <span
+          className={['ludus-map-ambient', `ludus-map-ambient--${element.kind}`].join(' ')}
+          data-ambient-kind={element.kind}
+          key={element.id}
+          style={getAmbientElementStyle(element, durationFactor)}
+        >
+          <img className="ludus-map-ambient__asset" src={element.assetPath} alt="" />
+        </span>
+      ))}
+    </div>
+  );
 }
 
 export function LudusMap({
@@ -151,6 +194,7 @@ export function LudusMap({
   const timeOfDayDefinition = getTimeOfDayDefinition(save.time.hour);
   const timePhase = timeOfDayDefinition.phase;
   const timeOfDayStyle = useMemo(() => getTimeOfDayThemeStyle(save.time.hour), [save.time.hour]);
+  const ambientDurationFactor = 1 / (timeOfDayDefinition.visualTheme.ambientSpeedMultiplier ?? 1);
   const gladiatorPlacements = useMemo(() => getGladiatorPlacements(save), [save]);
 
   const focusMapPoint = useCallback((point: MapPoint, nextZoom: number) => {
@@ -437,6 +481,7 @@ export function LudusMap({
             width: LUDUS_MAP_DEFINITION.size.width,
           }}
         >
+          <LudusMapAmbientLayer durationFactor={ambientDurationFactor} />
           <div
             className="ludus-map__boundary"
             aria-hidden="true"
@@ -482,8 +527,8 @@ export function LudusMap({
               placement.gladiator.id,
               placement.gladiator.visualIdentity,
             );
-            const spriteAssetPath = getGladiatorSpriteAssetPath(visualIdentity);
             const animation = getGladiatorAnimationDefinition(placement.gladiator);
+            const spriteFrames = getGladiatorSpriteFrames(visualIdentity, animation.state);
 
             return (
               <button
@@ -503,6 +548,7 @@ export function LudusMap({
                   {
                     '--sprite-animation-delay': `${(placementIndex % 6) * -0.18}s`,
                     '--sprite-animation-duration': `${animation.durationSeconds}s`,
+                    '--sprite-frame-count': spriteFrames.length,
                     left: placement.x,
                     top: placement.y,
                   } as CSSProperties
@@ -513,8 +559,21 @@ export function LudusMap({
               >
                 <span className="ludus-map-sprite__shadow" aria-hidden="true" />
                 <span className="ludus-map-sprite__motion" aria-hidden="true">
-                  {spriteAssetPath ? (
-                    <img className="ludus-map-sprite__asset" src={spriteAssetPath} alt="" />
+                  {spriteFrames.length > 0 ? (
+                    <span
+                      className="ludus-map-sprite__frames"
+                      data-frame-count={spriteFrames.length}
+                    >
+                      {spriteFrames.map((spriteFrame, frameIndex) => (
+                        <img
+                          className="ludus-map-sprite__asset"
+                          data-frame-index={frameIndex}
+                          key={spriteFrame}
+                          src={spriteFrame}
+                          alt=""
+                        />
+                      ))}
+                    </span>
                   ) : null}
                   <span className="ludus-map-sprite__body" />
                 </span>
