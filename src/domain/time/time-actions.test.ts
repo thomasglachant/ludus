@@ -69,7 +69,7 @@ describe('time actions', () => {
     });
   });
 
-  it('advances one game day after two real minutes at x1 speed', () => {
+  it('stops long ticks at the night sleep boundary', () => {
     const save = createTestSave();
     const result = tickGame({
       currentSave: save,
@@ -77,10 +77,10 @@ describe('time actions', () => {
       speed: save.time.speed,
     });
 
-    expect(result.advancedGameMinutes).toBe(1_440);
+    expect(result.advancedGameMinutes).toBe(840);
     expect(result.save.time).toMatchObject({
-      dayOfWeek: 'tuesday',
-      hour: 8,
+      dayOfWeek: 'monday',
+      hour: 22,
       minute: 0,
     });
   });
@@ -140,10 +140,10 @@ describe('time actions', () => {
       speed: save.time.speed,
     });
 
-    expect(result.advancedGameMinutes).toBe(960);
+    expect(result.advancedGameMinutes).toBe(840);
     expect(result.save.time).toMatchObject({
-      dayOfWeek: 'tuesday',
-      hour: 0,
+      dayOfWeek: 'monday',
+      hour: 22,
       minute: 0,
     });
   });
@@ -231,10 +231,22 @@ describe('time actions', () => {
       },
       gladiators: [createGladiator()],
     };
-    const sundayStart = tickGame({
+    const sundayMorning = tickGame({
       currentSave: save,
       elapsedRealMilliseconds: 43_000,
       speed: save.time.speed,
+      random: () => 0,
+    }).save;
+    const sundayBeforeArena = tickGame({
+      currentSave: sundayMorning,
+      elapsedRealMilliseconds: 5_000,
+      speed: sundayMorning.time.speed,
+      random: () => 0,
+    }).save;
+    const sundayStart = tickGame({
+      currentSave: sundayBeforeArena,
+      elapsedRealMilliseconds: 5_000,
+      speed: sundayBeforeArena.time.speed,
       random: () => 0,
     }).save;
     const laterSunday = tickGame({
@@ -361,6 +373,40 @@ describe('time actions', () => {
       currentBuildingId: 'trainingGround',
       agility: 8,
       energy: 74,
+    });
+  });
+
+  it('restores full energy when gladiators wake after sleeping overnight', () => {
+    const saveWithGladiator: GameSave = {
+      ...withPurchasedBuildings(createTestSave(), ['dormitory', 'trainingGround']),
+      time: {
+        ...createTestSave().time,
+        hour: 22,
+        minute: 0,
+      },
+      gladiators: [
+        createGladiator({
+          currentBuildingId: 'trainingGround',
+          currentActivityId: 'balanced',
+          energy: 12,
+        }),
+      ],
+    };
+    const result = tickGame({
+      currentSave: saveWithGladiator,
+      elapsedRealMilliseconds: 40_000,
+      speed: saveWithGladiator.time.speed,
+    });
+
+    expect(result.save.time).toMatchObject({
+      dayOfWeek: 'tuesday',
+      hour: 6,
+      minute: 0,
+    });
+    expect(result.save.gladiators[0]).toMatchObject({
+      currentBuildingId: 'trainingGround',
+      currentActivityId: 'balanced',
+      energy: 100,
     });
   });
 });

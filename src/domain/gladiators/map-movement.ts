@@ -44,11 +44,17 @@ export function assignGladiatorMapLocation(
   time: GameTimeState,
   activity = 'idle',
 ): Gladiator {
+  const currentTaskStartedAt =
+    gladiator.currentBuildingId === targetLocation && gladiator.currentActivityId === activity
+      ? gladiator.currentTaskStartedAt
+      : getGameMinuteStamp(time);
+
   if (!targetLocation) {
     return {
       ...gladiator,
       currentBuildingId: undefined,
       currentActivityId: activity,
+      currentTaskStartedAt,
       mapMovement: undefined,
     };
   }
@@ -57,6 +63,7 @@ export function assignGladiatorMapLocation(
     ...gladiator,
     currentBuildingId: targetLocation,
     currentActivityId: activity,
+    currentTaskStartedAt,
     mapMovement: createGladiatorMapMovement(gladiator, targetLocation, time, activity),
   };
 }

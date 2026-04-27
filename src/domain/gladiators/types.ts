@@ -34,6 +34,7 @@ export interface Gladiator {
   traits: GladiatorTrait[];
   currentBuildingId?: BuildingId;
   currentActivityId?: string;
+  currentTaskStartedAt?: number;
   mapMovement?: GladiatorMapMovement;
   trainingPlan?: GladiatorTrainingPlan;
   visualIdentity?: GladiatorVisualIdentity;

@@ -66,6 +66,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     traits: gladiator.traits,
     currentBuildingId: gladiator.currentBuildingId,
     currentActivityId: gladiator.currentActivityId,
+    currentTaskStartedAt: gladiator.currentTaskStartedAt,
     trainingPlan: gladiator.trainingPlan,
     visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity),
   }));

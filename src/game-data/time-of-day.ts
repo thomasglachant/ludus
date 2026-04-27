@@ -1,4 +1,5 @@
 import { VISUAL_ASSET_MANIFEST } from './visual-assets';
+import { TIME_CONFIG } from './time';
 
 export type TimeOfDayPhase = 'dawn' | 'day' | 'dusk' | 'night';
 
@@ -28,8 +29,8 @@ export interface TimeOfDayDefinition {
 export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
   {
     phase: 'dawn',
-    startHour: 5,
-    endHour: 8,
+    startHour: TIME_CONFIG.dawnStartHour,
+    endHour: TIME_CONFIG.dayStartHour,
     overlayClassName: 'ludus-map__viewport--dawn',
     visualTheme: {
       skyColor: '#d99a79',
@@ -48,8 +49,8 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
   },
   {
     phase: 'day',
-    startHour: 8,
-    endHour: 18,
+    startHour: TIME_CONFIG.dayStartHour,
+    endHour: TIME_CONFIG.duskStartHour,
     overlayClassName: 'ludus-map__viewport--day',
     visualTheme: {
       skyColor: '#91b9c8',
@@ -68,8 +69,8 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
   },
   {
     phase: 'dusk',
-    startHour: 18,
-    endHour: 21,
+    startHour: TIME_CONFIG.duskStartHour,
+    endHour: TIME_CONFIG.nightStartHour,
     overlayClassName: 'ludus-map__viewport--dusk',
     visualTheme: {
       skyColor: '#7b526d',
@@ -88,8 +89,8 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
   },
   {
     phase: 'night',
-    startHour: 21,
-    endHour: 5,
+    startHour: TIME_CONFIG.nightStartHour,
+    endHour: TIME_CONFIG.dawnStartHour,
     overlayClassName: 'ludus-map__viewport--night',
     visualTheme: {
       skyColor: '#17283d',
@@ -109,15 +110,15 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
 ];
 
 export function getTimeOfDayPhase(hour: number): TimeOfDayPhase {
-  if (hour >= 5 && hour < 8) {
+  if (hour >= TIME_CONFIG.dawnStartHour && hour < TIME_CONFIG.dayStartHour) {
     return 'dawn';
   }
 
-  if (hour >= 8 && hour < 18) {
+  if (hour >= TIME_CONFIG.dayStartHour && hour < TIME_CONFIG.duskStartHour) {
     return 'day';
   }
 
-  if (hour >= 18 && hour < 21) {
+  if (hour >= TIME_CONFIG.duskStartHour && hour < TIME_CONFIG.nightStartHour) {
     return 'dusk';
   }
 

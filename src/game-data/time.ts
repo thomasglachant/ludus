@@ -16,6 +16,13 @@ export const TIME_CONFIG = {
   realMillisecondsPerGameHour: 5_000,
   minutesPerHour: 60,
   hoursPerDay: 24,
+  dawnStartHour: 6,
+  dayStartHour: 8,
+  duskStartHour: 21,
+  nightStartHour: 22,
+  wakeUpHour: 6,
+  sleepStartHour: 22,
+  minimumTaskMinutes: 144,
 } as const;
 
 export const TRAINING_INTENSITY_EFFECTS: Record<

@@ -72,5 +72,21 @@ describe('gladiator map movement', () => {
       currentLocation: 'dormitory',
       targetLocation: 'trainingGround',
     });
+    expect(gladiator.currentTaskStartedAt).toBe(getGameMinuteStamp(time));
+  });
+
+  it('preserves the task start when the assignment does not change', () => {
+    const gladiator = assignGladiatorMapLocation(
+      {
+        ...baseGladiator,
+        currentActivityId: 'recovery',
+        currentTaskStartedAt: 120,
+      },
+      'dormitory',
+      time,
+      'recovery',
+    );
+
+    expect(gladiator.currentTaskStartedAt).toBe(120);
   });
 });

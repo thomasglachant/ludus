@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { TIME_CONFIG } from '../../game-data/time';
 import type { BuildingId, GameSave, Gladiator } from '../types';
+import { getGameMinuteStamp } from '../gladiators/map-movement';
 import { createInitialSave } from '../saves/create-initial-save';
 import {
   applyPlanningRecommendations,
@@ -131,6 +133,137 @@ describe('planning actions', () => {
       currentLocation: 'domus',
       targetLocation: 'infirmary',
       activity: 'balanced',
+    });
+    expect(result.gladiators[0].currentTaskStartedAt).toBe(getGameMinuteStamp(save.time));
+  });
+
+  it('sends gladiators to sleep during the night', () => {
+    const save = synchronizePlanning({
+      ...withGladiators(createTestSave(), [
+        createGladiator({
+          currentBuildingId: 'trainingGround',
+          currentActivityId: 'balanced',
+        }),
+      ]),
+      time: {
+        ...createTestSave().time,
+        hour: TIME_CONFIG.sleepStartHour,
+      },
+    });
+    const result = applyPlanningRecommendations(save);
+
+    expect(result.gladiators[0]).toMatchObject({
+      currentBuildingId: 'dormitory',
+      currentActivityId: 'sleep',
+    });
+  });
+
+  it('keeps sleeping gladiators in the dormitory before wake up', () => {
+    const save = synchronizePlanning({
+      ...withGladiators(createTestSave(), [
+        createGladiator({
+          currentBuildingId: 'dormitory',
+          currentActivityId: 'sleep',
+          energy: 100,
+        }),
+      ]),
+      time: {
+        ...createTestSave().time,
+        hour: 5,
+      },
+    });
+    const result = applyPlanningRecommendations(save);
+
+    expect(result.gladiators[0]).toMatchObject({
+      currentBuildingId: 'dormitory',
+      currentActivityId: 'sleep',
+    });
+  });
+
+  it('lets rested gladiators resume daytime activities after wake up', () => {
+    const save = synchronizePlanning({
+      ...withGladiators(createTestSave(), [
+        createGladiator({
+          currentBuildingId: 'dormitory',
+          currentActivityId: 'sleep',
+          energy: 100,
+        }),
+      ]),
+      time: {
+        ...createTestSave().time,
+        hour: TIME_CONFIG.wakeUpHour,
+      },
+    });
+    const result = applyPlanningRecommendations(save);
+
+    expect(result.gladiators[0]).toMatchObject({
+      currentBuildingId: 'trainingGround',
+      currentActivityId: 'balanced',
+    });
+  });
+
+  it('does not send tired gladiators to sleep during daytime', () => {
+    const save = synchronizePlanning(
+      withGladiators(createTestSave(), [
+        createGladiator({
+          currentBuildingId: 'domus',
+          energy: 10,
+        }),
+      ]),
+    );
+    const result = applyPlanningRecommendations(save);
+
+    expect(result.gladiators[0].currentBuildingId).toBe('trainingGround');
+  });
+
+  it('keeps automatic tasks locked for a minimum duration', () => {
+    const baseSave = createTestSave();
+    const taskStartedAt = getGameMinuteStamp(baseSave.time);
+    const save = synchronizePlanning({
+      ...withPurchasedBuildings(
+        withGladiators(baseSave, [
+          createGladiator({
+            currentBuildingId: 'canteen',
+            currentActivityId: 'balanced',
+            currentTaskStartedAt: taskStartedAt,
+            health: 35,
+          }),
+        ]),
+        ['infirmary'],
+      ),
+      time: {
+        ...baseSave.time,
+        hour: baseSave.time.hour + 1,
+      },
+    });
+    const result = applyPlanningRecommendations(save);
+
+    expect(result.gladiators[0].currentBuildingId).toBe('canteen');
+  });
+
+  it('lets night sleep interrupt a locked task', () => {
+    const baseSave = createTestSave();
+    const save = synchronizePlanning({
+      ...withGladiators(baseSave, [
+        createGladiator({
+          currentBuildingId: 'trainingGround',
+          currentActivityId: 'balanced',
+          currentTaskStartedAt: getGameMinuteStamp({
+            ...baseSave.time,
+            hour: TIME_CONFIG.sleepStartHour,
+          }),
+        }),
+      ]),
+      time: {
+        ...baseSave.time,
+        hour: TIME_CONFIG.sleepStartHour,
+      },
+    });
+    const result = applyPlanningRecommendations(save);
+
+    expect(result.gladiators[0]).toMatchObject({
+      currentBuildingId: 'dormitory',
+      currentActivityId: 'sleep',
     });
   });
 

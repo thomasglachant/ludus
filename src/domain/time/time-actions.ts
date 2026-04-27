@@ -11,6 +11,7 @@ import {
   getRoutineForGladiator,
   synchronizePlanning,
 } from '../planning/planning-actions';
+import { assignGladiatorMapLocation } from '../gladiators/map-movement';
 import type { Gladiator } from '../gladiators/types';
 import type { GameTimeState } from './types';
 
@@ -119,23 +120,85 @@ function getNextSundayArenaStartStamp(time: GameTimeState) {
   return targetStamp;
 }
 
+function getDayStartStamp(time: GameTimeState) {
+  return getGameMinuteStamp({
+    ...time,
+    hour: 0,
+    minute: 0,
+  });
+}
+
+function getNextSleepBoundaryStamp(time: GameTimeState) {
+  const currentStamp = getGameMinuteStamp(time);
+  const dayStartStamp = getDayStartStamp(time);
+  const sleepStartStamp = dayStartStamp + TIME_CONFIG.sleepStartHour * TIME_CONFIG.minutesPerHour;
+  const wakeUpStamp = dayStartStamp + TIME_CONFIG.wakeUpHour * TIME_CONFIG.minutesPerHour;
+  const nextDayWakeUpStamp =
+    dayStartStamp +
+    TIME_CONFIG.hoursPerDay * TIME_CONFIG.minutesPerHour +
+    TIME_CONFIG.wakeUpHour * TIME_CONFIG.minutesPerHour;
+
+  if (currentStamp < wakeUpStamp) {
+    return wakeUpStamp;
+  }
+
+  if (currentStamp < sleepStartStamp) {
+    return sleepStartStamp;
+  }
+
+  return nextDayWakeUpStamp;
+}
+
 function clampToSundayArenaStart(currentTime: GameTimeState, intendedMinutes: number) {
   const currentStamp = getGameMinuteStamp(currentTime);
   const intendedStamp = currentStamp + intendedMinutes;
   const arenaStartStamp = getNextSundayArenaStartStamp(currentTime);
+  const sleepBoundaryStamp = getNextSleepBoundaryStamp(currentTime);
+  const interruptionStamp = Math.min(arenaStartStamp, sleepBoundaryStamp);
 
-  if (arenaStartStamp > intendedStamp) {
+  if (interruptionStamp > intendedStamp) {
     return {
       advancedGameMinutes: intendedMinutes,
       time: advanceGameTime(currentTime, intendedMinutes),
     };
   }
 
-  const advancedGameMinutes = arenaStartStamp - currentStamp;
+  const advancedGameMinutes = interruptionStamp - currentStamp;
 
   return {
     advancedGameMinutes,
-    time: createTimeFromMinuteStamp(arenaStartStamp, currentTime),
+    time: createTimeFromMinuteStamp(interruptionStamp, currentTime),
+  };
+}
+
+function isSleepTime(hour: number) {
+  return hour >= TIME_CONFIG.sleepStartHour || hour < TIME_CONFIG.wakeUpHour;
+}
+
+function isWakeUpTime(time: GameTimeState) {
+  return time.hour === TIME_CONFIG.wakeUpHour && time.minute === 0;
+}
+
+function didEndSleepAtWakeUp(currentTime: GameTimeState, nextTime: GameTimeState) {
+  return isSleepTime(currentTime.hour) && isWakeUpTime(nextTime);
+}
+
+function assignNightSleep(save: GameSave, time = save.time): GameSave {
+  return {
+    ...save,
+    gladiators: save.gladiators.map((gladiator) =>
+      assignGladiatorMapLocation(gladiator, 'dormitory', time, 'sleep'),
+    ),
+  };
+}
+
+function restoreRestedGladiatorEnergy(save: GameSave): GameSave {
+  return {
+    ...save,
+    gladiators: save.gladiators.map((gladiator) => ({
+      ...gladiator,
+      energy: 100,
+    })),
   };
 }
 
@@ -387,8 +450,29 @@ export function tickGame(context: GameTickContext): GameTickResult {
       context.random,
     ),
   );
+  const shouldWakeAfterSleep = didEndSleepAtWakeUp(context.currentSave.time, nextTime);
+
+  if (shouldWakeAfterSleep) {
+    const saveWithSleepAssignments = assignNightSleep(
+      saveWithWeeklyLayers,
+      context.currentSave.time,
+    );
+    const saveWithSleepEffects =
+      appliedEffectHours > 0
+        ? applyHourlyBuildingEffects(saveWithSleepAssignments, appliedEffectHours)
+        : saveWithSleepAssignments;
+    const saveWithRestoredEnergy = restoreRestedGladiatorEnergy(saveWithSleepEffects);
+
+    return {
+      save: applyPlanningRecommendations(saveWithRestoredEnergy),
+      advancedGameMinutes,
+      appliedEffectHours,
+      effectAccumulatorMinutes,
+    };
+  }
+
   const saveWithAssignments =
-    appliedEffectHours > 0
+    appliedEffectHours > 0 || isSleepTime(nextTime.hour)
       ? applyPlanningRecommendations(saveWithWeeklyLayers)
       : saveWithWeeklyLayers;
   const saveWithEffects =

@@ -1,7 +1,8 @@
 import { PLANNING_THRESHOLDS } from '../../game-data/planning';
+import { TIME_CONFIG } from '../../game-data/time';
 import type { BuildingId } from '../buildings/types';
 import type { CombatStrategy } from '../combat/types';
-import { assignGladiatorMapLocation } from '../gladiators/map-movement';
+import { assignGladiatorMapLocation, getGameMinuteStamp } from '../gladiators/map-movement';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
 import { calculateEffectiveReadiness } from './readiness';
@@ -54,6 +55,20 @@ const alertBuildingTargets: Partial<Record<GaugeAlertKind, BuildingId>> = {
   criticalMorale: 'pleasureHall',
   lowMorale: 'pleasureHall',
 };
+
+function isSleepTime(hour: number) {
+  return hour >= TIME_CONFIG.sleepStartHour || hour < TIME_CONFIG.wakeUpHour;
+}
+
+function isTaskLocked(gladiator: Gladiator, save: GameSave) {
+  if (gladiator.currentTaskStartedAt === undefined) {
+    return false;
+  }
+
+  return (
+    getGameMinuteStamp(save.time) - gladiator.currentTaskStartedAt < TIME_CONFIG.minimumTaskMinutes
+  );
+}
 
 function createDefaultRoutine(gladiatorId: string): GladiatorRoutine {
   return {
@@ -160,6 +175,19 @@ function getObjectiveRecommendation(objective: GladiatorWeeklyObjective) {
   }
 }
 
+function getDaytimeObjectiveRecommendation(objective: GladiatorWeeklyObjective) {
+  const recommendation = getObjectiveRecommendation(objective);
+
+  if (recommendation.buildingId !== 'dormitory') {
+    return recommendation;
+  }
+
+  return {
+    buildingId: 'infirmary' as const,
+    reasonKey: recommendation.reasonKey,
+  };
+}
+
 export function getRoutineForGladiator(save: GameSave, gladiatorId: string): GladiatorRoutine {
   return getExistingRoutine(save, gladiatorId) ?? createDefaultRoutine(gladiatorId);
 }
@@ -237,7 +265,7 @@ export function getPlanningRecommendation(
     return getAvailableRecommendation(save, 'infirmary', 'weeklyPlan.recommendations.health');
   }
 
-  if (gladiator.energy <= PLANNING_THRESHOLDS.lowEnergy) {
+  if (isSleepTime(save.time.hour)) {
     return getAvailableRecommendation(save, 'dormitory', 'weeklyPlan.recommendations.energy');
   }
 
@@ -249,7 +277,7 @@ export function getPlanningRecommendation(
     return getAvailableRecommendation(save, 'pleasureHall', 'weeklyPlan.recommendations.morale');
   }
 
-  const objectiveRecommendation = getObjectiveRecommendation(routine.objective);
+  const objectiveRecommendation = getDaytimeObjectiveRecommendation(routine.objective);
 
   return getAvailableRecommendation(
     save,
@@ -363,7 +391,15 @@ export function applyPlanningRecommendations(save: GameSave): GameSave {
     gladiators: synchronizedSave.gladiators.map((gladiator) => {
       const routine = getRoutineForGladiator(synchronizedSave, gladiator.id);
 
+      if (isSleepTime(synchronizedSave.time.hour)) {
+        return assignGladiatorMapLocation(gladiator, 'dormitory', synchronizedSave.time, 'sleep');
+      }
+
       if (!routine.allowAutomaticAssignment) {
+        return gladiator;
+      }
+
+      if (isTaskLocked(gladiator, synchronizedSave)) {
         return gladiator;
       }
 
