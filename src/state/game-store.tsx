@@ -37,6 +37,7 @@ import {
   updateGladiatorRoutine,
 } from '../domain/planning/planning-actions';
 import {
+  advanceToNextDay as advanceSaveToNextDay,
   completeSundayArenaDay as completeSundayArenaDayAction,
   setGameSpeed as setSaveGameSpeed,
   tickGame,
@@ -83,6 +84,7 @@ interface GameStoreValue {
   saveCurrentGameAs(input?: { ludusName?: string }): Promise<void>;
   changeLanguage(language: LanguageCode): Promise<void>;
   setGameSpeed(speed: GameSpeed): void;
+  advanceToNextDay(): void;
   purchaseBuilding(buildingId: BuildingId): void;
   purchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
   selectBuildingPolicy(buildingId: BuildingId, policyId: string): void;
@@ -414,6 +416,18 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     },
     [applyPlayerChange],
   );
+
+  const advanceToNextDayAction = useCallback(() => {
+    applyPlayerChange((save) => {
+      const result = advanceSaveToNextDay(save, {
+        effectAccumulatorMinutes: effectAccumulatorMinutes.current,
+      });
+
+      effectAccumulatorMinutes.current = result.effectAccumulatorMinutes;
+
+      return result.save;
+    });
+  }, [applyPlayerChange]);
 
   const purchaseBuildingAction = useCallback(
     (buildingId: BuildingId) => {
@@ -754,6 +768,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       saveCurrentGameAs,
       changeLanguage,
       setGameSpeed: setGameSpeedAction,
+      advanceToNextDay: advanceToNextDayAction,
       purchaseBuilding: purchaseBuildingAction,
       purchaseBuildingImprovement: purchaseBuildingImprovementAction,
       selectBuildingPolicy: selectBuildingPolicyAction,
@@ -775,6 +790,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     };
   }, [
     acceptWeeklyContract,
+    advanceToNextDayAction,
     applyPlanningRecommendationsAction,
     buyMarketGladiatorAction,
     changeLanguage,

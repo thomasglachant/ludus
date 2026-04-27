@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { BuildingId, GameSave, Gladiator } from '../types';
 import { createInitialSave } from '../saves/create-initial-save';
 import { updateGladiatorRoutine } from '../planning/planning-actions';
-import { completeSundayArenaDay, setGameSpeed, tickGame } from './time-actions';
+import { advanceToNextDay, completeSundayArenaDay, setGameSpeed, tickGame } from './time-actions';
 
 function createTestSave() {
   return createInitialSave({
@@ -82,6 +82,20 @@ describe('time actions', () => {
       dayOfWeek: 'monday',
       hour: 22,
       minute: 0,
+    });
+  });
+
+  it('advances directly to the next day and restores the selected speed', () => {
+    const save = setGameSpeed(createTestSave(), 4);
+    const result = advanceToNextDay(save);
+
+    expect(result.advancedGameMinutes).toBe(1_320);
+    expect(result.save.time).toMatchObject({
+      dayOfWeek: 'tuesday',
+      hour: 6,
+      minute: 0,
+      speed: 4,
+      isPaused: false,
     });
   });
 

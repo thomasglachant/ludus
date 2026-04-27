@@ -1,6 +1,6 @@
 import type { DayOfWeek, GameSpeed, TrainingIntensity } from '../domain/types';
 
-export const GAME_SPEEDS = [0, 1, 2, 4, 8, 16] as const satisfies GameSpeed[];
+export const GAME_SPEEDS = [0, 1, 2, 4] as const satisfies GameSpeed[];
 
 export const DAYS_OF_WEEK = [
   'monday',

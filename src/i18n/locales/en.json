@@ -217,6 +217,7 @@
   "speed.x4": "x4",
   "speed.x8": "x8",
   "speed.x16": "x16",
+  "speed.nextDay": "Next day",
   "timeOfDay.dawn": "Dawn",
   "timeOfDay.day": "Day",
   "timeOfDay.dusk": "Dusk",

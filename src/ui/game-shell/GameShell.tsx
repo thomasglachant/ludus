@@ -19,6 +19,7 @@ export function GameShell() {
   const {
     currentSave,
     errorKey,
+    advanceToNextDay,
     isLoading,
     isSaving,
     saveCurrentGame,
@@ -87,6 +88,7 @@ export function GameShell() {
         isSaving={isSaving || isLoading}
         save={currentSave}
         onAlertsToggle={() => setAreAlertsOpen((isOpen) => !isOpen)}
+        onAdvanceToNextDay={advanceToNextDay}
         onOpenMenu={() => {
           setAreAlertsOpen(false);
           openModal({ kind: 'gameMenu' });

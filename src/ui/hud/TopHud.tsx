@@ -6,6 +6,7 @@ import {
   Pause,
   Play,
   Save,
+  SkipForward,
   TriangleAlert,
 } from 'lucide-react';
 import type { GameSave, GameSpeed } from '../../domain/types';
@@ -19,23 +20,26 @@ interface TopHudProps {
   save: GameSave;
   isSaving: boolean;
   onAlertsToggle(): void;
+  onAdvanceToNextDay(): void;
   onOpenMenu(): void;
   onSave(): void;
   onSpeedChange(speed: GameSpeed): void;
 }
 
-const TOP_HUD_SPEEDS = [2, 4, 8, 16] as const satisfies GameSpeed[];
+const TOP_HUD_SPEEDS = [1, 2, 4] as const satisfies GameSpeed[];
 
 function SpeedMultiplierIcon({ speed }: { speed: GameSpeed }) {
+  if (speed === 1) {
+    return <Play aria-hidden="true" size={17} />;
+  }
+
   if (speed === 2) {
     return <ChevronsRight aria-hidden="true" size={18} />;
   }
 
-  const chevronCount = speed === 4 ? 3 : speed === 8 ? 4 : 5;
-
   return (
     <span className="top-hud__speed-icon" aria-hidden="true">
-      {Array.from({ length: chevronCount }, (_, index) => (
+      {Array.from({ length: 3 }, (_, index) => (
         <ChevronRight key={index} size={15} strokeWidth={2.8} />
       ))}
     </span>
@@ -47,6 +51,7 @@ export function TopHud({
   areAlertsOpen,
   isSaving,
   onAlertsToggle,
+  onAdvanceToNextDay,
   onOpenMenu,
   onSave,
   onSpeedChange,
@@ -93,6 +98,14 @@ export function TopHud({
             <SpeedMultiplierIcon speed={speed} />
           </button>
         ))}
+        <button
+          aria-label={t('speed.nextDay')}
+          data-testid="speed-next-day"
+          type="button"
+          onClick={onAdvanceToNextDay}
+        >
+          <SkipForward aria-hidden="true" size={18} />
+        </button>
       </div>
       <div className="top-hud__actions">
         <div className="top-hud__treasury" data-testid="topbar-treasury">

@@ -5,7 +5,7 @@ import type { BuildingEffect, BuildingId, GameSave, GameSpeed, GameTickContext }
 import { synchronizeArena, synchronizeBetting } from '../combat/combat-actions';
 import { synchronizeContracts } from '../contracts/contract-actions';
 import { synchronizeEvents } from '../events/event-actions';
-import { isGameInterrupted } from '../game-flow/interruption';
+import { getActiveGameInterruption, isGameInterrupted } from '../game-flow/interruption';
 import {
   applyPlanningRecommendations,
   getRoutineForGladiator,
@@ -22,6 +22,30 @@ export interface GameTickResult {
   effectAccumulatorMinutes: number;
 }
 
+function getDayKey(time: GameTimeState) {
+  return `${time.year}-${time.week}-${time.dayOfWeek}`;
+}
+
+function expirePendingEvents(save: GameSave): GameSave {
+  if (save.events.pendingEvents.length === 0) {
+    return save;
+  }
+
+  return {
+    ...save,
+    events: {
+      pendingEvents: [],
+      resolvedEvents: [
+        ...save.events.pendingEvents.map((event) => ({
+          ...event,
+          status: 'expired' as const,
+        })),
+        ...save.events.resolvedEvents,
+      ].slice(0, 12),
+    },
+  };
+}
+
 type GladiatorNumericField =
   | 'strength'
   | 'agility'
@@ -30,6 +54,8 @@ type GladiatorNumericField =
   | 'health'
   | 'morale'
   | 'satiety';
+
+type RandomSource = () => number;
 
 const effectFieldByType: Partial<Record<BuildingEffect['type'], GladiatorNumericField>> = {
   increaseSatiety: 'satiety',
@@ -485,6 +511,86 @@ export function tickGame(context: GameTickContext): GameTickResult {
     advancedGameMinutes,
     appliedEffectHours,
     effectAccumulatorMinutes,
+  };
+}
+
+export function advanceToNextDay(
+  save: GameSave,
+  input: { effectAccumulatorMinutes?: number; random?: RandomSource } = {},
+): GameTickResult {
+  const activeInterruption = getActiveGameInterruption(save);
+
+  if (activeInterruption?.kind === 'sundayArena') {
+    return {
+      save,
+      advancedGameMinutes: 0,
+      appliedEffectHours: 0,
+      effectAccumulatorMinutes: input.effectAccumulatorMinutes ?? 0,
+    };
+  }
+
+  const initialDayKey = getDayKey(save.time);
+  const originalSpeed = save.time.speed;
+  const originalIsPaused = save.time.isPaused;
+  const startSave = activeInterruption?.kind === 'dailyEvent' ? expirePendingEvents(save) : save;
+  let result: GameTickResult = {
+    save: {
+      ...startSave,
+      time: {
+        ...startSave.time,
+        speed: 1,
+        isPaused: false,
+      },
+    },
+    advancedGameMinutes: 0,
+    appliedEffectHours: 0,
+    effectAccumulatorMinutes: input.effectAccumulatorMinutes ?? 0,
+  };
+
+  while (getDayKey(result.save.time) === initialDayKey) {
+    const nextResult = tickGame({
+      currentSave: result.save,
+      elapsedRealMilliseconds: TIME_CONFIG.realMillisecondsPerGameHour * TIME_CONFIG.hoursPerDay,
+      speed: 1,
+      effectAccumulatorMinutes: result.effectAccumulatorMinutes,
+      random: input.random,
+    });
+
+    if (nextResult.advancedGameMinutes <= 0) {
+      break;
+    }
+
+    result = {
+      save:
+        getDayKey(nextResult.save.time) === initialDayKey &&
+        getActiveGameInterruption(nextResult.save)?.kind === 'dailyEvent'
+          ? expirePendingEvents(nextResult.save)
+          : nextResult.save,
+      advancedGameMinutes: result.advancedGameMinutes + nextResult.advancedGameMinutes,
+      appliedEffectHours: result.appliedEffectHours + nextResult.appliedEffectHours,
+      effectAccumulatorMinutes: nextResult.effectAccumulatorMinutes,
+    };
+  }
+
+  if (result.advancedGameMinutes <= 0) {
+    return {
+      save,
+      advancedGameMinutes: 0,
+      appliedEffectHours: 0,
+      effectAccumulatorMinutes: result.effectAccumulatorMinutes,
+    };
+  }
+
+  return {
+    ...result,
+    save: {
+      ...result.save,
+      time: {
+        ...result.save.time,
+        speed: originalSpeed,
+        isPaused: originalIsPaused,
+      },
+    },
   };
 }
 
