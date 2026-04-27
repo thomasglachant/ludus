@@ -1,803 +1,977 @@
-import { extend, useApplication, useTick } from '@pixi/react';
 import {
-  Assets,
+  AnimatedSprite,
   Container,
   Graphics,
+  Rectangle,
   Sprite,
   Text,
   Texture,
   type FederatedPointerEvent,
-  type Application as PixiApplication,
 } from 'pixi.js';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CameraController } from '../../pixi/CameraController';
 import type {
-  LudusMapSceneAmbientElementViewModel,
+  PixiAssetLoader,
+  PixiSpritesheetMap,
+  PixiTextureMap,
+} from '../../pixi/PixiAssetLoader';
+import {
+  PixiVisualDebugOverlay,
+  type PixiVisualDebugMetric,
+} from '../../pixi/PixiVisualDebugOverlay';
+import { destroyDisplayObject } from '../../pixi/destroy';
+import { configurePixelArtSprite, setPixelArtSpriteSize } from '../../pixi/pixel-perfect';
+import type { PixiScene, PixiSceneContext } from '../../pixi/PixiScene';
+import { createRenderLayerSetup } from '../../pixi/render-layers';
+import { AmbientAnimationSystem } from './AmbientAnimationSystem';
+import type {
   LudusMapSceneDecorationViewModel,
   LudusMapSceneGladiatorViewModel,
+  LudusMapSceneLocationViewModel,
   LudusMapScenePathViewModel,
   LudusMapSceneViewModel,
 } from './LudusMapSceneViewModel';
+import { ParticleEffectSystem } from './ParticleEffectSystem';
+import { TimeOfDayLightingSystem } from './TimeOfDayLightingSystem';
 
-extend({ Container, Graphics, Sprite, Text });
+type LudusMapLayerId =
+  | 'background'
+  | 'clouds'
+  | 'terrain-overlays'
+  | 'paths'
+  | 'selection-highlight'
+  | 'static-props'
+  | 'buildings-back'
+  | 'characters-y-sorted'
+  | 'buildings-front'
+  | 'ambient-effects'
+  | 'lighting-overlay'
+  | 'light-sprites'
+  | 'labels';
 
-interface LudusMapSceneProps {
-  viewModel: LudusMapSceneViewModel;
+interface LudusMapSceneOptions {
   onLocationSelect?: (locationId: string) => void;
 }
 
-interface LudusMapGladiatorSpriteProps {
-  currentGameMinute: number;
-  gameMinutesPerRealMillisecond: number;
+interface DecorationDisplay {
+  container: Container;
+  decoration: LudusMapSceneDecorationViewModel;
+  fallback: Graphics;
+  sprite: Sprite;
+}
+
+interface GladiatorDisplay {
+  animationSignature?: string;
+  container: Container;
+  fallback: Graphics;
   gladiator: LudusMapSceneGladiatorViewModel;
-  texturesByPath: Record<string, Texture>;
+  sprite: AnimatedSprite;
 }
 
-interface LudusMapAmbientSpriteProps {
-  element: LudusMapSceneAmbientElementViewModel;
-  reducedMotion: boolean;
-  texture?: Texture;
+interface LocationDisplay {
+  backContainer: Container;
+  exteriorSprite: Sprite;
+  fallbackFrame: Graphics;
+  frontContainer: Container;
+  highlight: Graphics;
+  interaction: Container;
+  label: Text;
+  location: LudusMapSceneLocationViewModel;
+  propsContainer: Container;
+  propsSprite: Sprite;
+  roofSprite: Sprite;
 }
 
-interface CameraState {
-  scale: number;
-  x: number;
-  y: number;
-}
-
-const CAMERA_OVERSCROLL_RATIO = 0.42;
 const ASSET_PATH_SEPARATOR = '\u0000';
+const LUDUS_MAP_LAYER_IDS = [
+  'background',
+  'clouds',
+  'terrain-overlays',
+  'paths',
+  'selection-highlight',
+  'static-props',
+  'buildings-back',
+  'characters-y-sorted',
+  'buildings-front',
+  'ambient-effects',
+  'lighting-overlay',
+  'light-sprites',
+  'labels',
+] as const satisfies readonly LudusMapLayerId[];
+const LOCATION_LABEL_ZOOM_THRESHOLD = 1.05;
+const EXTERNAL_LABEL_ZOOM_THRESHOLD = 0.72;
 
-function clamp(value: number, minimum: number, maximum: number) {
+function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
-function interpolate(start: number, end: number, progress: number) {
+function interpolate(start: number, end: number, progress: number): number {
   return start + (end - start) * progress;
 }
 
-function getViewportSize(app: PixiApplication) {
-  return {
-    width: app.screen.width,
-    height: app.screen.height,
-  };
+function isAssetPath(assetPath: string | undefined): assetPath is string {
+  return Boolean(assetPath);
 }
 
-function clampCamera(camera: CameraState, viewModel: LudusMapSceneViewModel, app: PixiApplication) {
-  const viewport = getViewportSize(app);
-  const scaledWidth = viewModel.width * camera.scale;
-  const scaledHeight = viewModel.height * camera.scale;
-  const overscrollX = viewport.width * CAMERA_OVERSCROLL_RATIO;
-  const overscrollY = viewport.height * CAMERA_OVERSCROLL_RATIO;
-  const centeredX = (viewport.width - scaledWidth) / 2;
-  const centeredY = (viewport.height - scaledHeight) / 2;
-  const minimumX =
-    scaledWidth <= viewport.width
-      ? centeredX - overscrollX
-      : viewport.width - scaledWidth - overscrollX;
-  const minimumY =
-    scaledHeight <= viewport.height
-      ? centeredY - overscrollY
-      : viewport.height - scaledHeight - overscrollY;
-  const maximumX = scaledWidth <= viewport.width ? centeredX + overscrollX : overscrollX;
-  const maximumY = scaledHeight <= viewport.height ? centeredY + overscrollY : overscrollY;
-
-  return {
-    scale: camera.scale,
-    x: clamp(camera.x, minimumX, maximumX),
-    y: clamp(camera.y, minimumY, maximumY),
-  };
-}
-
-function createDefaultCamera(viewModel: LudusMapSceneViewModel): CameraState {
-  return {
-    scale: viewModel.defaultZoom,
-    x: viewModel.defaultCamera.x,
-    y: viewModel.defaultCamera.y,
-  };
-}
-
-function getLudusMapAssetPaths(viewModel: LudusMapSceneViewModel) {
+function collectLudusMapTextureAssetPaths(viewModel: LudusMapSceneViewModel): string[] {
   return Array.from(
     new Set([
       ...viewModel.locations.flatMap((location) =>
-        location.assetPath ? [location.assetPath] : [],
+        [
+          location.exteriorAssetPath,
+          location.propsAssetPath,
+          location.roofAssetPath,
+          location.assetPath,
+        ].filter(isAssetPath),
       ),
-      ...viewModel.gladiators.flatMap((gladiator) => gladiator.spriteFrames),
+      ...viewModel.decorations.flatMap((decoration) =>
+        decoration.assetPath ? [decoration.assetPath] : [],
+      ),
+      ...viewModel.gladiators.flatMap((gladiator) =>
+        gladiator.spritesheetAtlasPath ? [] : gladiator.fallbackFramePaths,
+      ),
       ...viewModel.ambientElements.map((element) => element.assetPath),
       ...(viewModel.theme.backgroundAssetPath ? [viewModel.theme.backgroundAssetPath] : []),
     ]),
   );
 }
 
-function LudusMapGladiatorSprite({
-  currentGameMinute,
-  gameMinutesPerRealMillisecond,
-  gladiator,
-  texturesByPath,
-}: LudusMapGladiatorSpriteProps) {
-  const containerRef = useRef<Container | null>(null);
-  const spriteRef = useRef<Sprite | null>(null);
-  const gameMinuteRef = useRef(currentGameMinute);
-  const realTimeRef = useRef(0);
+function collectLudusMapSpritesheetAssetPaths(viewModel: LudusMapSceneViewModel): string[] {
+  return Array.from(
+    new Set(
+      viewModel.gladiators.flatMap((gladiator) =>
+        gladiator.spritesheetAtlasPath ? [gladiator.spritesheetAtlasPath] : [],
+      ),
+    ),
+  );
+}
 
-  useEffect(() => {
-    gameMinuteRef.current = currentGameMinute;
-    realTimeRef.current = performance.now();
-  }, [currentGameMinute]);
+function drawFallbackBackground(graphics: Graphics, viewModel: LudusMapSceneViewModel): void {
+  graphics.clear();
+  graphics.setFillStyle({ color: viewModel.theme.terrainColor });
+  graphics.rect(0, 0, viewModel.width, viewModel.height);
+  graphics.fill();
+}
 
-  useTick(() => {
-    const container = containerRef.current;
-    const sprite = spriteRef.current;
+function drawTerrainOverlay(graphics: Graphics, viewModel: LudusMapSceneViewModel): void {
+  graphics.clear();
+  graphics.setFillStyle({ color: viewModel.theme.terrainHighlightColor, alpha: 0.08 });
+  graphics.rect(0, 0, viewModel.width, viewModel.height);
+  graphics.fill();
+}
 
-    if (!container) {
+function drawPaths(graphics: Graphics, paths: LudusMapScenePathViewModel[]): void {
+  graphics.clear();
+
+  for (const path of paths) {
+    if (path.points.length < 2) {
+      continue;
+    }
+
+    graphics.setStrokeStyle({
+      color: path.kind === 'external' ? 0x7b5a35 : 0x8a693f,
+      width: path.kind === 'external' ? 30 : 22,
+      alpha: 0.52,
+      cap: 'round',
+      join: 'round',
+    });
+    graphics.moveTo(path.points[0].x, path.points[0].y);
+
+    for (const point of path.points.slice(1)) {
+      graphics.lineTo(point.x, point.y);
+    }
+
+    graphics.stroke();
+    graphics.setStrokeStyle({
+      color: path.kind === 'external' ? 0xd7b56b : 0xe1c27d,
+      width: path.kind === 'external' ? 14 : 10,
+      alpha: 0.54,
+      cap: 'round',
+      join: 'round',
+    });
+    graphics.moveTo(path.points[0].x, path.points[0].y);
+
+    for (const point of path.points.slice(1)) {
+      graphics.lineTo(point.x, point.y);
+    }
+
+    graphics.stroke();
+  }
+}
+
+function drawGladiatorFallback(graphics: Graphics): void {
+  graphics.clear();
+  graphics.setFillStyle({ color: 0x8f3f2c });
+  graphics.circle(0, -24, 18);
+  graphics.fill();
+}
+
+function drawGladiatorShadow(graphics: Graphics): void {
+  graphics.clear();
+  graphics.setFillStyle({ color: 0x1e1712, alpha: 0.28 });
+  graphics.ellipse(0, 8, 34, 12);
+  graphics.fill();
+}
+
+function drawLocationFallbackFrame(
+  graphics: Graphics,
+  location: LudusMapSceneLocationViewModel,
+): void {
+  graphics.clear();
+  graphics.setFillStyle({
+    color: location.kind === 'external' ? 0x7b4c32 : location.isOwned ? 0x9b6535 : 0x4b3d33,
+    alpha: 0.28,
+  });
+  graphics.rect(0, 0, location.width, location.height);
+  graphics.fill();
+  graphics.setStrokeStyle({
+    color: location.kind === 'external' ? 0xe0b15e : location.isOwned ? 0xd6a557 : 0x7d6959,
+    width: 4,
+    alpha: 0.72,
+  });
+  graphics.rect(0, 0, location.width, location.height);
+  graphics.stroke();
+}
+
+function drawLocationHighlight(
+  graphics: Graphics,
+  location: LudusMapSceneLocationViewModel,
+  isHovered: boolean,
+  isSelected: boolean,
+): void {
+  graphics.clear();
+
+  if (!isHovered && !isSelected) {
+    graphics.visible = false;
+    return;
+  }
+
+  graphics.visible = true;
+  graphics.setFillStyle({
+    color: 0x7a4f2a,
+    alpha: isSelected ? 0.08 : 0.04,
+  });
+  graphics.roundRect(0, 0, location.hitArea.width, location.hitArea.height, 10);
+  graphics.fill();
+  graphics.setStrokeStyle({
+    color: isSelected ? 0xc78b3d : 0x8a6134,
+    width: isSelected ? 3 : 2,
+    alpha: isSelected ? 0.52 : 0.34,
+  });
+  graphics.roundRect(0, 0, location.hitArea.width, location.hitArea.height, 10);
+  graphics.stroke();
+}
+
+function shouldRenderDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
+  return Boolean(decoration.assetPath);
+}
+
+function getDecorationLayerId(decoration: LudusMapSceneDecorationViewModel): LudusMapLayerId {
+  if (
+    decoration.style === 'oliveTree' ||
+    decoration.style === 'cypressTree' ||
+    decoration.style === 'well' ||
+    decoration.style === 'storage' ||
+    decoration.style === 'torch' ||
+    decoration.style === 'amphora'
+  ) {
+    return 'characters-y-sorted';
+  }
+
+  return 'static-props';
+}
+
+function getLocationLabelZoomThreshold(location: LudusMapSceneLocationViewModel): number {
+  return location.kind === 'external'
+    ? EXTERNAL_LABEL_ZOOM_THRESHOLD
+    : LOCATION_LABEL_ZOOM_THRESHOLD;
+}
+
+export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
+  readonly root = new Container();
+
+  private readonly app: PixiSceneContext['app'];
+  private readonly assetLoader: PixiAssetLoader;
+  private readonly ambientAnimationSystem: AmbientAnimationSystem;
+  private readonly backgroundFallback = new Graphics({ roundPixels: true });
+  private readonly backgroundSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
+  private readonly decorations = new Map<string, DecorationDisplay>();
+  private readonly debugOverlay: PixiVisualDebugOverlay | null;
+  private readonly gladiators = new Map<string, GladiatorDisplay>();
+  private readonly layers = createRenderLayerSetup(LUDUS_MAP_LAYER_IDS, {
+    'ambient-effects': { sortableChildren: true },
+    'buildings-back': { sortableChildren: true },
+    'characters-y-sorted': { sortableChildren: true },
+    clouds: { sortableChildren: true },
+    'light-sprites': { sortableChildren: true },
+    'static-props': { sortableChildren: true },
+  });
+  private readonly lightingSystem: TimeOfDayLightingSystem;
+  private readonly locations = new Map<string, LocationDisplay>();
+  private readonly options: LudusMapSceneOptions;
+  private readonly particleEffectSystem: ParticleEffectSystem;
+  private readonly pathGraphics = new Graphics({ roundPixels: true });
+  private readonly terrainOverlay = new Graphics({ roundPixels: true });
+  private assetLoadId = 0;
+  private assetPathKey = '';
+  private cameraController: CameraController | null = null;
+  private gameMinuteAtSync = 0;
+  private gameMinuteSyncedAt = 0;
+  private hoveredLocationId: string | null = null;
+  private isDestroyed = false;
+  private spritesheets: PixiSpritesheetMap = new Map();
+  private textures: PixiTextureMap = new Map();
+  private viewModel: LudusMapSceneViewModel | null = null;
+
+  constructor(context: PixiSceneContext, options: LudusMapSceneOptions = {}) {
+    this.app = context.app;
+    this.assetLoader = context.assetLoader;
+    this.debugOverlay = context.debugMode ? new PixiVisualDebugOverlay() : null;
+    this.options = options;
+    this.root.label = 'ludus-map-scene';
+    this.root.addChild(this.layers.root);
+    this.backgroundSprite.label = 'map-background-raster';
+    this.backgroundFallback.label = 'map-background-fallback';
+    this.pathGraphics.label = 'map-paths';
+    this.terrainOverlay.label = 'terrain-overlay';
+    this.layers.layers.background.addChild(this.backgroundFallback, this.backgroundSprite);
+    this.layers.layers['terrain-overlays'].addChild(this.terrainOverlay);
+    this.layers.layers.paths.addChild(this.pathGraphics);
+    this.ambientAnimationSystem = new AmbientAnimationSystem({
+      ambientLayer: this.layers.layers['ambient-effects'],
+      cloudLayer: this.layers.layers.clouds,
+      ticker: this.app.ticker,
+    });
+    this.particleEffectSystem = new ParticleEffectSystem({
+      layer: this.layers.layers['ambient-effects'],
+      ticker: this.app.ticker,
+    });
+    this.lightingSystem = new TimeOfDayLightingSystem({
+      brightnessTargets: [
+        this.layers.layers.clouds,
+        this.layers.layers['static-props'],
+        this.layers.layers['buildings-back'],
+        this.layers.layers['characters-y-sorted'],
+        this.layers.layers['buildings-front'],
+        this.layers.layers['ambient-effects'],
+      ],
+      lightLayer: this.layers.layers['light-sprites'],
+      overlayLayer: this.layers.layers['lighting-overlay'],
+      ticker: this.app.ticker,
+    });
+
+    if (this.debugOverlay) {
+      this.layers.root.addChild(this.debugOverlay.root);
+    }
+  }
+
+  destroy(): void {
+    this.isDestroyed = true;
+    this.ambientAnimationSystem.destroy();
+    this.particleEffectSystem.destroy();
+    this.lightingSystem.destroy();
+    this.debugOverlay?.destroy();
+    this.cameraController?.destroy();
+    this.cameraController = null;
+    this.decorations.clear();
+    this.gladiators.clear();
+    this.locations.clear();
+    destroyDisplayObject(this.root);
+  }
+
+  resize(): void {
+    this.cameraController?.resize();
+  }
+
+  tick(): void {
+    if (!this.viewModel) {
       return;
     }
 
-    if (realTimeRef.current === 0) {
-      realTimeRef.current = performance.now();
+    const now = performance.now();
+
+    for (const gladiatorDisplay of this.gladiators.values()) {
+      this.updateGladiatorAnimation(gladiatorDisplay, now);
+    }
+
+    this.updateDebugOverlay();
+  }
+
+  update(viewModel: LudusMapSceneViewModel): void {
+    this.viewModel = viewModel;
+    this.gameMinuteAtSync = viewModel.currentGameMinute;
+    this.gameMinuteSyncedAt = performance.now();
+    this.ensureCamera(viewModel);
+    this.reconcile(viewModel);
+    this.loadAssetsWhenNeeded(viewModel);
+  }
+
+  private createDecorationDisplay(decoration: LudusMapSceneDecorationViewModel): DecorationDisplay {
+    const container = new Container();
+    const sprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
+    const fallback = new Graphics({ roundPixels: true });
+    const display = { container, decoration, fallback, sprite };
+
+    container.label = decoration.id;
+    container.eventMode = 'none';
+    sprite.eventMode = 'none';
+    container.addChild(sprite, fallback);
+    this.layers.layers[getDecorationLayerId(decoration)].addChild(container);
+
+    return display;
+  }
+
+  private createGladiatorDisplay(gladiator: LudusMapSceneGladiatorViewModel): GladiatorDisplay {
+    const container = new Container();
+    const shadow = new Graphics({ roundPixels: true });
+    const sprite = configurePixelArtSprite(new AnimatedSprite([Texture.EMPTY], false));
+    const fallback = new Graphics({ roundPixels: true });
+
+    container.label = gladiator.id;
+    container.eventMode = 'none';
+    sprite.eventMode = 'none';
+    sprite.anchor.set(gladiator.animation.anchor.x, gladiator.animation.anchor.y);
+    sprite.x = 0;
+    sprite.y = 4;
+    drawGladiatorShadow(shadow);
+    drawGladiatorFallback(fallback);
+    container.addChild(shadow, sprite, fallback);
+    this.layers.layers['characters-y-sorted'].addChild(container);
+
+    return { container, fallback, gladiator, sprite };
+  }
+
+  private createLocationDisplay(location: LudusMapSceneLocationViewModel): LocationDisplay {
+    const backContainer = new Container();
+    const frontContainer = new Container();
+    const propsContainer = new Container();
+    const interaction = new Container();
+    const highlight = new Graphics({ roundPixels: true });
+    const fallbackFrame = new Graphics({ roundPixels: true });
+    const exteriorSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
+    const propsSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
+    const roofSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
+    const label = new Text({
+      text: location.label,
+      style: {
+        align: 'center',
+        dropShadow: {
+          alpha: 0.72,
+          angle: Math.PI / 2,
+          blur: 1,
+          color: '#1c130c',
+          distance: 2,
+        },
+        fill: '#f5deb0',
+        fontFamily: 'serif',
+        fontSize: 22,
+        fontWeight: '700',
+        stroke: { color: '#2f2117', width: 4 },
+      },
+    });
+    const display: LocationDisplay = {
+      backContainer,
+      exteriorSprite,
+      fallbackFrame,
+      frontContainer,
+      highlight,
+      interaction,
+      label,
+      location,
+      propsContainer,
+      propsSprite,
+      roofSprite,
+    };
+
+    backContainer.label = `${location.id}:back`;
+    frontContainer.label = `${location.id}:front`;
+    propsContainer.label = `${location.id}:props`;
+    interaction.cursor = 'pointer';
+    interaction.eventMode = 'static';
+    interaction.label = `${location.id}:hit-area`;
+    highlight.label = `${location.id}:highlight`;
+    highlight.eventMode = 'none';
+    label.anchor.set(0.5, 0);
+    label.eventMode = 'none';
+    label.label = `${location.id}:label`;
+    label.resolution = 2;
+    label.roundPixels = true;
+    exteriorSprite.eventMode = 'none';
+    propsSprite.eventMode = 'none';
+    roofSprite.eventMode = 'none';
+    backContainer.addChild(fallbackFrame, exteriorSprite);
+    propsContainer.addChild(propsSprite);
+    frontContainer.addChild(roofSprite);
+    interaction.on('pointertap', (event: FederatedPointerEvent) => {
+      event.stopPropagation();
+
+      if (this.cameraController?.shouldSuppressTap()) {
+        return;
+      }
+
+      this.options.onLocationSelect?.(display.location.mapLocationId);
+    });
+    interaction.on('pointerover', () => {
+      this.hoveredLocationId = display.location.id;
+      this.updateLocationAffordances();
+    });
+    interaction.on('pointerout', () => {
+      if (this.hoveredLocationId === display.location.id) {
+        this.hoveredLocationId = null;
+        this.updateLocationAffordances();
+      }
+    });
+    this.layers.layers['buildings-back'].addChild(backContainer);
+    this.layers.layers['characters-y-sorted'].addChild(propsContainer);
+    this.layers.layers['buildings-front'].addChild(frontContainer);
+    this.layers.layers['selection-highlight'].addChild(highlight, interaction);
+    this.layers.layers.labels.addChild(label);
+
+    return display;
+  }
+
+  private ensureCamera(viewModel: LudusMapSceneViewModel): void {
+    const bounds = { height: viewModel.height, width: viewModel.width };
+    const limits = {
+      defaultCamera: viewModel.defaultCamera,
+      defaultZoom: viewModel.defaultZoom,
+      maxZoom: viewModel.maxZoom,
+      minZoom: viewModel.minZoom,
+      zoomPresets: viewModel.zoomPresets,
+    };
+
+    if (!this.cameraController) {
+      this.cameraController = new CameraController({
+        app: this.app,
+        bounds,
+        canvas: this.app.canvas,
+        limits,
+        onChange: () => {
+          this.updateLocationAffordances();
+          this.syncCameraParallax();
+        },
+        overscrollRatio: 0,
+        target: this.layers.root,
+      });
+      this.syncCameraParallax();
+      return;
+    }
+
+    this.cameraController.configure(bounds, limits);
+    this.syncCameraParallax();
+  }
+
+  private syncCameraParallax(): void {
+    const camera = this.cameraController?.getState();
+
+    if (camera) {
+      this.ambientAnimationSystem.syncCamera(camera);
+    }
+  }
+
+  private loadAssetsWhenNeeded(viewModel: LudusMapSceneViewModel): void {
+    const textureAssetPaths = collectLudusMapTextureAssetPaths(viewModel);
+    const spritesheetAssetPaths = collectLudusMapSpritesheetAssetPaths(viewModel);
+    const assetPathKey = [
+      textureAssetPaths.join(ASSET_PATH_SEPARATOR),
+      spritesheetAssetPaths.join(ASSET_PATH_SEPARATOR),
+    ].join(ASSET_PATH_SEPARATOR);
+
+    if (assetPathKey === this.assetPathKey) {
+      return;
+    }
+
+    this.assetPathKey = assetPathKey;
+    void this.loadAssets(textureAssetPaths, spritesheetAssetPaths, viewModel);
+  }
+
+  private async loadAssets(
+    textureAssetPaths: string[],
+    spritesheetAssetPaths: string[],
+    viewModel: LudusMapSceneViewModel,
+  ): Promise<void> {
+    const loadId = ++this.assetLoadId;
+    const [textures, spritesheets] = await Promise.all([
+      this.assetLoader.loadTextures(textureAssetPaths),
+      this.assetLoader.loadSpritesheets(spritesheetAssetPaths),
+    ]);
+
+    if (this.isDestroyed || loadId !== this.assetLoadId) {
+      return;
+    }
+
+    this.textures = textures;
+    this.spritesheets = spritesheets;
+    this.reconcile(viewModel);
+  }
+
+  private reconcile(viewModel: LudusMapSceneViewModel): void {
+    const backgroundTexture = viewModel.theme.backgroundAssetPath
+      ? this.textures.get(viewModel.theme.backgroundAssetPath)
+      : undefined;
+
+    drawFallbackBackground(this.backgroundFallback, viewModel);
+    this.backgroundFallback.visible = !backgroundTexture;
+    this.backgroundSprite.visible = Boolean(backgroundTexture);
+    this.backgroundSprite.texture = backgroundTexture ?? Texture.EMPTY;
+    setPixelArtSpriteSize(this.backgroundSprite, viewModel.width, viewModel.height);
+    drawTerrainOverlay(this.terrainOverlay, viewModel);
+    drawPaths(this.pathGraphics, viewModel.paths);
+    this.reconcileDecorations(viewModel.decorations);
+    this.reconcileLocations(viewModel.locations);
+    this.reconcileGladiators(viewModel.gladiators);
+    this.ambientAnimationSystem.reconcile(viewModel, this.textures);
+    this.particleEffectSystem.reconcile(viewModel, this.textures);
+    this.lightingSystem.reconcile(viewModel);
+    this.updateLocationAffordances();
+    this.updateDebugOverlay();
+  }
+
+  private reconcileDecorations(decorations: LudusMapSceneDecorationViewModel[]): void {
+    const renderableDecorations = decorations.filter(shouldRenderDecoration);
+    const activeIds = new Set(renderableDecorations.map((decoration) => decoration.id));
+
+    for (const [decorationId, display] of this.decorations) {
+      if (!activeIds.has(decorationId)) {
+        destroyDisplayObject(display.container);
+        this.decorations.delete(decorationId);
+      }
+    }
+
+    for (const decoration of renderableDecorations) {
+      const texture = decoration.assetPath ? this.textures.get(decoration.assetPath) : undefined;
+      const display =
+        this.decorations.get(decoration.id) ?? this.createDecorationDisplay(decoration);
+
+      this.decorations.set(decoration.id, display);
+      display.decoration = decoration;
+      display.container.label = decoration.id;
+      display.container.pivot.set(decoration.width / 2, decoration.height / 2);
+      display.container.rotation = (decoration.rotation * Math.PI) / 180;
+      display.container.x = decoration.x + decoration.width / 2;
+      display.container.y = decoration.y + decoration.height / 2;
+      display.container.zIndex = decoration.sortY;
+      display.sprite.texture = texture ?? Texture.EMPTY;
+      display.sprite.visible = Boolean(texture);
+      setPixelArtSpriteSize(display.sprite, decoration.width, decoration.height, {
+        preferIntegerScale: true,
+      });
+      display.fallback.visible = false;
+      display.fallback.clear();
+    }
+  }
+
+  private reconcileGladiators(gladiators: LudusMapSceneGladiatorViewModel[]): void {
+    const activeIds = new Set(gladiators.map((gladiator) => gladiator.id));
+
+    for (const [gladiatorId, display] of this.gladiators) {
+      if (!activeIds.has(gladiatorId)) {
+        destroyDisplayObject(display.container);
+        this.gladiators.delete(gladiatorId);
+      }
+    }
+
+    for (const gladiator of gladiators) {
+      const display = this.gladiators.get(gladiator.id) ?? this.createGladiatorDisplay(gladiator);
+
+      this.gladiators.set(gladiator.id, display);
+      display.gladiator = gladiator;
+      this.updateGladiatorSprite(display);
+      this.updateGladiatorAnimation(display, performance.now());
+    }
+  }
+
+  private reconcileLocations(locations: LudusMapSceneLocationViewModel[]): void {
+    const activeIds = new Set(locations.map((location) => location.id));
+
+    for (const [locationId, display] of this.locations) {
+      if (!activeIds.has(locationId)) {
+        destroyDisplayObject(display.backContainer);
+        destroyDisplayObject(display.propsContainer);
+        destroyDisplayObject(display.frontContainer);
+        destroyDisplayObject(display.highlight);
+        destroyDisplayObject(display.interaction);
+        destroyDisplayObject(display.label);
+        this.locations.delete(locationId);
+      }
+    }
+
+    for (const location of locations) {
+      const display = this.locations.get(location.id) ?? this.createLocationDisplay(location);
+
+      this.locations.set(location.id, display);
+      display.location = location;
+      display.label.text = location.label;
+      this.updateLocationDisplay(display);
+    }
+  }
+
+  private updateGladiatorAnimation(display: GladiatorDisplay, now: number): void {
+    const viewModel = this.viewModel;
+    const gladiator = display.gladiator;
+
+    if (!viewModel) {
+      return;
     }
 
     const visualGameMinute =
-      gameMinuteRef.current +
-      (performance.now() - realTimeRef.current) * gameMinutesPerRealMillisecond;
+      this.gameMinuteAtSync +
+      (now - this.gameMinuteSyncedAt) * viewModel.gameMinutesPerRealMillisecond;
     const progress =
-      gameMinutesPerRealMillisecond === 0
+      viewModel.gameMinutesPerRealMillisecond === 0
         ? 1
         : clamp(
-            (visualGameMinute - gladiator.movementStartedAt) / gladiator.movementDuration,
+            (visualGameMinute - gladiator.movementStartedAt) /
+              Math.max(gladiator.movementDuration, 1),
             0,
             1,
           );
 
-    container.x = interpolate(gladiator.from.x, gladiator.to.x, progress);
-    container.y = interpolate(gladiator.from.y, gladiator.to.y, progress);
-    container.zIndex = container.y;
+    display.container.x = interpolate(gladiator.from.x, gladiator.to.x, progress);
+    display.container.y = interpolate(gladiator.from.y, gladiator.to.y, progress);
+    display.container.zIndex = display.container.y + gladiator.animation.ySortOffset;
 
-    if (sprite && gladiator.spriteFrames.length > 0) {
-      const frameIndex =
-        gameMinutesPerRealMillisecond === 0
-          ? 0
-          : gladiator.animationState === 'walking'
-            ? Math.floor(performance.now() / 180) % gladiator.spriteFrames.length
-            : Math.floor(performance.now() / 420) % gladiator.spriteFrames.length;
-      const texture = texturesByPath[gladiator.spriteFrames[frameIndex]];
-
-      if (texture) {
-        sprite.texture = texture;
-      }
+    if (!viewModel.reducedMotion && display.sprite.visible) {
+      display.sprite.update(this.app.ticker);
     }
-  });
-
-  const fallbackTexture = gladiator.spriteFrames[0]
-    ? texturesByPath[gladiator.spriteFrames[0]]
-    : undefined;
-  const initialProgress =
-    gameMinutesPerRealMillisecond === 0
-      ? 1
-      : clamp((currentGameMinute - gladiator.movementStartedAt) / gladiator.movementDuration, 0, 1);
-  const initialX = interpolate(gladiator.from.x, gladiator.to.x, initialProgress);
-  const initialY = interpolate(gladiator.from.y, gladiator.to.y, initialProgress);
-
-  return (
-    <pixiContainer ref={containerRef} x={initialX} y={initialY} zIndex={initialY}>
-      <pixiGraphics
-        draw={(graphics) => {
-          graphics.clear();
-          graphics.setFillStyle({ color: 0x1e1712, alpha: 0.28 });
-          graphics.ellipse(0, 8, 34, 12);
-          graphics.fill();
-        }}
-      />
-      {fallbackTexture ? (
-        <pixiSprite
-          anchor={{ x: 0.5, y: 1 }}
-          height={92}
-          ref={spriteRef}
-          texture={fallbackTexture}
-          width={62}
-          x={0}
-          y={4}
-        />
-      ) : (
-        <pixiGraphics
-          draw={(graphics) => {
-            graphics.clear();
-            graphics.setFillStyle({ color: 0x8f3f2c });
-            graphics.circle(0, -24, 18);
-            graphics.fill();
-          }}
-        />
-      )}
-      <pixiText
-        anchor={0.5}
-        eventMode="none"
-        resolution={2}
-        style={{
-          align: 'center',
-          fill: '#f5deb0',
-          fontFamily: 'serif',
-          fontSize: 18,
-          fontWeight: '700',
-          stroke: { color: '#2f2117', width: 3 },
-        }}
-        text={gladiator.name}
-        y={24}
-      />
-    </pixiContainer>
-  );
-}
-
-function LudusMapPaths({ paths }: { paths: LudusMapScenePathViewModel[] }) {
-  const drawPaths = useCallback(
-    (graphics: Graphics) => {
-      graphics.clear();
-
-      for (const path of paths) {
-        if (path.points.length < 2) {
-          continue;
-        }
-
-        graphics.setStrokeStyle({
-          color: path.kind === 'external' ? 0x7b5a35 : 0x9f7a45,
-          width: path.kind === 'external' ? 32 : 24,
-          alpha: 0.5,
-          cap: 'round',
-          join: 'round',
-        });
-        graphics.moveTo(path.points[0].x, path.points[0].y);
-
-        for (const point of path.points.slice(1)) {
-          graphics.lineTo(point.x, point.y);
-        }
-
-        graphics.stroke();
-        graphics.setStrokeStyle({
-          color: path.kind === 'external' ? 0xd7b56b : 0xe1c27d,
-          width: path.kind === 'external' ? 16 : 12,
-          alpha: 0.58,
-          cap: 'round',
-          join: 'round',
-        });
-        graphics.moveTo(path.points[0].x, path.points[0].y);
-
-        for (const point of path.points.slice(1)) {
-          graphics.lineTo(point.x, point.y);
-        }
-
-        graphics.stroke();
-      }
-    },
-    [paths],
-  );
-
-  return <pixiGraphics draw={drawPaths} zIndex={2} />;
-}
-
-function LudusMapDecoration({ decoration }: { decoration: LudusMapSceneDecorationViewModel }) {
-  const drawDecoration = useCallback(
-    (graphics: Graphics) => {
-      const { height, style, width } = decoration;
-
-      graphics.clear();
-
-      if (style === 'wall') {
-        graphics.setFillStyle({ color: 0x6a5140 });
-        graphics.rect(0, 0, width, height);
-        graphics.fill();
-        graphics.setFillStyle({ color: 0x9d8064, alpha: 0.65 });
-        graphics.rect(0, 0, width, Math.max(5, height * 0.28));
-        graphics.fill();
-        return;
-      }
-
-      if (style === 'fence') {
-        graphics.setStrokeStyle({ color: 0x6c492e, width: 8, cap: 'round' });
-        graphics.moveTo(0, height * 0.5);
-        graphics.lineTo(width, height * 0.5);
-        graphics.stroke();
-        graphics.setStrokeStyle({ color: 0xb2834f, width: 4, cap: 'round' });
-        for (let x = 8; x < width; x += 28) {
-          graphics.moveTo(x, 2);
-          graphics.lineTo(x + 6, height - 2);
-        }
-        graphics.stroke();
-        return;
-      }
-
-      if (style === 'field') {
-        graphics.setFillStyle({ color: 0xb99d55, alpha: 0.78 });
-        graphics.roundRect(0, 0, width, height, 8);
-        graphics.fill();
-        graphics.setStrokeStyle({ color: 0xe1c97b, width: 5, alpha: 0.45 });
-        for (let y = 18; y < height; y += 28) {
-          graphics.moveTo(14, y);
-          graphics.lineTo(width - 14, y + 8);
-        }
-        graphics.stroke();
-        return;
-      }
-
-      if (style === 'well') {
-        graphics.setFillStyle({ color: 0x33261e, alpha: 0.36 });
-        graphics.ellipse(width / 2, height * 0.82, width * 0.5, height * 0.18);
-        graphics.fill();
-        graphics.setFillStyle({ color: 0x7b6854 });
-        graphics.circle(width / 2, height / 2, Math.min(width, height) * 0.34);
-        graphics.fill();
-        graphics.setFillStyle({ color: 0x273f4b });
-        graphics.circle(width / 2, height / 2, Math.min(width, height) * 0.22);
-        graphics.fill();
-        return;
-      }
-
-      if (style === 'storage') {
-        graphics.setFillStyle({ color: 0x8a5b35 });
-        graphics.roundRect(4, height * 0.22, width - 8, height * 0.68, 5);
-        graphics.fill();
-        graphics.setStrokeStyle({ color: 0xd3a15f, width: 4 });
-        graphics.rect(10, height * 0.28, width - 20, height * 0.52);
-        graphics.stroke();
-        return;
-      }
-
-      if (style === 'torch') {
-        graphics.setFillStyle({ color: 0x4d3325 });
-        graphics.rect(width * 0.42, height * 0.34, width * 0.16, height * 0.62);
-        graphics.fill();
-        graphics.setFillStyle({ color: 0xffc25d });
-        graphics.circle(width / 2, height * 0.24, width * 0.22);
-        graphics.fill();
-        graphics.setFillStyle({ color: 0xb73a24 });
-        graphics.circle(width / 2, height * 0.29, width * 0.12);
-        graphics.fill();
-        return;
-      }
-
-      if (style === 'amphora') {
-        graphics.setFillStyle({ color: 0x9b6535 });
-        graphics.ellipse(width / 2, height * 0.58, width * 0.32, height * 0.34);
-        graphics.fill();
-        graphics.setFillStyle({ color: 0xd3a15f });
-        graphics.rect(width * 0.38, height * 0.14, width * 0.24, height * 0.24);
-        graphics.fill();
-        return;
-      }
-
-      if (style === 'cypressTree') {
-        graphics.setFillStyle({ color: 0x5e3b25 });
-        graphics.rect(width * 0.44, height * 0.72, width * 0.12, height * 0.24);
-        graphics.fill();
-        graphics.setFillStyle({ color: 0x244b35 });
-        graphics.moveTo(width / 2, 0);
-        graphics.lineTo(width * 0.12, height * 0.78);
-        graphics.lineTo(width * 0.88, height * 0.78);
-        graphics.closePath();
-        graphics.fill();
-        return;
-      }
-
-      graphics.setFillStyle({ color: 0x684323 });
-      graphics.rect(width * 0.44, height * 0.58, width * 0.12, height * 0.34);
-      graphics.fill();
-      graphics.setFillStyle({ color: 0x4e6b2f });
-      graphics.circle(width * 0.48, height * 0.28, width * 0.3);
-      graphics.circle(width * 0.28, height * 0.44, width * 0.24);
-      graphics.circle(width * 0.7, height * 0.44, width * 0.24);
-      graphics.fill();
-    },
-    [decoration],
-  );
-
-  return (
-    <pixiGraphics
-      draw={drawDecoration}
-      pivot={{ x: decoration.width / 2, y: decoration.height / 2 }}
-      rotation={(decoration.rotation * Math.PI) / 180}
-      x={decoration.x + decoration.width / 2}
-      y={decoration.y + decoration.height / 2}
-      zIndex={decoration.y + decoration.height * 0.72}
-    />
-  );
-}
-
-function LudusMapAmbientSprite({ element, reducedMotion, texture }: LudusMapAmbientSpriteProps) {
-  const spriteRef = useRef<Sprite | null>(null);
-
-  useEffect(() => {
-    const sprite = spriteRef.current;
-
-    if (!sprite) {
-      return;
-    }
-
-    sprite.x = element.x;
-    sprite.y = element.y;
-    sprite.alpha = element.opacity;
-    sprite.rotation = (element.rotation * Math.PI) / 180;
-  }, [element.opacity, element.rotation, element.x, element.y]);
-
-  useTick(() => {
-    const sprite = spriteRef.current;
-
-    if (!sprite || reducedMotion) {
-      return;
-    }
-
-    const elapsedSeconds = performance.now() / 1000 + element.animationDelaySeconds;
-    const cycle =
-      (elapsedSeconds % element.animationDurationSeconds) / element.animationDurationSeconds;
-    const wave = Math.sin(cycle * Math.PI * 2);
-
-    if (element.kind === 'cloud') {
-      sprite.x = element.x + cycle * 340;
-      sprite.alpha = element.opacity;
-      return;
-    }
-
-    if (element.kind === 'smoke') {
-      sprite.y = element.y - cycle * 26;
-      sprite.alpha = element.opacity * (1 - cycle * 0.55);
-      return;
-    }
-
-    if (element.kind === 'torch' || element.kind === 'crowd') {
-      sprite.alpha = element.opacity * (0.78 + Math.abs(wave) * 0.22);
-      return;
-    }
-
-    if (element.kind === 'banner' || element.kind === 'grass') {
-      sprite.rotation = ((element.rotation + wave * 2.5) * Math.PI) / 180;
-    }
-  });
-
-  if (!texture || element.opacity <= 0) {
-    return null;
   }
 
-  return (
-    <pixiSprite
-      alpha={element.opacity}
-      height={element.height}
-      ref={spriteRef}
-      texture={texture}
-      width={element.width}
-      x={element.x}
-      y={element.y}
-      zIndex={element.zIndex}
-    />
-  );
-}
+  private getGladiatorAnimationTextures(gladiator: LudusMapSceneGladiatorViewModel): Texture[] {
+    const spritesheet = gladiator.spritesheetAtlasPath
+      ? this.spritesheets.get(gladiator.spritesheetAtlasPath)
+      : undefined;
+    const spritesheetTextures =
+      spritesheet && gladiator.frameNames.length > 0
+        ? gladiator.frameNames.flatMap((frameName) => {
+            const texture = spritesheet.textures[frameName];
 
-export function LudusMapScene({ viewModel, onLocationSelect }: LudusMapSceneProps) {
-  const { app, isInitialised } = useApplication();
-  const [texturesByPath, setTexturesByPath] = useState<Record<string, Texture>>({});
-  const [camera, setCamera] = useState<CameraState>(() => createDefaultCamera(viewModel));
-  const viewModelRef = useRef(viewModel);
-  const cameraRef = useRef(camera);
-  const panStateRef = useRef<{
-    pointerId: number;
-    startClientX: number;
-    startClientY: number;
-    startCamera: CameraState;
-  } | null>(null);
-  const draggedRef = useRef(false);
-  const lastDragEndedAtRef = useRef(0);
-  const setCameraState = useCallback(
-    (update: CameraState | ((current: CameraState) => CameraState)) => {
-      setCamera((currentCamera) => {
-        const nextCamera = typeof update === 'function' ? update(currentCamera) : update;
-        cameraRef.current = nextCamera;
+            return texture ? [texture] : [];
+          })
+        : [];
 
-        return nextCamera;
-      });
-    },
-    [],
-  );
-  const assetPathKey = getLudusMapAssetPaths(viewModel).join(ASSET_PATH_SEPARATOR);
-  const stableAssetPaths = useMemo(
-    () => (assetPathKey ? assetPathKey.split(ASSET_PATH_SEPARATOR) : []),
-    [assetPathKey],
-  );
+    if (spritesheetTextures.length > 0) {
+      return spritesheetTextures;
+    }
 
-  useEffect(() => {
-    viewModelRef.current = viewModel;
-  }, [viewModel]);
+    return gladiator.fallbackFramePaths.flatMap((framePath) => {
+      const texture = this.textures.get(framePath);
 
-  useEffect(() => {
-    if (!isInitialised) {
+      return texture ? [texture] : [];
+    });
+  }
+
+  private updateGladiatorSprite(display: GladiatorDisplay): void {
+    const viewModel = this.viewModel;
+    const { animation } = display.gladiator;
+    const textures = this.getGladiatorAnimationTextures(display.gladiator);
+    const animationSignature = [
+      display.gladiator.animationId,
+      display.gladiator.spritesheetAtlasPath ?? 'fallback',
+      display.gladiator.frameNames.join('|'),
+      display.gladiator.fallbackFramePaths.join('|'),
+    ].join(':');
+
+    display.sprite.visible = textures.length > 0;
+    display.fallback.visible = textures.length === 0;
+
+    if (textures.length === 0) {
       return;
     }
 
-    function handleResize() {
-      setCameraState((currentCamera) => clampCamera(currentCamera, viewModelRef.current, app));
+    display.sprite.anchor.set(animation.anchor.x, animation.anchor.y);
+    display.sprite.loop = animation.loop && !(viewModel?.reducedMotion ?? false);
+    display.sprite.animationSpeed = (viewModel?.reducedMotion ?? false) ? 0 : animation.fps / 60;
+
+    if (display.animationSignature !== animationSignature) {
+      display.animationSignature = animationSignature;
+      display.sprite.textures = textures;
+      display.sprite.gotoAndStop(0);
     }
 
-    globalThis.addEventListener('resize', handleResize);
-
-    return () => {
-      globalThis.removeEventListener('resize', handleResize);
-    };
-  }, [app, isInitialised, setCameraState]);
-
-  useEffect(() => {
-    if (!isInitialised) {
+    if (viewModel?.reducedMotion || textures.length === 1) {
+      display.sprite.gotoAndStop(0);
       return;
     }
 
-    const canvas = app.canvas;
-    function handleWheel(event: WheelEvent) {
-      event.preventDefault();
-      const bounds = canvas.getBoundingClientRect();
-      const cursorX = event.clientX - bounds.left;
-      const cursorY = event.clientY - bounds.top;
+    if (!display.sprite.playing) {
+      display.sprite.play();
+    }
+  }
 
-      setCameraState((currentCamera) => {
-        const latestViewModel = viewModelRef.current;
-        const nextScale = clamp(
-          currentCamera.scale * Math.exp(-event.deltaY * 0.001),
-          latestViewModel.minZoom,
-          latestViewModel.maxZoom,
-        );
-        const worldX = (cursorX - currentCamera.x) / currentCamera.scale;
-        const worldY = (cursorY - currentCamera.y) / currentCamera.scale;
+  private updateLocationAffordances(): void {
+    const viewModel = this.viewModel;
 
-        return clampCamera(
-          {
-            scale: nextScale,
-            x: cursorX - worldX * nextScale,
-            y: cursorY - worldY * nextScale,
-          },
-          latestViewModel,
-          app,
-        );
-      });
+    if (!viewModel) {
+      return;
     }
 
-    function handlePointerDown(event: PointerEvent) {
-      if (event.button !== 0) {
-        return;
-      }
+    const zoom = this.cameraController?.getState().scale ?? viewModel.defaultZoom;
 
-      draggedRef.current = false;
-      panStateRef.current = {
-        pointerId: event.pointerId,
-        startClientX: event.clientX,
-        startClientY: event.clientY,
-        startCamera: cameraRef.current,
-      };
-      canvas.setPointerCapture(event.pointerId);
+    for (const display of this.locations.values()) {
+      const { location } = display;
+      const isHovered = this.hoveredLocationId === location.id;
+      const isSelected = viewModel.selectedLocationId === location.mapLocationId;
+      const isStrategicZoom = zoom >= getLocationLabelZoomThreshold(location);
+      const shouldShowLabel = isHovered || isSelected || isStrategicZoom;
+
+      display.label.visible = shouldShowLabel;
+      display.label.alpha = isSelected ? 1 : isHovered ? 0.96 : 0.74;
+      drawLocationHighlight(display.highlight, location, isHovered, isSelected);
+    }
+  }
+
+  private updateDebugOverlay(): void {
+    if (!this.debugOverlay) {
+      return;
     }
 
-    function handlePointerMove(event: PointerEvent) {
-      const panState = panStateRef.current;
+    this.debugOverlay.draw([
+      ...Array.from(this.locations.values()).map((display) =>
+        this.createLocationDebugMetric(display),
+      ),
+      ...Array.from(this.decorations.values()).map((display) =>
+        this.createDecorationDebugMetric(display),
+      ),
+      ...Array.from(this.gladiators.values()).map((display) =>
+        this.createGladiatorDebugMetric(display),
+      ),
+    ]);
+  }
 
-      if (!panState || panState.pointerId !== event.pointerId) {
-        return;
-      }
+  private createLocationDebugMetric(display: LocationDisplay): PixiVisualDebugMetric {
+    const { location } = display;
+    const sourceSprite =
+      display.exteriorSprite.texture !== Texture.EMPTY
+        ? display.exteriorSprite
+        : display.roofSprite.texture !== Texture.EMPTY
+          ? display.roofSprite
+          : display.propsSprite;
 
-      const deltaX = event.clientX - panState.startClientX;
-      const deltaY = event.clientY - panState.startClientY;
-
-      if (Math.abs(deltaX) + Math.abs(deltaY) > 6) {
-        draggedRef.current = true;
-      }
-
-      setCameraState(
-        clampCamera(
-          {
-            scale: panState.startCamera.scale,
-            x: panState.startCamera.x + deltaX,
-            y: panState.startCamera.y + deltaY,
-          },
-          viewModelRef.current,
-          app,
-        ),
-      );
-    }
-
-    function handlePointerUp(event: PointerEvent) {
-      const panState = panStateRef.current;
-
-      if (!panState || panState.pointerId !== event.pointerId) {
-        return;
-      }
-
-      panStateRef.current = null;
-
-      if (draggedRef.current) {
-        lastDragEndedAtRef.current = performance.now();
-      }
-
-      if (canvas.hasPointerCapture(event.pointerId)) {
-        canvas.releasePointerCapture(event.pointerId);
-      }
-    }
-
-    canvas.addEventListener('wheel', handleWheel, { passive: false });
-    canvas.addEventListener('pointerdown', handlePointerDown);
-    canvas.addEventListener('pointermove', handlePointerMove);
-    canvas.addEventListener('pointerup', handlePointerUp);
-    canvas.addEventListener('pointercancel', handlePointerUp);
-
-    return () => {
-      canvas.removeEventListener('wheel', handleWheel);
-      canvas.removeEventListener('pointerdown', handlePointerDown);
-      canvas.removeEventListener('pointermove', handlePointerMove);
-      canvas.removeEventListener('pointerup', handlePointerUp);
-      canvas.removeEventListener('pointercancel', handlePointerUp);
+    return {
+      label: `location:${location.id}`,
+      x: location.x,
+      y: location.y,
+      width: location.width,
+      height: location.height,
+      nativeWidth: sourceSprite.texture === Texture.EMPTY ? undefined : sourceSprite.texture.width,
+      nativeHeight:
+        sourceSprite.texture === Texture.EMPTY ? undefined : sourceSprite.texture.height,
+      scaleX: sourceSprite.texture === Texture.EMPTY ? undefined : sourceSprite.scale.x,
+      scaleY: sourceSprite.texture === Texture.EMPTY ? undefined : sourceSprite.scale.y,
+      anchor: { x: sourceSprite.anchor.x, y: sourceSprite.anchor.y },
+      anchorPosition: {
+        x: location.x + location.width * sourceSprite.anchor.x,
+        y: location.y + location.height * sourceSprite.anchor.y,
+      },
+      hitbox: {
+        x: location.x + location.hitArea.x,
+        y: location.y + location.hitArea.y,
+        width: location.hitArea.width,
+        height: location.hitArea.height,
+      },
+      color: location.kind === 'external' ? 0xe0b15e : 0x86e7ff,
     };
-  }, [app, isInitialised, setCameraState]);
+  }
 
-  useEffect(() => {
-    let isMounted = true;
+  private createDecorationDebugMetric(display: DecorationDisplay): PixiVisualDebugMetric {
+    const { decoration, sprite } = display;
 
-    async function loadTextures() {
-      const loadedEntries = await Promise.all(
-        stableAssetPaths.map(
-          async (assetPath) => [assetPath, await Assets.load<Texture>(assetPath)] as const,
-        ),
-      );
-
-      if (isMounted) {
-        setTexturesByPath(Object.fromEntries(loadedEntries));
-      }
-    }
-
-    void loadTextures();
-
-    return () => {
-      isMounted = false;
+    return {
+      label: `decoration:${decoration.id}`,
+      x: decoration.x,
+      y: decoration.y,
+      width: Math.abs(sprite.width),
+      height: Math.abs(sprite.height),
+      nativeWidth: sprite.texture === Texture.EMPTY ? undefined : sprite.texture.width,
+      nativeHeight: sprite.texture === Texture.EMPTY ? undefined : sprite.texture.height,
+      scaleX: sprite.texture === Texture.EMPTY ? undefined : sprite.scale.x,
+      scaleY: sprite.texture === Texture.EMPTY ? undefined : sprite.scale.y,
+      anchor: { x: sprite.anchor.x, y: sprite.anchor.y },
+      anchorPosition: {
+        x: decoration.x + Math.abs(sprite.width) * sprite.anchor.x,
+        y: decoration.y + Math.abs(sprite.height) * sprite.anchor.y,
+      },
+      color: 0xb3ff91,
     };
-  }, [stableAssetPaths]);
+  }
 
-  const drawBackground = useCallback(
-    (graphics: Graphics) => {
-      graphics.clear();
-      graphics.setFillStyle({ color: viewModel.theme.terrainColor });
-      graphics.rect(0, 0, viewModel.width, viewModel.height);
-      graphics.fill();
-      graphics.setFillStyle({ color: viewModel.theme.terrainHighlightColor, alpha: 0.24 });
-      graphics.ellipse(viewModel.width / 2, viewModel.height * 0.64, 880, 360);
-      graphics.fill();
-      graphics.setStrokeStyle({ color: 0x3b2a1d, width: 6 });
-      graphics.roundRect(24, 24, viewModel.width - 48, viewModel.height - 48, 18);
-      graphics.stroke();
-    },
-    [
-      viewModel.height,
-      viewModel.theme.terrainColor,
-      viewModel.theme.terrainHighlightColor,
-      viewModel.width,
-    ],
-  );
+  private createGladiatorDebugMetric(display: GladiatorDisplay): PixiVisualDebugMetric {
+    const { animation } = display.gladiator;
+    const { sprite } = display;
+    const width = Math.abs(sprite.width);
+    const height = Math.abs(sprite.height);
+    const originX = display.container.x + sprite.x;
+    const originY = display.container.y + sprite.y;
 
-  return (
-    <pixiContainer scale={camera.scale} sortableChildren x={camera.x} y={camera.y}>
-      <pixiGraphics draw={drawBackground} zIndex={-1100} />
-      {viewModel.theme.backgroundAssetPath &&
-      texturesByPath[viewModel.theme.backgroundAssetPath] ? (
-        <pixiSprite
-          alpha={0.9}
-          height={viewModel.height}
-          texture={texturesByPath[viewModel.theme.backgroundAssetPath]}
-          width={viewModel.width}
-          zIndex={-1000}
-        />
-      ) : null}
-      <LudusMapPaths paths={viewModel.paths} />
-      {viewModel.decorations.map((decoration) => (
-        <LudusMapDecoration decoration={decoration} key={decoration.id} />
-      ))}
-      {viewModel.ambientElements
-        .filter((element) => element.zIndex <= 3)
-        .map((element) => (
-          <LudusMapAmbientSprite
-            element={element}
-            key={element.id}
-            reducedMotion={viewModel.reducedMotion}
-            texture={texturesByPath[element.assetPath]}
-          />
-        ))}
-      {viewModel.locations.map((location) => (
-        <pixiContainer
-          cursor="pointer"
-          eventMode="static"
-          key={location.id}
-          label={location.id}
-          zIndex={location.y + location.height}
-          onPointerTap={(event: FederatedPointerEvent) => {
-            event.stopPropagation();
-            if (performance.now() - lastDragEndedAtRef.current < 160) {
-              return;
-            }
-            onLocationSelect?.(location.mapLocationId);
-          }}
-        >
-          <pixiGraphics
-            draw={(graphics) => {
-              graphics.clear();
-              graphics.setFillStyle({
-                color:
-                  location.kind === 'external' ? 0x7b4c32 : location.isOwned ? 0x9b6535 : 0x4b3d33,
-                alpha: location.assetPath ? 0.2 : 1,
-              });
-              graphics.rect(location.x, location.y, location.width, location.height);
-              graphics.fill();
-              graphics.setStrokeStyle({
-                color:
-                  location.kind === 'external' ? 0xe0b15e : location.isOwned ? 0xd6a557 : 0x7d6959,
-                width: 4,
-              });
-              graphics.rect(location.x, location.y, location.width, location.height);
-              graphics.stroke();
-            }}
-          />
-          {location.assetPath && texturesByPath[location.assetPath] ? (
-            <pixiSprite
-              height={location.height}
-              texture={texturesByPath[location.assetPath]}
-              width={location.width}
-              x={location.x}
-              y={location.y}
-            />
-          ) : null}
-          <pixiText
-            anchor={0.5}
-            eventMode="none"
-            resolution={2}
-            style={{
-              align: 'center',
-              dropShadow: {
-                alpha: 0.7,
-                angle: Math.PI / 2,
-                blur: 1,
-                color: '#1c130c',
-                distance: 2,
-              },
-              fill: '#f5deb0',
-              fontFamily: 'serif',
-              fontSize: 28,
-              fontWeight: '700',
-              stroke: { color: '#2f2117', width: 4 },
-            }}
-            text={location.label}
-            x={location.x + location.width / 2}
-            y={location.y + location.height + 30}
-          />
-        </pixiContainer>
-      ))}
-      {viewModel.ambientElements
-        .filter((element) => element.zIndex > 3)
-        .map((element) => (
-          <LudusMapAmbientSprite
-            element={element}
-            key={element.id}
-            reducedMotion={viewModel.reducedMotion}
-            texture={texturesByPath[element.assetPath]}
-          />
-        ))}
-      {viewModel.gladiators.map((gladiator) => (
-        <LudusMapGladiatorSprite
-          currentGameMinute={viewModel.currentGameMinute}
-          gameMinutesPerRealMillisecond={viewModel.gameMinutesPerRealMillisecond}
-          gladiator={gladiator}
-          key={gladiator.id}
-          texturesByPath={texturesByPath}
-        />
-      ))}
-      <pixiGraphics
-        draw={(graphics) => {
-          graphics.clear();
-          graphics.setFillStyle({
-            color: viewModel.theme.overlayColor,
-            alpha: viewModel.theme.overlayOpacity,
-          });
-          graphics.rect(0, 0, viewModel.width, viewModel.height);
-          graphics.fill();
-        }}
-        eventMode="none"
-        zIndex={10000}
-      />
-    </pixiContainer>
-  );
+    return {
+      label: `gladiator:${display.gladiator.id}`,
+      x: originX - width * sprite.anchor.x,
+      y: originY - height * sprite.anchor.y,
+      width,
+      height,
+      nativeWidth: sprite.texture === Texture.EMPTY ? undefined : sprite.texture.width,
+      nativeHeight: sprite.texture === Texture.EMPTY ? undefined : sprite.texture.height,
+      scaleX: sprite.texture === Texture.EMPTY ? undefined : sprite.scale.x,
+      scaleY: sprite.texture === Texture.EMPTY ? undefined : sprite.scale.y,
+      anchor: { x: sprite.anchor.x, y: sprite.anchor.y },
+      anchorPosition: { x: originX, y: originY },
+      hitbox: {
+        x: display.container.x + animation.hitbox.x,
+        y: display.container.y + animation.hitbox.y,
+        width: animation.hitbox.width,
+        height: animation.hitbox.height,
+      },
+      color: 0xf8e56b,
+    };
+  }
+
+  private updateLocationDisplay(display: LocationDisplay): void {
+    const { location } = display;
+    const exteriorTexture = location.exteriorAssetPath
+      ? this.textures.get(location.exteriorAssetPath)
+      : undefined;
+    const propsTexture = location.propsAssetPath
+      ? this.textures.get(location.propsAssetPath)
+      : undefined;
+    const roofTexture = location.roofAssetPath
+      ? this.textures.get(location.roofAssetPath)
+      : undefined;
+    const visualAlpha = location.isOwned ? 1 : 0.58;
+
+    display.backContainer.x = location.x;
+    display.backContainer.y = location.y;
+    display.backContainer.zIndex = location.sortY;
+    display.propsContainer.x = location.x;
+    display.propsContainer.y = location.y;
+    display.propsContainer.zIndex = location.sortY + 1;
+    display.frontContainer.x = location.x;
+    display.frontContainer.y = location.y;
+    display.frontContainer.zIndex = location.sortY;
+    display.highlight.x = location.x + location.hitArea.x;
+    display.highlight.y = location.y + location.hitArea.y;
+    display.highlight.zIndex = 0;
+    display.interaction.x = location.x + location.hitArea.x;
+    display.interaction.y = location.y + location.hitArea.y;
+    display.interaction.hitArea = new Rectangle(
+      0,
+      0,
+      location.hitArea.width,
+      location.hitArea.height,
+    );
+    display.label.x = location.labelPosition.x;
+    display.label.y = location.labelPosition.y;
+    display.exteriorSprite.texture = exteriorTexture ?? Texture.EMPTY;
+    display.exteriorSprite.visible = Boolean(exteriorTexture);
+    setPixelArtSpriteSize(display.exteriorSprite, location.width, location.height);
+    display.exteriorSprite.alpha = visualAlpha;
+    display.propsSprite.texture = propsTexture ?? Texture.EMPTY;
+    display.propsSprite.visible = Boolean(propsTexture);
+    setPixelArtSpriteSize(display.propsSprite, location.width, location.height);
+    display.propsSprite.alpha = visualAlpha;
+    display.roofSprite.texture = roofTexture ?? Texture.EMPTY;
+    display.roofSprite.visible = Boolean(roofTexture);
+    setPixelArtSpriteSize(display.roofSprite, location.width, location.height);
+    display.roofSprite.alpha = visualAlpha;
+    display.fallbackFrame.visible = !exteriorTexture;
+    drawLocationFallbackFrame(display.fallbackFrame, location);
+  }
 }

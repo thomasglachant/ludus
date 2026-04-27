@@ -63,6 +63,7 @@ export interface LudusMapDefinition {
   defaultZoom: number;
   minZoom: number;
   maxZoom: number;
+  zoomPresets: number[];
   locations: MapLocationDefinition[];
   paths: MapPathDefinition[];
   decorations: MapDecorationDefinition[];
@@ -84,9 +85,10 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
     x: -520,
     y: -260,
   },
-  defaultZoom: 0.78,
-  minZoom: 0.28,
-  maxZoom: 1.45,
+  defaultZoom: 0.75,
+  minZoom: 0.5,
+  maxZoom: 1.5,
+  zoomPresets: [0.5, 0.75, 1, 1.25, 1.5],
   locations: [
     {
       id: 'domus',

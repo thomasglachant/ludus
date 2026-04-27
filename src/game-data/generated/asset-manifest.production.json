@@ -1,0 +1,413 @@
+{
+  "version": 1,
+  "sourceQuality": "production",
+  "generatedAt": "2026-04-27T07:53:06.277335Z",
+  "homepage": {
+    "sourceQuality": "production",
+    "backgrounds": {
+      "day": "/assets/pixel-art-production/main-menu/main-menu-background-day.webp",
+      "dusk": "/assets/pixel-art-production/main-menu/main-menu-background-dusk.webp"
+    },
+    "lastSaveThumbnail": "/assets/pixel-art-production/main-menu/last-save-thumbnail.webp"
+  },
+  "map": {
+    "sourceQuality": "production",
+    "backgrounds": {
+      "day": "/assets/pixel-art-production/map/ludus-map-day.webp",
+      "dawn": "/assets/pixel-art-production/map/ludus-map-dawn.webp",
+      "dusk": "/assets/pixel-art-production/map/ludus-map-dusk.webp",
+      "night": "/assets/pixel-art-production/map/ludus-map-night.webp"
+    },
+    "ambient": {
+      "cloud-01": "/assets/pixel-art-production/map/ambient/cloud-01.png",
+      "cloud-02": "/assets/pixel-art-production/map/ambient/cloud-02.png",
+      "grass-tuft-01": "/assets/pixel-art-production/map/ambient/grass-tuft-01.png",
+      "banner-red": "/assets/pixel-art-production/map/ambient/banner-red.png",
+      "torch-on": "/assets/pixel-art-production/map/ambient/torch-on.png",
+      "smoke-puff": "/assets/pixel-art-production/map/ambient/smoke-puff.png",
+      "crowd-dot": "/assets/pixel-art-production/map/ambient/crowd-dot.png"
+    }
+  },
+  "buildings": {
+    "domus": {
+      "level-0": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/domus/level-0/exterior.png",
+        "width": 280,
+        "height": 190
+      },
+      "level-1": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/domus/level-1/exterior.png",
+        "width": 280,
+        "height": 190
+      },
+      "level-2": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/domus/level-2/exterior.png",
+        "width": 280,
+        "height": 190
+      },
+      "level-3": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/domus/level-3/exterior.png",
+        "width": 280,
+        "height": 190
+      }
+    },
+    "canteen": {
+      "level-0": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/canteen/level-0/exterior.png",
+        "width": 230,
+        "height": 160
+      },
+      "level-1": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/canteen/level-1/exterior.png",
+        "width": 230,
+        "height": 160
+      },
+      "level-2": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/canteen/level-2/exterior.png",
+        "width": 230,
+        "height": 160
+      },
+      "level-3": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/canteen/level-3/exterior.png",
+        "width": 230,
+        "height": 160
+      }
+    },
+    "dormitory": {
+      "level-0": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/dormitory/level-0/exterior.png",
+        "width": 250,
+        "height": 170
+      },
+      "level-1": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/dormitory/level-1/exterior.png",
+        "width": 250,
+        "height": 170
+      },
+      "level-2": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/dormitory/level-2/exterior.png",
+        "width": 250,
+        "height": 170
+      },
+      "level-3": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/dormitory/level-3/exterior.png",
+        "width": 250,
+        "height": 170
+      }
+    },
+    "trainingGround": {
+      "level-0": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/trainingGround/level-0/exterior.png",
+        "width": 300,
+        "height": 210
+      },
+      "level-1": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/trainingGround/level-1/exterior.png",
+        "width": 300,
+        "height": 210
+      },
+      "level-2": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/trainingGround/level-2/exterior.png",
+        "width": 300,
+        "height": 210
+      },
+      "level-3": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/trainingGround/level-3/exterior.png",
+        "width": 300,
+        "height": 210
+      }
+    },
+    "pleasureHall": {
+      "level-0": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/pleasureHall/level-0/exterior.png",
+        "width": 250,
+        "height": 170
+      },
+      "level-1": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/pleasureHall/level-1/exterior.png",
+        "width": 250,
+        "height": 170
+      },
+      "level-2": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/pleasureHall/level-2/exterior.png",
+        "width": 250,
+        "height": 170
+      },
+      "level-3": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/pleasureHall/level-3/exterior.png",
+        "width": 250,
+        "height": 170
+      }
+    },
+    "infirmary": {
+      "level-0": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/infirmary/level-0/exterior.png",
+        "width": 240,
+        "height": 160
+      },
+      "level-1": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/infirmary/level-1/exterior.png",
+        "width": 240,
+        "height": 160
+      },
+      "level-2": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/infirmary/level-2/exterior.png",
+        "width": 240,
+        "height": 160
+      },
+      "level-3": {
+        "sourceQuality": "production",
+        "exterior": "/assets/pixel-art-production/buildings/infirmary/level-3/exterior.png",
+        "width": 240,
+        "height": 160
+      }
+    }
+  },
+  "locations": {
+    "market": {
+      "sourceQuality": "production",
+      "exterior": "/assets/pixel-art-production/buildings/canteen/level-1/exterior.png",
+      "props": "/assets/pixel-art-production/buildings/canteen/level-1/exterior.png"
+    },
+    "arena": {
+      "sourceQuality": "production",
+      "exterior": "/assets/pixel-art-production/map/locations/arena-exterior.webp",
+      "combatBackground": "/assets/pixel-art-production/combat/arena-background.webp",
+      "crowd": "/assets/pixel-art-production/combat/arena-crowd.webp"
+    }
+  },
+  "gladiators": {
+    "gladiator-01": {
+      "sourceQuality": "production",
+      "portrait": "/assets/pixel-art-production/gladiators/gladiator-01/portrait.png",
+      "mapSpritesheet": "/assets/pixel-art-production/gladiators/gladiator-01/map-spritesheet.png",
+      "mapAtlas": "/assets/pixel-art-production/gladiators/gladiator-01/map-spritesheet.json",
+      "combatSpritesheet": "/assets/pixel-art-production/gladiators/gladiator-01/combat-spritesheet.png",
+      "combatAtlas": "/assets/pixel-art-production/gladiators/gladiator-01/combat-spritesheet.json",
+      "frames": {
+        "map-idle": [
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-idle-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-idle-1.png"
+        ],
+        "map-walk": [
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-walk-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-walk-1.png"
+        ],
+        "map-train": [
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-train-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-train-1.png"
+        ],
+        "map-eat": [
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-eat-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-eat-1.png"
+        ],
+        "map-rest": [
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-rest-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-rest-1.png"
+        ],
+        "map-celebrate": [
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-celebrate-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-celebrate-1.png"
+        ],
+        "map-healing": [
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-healing-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-01/map/map-healing-1.png"
+        ],
+        "combat-idle": [
+          "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-1.png"
+        ],
+        "combat-attack": [
+          "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-attack-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-attack-1.png"
+        ]
+      },
+      "paletteId": "terracotta",
+      "bodyType": "compact",
+      "hairStyle": "helmeted",
+      "armorStyle": "leather"
+    },
+    "gladiator-02": {
+      "sourceQuality": "production",
+      "portrait": "/assets/pixel-art-production/gladiators/gladiator-02/portrait.png",
+      "mapSpritesheet": "/assets/pixel-art-production/gladiators/gladiator-02/map-spritesheet.png",
+      "mapAtlas": "/assets/pixel-art-production/gladiators/gladiator-02/map-spritesheet.json",
+      "combatSpritesheet": "/assets/pixel-art-production/gladiators/gladiator-02/combat-spritesheet.png",
+      "combatAtlas": "/assets/pixel-art-production/gladiators/gladiator-02/combat-spritesheet.json",
+      "frames": {
+        "map-idle": [
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-idle-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-idle-1.png"
+        ],
+        "map-walk": [
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-walk-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-walk-1.png"
+        ],
+        "map-train": [
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-train-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-train-1.png"
+        ],
+        "map-eat": [
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-eat-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-eat-1.png"
+        ],
+        "map-rest": [
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-rest-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-rest-1.png"
+        ],
+        "map-celebrate": [
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-celebrate-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-celebrate-1.png"
+        ],
+        "map-healing": [
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-healing-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-02/map/map-healing-1.png"
+        ],
+        "combat-idle": [
+          "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-1.png"
+        ],
+        "combat-attack": [
+          "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-attack-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-attack-1.png"
+        ]
+      },
+      "paletteId": "gold",
+      "bodyType": "broad",
+      "hairStyle": "crested",
+      "armorStyle": "bronze"
+    },
+    "gladiator-03": {
+      "sourceQuality": "production",
+      "portrait": "/assets/pixel-art-production/gladiators/gladiator-03/portrait.png",
+      "mapSpritesheet": "/assets/pixel-art-production/gladiators/gladiator-03/map-spritesheet.png",
+      "mapAtlas": "/assets/pixel-art-production/gladiators/gladiator-03/map-spritesheet.json",
+      "combatSpritesheet": "/assets/pixel-art-production/gladiators/gladiator-03/combat-spritesheet.png",
+      "combatAtlas": "/assets/pixel-art-production/gladiators/gladiator-03/combat-spritesheet.json",
+      "frames": {
+        "map-idle": [
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-idle-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-idle-1.png"
+        ],
+        "map-walk": [
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-walk-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-walk-1.png"
+        ],
+        "map-train": [
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-train-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-train-1.png"
+        ],
+        "map-eat": [
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-eat-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-eat-1.png"
+        ],
+        "map-rest": [
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-rest-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-rest-1.png"
+        ],
+        "map-celebrate": [
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-celebrate-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-celebrate-1.png"
+        ],
+        "map-healing": [
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-healing-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-03/map/map-healing-1.png"
+        ],
+        "combat-idle": [
+          "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-1.png"
+        ],
+        "combat-attack": [
+          "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-attack-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-attack-1.png"
+        ]
+      },
+      "paletteId": "olive",
+      "bodyType": "lean",
+      "hairStyle": "galea",
+      "armorStyle": "cloth"
+    },
+    "gladiator-04": {
+      "sourceQuality": "production",
+      "portrait": "/assets/pixel-art-production/gladiators/gladiator-04/portrait.png",
+      "mapSpritesheet": "/assets/pixel-art-production/gladiators/gladiator-04/map-spritesheet.png",
+      "mapAtlas": "/assets/pixel-art-production/gladiators/gladiator-04/map-spritesheet.json",
+      "combatSpritesheet": "/assets/pixel-art-production/gladiators/gladiator-04/combat-spritesheet.png",
+      "combatAtlas": "/assets/pixel-art-production/gladiators/gladiator-04/combat-spritesheet.json",
+      "frames": {
+        "map-idle": [
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-idle-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-idle-1.png"
+        ],
+        "map-walk": [
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-walk-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-walk-1.png"
+        ],
+        "map-train": [
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-train-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-train-1.png"
+        ],
+        "map-eat": [
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-eat-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-eat-1.png"
+        ],
+        "map-rest": [
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-rest-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-rest-1.png"
+        ],
+        "map-celebrate": [
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-celebrate-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-celebrate-1.png"
+        ],
+        "map-healing": [
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-healing-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-04/map/map-healing-1.png"
+        ],
+        "combat-idle": [
+          "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-1.png"
+        ],
+        "combat-attack": [
+          "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-attack-0.png",
+          "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-attack-1.png"
+        ]
+      },
+      "paletteId": "indigo",
+      "bodyType": "compact",
+      "hairStyle": "masked",
+      "armorStyle": "bronze"
+    }
+  },
+  "ui": {
+    "parchment-tile": "/assets/pixel-art-production/ui/parchment-tile.png",
+    "bronze-frame-tile": "/assets/pixel-art-production/ui/bronze-frame-tile.png",
+    "laurel-left": "/assets/pixel-art-production/ui/laurel-left.png",
+    "laurel-right": "/assets/pixel-art-production/ui/laurel-right.png",
+    "roman-divider": "/assets/pixel-art-production/ui/roman-divider.png",
+    "panel-corner": "/assets/pixel-art-production/ui/panel-corner.png",
+    "resource-icons": "/assets/pixel-art-production/ui/resource-icons.png"
+  }
+}

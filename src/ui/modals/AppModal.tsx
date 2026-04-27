@@ -1,6 +1,7 @@
 import { ArrowLeft, X } from 'lucide-react';
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useUiStore, type ModalSize } from '../../state/ui-store';
+import { pixiUiChromeStyle } from '../pixi-ui-chrome';
 
 interface AppModalProps {
   children: ReactNode;
@@ -77,6 +78,12 @@ export function AppModal({
     };
   }, [children, footer]);
 
+  const modalStyle: CSSProperties & Record<string, string | number> = {
+    ...pixiUiChromeStyle,
+    marginBottom: modalBottomOffset,
+    marginTop: modalOffset,
+  };
+
   return (
     <div
       className="app-modal-backdrop"
@@ -94,7 +101,7 @@ export function AppModal({
         className={`app-modal app-modal--${size}`}
         ref={modalRef}
         role="dialog"
-        style={{ marginBottom: modalBottomOffset, marginTop: modalOffset }}
+        style={modalStyle}
       >
         <div className="app-modal__header">
           {onBack ? (

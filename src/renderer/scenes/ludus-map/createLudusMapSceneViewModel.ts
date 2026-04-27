@@ -1,20 +1,25 @@
 import { getGameMinuteStamp } from '../../../domain/gladiators/map-movement';
 import type { GameSave } from '../../../domain/types';
 import { getBuildingVisualDefinition } from '../../../game-data/building-visuals';
-import { getGladiatorAnimationDefinition } from '../../../game-data/gladiator-animations';
+import {
+  getGladiatorMapAnimationDefinition,
+  getGladiatorMapAnimationDefinitionById,
+} from '../../../game-data/gladiator-animations';
 import { getGladiatorMapPoint } from '../../../game-data/gladiator-map-movement';
 import { LUDUS_MAP_AMBIENT_ELEMENTS } from '../../../game-data/map-visuals';
 import { TIME_CONFIG } from '../../../game-data/time';
 import { getTimeOfDayDefinition } from '../../../game-data/time-of-day';
 import {
-  getGladiatorSpriteFrames,
+  getGladiatorMapAnimationAsset,
   getGladiatorVisualIdentity,
 } from '../../../game-data/gladiator-visuals';
-import { LUDUS_MAP_DEFINITION } from '../../../game-data/map-layout';
+import { LUDUS_MAP_DEFINITION, type MapLocationId } from '../../../game-data/map-layout';
+import { VISUAL_ASSET_MANIFEST } from '../../../game-data/visual-assets';
 import type { LudusMapSceneViewModel } from './LudusMapSceneViewModel';
 
 interface CreateLudusMapSceneViewModelOptions {
   reducedMotion?: boolean;
+  selectedLocationId?: MapLocationId;
   translateLabel?: (key: string) => string;
 }
 
@@ -36,6 +41,8 @@ export function createLudusMapSceneViewModel(
   return {
     width: LUDUS_MAP_DEFINITION.size.width,
     height: LUDUS_MAP_DEFINITION.size.height,
+    timeOfDayPhase: timeOfDay.phase,
+    selectedLocationId: options.selectedLocationId,
     currentGameMinute,
     gameMinutesPerRealMillisecond:
       reducedMotion || save.time.isPaused || save.time.speed === 0
@@ -46,11 +53,16 @@ export function createLudusMapSceneViewModel(
     defaultZoom: LUDUS_MAP_DEFINITION.defaultZoom,
     minZoom: LUDUS_MAP_DEFINITION.minZoom,
     maxZoom: LUDUS_MAP_DEFINITION.maxZoom,
+    zoomPresets: LUDUS_MAP_DEFINITION.zoomPresets,
     theme: {
+      skyColor: parseHexColor(timeOfDay.visualTheme.skyColor),
       terrainColor: parseHexColor(timeOfDay.visualTheme.terrainColor),
       terrainHighlightColor: parseHexColor(timeOfDay.visualTheme.terrainHighlightColor),
       overlayColor: parseHexColor(timeOfDay.visualTheme.overlayColor),
       overlayOpacity: timeOfDay.visualTheme.overlayOpacity,
+      lightColor: parseHexColor(timeOfDay.visualTheme.lightColor),
+      shadowColor: parseHexColor(timeOfDay.visualTheme.shadowColor),
+      spriteBrightness: timeOfDay.visualTheme.spriteBrightness,
       backgroundAssetPath: timeOfDay.visualTheme.mapBackgroundAssetPath,
     },
     paths: LUDUS_MAP_DEFINITION.paths.map((path) => ({
@@ -66,6 +78,9 @@ export function createLudusMapSceneViewModel(
       width: decoration.width,
       height: decoration.height,
       rotation: decoration.rotation ?? 0,
+      assetPath:
+        decoration.style === 'torch' ? VISUAL_ASSET_MANIFEST.map.ambient['torch-on'] : undefined,
+      sortY: decoration.y + decoration.height,
     })),
     ambientElements: LUDUS_MAP_AMBIENT_ELEMENTS.map((element) => ({
       id: element.id,
@@ -93,6 +108,13 @@ export function createLudusMapSceneViewModel(
         location.kind === 'building'
           ? getBuildingVisualDefinition(location.id, building?.level ?? 0)
           : undefined;
+      const externalVisual =
+        location.kind === 'external' ? VISUAL_ASSET_MANIFEST.locations[location.id] : undefined;
+      const exteriorAssetPath = visual?.exteriorAssetPath ?? location.assetPath;
+      const propsAssetPath = visual?.propsAssetPath ?? externalVisual?.props;
+      const roofAssetPath = visual?.roofAssetPath;
+      const width = visual?.width ?? location.width;
+      const height = visual?.height ?? location.height;
 
       return {
         id: location.id,
@@ -102,11 +124,25 @@ export function createLudusMapSceneViewModel(
         label: translateLabel(location.nameKey),
         x: location.x,
         y: location.y,
-        width: visual?.width ?? location.width,
-        height: visual?.height ?? location.height,
+        width,
+        height,
         isOwned: location.kind === 'external' || Boolean(building?.isPurchased),
         level: building?.level ?? 0,
-        assetPath: visual?.exteriorAssetPath ?? location.assetPath,
+        exteriorAssetPath,
+        propsAssetPath,
+        roofAssetPath,
+        assetPath: exteriorAssetPath,
+        hitArea: {
+          x: 0,
+          y: 0,
+          width,
+          height,
+        },
+        labelPosition: {
+          x: location.x + width / 2,
+          y: location.y + height + 32,
+        },
+        sortY: location.y + height,
       };
     }),
     gladiators: save.gladiators.map((gladiator) => {
@@ -114,9 +150,10 @@ export function createLudusMapSceneViewModel(
       const slotIndex = usedSlotsByBuilding.get(targetBuildingId) ?? 0;
       const movement = gladiator.mapMovement;
       const animation = movement
-        ? { state: 'walking' as const }
-        : getGladiatorAnimationDefinition(gladiator);
+        ? getGladiatorMapAnimationDefinitionById('walk')
+        : getGladiatorMapAnimationDefinition(gladiator);
       const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity);
+      const animationAsset = getGladiatorMapAnimationAsset(visualIdentity, animation.id);
 
       usedSlotsByBuilding.set(targetBuildingId, slotIndex + 1);
 
@@ -127,8 +164,11 @@ export function createLudusMapSceneViewModel(
         to: getGladiatorMapPoint(movement?.targetLocation ?? targetBuildingId, slotIndex),
         movementStartedAt: movement?.movementStartedAt ?? currentGameMinute,
         movementDuration: movement?.movementDuration ?? 1,
-        animationState: animation.state,
-        spriteFrames: getGladiatorSpriteFrames(visualIdentity, animation.state),
+        animation,
+        animationId: animation.id,
+        fallbackFramePaths: animationAsset.fallbackFramePaths,
+        frameNames: animationAsset.frameNames,
+        spritesheetAtlasPath: animationAsset.atlasPath,
       };
     }),
   };

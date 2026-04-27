@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { GAME_SESSION_PATH, type ScreenName } from '../app/routes';
 import type { BuildingId, LanguageCode } from '../domain/types';
 import { translate } from '../i18n';
@@ -147,49 +147,91 @@ function writeScreenPath(screen: ScreenName) {
   }
 }
 
+function createModalState(request: UiModalRequest): UiModalState {
+  return {
+    ...request,
+    id: crypto.randomUUID(),
+  };
+}
+
 export function UiStoreProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<LanguageCode>(getInitialLanguage);
   const [screen, setScreen] = useState<ScreenName>('mainMenu');
   const [modalStack, setModalStack] = useState<UiModalState[]>([]);
   const activeModal = modalStack.at(-1) ?? null;
+  const backModal = useCallback(
+    () => setModalStack((currentStack) => currentStack.slice(0, -1)),
+    [],
+  );
+  const closeModal = useCallback(
+    () => setModalStack((currentStack) => currentStack.slice(0, -1)),
+    [],
+  );
+  const closeAllModals = useCallback(() => setModalStack([]), []);
+  const openModal = useCallback((request: UiModalRequest) => {
+    setModalStack([createModalState(request)]);
+  }, []);
+  const openConfirmModal = useCallback((request: ConfirmModalRequest) => {
+    setModalStack((currentStack) => [...currentStack, createModalState(request)]);
+  }, []);
+  const openFormModal = useCallback((request: FormModalRequest) => {
+    setModalStack((currentStack) => [...currentStack, createModalState(request)]);
+  }, []);
+  const pushModal = useCallback((request: UiModalRequest) => {
+    setModalStack((currentStack) => [...currentStack, createModalState(request)]);
+  }, []);
+  const replaceModal = useCallback((request: UiModalRequest) => {
+    setModalStack((currentStack) => [...currentStack.slice(0, -1), createModalState(request)]);
+  }, []);
+  const setLanguage = useCallback((nextLanguage: LanguageCode) => {
+    localStorage.setItem('ludus:language', nextLanguage);
+    setLanguageState(nextLanguage);
+  }, []);
+  const navigate = useCallback((nextScreen: ScreenName) => {
+    writeScreenPath(nextScreen);
+    setScreen(nextScreen);
+    setModalStack([]);
+  }, []);
+  const t = useCallback(
+    (key: string, params?: Record<string, string | number>) => translate(language, key, params),
+    [language],
+  );
 
   const value = useMemo<UiStoreValue>(() => {
-    const setLanguage = (nextLanguage: LanguageCode) => {
-      localStorage.setItem('ludus:language', nextLanguage);
-      setLanguageState(nextLanguage);
-    };
-
-    const createModalState = (request: UiModalRequest): UiModalState => ({
-      ...request,
-      id: crypto.randomUUID(),
-    });
-
     return {
       activeModal,
       modalStack,
       language,
       screen,
-      backModal: () => setModalStack((currentStack) => currentStack.slice(0, -1)),
-      closeModal: () => setModalStack((currentStack) => currentStack.slice(0, -1)),
-      closeAllModals: () => setModalStack([]),
-      openModal: (request) => setModalStack([createModalState(request)]),
-      openConfirmModal: (request) =>
-        setModalStack((currentStack) => [...currentStack, createModalState(request)]),
-      openFormModal: (request) =>
-        setModalStack((currentStack) => [...currentStack, createModalState(request)]),
-      pushModal: (request) =>
-        setModalStack((currentStack) => [...currentStack, createModalState(request)]),
-      replaceModal: (request) =>
-        setModalStack((currentStack) => [...currentStack.slice(0, -1), createModalState(request)]),
+      backModal,
+      closeModal,
+      closeAllModals,
+      openModal,
+      openConfirmModal,
+      openFormModal,
+      pushModal,
+      replaceModal,
       setLanguage,
-      navigate: (nextScreen) => {
-        writeScreenPath(nextScreen);
-        setScreen(nextScreen);
-        setModalStack([]);
-      },
-      t: (key, params) => translate(language, key, params),
+      navigate,
+      t,
     };
-  }, [activeModal, language, modalStack, screen]);
+  }, [
+    activeModal,
+    backModal,
+    closeAllModals,
+    closeModal,
+    language,
+    modalStack,
+    navigate,
+    openConfirmModal,
+    openFormModal,
+    openModal,
+    pushModal,
+    replaceModal,
+    screen,
+    setLanguage,
+    t,
+  ]);
 
   return <UiStoreContext.Provider value={value}>{children}</UiStoreContext.Provider>;
 }

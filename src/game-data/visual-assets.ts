@@ -1,6 +1,9 @@
 import type { BuildingId } from '../domain/buildings/types';
-import visualAssetManifestData from './generated/asset-manifest.visual-migration.json';
+import { featureFlags } from '../config/features';
+import productionVisualAssetManifestData from './generated/asset-manifest.production.json';
+import placeholderVisualAssetManifestData from './generated/asset-manifest.visual-migration.json';
 
+export type VisualAssetSourceQuality = 'placeholder' | 'production';
 export type TimeOfDayAssetPhase = 'dawn' | 'day' | 'dusk' | 'night';
 export type HomepageBackgroundPhase = 'day' | 'dusk';
 export type MapFrameKey =
@@ -11,11 +14,18 @@ export type MapFrameKey =
   | 'map-rest'
   | 'map-celebrate'
   | 'map-healing';
-export type CombatFrameKey = 'combat-idle' | 'combat-attack';
+export type CombatFrameKey =
+  | 'combat-idle'
+  | 'combat-attack'
+  | 'combat-hit'
+  | 'combat-block'
+  | 'combat-defeat'
+  | 'combat-victory';
 export type GladiatorFrameKey = MapFrameKey | CombatFrameKey;
 export type VisualLocationId = 'market' | 'arena';
 
 export interface BuildingAssetSet {
+  sourceQuality?: VisualAssetSourceQuality;
   exterior: string;
   roof?: string;
   interior?: string;
@@ -25,7 +35,12 @@ export interface BuildingAssetSet {
 }
 
 export interface GladiatorAssetSet {
+  sourceQuality?: VisualAssetSourceQuality;
   portrait: string;
+  mapSpritesheet?: string;
+  mapAtlas?: string;
+  combatSpritesheet?: string;
+  combatAtlas?: string;
   frames: Partial<Record<GladiatorFrameKey, string[]>>;
   paletteId: string;
   bodyType: string;
@@ -35,12 +50,15 @@ export interface GladiatorAssetSet {
 
 export interface VisualAssetManifest {
   version: 1;
+  sourceQuality: VisualAssetSourceQuality;
   generatedAt: string;
   homepage: {
+    sourceQuality?: VisualAssetSourceQuality;
     backgrounds: Partial<Record<HomepageBackgroundPhase, string>>;
     lastSaveThumbnail: string;
   };
   map: {
+    sourceQuality?: VisualAssetSourceQuality;
     backgrounds: Record<TimeOfDayAssetPhase, string>;
     ambient: Record<string, string>;
   };
@@ -50,7 +68,17 @@ export interface VisualAssetManifest {
   ui: Record<string, string>;
 }
 
-export const VISUAL_ASSET_MANIFEST = visualAssetManifestData as VisualAssetManifest;
+export const PLACEHOLDER_VISUAL_ASSET_MANIFEST = {
+  sourceQuality: 'placeholder',
+  ...placeholderVisualAssetManifestData,
+} as VisualAssetManifest;
+
+export const PRODUCTION_VISUAL_ASSET_MANIFEST =
+  productionVisualAssetManifestData as VisualAssetManifest;
+
+export const VISUAL_ASSET_MANIFEST = featureFlags.usePlaceholderArt
+  ? PLACEHOLDER_VISUAL_ASSET_MANIFEST
+  : PRODUCTION_VISUAL_ASSET_MANIFEST;
 
 export const PIXEL_ART_BUILDING_LEVELS = [0, 1, 2, 3] as const;
 export type PixelArtBuildingLevel = (typeof PIXEL_ART_BUILDING_LEVELS)[number];

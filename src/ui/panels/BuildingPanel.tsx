@@ -65,6 +65,9 @@ export function BuildingPanel({
           buildingId={buildingId}
           buildingNameKey={viewModel.nameKey}
           cost={viewModel.action.cost}
+          costTitleKey={
+            viewModel.isPurchased ? 'buildings.upgradeCost' : 'buildings.purchaseCostLabel'
+          }
           currentLevel={actionPreview.currentLevel}
           descriptionKey={viewModel.descriptionKey}
           effects={actionPreview.effects}

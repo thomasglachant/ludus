@@ -1,13 +1,24 @@
-import { type ReactNode, useRef } from 'react';
+import { useRef } from 'react';
 import { PixiApplicationHost } from './PixiApplicationHost';
+import type { PixiScene, PixiSceneContext } from './PixiScene';
 
-interface PixiSceneViewportProps {
-  children: ReactNode;
+interface PixiSceneViewportProps<TSnapshot> {
   className?: string;
+  createScene: (context: PixiSceneContext) => PixiScene<TSnapshot>;
+  debugMode?: boolean;
+  sceneKey?: string | number;
   sceneLabel: string;
+  snapshot: TSnapshot;
 }
 
-export function PixiSceneViewport({ children, className, sceneLabel }: PixiSceneViewportProps) {
+export function PixiSceneViewport<TSnapshot>({
+  className,
+  createScene,
+  debugMode = false,
+  sceneKey,
+  sceneLabel,
+  snapshot,
+}: PixiSceneViewportProps<TSnapshot>) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
 
   return (
@@ -19,7 +30,14 @@ export function PixiSceneViewport({ children, className, sceneLabel }: PixiScene
       role="img"
       style={{ height: '100%', minHeight: 320, width: '100%' }}
     >
-      <PixiApplicationHost resizeTo={viewportRef}>{children}</PixiApplicationHost>
+      <PixiApplicationHost
+        className="pixi-scene-viewport__host"
+        createScene={createScene}
+        debugMode={debugMode}
+        resizeTo={viewportRef}
+        sceneKey={sceneKey}
+        snapshot={snapshot}
+      />
     </div>
   );
 }

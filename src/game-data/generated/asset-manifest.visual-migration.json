@@ -10,10 +10,10 @@
   },
   "map": {
     "backgrounds": {
-      "dawn": "/assets/pixel-art/map/backgrounds/ludus-map-dawn.svg",
-      "day": "/assets/pixel-art/map/backgrounds/ludus-map-day.svg",
-      "dusk": "/assets/pixel-art/map/backgrounds/ludus-map-dusk.svg",
-      "night": "/assets/pixel-art/map/backgrounds/ludus-map-night.svg"
+      "dawn": "/assets/pixel-art/map/backgrounds/ludus-map-dawn.png",
+      "day": "/assets/pixel-art/map/backgrounds/ludus-map-day.png",
+      "dusk": "/assets/pixel-art/map/backgrounds/ludus-map-dusk.png",
+      "night": "/assets/pixel-art/map/backgrounds/ludus-map-night.png"
     },
     "ambient": {
       "cloud-01": "/assets/pixel-art/map/ambient/cloud-01.svg",

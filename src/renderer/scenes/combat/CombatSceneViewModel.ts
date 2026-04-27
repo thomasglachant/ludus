@@ -1,18 +1,35 @@
+import type {
+  GladiatorCombatAnimationDefinition,
+  GladiatorCombatAnimationId,
+} from '../../../game-data/gladiator-animations';
+
 export interface CombatSceneCombatantViewModel {
+  animation: GladiatorCombatAnimationDefinition;
+  animationId: GladiatorCombatAnimationId;
+  animationRevision: string;
+  fallbackFramePaths: string[];
+  frameNames: string[];
+  health: number;
+  healthRatio: number;
   id: string;
   name: string;
-  health: number;
   side: 'left' | 'right';
-  idleFrames: string[];
-  attackFrames: string[];
-  healthRatio: number;
+  spritesheetAtlasPath?: string;
+}
+
+export interface CombatSceneTurnEffectViewModel {
+  attackerSide: 'left' | 'right';
+  defenderSide: 'left' | 'right';
+  didHit: boolean;
+  id: string;
 }
 
 export interface CombatSceneViewModel {
   backgroundPath: string;
-  latestAttackerId?: string;
+  crowdPath: string;
+  currentActionId?: string;
+  effect?: CombatSceneTurnEffectViewModel;
   left: CombatSceneCombatantViewModel;
   reducedMotion: boolean;
   right: CombatSceneCombatantViewModel;
-  currentActionId?: string;
 }

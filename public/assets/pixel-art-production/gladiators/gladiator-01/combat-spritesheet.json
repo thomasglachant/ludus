@@ -1,0 +1,94 @@
+{
+  "frames": {
+    "combat-idle-0.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
+    },
+    "combat-idle-1.png": {
+      "frame": {
+        "x": 122,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
+    },
+    "combat-attack-0.png": {
+      "frame": {
+        "x": 244,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
+    },
+    "combat-attack-1.png": {
+      "frame": {
+        "x": 366,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
+    }
+  },
+  "meta": {
+    "app": "ludus-production-asset-pipeline",
+    "image": "combat-spritesheet.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 486,
+      "h": 180
+    },
+    "scale": "1"
+  }
+}

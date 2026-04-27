@@ -70,6 +70,22 @@ The visuals should support management decisions. The player should quickly read:
 Pixel art should favor strong silhouettes and stable interaction targets over
 ornamental detail.
 
+### Pixel-Perfect Scene Rules
+
+Player-facing Pixi scenes must render pixel art crisply:
+
+- authored pixel-art textures use nearest-neighbor sampling only;
+- sprites, particles and debug hit shapes should use rounded pixel positions
+  where this does not hide meaningful motion;
+- small character, prop and ambient sprites should keep integer display scales
+  whenever their intended size is close to the native asset size;
+- camera zoom should step through readable presets rather than arbitrary smooth
+  scale values;
+- blur, interpolation, anisotropic filtering and mipmapped smoothing are not
+  acceptable for pixel-art assets;
+- debug overlays may expose native size, scale, anchor and hitbox, but only in
+  debug UI mode.
+
 ### Warm Progression
 
 Buildings should visibly improve as they level up. Level progression may add:
@@ -152,15 +168,30 @@ Required map scene behavior:
 - `prefers-reduced-motion` disables non-essential animation while preserving
   readable state.
 
-PixiJS is the renderer for the living map, while React keeps the surrounding HUD,
+PixiJS is the preferred renderer for player-facing game scenes, including the
+living map and combat presentation, while React keeps the surrounding HUD,
 panels, modals and routing. The previous DOM/CSS map renderer is no longer part
 of the normal player experience.
 
 The visual target matches the provided pixel-art references: a dense Roman
 map-first scene with a dark bronze HUD, parchment panels, visible characters,
-clear building silhouettes and theatrical arena presentation. Weak generated
-SVG placeholders are acceptable only as temporary scaffolding; final quality
-comes from authored pixel-art spritesheets and building assets.
+clear building silhouettes and theatrical arena presentation. Generated SVG
+scaffolding is placeholder-only and must not be accepted as final
+player-facing art. Final quality comes from authored pixel-art spritesheets,
+backgrounds and building assets.
+
+## Visual Acceptance Checklist
+
+Before accepting player-facing visual work, verify:
+
+- [ ] no flat vector placeholder background is used as a final background;
+- [ ] no debug grid is visible in the normal player experience;
+- [ ] no geometric placeholder gladiators are visible in the normal player
+      experience;
+- [ ] final building art is not made mainly from SVG primitives;
+- [ ] the map, combat screen and homepage resemble the reference images in
+      composition, mood, materials, density and game feel, without copying them
+      pixel-for-pixel.
 
 ## Time Of Day
 

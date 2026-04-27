@@ -15,47 +15,47 @@ export const GLADIATOR_MAP_ACTIVITY_DESTINATIONS: Record<string, GladiatorMapAct
   {
     balanced: {
       buildingId: 'trainingGround',
-      animationState: 'training',
+      animationState: 'train',
     },
     fightPreparation: {
       buildingId: 'trainingGround',
-      animationState: 'training',
+      animationState: 'train',
     },
     trainStrength: {
       buildingId: 'trainingGround',
-      animationState: 'training',
+      animationState: 'train',
     },
     trainAgility: {
       buildingId: 'trainingGround',
-      animationState: 'training',
+      animationState: 'train',
     },
     trainDefense: {
       buildingId: 'trainingGround',
-      animationState: 'training',
+      animationState: 'train',
     },
     recovery: {
       buildingId: 'dormitory',
-      animationState: 'resting',
+      animationState: 'rest',
     },
     moraleBoost: {
       buildingId: 'pleasureHall',
-      animationState: 'celebrating',
+      animationState: 'celebrate',
     },
     protectChampion: {
       buildingId: 'dormitory',
-      animationState: 'resting',
+      animationState: 'rest',
     },
     prepareForSale: {
       buildingId: 'pleasureHall',
-      animationState: 'celebrating',
+      animationState: 'celebrate',
     },
     eat: {
       buildingId: 'canteen',
-      animationState: 'eating',
+      animationState: 'eat',
     },
     heal: {
       buildingId: 'infirmary',
-      animationState: 'healing',
+      animationState: 'heal',
     },
   };
 

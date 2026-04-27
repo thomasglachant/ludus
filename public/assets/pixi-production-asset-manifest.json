@@ -1,0 +1,4425 @@
+{
+  "version": 1,
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "fallbackManifest": {
+    "id": "visual-migration-svg",
+    "generatedAt": "2026-01-01T00:00:00.000Z"
+  },
+  "bundles": {
+    "core-ui": {
+      "id": "core-ui",
+      "textureAliases": [
+        "ui:parchment-tile",
+        "ui:bronze-frame-tile",
+        "ui:roman-divider",
+        "ui:laurel-left",
+        "ui:laurel-right",
+        "ui:panel-corner",
+        "ui:resource-icons",
+        "gladiator:gladiator-01:portrait",
+        "gladiator:gladiator-02:portrait",
+        "gladiator:gladiator-03:portrait",
+        "gladiator:gladiator-04:portrait"
+      ],
+      "spritesheetAliases": []
+    },
+    "main-menu": {
+      "id": "main-menu",
+      "textureAliases": [
+        "homepage:background:day",
+        "homepage:background:dusk",
+        "homepage:last-save-thumbnail"
+      ],
+      "spritesheetAliases": []
+    },
+    "map-base": {
+      "id": "map-base",
+      "textureAliases": [
+        "map:background:dawn",
+        "map:background:day",
+        "map:background:dusk",
+        "map:background:night",
+        "location:market:exterior",
+        "location:market:props",
+        "location:arena:exterior"
+      ],
+      "spritesheetAliases": []
+    },
+    "map-ambient": {
+      "id": "map-ambient",
+      "textureAliases": [
+        "map:ambient:cloud-01",
+        "map:ambient:cloud-02",
+        "map:ambient:grass-tuft-01",
+        "map:ambient:banner-red",
+        "map:ambient:torch-on",
+        "map:ambient:smoke-puff",
+        "map:ambient:crowd-dot"
+      ],
+      "spritesheetAliases": []
+    },
+    "buildings": {
+      "id": "buildings",
+      "textureAliases": [
+        "building:domus:level-0:exterior",
+        "building:domus:level-1:exterior",
+        "building:domus:level-2:exterior",
+        "building:domus:level-3:exterior",
+        "building:canteen:level-0:exterior",
+        "building:canteen:level-1:exterior",
+        "building:canteen:level-2:exterior",
+        "building:canteen:level-3:exterior",
+        "building:dormitory:level-0:exterior",
+        "building:dormitory:level-1:exterior",
+        "building:dormitory:level-2:exterior",
+        "building:dormitory:level-3:exterior",
+        "building:trainingGround:level-0:exterior",
+        "building:trainingGround:level-1:exterior",
+        "building:trainingGround:level-2:exterior",
+        "building:trainingGround:level-3:exterior",
+        "building:pleasureHall:level-0:exterior",
+        "building:pleasureHall:level-1:exterior",
+        "building:pleasureHall:level-2:exterior",
+        "building:pleasureHall:level-3:exterior",
+        "building:infirmary:level-0:exterior",
+        "building:infirmary:level-1:exterior",
+        "building:infirmary:level-2:exterior",
+        "building:infirmary:level-3:exterior"
+      ],
+      "spritesheetAliases": []
+    },
+    "gladiators-map": {
+      "id": "gladiators-map",
+      "textureAliases": [
+        "gladiator:gladiator-01:map-idle:0",
+        "gladiator:gladiator-01:map-idle:1",
+        "gladiator:gladiator-01:map-walk:0",
+        "gladiator:gladiator-01:map-walk:1",
+        "gladiator:gladiator-01:map-train:0",
+        "gladiator:gladiator-01:map-train:1",
+        "gladiator:gladiator-01:map-eat:0",
+        "gladiator:gladiator-01:map-eat:1",
+        "gladiator:gladiator-01:map-rest:0",
+        "gladiator:gladiator-01:map-rest:1",
+        "gladiator:gladiator-01:map-celebrate:0",
+        "gladiator:gladiator-01:map-celebrate:1",
+        "gladiator:gladiator-01:map-healing:0",
+        "gladiator:gladiator-01:map-healing:1",
+        "gladiator:gladiator-02:map-idle:0",
+        "gladiator:gladiator-02:map-idle:1",
+        "gladiator:gladiator-02:map-walk:0",
+        "gladiator:gladiator-02:map-walk:1",
+        "gladiator:gladiator-02:map-train:0",
+        "gladiator:gladiator-02:map-train:1",
+        "gladiator:gladiator-02:map-eat:0",
+        "gladiator:gladiator-02:map-eat:1",
+        "gladiator:gladiator-02:map-rest:0",
+        "gladiator:gladiator-02:map-rest:1",
+        "gladiator:gladiator-02:map-celebrate:0",
+        "gladiator:gladiator-02:map-celebrate:1",
+        "gladiator:gladiator-02:map-healing:0",
+        "gladiator:gladiator-02:map-healing:1",
+        "gladiator:gladiator-03:map-idle:0",
+        "gladiator:gladiator-03:map-idle:1",
+        "gladiator:gladiator-03:map-walk:0",
+        "gladiator:gladiator-03:map-walk:1",
+        "gladiator:gladiator-03:map-train:0",
+        "gladiator:gladiator-03:map-train:1",
+        "gladiator:gladiator-03:map-eat:0",
+        "gladiator:gladiator-03:map-eat:1",
+        "gladiator:gladiator-03:map-rest:0",
+        "gladiator:gladiator-03:map-rest:1",
+        "gladiator:gladiator-03:map-celebrate:0",
+        "gladiator:gladiator-03:map-celebrate:1",
+        "gladiator:gladiator-03:map-healing:0",
+        "gladiator:gladiator-03:map-healing:1",
+        "gladiator:gladiator-04:map-idle:0",
+        "gladiator:gladiator-04:map-idle:1",
+        "gladiator:gladiator-04:map-walk:0",
+        "gladiator:gladiator-04:map-walk:1",
+        "gladiator:gladiator-04:map-train:0",
+        "gladiator:gladiator-04:map-train:1",
+        "gladiator:gladiator-04:map-eat:0",
+        "gladiator:gladiator-04:map-eat:1",
+        "gladiator:gladiator-04:map-rest:0",
+        "gladiator:gladiator-04:map-rest:1",
+        "gladiator:gladiator-04:map-celebrate:0",
+        "gladiator:gladiator-04:map-celebrate:1",
+        "gladiator:gladiator-04:map-healing:0",
+        "gladiator:gladiator-04:map-healing:1"
+      ],
+      "spritesheetAliases": [
+        "spritesheet:gladiator:gladiator-01:map",
+        "spritesheet:gladiator:gladiator-02:map",
+        "spritesheet:gladiator:gladiator-03:map",
+        "spritesheet:gladiator:gladiator-04:map"
+      ]
+    },
+    "gladiators-combat": {
+      "id": "gladiators-combat",
+      "textureAliases": [
+        "gladiator:gladiator-01:combat-idle:0",
+        "gladiator:gladiator-01:combat-idle:1",
+        "gladiator:gladiator-01:combat-attack:0",
+        "gladiator:gladiator-01:combat-attack:1",
+        "gladiator:gladiator-01:combat-hit:0",
+        "gladiator:gladiator-01:combat-hit:1",
+        "gladiator:gladiator-01:combat-block:0",
+        "gladiator:gladiator-01:combat-block:1",
+        "gladiator:gladiator-01:combat-defeat:0",
+        "gladiator:gladiator-01:combat-defeat:1",
+        "gladiator:gladiator-01:combat-victory:0",
+        "gladiator:gladiator-01:combat-victory:1",
+        "gladiator:gladiator-02:combat-idle:0",
+        "gladiator:gladiator-02:combat-idle:1",
+        "gladiator:gladiator-02:combat-attack:0",
+        "gladiator:gladiator-02:combat-attack:1",
+        "gladiator:gladiator-02:combat-hit:0",
+        "gladiator:gladiator-02:combat-hit:1",
+        "gladiator:gladiator-02:combat-block:0",
+        "gladiator:gladiator-02:combat-block:1",
+        "gladiator:gladiator-02:combat-defeat:0",
+        "gladiator:gladiator-02:combat-defeat:1",
+        "gladiator:gladiator-02:combat-victory:0",
+        "gladiator:gladiator-02:combat-victory:1",
+        "gladiator:gladiator-03:combat-idle:0",
+        "gladiator:gladiator-03:combat-idle:1",
+        "gladiator:gladiator-03:combat-attack:0",
+        "gladiator:gladiator-03:combat-attack:1",
+        "gladiator:gladiator-03:combat-hit:0",
+        "gladiator:gladiator-03:combat-hit:1",
+        "gladiator:gladiator-03:combat-block:0",
+        "gladiator:gladiator-03:combat-block:1",
+        "gladiator:gladiator-03:combat-defeat:0",
+        "gladiator:gladiator-03:combat-defeat:1",
+        "gladiator:gladiator-03:combat-victory:0",
+        "gladiator:gladiator-03:combat-victory:1",
+        "gladiator:gladiator-04:combat-idle:0",
+        "gladiator:gladiator-04:combat-idle:1",
+        "gladiator:gladiator-04:combat-attack:0",
+        "gladiator:gladiator-04:combat-attack:1",
+        "gladiator:gladiator-04:combat-hit:0",
+        "gladiator:gladiator-04:combat-hit:1",
+        "gladiator:gladiator-04:combat-block:0",
+        "gladiator:gladiator-04:combat-block:1",
+        "gladiator:gladiator-04:combat-defeat:0",
+        "gladiator:gladiator-04:combat-defeat:1",
+        "gladiator:gladiator-04:combat-victory:0",
+        "gladiator:gladiator-04:combat-victory:1"
+      ],
+      "spritesheetAliases": [
+        "spritesheet:gladiator:gladiator-01:combat",
+        "spritesheet:gladiator:gladiator-02:combat",
+        "spritesheet:gladiator:gladiator-03:combat",
+        "spritesheet:gladiator:gladiator-04:combat"
+      ]
+    },
+    "combat": {
+      "id": "combat",
+      "textureAliases": ["combat:arena:background", "combat:arena:crowd"],
+      "spritesheetAliases": []
+    }
+  },
+  "textures": {
+    "ui:parchment-tile": {
+      "alias": "ui:parchment-tile",
+      "bundleId": "core-ui",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/ui/parchment-tile.png",
+      "fallbackSrc": "/assets/pixel-art/ui/parchment-tile.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "renderLayer": "ui.base",
+      "tags": ["ui"]
+    },
+    "ui:bronze-frame-tile": {
+      "alias": "ui:bronze-frame-tile",
+      "bundleId": "core-ui",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/ui/bronze-frame-tile.png",
+      "fallbackSrc": "/assets/pixel-art/ui/bronze-frame-tile.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "renderLayer": "ui.base",
+      "tags": ["ui"]
+    },
+    "ui:roman-divider": {
+      "alias": "ui:roman-divider",
+      "bundleId": "core-ui",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/ui/roman-divider.png",
+      "fallbackSrc": "/assets/pixel-art/ui/roman-divider.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "renderLayer": "ui.base",
+      "tags": ["ui"]
+    },
+    "ui:laurel-left": {
+      "alias": "ui:laurel-left",
+      "bundleId": "core-ui",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/ui/laurel-left.png",
+      "fallbackSrc": "/assets/pixel-art/ui/laurel-left.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "renderLayer": "ui.base",
+      "tags": ["ui"]
+    },
+    "ui:laurel-right": {
+      "alias": "ui:laurel-right",
+      "bundleId": "core-ui",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/ui/laurel-right.png",
+      "fallbackSrc": "/assets/pixel-art/ui/laurel-right.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "renderLayer": "ui.base",
+      "tags": ["ui"]
+    },
+    "ui:panel-corner": {
+      "alias": "ui:panel-corner",
+      "bundleId": "core-ui",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/ui/panel-corner.png",
+      "fallbackSrc": "/assets/pixel-art/ui/panel-corner.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "renderLayer": "ui.base",
+      "tags": ["ui"]
+    },
+    "ui:resource-icons": {
+      "alias": "ui:resource-icons",
+      "bundleId": "core-ui",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/ui/resource-icons.png",
+      "fallbackSrc": "/assets/pixel-art/ui/resource-icons.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "renderLayer": "ui.base",
+      "tags": ["ui"]
+    },
+    "homepage:background:day": {
+      "alias": "homepage:background:day",
+      "bundleId": "main-menu",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/main-menu/main-menu-background-day.webp",
+      "fallbackSrc": "/assets/pixel-art/homepage/homepage-background-day.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "hitbox": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 980
+      },
+      "renderLayer": "homepage.background",
+      "tags": ["homepage", "day"]
+    },
+    "homepage:background:dusk": {
+      "alias": "homepage:background:dusk",
+      "bundleId": "main-menu",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/main-menu/main-menu-background-dusk.webp",
+      "fallbackSrc": "/assets/pixel-art/homepage/homepage-background-dusk.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "hitbox": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 980
+      },
+      "renderLayer": "homepage.background",
+      "tags": ["homepage", "dusk"]
+    },
+    "homepage:last-save-thumbnail": {
+      "alias": "homepage:last-save-thumbnail",
+      "bundleId": "main-menu",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/main-menu/last-save-thumbnail.webp",
+      "fallbackSrc": "/assets/pixel-art/homepage/last-save-thumbnail.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "hitbox": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 180
+      },
+      "renderLayer": "homepage.background",
+      "tags": ["homepage", "thumbnail"]
+    },
+    "map:background:dawn": {
+      "alias": "map:background:dawn",
+      "bundleId": "map-base",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/ludus-map-dawn.webp",
+      "fallbackSrc": "/assets/pixel-art/map/backgrounds/ludus-map-dawn.png",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "hitbox": {
+        "x": 0,
+        "y": 0,
+        "width": 2400,
+        "height": 1500
+      },
+      "renderLayer": "map.background",
+      "tags": ["map", "background", "dawn"]
+    },
+    "map:background:day": {
+      "alias": "map:background:day",
+      "bundleId": "map-base",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/ludus-map-day.webp",
+      "fallbackSrc": "/assets/pixel-art/map/backgrounds/ludus-map-day.png",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "hitbox": {
+        "x": 0,
+        "y": 0,
+        "width": 2400,
+        "height": 1500
+      },
+      "renderLayer": "map.background",
+      "tags": ["map", "background", "day"]
+    },
+    "map:background:dusk": {
+      "alias": "map:background:dusk",
+      "bundleId": "map-base",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/ludus-map-dusk.webp",
+      "fallbackSrc": "/assets/pixel-art/map/backgrounds/ludus-map-dusk.png",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "hitbox": {
+        "x": 0,
+        "y": 0,
+        "width": 2400,
+        "height": 1500
+      },
+      "renderLayer": "map.background",
+      "tags": ["map", "background", "dusk"]
+    },
+    "map:background:night": {
+      "alias": "map:background:night",
+      "bundleId": "map-base",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/ludus-map-night.webp",
+      "fallbackSrc": "/assets/pixel-art/map/backgrounds/ludus-map-night.png",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "hitbox": {
+        "x": 0,
+        "y": 0,
+        "width": 2400,
+        "height": 1500
+      },
+      "renderLayer": "map.background",
+      "tags": ["map", "background", "night"]
+    },
+    "location:market:exterior": {
+      "alias": "location:market:exterior",
+      "bundleId": "map-base",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/canteen/level-1/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/locations/market/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -130,
+        "y": -180,
+        "width": 260,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "market"]
+    },
+    "location:market:props": {
+      "alias": "location:market:props",
+      "bundleId": "map-base",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/canteen/level-1/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/locations/market/props.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -130,
+        "y": -180,
+        "width": 260,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "market"]
+    },
+    "location:arena:exterior": {
+      "alias": "location:arena:exterior",
+      "bundleId": "map-base",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/locations/arena-exterior.webp",
+      "fallbackSrc": "/assets/pixel-art/locations/arena/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -155,
+        "y": -240,
+        "width": 310,
+        "height": 240
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "arena"]
+    },
+    "map:ambient:cloud-01": {
+      "alias": "map:ambient:cloud-01",
+      "bundleId": "map-ambient",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/ambient/cloud-01.png",
+      "fallbackSrc": "/assets/pixel-art/map/ambient/cloud-01.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "renderLayer": "map.ambient.front",
+      "tags": ["map", "ambient"]
+    },
+    "map:ambient:cloud-02": {
+      "alias": "map:ambient:cloud-02",
+      "bundleId": "map-ambient",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/ambient/cloud-02.png",
+      "fallbackSrc": "/assets/pixel-art/map/ambient/cloud-02.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "renderLayer": "map.ambient.front",
+      "tags": ["map", "ambient"]
+    },
+    "map:ambient:grass-tuft-01": {
+      "alias": "map:ambient:grass-tuft-01",
+      "bundleId": "map-ambient",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/ambient/grass-tuft-01.png",
+      "fallbackSrc": "/assets/pixel-art/map/ambient/grass-tuft-01.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "renderLayer": "map.ambient.front",
+      "tags": ["map", "ambient"]
+    },
+    "map:ambient:banner-red": {
+      "alias": "map:ambient:banner-red",
+      "bundleId": "map-ambient",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/ambient/banner-red.png",
+      "fallbackSrc": "/assets/pixel-art/map/ambient/banner-red.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "renderLayer": "map.ambient.front",
+      "tags": ["map", "ambient"]
+    },
+    "map:ambient:torch-on": {
+      "alias": "map:ambient:torch-on",
+      "bundleId": "map-ambient",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/ambient/torch-on.png",
+      "fallbackSrc": "/assets/pixel-art/map/ambient/torch-on.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "renderLayer": "map.ambient.front",
+      "tags": ["map", "ambient"]
+    },
+    "map:ambient:smoke-puff": {
+      "alias": "map:ambient:smoke-puff",
+      "bundleId": "map-ambient",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/ambient/smoke-puff.png",
+      "fallbackSrc": "/assets/pixel-art/map/ambient/smoke-puff.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "renderLayer": "map.ambient.front",
+      "tags": ["map", "ambient"]
+    },
+    "map:ambient:crowd-dot": {
+      "alias": "map:ambient:crowd-dot",
+      "bundleId": "map-ambient",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/map/ambient/crowd-dot.png",
+      "fallbackSrc": "/assets/pixel-art/map/ambient/crowd-dot.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "renderLayer": "map.ambient.front",
+      "tags": ["map", "ambient"]
+    },
+    "building:domus:level-0:exterior": {
+      "alias": "building:domus:level-0:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/domus/level-0/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/domus/level-0/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -140,
+        "y": -180,
+        "width": 280,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "domus", "level-0", "exterior"]
+    },
+    "building:domus:level-1:exterior": {
+      "alias": "building:domus:level-1:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/domus/level-1/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/domus/level-1/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -140,
+        "y": -180,
+        "width": 280,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "domus", "level-1", "exterior"]
+    },
+    "building:domus:level-2:exterior": {
+      "alias": "building:domus:level-2:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/domus/level-2/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/domus/level-2/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -140,
+        "y": -180,
+        "width": 280,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "domus", "level-2", "exterior"]
+    },
+    "building:domus:level-3:exterior": {
+      "alias": "building:domus:level-3:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/domus/level-3/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/domus/level-3/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -140,
+        "y": -180,
+        "width": 280,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "domus", "level-3", "exterior"]
+    },
+    "building:canteen:level-0:exterior": {
+      "alias": "building:canteen:level-0:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/canteen/level-0/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/canteen/level-0/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "canteen", "level-0", "exterior"]
+    },
+    "building:canteen:level-1:exterior": {
+      "alias": "building:canteen:level-1:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/canteen/level-1/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/canteen/level-1/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "canteen", "level-1", "exterior"]
+    },
+    "building:canteen:level-2:exterior": {
+      "alias": "building:canteen:level-2:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/canteen/level-2/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/canteen/level-2/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "canteen", "level-2", "exterior"]
+    },
+    "building:canteen:level-3:exterior": {
+      "alias": "building:canteen:level-3:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/canteen/level-3/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/canteen/level-3/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "canteen", "level-3", "exterior"]
+    },
+    "building:dormitory:level-0:exterior": {
+      "alias": "building:dormitory:level-0:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/dormitory/level-0/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/dormitory/level-0/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "dormitory", "level-0", "exterior"]
+    },
+    "building:dormitory:level-1:exterior": {
+      "alias": "building:dormitory:level-1:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/dormitory/level-1/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/dormitory/level-1/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "dormitory", "level-1", "exterior"]
+    },
+    "building:dormitory:level-2:exterior": {
+      "alias": "building:dormitory:level-2:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/dormitory/level-2/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/dormitory/level-2/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "dormitory", "level-2", "exterior"]
+    },
+    "building:dormitory:level-3:exterior": {
+      "alias": "building:dormitory:level-3:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/dormitory/level-3/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/dormitory/level-3/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "dormitory", "level-3", "exterior"]
+    },
+    "building:trainingGround:level-0:exterior": {
+      "alias": "building:trainingGround:level-0:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/trainingGround/level-0/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/trainingGround/level-0/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -150,
+        "y": -210,
+        "width": 300,
+        "height": 210
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "trainingGround", "level-0", "exterior"]
+    },
+    "building:trainingGround:level-1:exterior": {
+      "alias": "building:trainingGround:level-1:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/trainingGround/level-1/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/trainingGround/level-1/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -150,
+        "y": -210,
+        "width": 300,
+        "height": 210
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "trainingGround", "level-1", "exterior"]
+    },
+    "building:trainingGround:level-2:exterior": {
+      "alias": "building:trainingGround:level-2:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/trainingGround/level-2/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/trainingGround/level-2/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -150,
+        "y": -210,
+        "width": 300,
+        "height": 210
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "trainingGround", "level-2", "exterior"]
+    },
+    "building:trainingGround:level-3:exterior": {
+      "alias": "building:trainingGround:level-3:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/trainingGround/level-3/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/trainingGround/level-3/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -150,
+        "y": -210,
+        "width": 300,
+        "height": 210
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "trainingGround", "level-3", "exterior"]
+    },
+    "building:pleasureHall:level-0:exterior": {
+      "alias": "building:pleasureHall:level-0:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/pleasureHall/level-0/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/pleasureHall/level-0/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "pleasureHall", "level-0", "exterior"]
+    },
+    "building:pleasureHall:level-1:exterior": {
+      "alias": "building:pleasureHall:level-1:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/pleasureHall/level-1/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/pleasureHall/level-1/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "pleasureHall", "level-1", "exterior"]
+    },
+    "building:pleasureHall:level-2:exterior": {
+      "alias": "building:pleasureHall:level-2:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/pleasureHall/level-2/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/pleasureHall/level-2/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "pleasureHall", "level-2", "exterior"]
+    },
+    "building:pleasureHall:level-3:exterior": {
+      "alias": "building:pleasureHall:level-3:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/pleasureHall/level-3/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/pleasureHall/level-3/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "pleasureHall", "level-3", "exterior"]
+    },
+    "building:infirmary:level-0:exterior": {
+      "alias": "building:infirmary:level-0:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/infirmary/level-0/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/infirmary/level-0/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "infirmary", "level-0", "exterior"]
+    },
+    "building:infirmary:level-1:exterior": {
+      "alias": "building:infirmary:level-1:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/infirmary/level-1/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/infirmary/level-1/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "infirmary", "level-1", "exterior"]
+    },
+    "building:infirmary:level-2:exterior": {
+      "alias": "building:infirmary:level-2:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/infirmary/level-2/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/infirmary/level-2/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "infirmary", "level-2", "exterior"]
+    },
+    "building:infirmary:level-3:exterior": {
+      "alias": "building:infirmary:level-3:exterior",
+      "bundleId": "buildings",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/buildings/infirmary/level-3/exterior.png",
+      "fallbackSrc": "/assets/pixel-art/buildings/infirmary/level-3/exterior.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -125,
+        "y": -180,
+        "width": 250,
+        "height": 180
+      },
+      "renderLayer": "map.buildings",
+      "tags": ["map", "building", "infirmary", "level-3", "exterior"]
+    },
+    "gladiator:gladiator-01:portrait": {
+      "alias": "gladiator:gladiator-01:portrait",
+      "bundleId": "core-ui",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/portrait.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/portrait.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "hitbox": {
+        "x": -64,
+        "y": -64,
+        "width": 128,
+        "height": 128
+      },
+      "renderLayer": "ui.base",
+      "tags": ["gladiator", "portrait"]
+    },
+    "gladiator:gladiator-01:map-idle:0": {
+      "alias": "gladiator:gladiator-01:map-idle:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-idle"]
+    },
+    "gladiator:gladiator-01:map-idle:1": {
+      "alias": "gladiator:gladiator-01:map-idle:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-idle"]
+    },
+    "gladiator:gladiator-01:map-walk:0": {
+      "alias": "gladiator:gladiator-01:map-walk:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-walk-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-walk-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-walk"]
+    },
+    "gladiator:gladiator-01:map-walk:1": {
+      "alias": "gladiator:gladiator-01:map-walk:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-walk-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-walk-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-walk"]
+    },
+    "gladiator:gladiator-01:map-train:0": {
+      "alias": "gladiator:gladiator-01:map-train:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-train-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-train-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-train"]
+    },
+    "gladiator:gladiator-01:map-train:1": {
+      "alias": "gladiator:gladiator-01:map-train:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-train-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-train-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-train"]
+    },
+    "gladiator:gladiator-01:map-eat:0": {
+      "alias": "gladiator:gladiator-01:map-eat:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-eat-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-eat-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-eat"]
+    },
+    "gladiator:gladiator-01:map-eat:1": {
+      "alias": "gladiator:gladiator-01:map-eat:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-eat-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-eat-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-eat"]
+    },
+    "gladiator:gladiator-01:map-rest:0": {
+      "alias": "gladiator:gladiator-01:map-rest:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-rest-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-rest-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-rest"]
+    },
+    "gladiator:gladiator-01:map-rest:1": {
+      "alias": "gladiator:gladiator-01:map-rest:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-rest-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-rest-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-rest"]
+    },
+    "gladiator:gladiator-01:map-celebrate:0": {
+      "alias": "gladiator:gladiator-01:map-celebrate:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-celebrate-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-celebrate-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-celebrate"]
+    },
+    "gladiator:gladiator-01:map-celebrate:1": {
+      "alias": "gladiator:gladiator-01:map-celebrate:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-celebrate-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-celebrate-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-celebrate"]
+    },
+    "gladiator:gladiator-01:map-healing:0": {
+      "alias": "gladiator:gladiator-01:map-healing:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-healing-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-healing-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-healing"]
+    },
+    "gladiator:gladiator-01:map-healing:1": {
+      "alias": "gladiator:gladiator-01:map-healing:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map/map-healing-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/map-healing-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-01", "map-healing"]
+    },
+    "gladiator:gladiator-01:combat-idle:0": {
+      "alias": "gladiator:gladiator-01:combat-idle:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-idle"]
+    },
+    "gladiator:gladiator-01:combat-idle:1": {
+      "alias": "gladiator:gladiator-01:combat-idle:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-idle"]
+    },
+    "gladiator:gladiator-01:combat-attack:0": {
+      "alias": "gladiator:gladiator-01:combat-attack:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-attack-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-attack-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-attack"]
+    },
+    "gladiator:gladiator-01:combat-attack:1": {
+      "alias": "gladiator:gladiator-01:combat-attack:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-attack-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-attack-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-attack"]
+    },
+    "gladiator:gladiator-01:combat-hit:0": {
+      "alias": "gladiator:gladiator-01:combat-hit:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-hit"]
+    },
+    "gladiator:gladiator-01:combat-hit:1": {
+      "alias": "gladiator:gladiator-01:combat-hit:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-hit"]
+    },
+    "gladiator:gladiator-01:combat-block:0": {
+      "alias": "gladiator:gladiator-01:combat-block:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-block"]
+    },
+    "gladiator:gladiator-01:combat-block:1": {
+      "alias": "gladiator:gladiator-01:combat-block:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-block"]
+    },
+    "gladiator:gladiator-01:combat-defeat:0": {
+      "alias": "gladiator:gladiator-01:combat-defeat:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-defeat"]
+    },
+    "gladiator:gladiator-01:combat-defeat:1": {
+      "alias": "gladiator:gladiator-01:combat-defeat:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-defeat"]
+    },
+    "gladiator:gladiator-01:combat-victory:0": {
+      "alias": "gladiator:gladiator-01:combat-victory:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-victory"]
+    },
+    "gladiator:gladiator-01:combat-victory:1": {
+      "alias": "gladiator:gladiator-01:combat-victory:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-01/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-01", "combat-victory"]
+    },
+    "gladiator:gladiator-02:portrait": {
+      "alias": "gladiator:gladiator-02:portrait",
+      "bundleId": "core-ui",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/portrait.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/portrait.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "hitbox": {
+        "x": -64,
+        "y": -64,
+        "width": 128,
+        "height": 128
+      },
+      "renderLayer": "ui.base",
+      "tags": ["gladiator", "portrait"]
+    },
+    "gladiator:gladiator-02:map-idle:0": {
+      "alias": "gladiator:gladiator-02:map-idle:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-idle"]
+    },
+    "gladiator:gladiator-02:map-idle:1": {
+      "alias": "gladiator:gladiator-02:map-idle:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-idle"]
+    },
+    "gladiator:gladiator-02:map-walk:0": {
+      "alias": "gladiator:gladiator-02:map-walk:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-walk-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-walk-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-walk"]
+    },
+    "gladiator:gladiator-02:map-walk:1": {
+      "alias": "gladiator:gladiator-02:map-walk:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-walk-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-walk-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-walk"]
+    },
+    "gladiator:gladiator-02:map-train:0": {
+      "alias": "gladiator:gladiator-02:map-train:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-train-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-train-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-train"]
+    },
+    "gladiator:gladiator-02:map-train:1": {
+      "alias": "gladiator:gladiator-02:map-train:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-train-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-train-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-train"]
+    },
+    "gladiator:gladiator-02:map-eat:0": {
+      "alias": "gladiator:gladiator-02:map-eat:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-eat-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-eat-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-eat"]
+    },
+    "gladiator:gladiator-02:map-eat:1": {
+      "alias": "gladiator:gladiator-02:map-eat:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-eat-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-eat-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-eat"]
+    },
+    "gladiator:gladiator-02:map-rest:0": {
+      "alias": "gladiator:gladiator-02:map-rest:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-rest-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-rest-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-rest"]
+    },
+    "gladiator:gladiator-02:map-rest:1": {
+      "alias": "gladiator:gladiator-02:map-rest:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-rest-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-rest-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-rest"]
+    },
+    "gladiator:gladiator-02:map-celebrate:0": {
+      "alias": "gladiator:gladiator-02:map-celebrate:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-celebrate-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-celebrate-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-celebrate"]
+    },
+    "gladiator:gladiator-02:map-celebrate:1": {
+      "alias": "gladiator:gladiator-02:map-celebrate:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-celebrate-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-celebrate-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-celebrate"]
+    },
+    "gladiator:gladiator-02:map-healing:0": {
+      "alias": "gladiator:gladiator-02:map-healing:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-healing-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-healing-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-healing"]
+    },
+    "gladiator:gladiator-02:map-healing:1": {
+      "alias": "gladiator:gladiator-02:map-healing:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map/map-healing-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/map-healing-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-02", "map-healing"]
+    },
+    "gladiator:gladiator-02:combat-idle:0": {
+      "alias": "gladiator:gladiator-02:combat-idle:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-idle"]
+    },
+    "gladiator:gladiator-02:combat-idle:1": {
+      "alias": "gladiator:gladiator-02:combat-idle:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-idle"]
+    },
+    "gladiator:gladiator-02:combat-attack:0": {
+      "alias": "gladiator:gladiator-02:combat-attack:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-attack-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-attack-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-attack"]
+    },
+    "gladiator:gladiator-02:combat-attack:1": {
+      "alias": "gladiator:gladiator-02:combat-attack:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-attack-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-attack-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-attack"]
+    },
+    "gladiator:gladiator-02:combat-hit:0": {
+      "alias": "gladiator:gladiator-02:combat-hit:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-hit"]
+    },
+    "gladiator:gladiator-02:combat-hit:1": {
+      "alias": "gladiator:gladiator-02:combat-hit:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-hit"]
+    },
+    "gladiator:gladiator-02:combat-block:0": {
+      "alias": "gladiator:gladiator-02:combat-block:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-block"]
+    },
+    "gladiator:gladiator-02:combat-block:1": {
+      "alias": "gladiator:gladiator-02:combat-block:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-block"]
+    },
+    "gladiator:gladiator-02:combat-defeat:0": {
+      "alias": "gladiator:gladiator-02:combat-defeat:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-defeat"]
+    },
+    "gladiator:gladiator-02:combat-defeat:1": {
+      "alias": "gladiator:gladiator-02:combat-defeat:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-defeat"]
+    },
+    "gladiator:gladiator-02:combat-victory:0": {
+      "alias": "gladiator:gladiator-02:combat-victory:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-victory"]
+    },
+    "gladiator:gladiator-02:combat-victory:1": {
+      "alias": "gladiator:gladiator-02:combat-victory:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-02/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-02", "combat-victory"]
+    },
+    "gladiator:gladiator-03:portrait": {
+      "alias": "gladiator:gladiator-03:portrait",
+      "bundleId": "core-ui",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/portrait.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/portrait.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "hitbox": {
+        "x": -64,
+        "y": -64,
+        "width": 128,
+        "height": 128
+      },
+      "renderLayer": "ui.base",
+      "tags": ["gladiator", "portrait"]
+    },
+    "gladiator:gladiator-03:map-idle:0": {
+      "alias": "gladiator:gladiator-03:map-idle:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-idle"]
+    },
+    "gladiator:gladiator-03:map-idle:1": {
+      "alias": "gladiator:gladiator-03:map-idle:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-idle"]
+    },
+    "gladiator:gladiator-03:map-walk:0": {
+      "alias": "gladiator:gladiator-03:map-walk:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-walk-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-walk-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-walk"]
+    },
+    "gladiator:gladiator-03:map-walk:1": {
+      "alias": "gladiator:gladiator-03:map-walk:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-walk-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-walk-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-walk"]
+    },
+    "gladiator:gladiator-03:map-train:0": {
+      "alias": "gladiator:gladiator-03:map-train:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-train-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-train-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-train"]
+    },
+    "gladiator:gladiator-03:map-train:1": {
+      "alias": "gladiator:gladiator-03:map-train:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-train-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-train-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-train"]
+    },
+    "gladiator:gladiator-03:map-eat:0": {
+      "alias": "gladiator:gladiator-03:map-eat:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-eat-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-eat-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-eat"]
+    },
+    "gladiator:gladiator-03:map-eat:1": {
+      "alias": "gladiator:gladiator-03:map-eat:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-eat-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-eat-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-eat"]
+    },
+    "gladiator:gladiator-03:map-rest:0": {
+      "alias": "gladiator:gladiator-03:map-rest:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-rest-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-rest-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-rest"]
+    },
+    "gladiator:gladiator-03:map-rest:1": {
+      "alias": "gladiator:gladiator-03:map-rest:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-rest-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-rest-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-rest"]
+    },
+    "gladiator:gladiator-03:map-celebrate:0": {
+      "alias": "gladiator:gladiator-03:map-celebrate:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-celebrate-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-celebrate-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-celebrate"]
+    },
+    "gladiator:gladiator-03:map-celebrate:1": {
+      "alias": "gladiator:gladiator-03:map-celebrate:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-celebrate-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-celebrate-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-celebrate"]
+    },
+    "gladiator:gladiator-03:map-healing:0": {
+      "alias": "gladiator:gladiator-03:map-healing:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-healing-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-healing-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-healing"]
+    },
+    "gladiator:gladiator-03:map-healing:1": {
+      "alias": "gladiator:gladiator-03:map-healing:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map/map-healing-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/map-healing-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-03", "map-healing"]
+    },
+    "gladiator:gladiator-03:combat-idle:0": {
+      "alias": "gladiator:gladiator-03:combat-idle:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-idle"]
+    },
+    "gladiator:gladiator-03:combat-idle:1": {
+      "alias": "gladiator:gladiator-03:combat-idle:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-idle"]
+    },
+    "gladiator:gladiator-03:combat-attack:0": {
+      "alias": "gladiator:gladiator-03:combat-attack:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-attack-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-attack-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-attack"]
+    },
+    "gladiator:gladiator-03:combat-attack:1": {
+      "alias": "gladiator:gladiator-03:combat-attack:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-attack-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-attack-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-attack"]
+    },
+    "gladiator:gladiator-03:combat-hit:0": {
+      "alias": "gladiator:gladiator-03:combat-hit:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-hit"]
+    },
+    "gladiator:gladiator-03:combat-hit:1": {
+      "alias": "gladiator:gladiator-03:combat-hit:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-hit"]
+    },
+    "gladiator:gladiator-03:combat-block:0": {
+      "alias": "gladiator:gladiator-03:combat-block:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-block"]
+    },
+    "gladiator:gladiator-03:combat-block:1": {
+      "alias": "gladiator:gladiator-03:combat-block:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-block"]
+    },
+    "gladiator:gladiator-03:combat-defeat:0": {
+      "alias": "gladiator:gladiator-03:combat-defeat:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-defeat"]
+    },
+    "gladiator:gladiator-03:combat-defeat:1": {
+      "alias": "gladiator:gladiator-03:combat-defeat:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-defeat"]
+    },
+    "gladiator:gladiator-03:combat-victory:0": {
+      "alias": "gladiator:gladiator-03:combat-victory:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-victory"]
+    },
+    "gladiator:gladiator-03:combat-victory:1": {
+      "alias": "gladiator:gladiator-03:combat-victory:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-03/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-03", "combat-victory"]
+    },
+    "gladiator:gladiator-04:portrait": {
+      "alias": "gladiator:gladiator-04:portrait",
+      "bundleId": "core-ui",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/portrait.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/portrait.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "hitbox": {
+        "x": -64,
+        "y": -64,
+        "width": 128,
+        "height": 128
+      },
+      "renderLayer": "ui.base",
+      "tags": ["gladiator", "portrait"]
+    },
+    "gladiator:gladiator-04:map-idle:0": {
+      "alias": "gladiator:gladiator-04:map-idle:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-idle"]
+    },
+    "gladiator:gladiator-04:map-idle:1": {
+      "alias": "gladiator:gladiator-04:map-idle:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-idle"]
+    },
+    "gladiator:gladiator-04:map-walk:0": {
+      "alias": "gladiator:gladiator-04:map-walk:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-walk-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-walk-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-walk"]
+    },
+    "gladiator:gladiator-04:map-walk:1": {
+      "alias": "gladiator:gladiator-04:map-walk:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-walk-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-walk-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-walk"]
+    },
+    "gladiator:gladiator-04:map-train:0": {
+      "alias": "gladiator:gladiator-04:map-train:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-train-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-train-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-train"]
+    },
+    "gladiator:gladiator-04:map-train:1": {
+      "alias": "gladiator:gladiator-04:map-train:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-train-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-train-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-train"]
+    },
+    "gladiator:gladiator-04:map-eat:0": {
+      "alias": "gladiator:gladiator-04:map-eat:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-eat-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-eat-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-eat"]
+    },
+    "gladiator:gladiator-04:map-eat:1": {
+      "alias": "gladiator:gladiator-04:map-eat:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-eat-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-eat-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-eat"]
+    },
+    "gladiator:gladiator-04:map-rest:0": {
+      "alias": "gladiator:gladiator-04:map-rest:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-rest-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-rest-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-rest"]
+    },
+    "gladiator:gladiator-04:map-rest:1": {
+      "alias": "gladiator:gladiator-04:map-rest:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-rest-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-rest-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-rest"]
+    },
+    "gladiator:gladiator-04:map-celebrate:0": {
+      "alias": "gladiator:gladiator-04:map-celebrate:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-celebrate-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-celebrate-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-celebrate"]
+    },
+    "gladiator:gladiator-04:map-celebrate:1": {
+      "alias": "gladiator:gladiator-04:map-celebrate:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-celebrate-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-celebrate-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-celebrate"]
+    },
+    "gladiator:gladiator-04:map-healing:0": {
+      "alias": "gladiator:gladiator-04:map-healing:0",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-healing-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-healing-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-healing"]
+    },
+    "gladiator:gladiator-04:map-healing:1": {
+      "alias": "gladiator:gladiator-04:map-healing:1",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map/map-healing-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/map-healing-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -32,
+        "y": -96,
+        "width": 64,
+        "height": 96
+      },
+      "renderLayer": "map.characters",
+      "tags": ["gladiator", "map", "gladiator-04", "map-healing"]
+    },
+    "gladiator:gladiator-04:combat-idle:0": {
+      "alias": "gladiator:gladiator-04:combat-idle:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-idle"]
+    },
+    "gladiator:gladiator-04:combat-idle:1": {
+      "alias": "gladiator:gladiator-04:combat-idle:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-idle"]
+    },
+    "gladiator:gladiator-04:combat-attack:0": {
+      "alias": "gladiator:gladiator-04:combat-attack:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-attack-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-attack-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-attack"]
+    },
+    "gladiator:gladiator-04:combat-attack:1": {
+      "alias": "gladiator:gladiator-04:combat-attack:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-attack-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-attack-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-attack"]
+    },
+    "gladiator:gladiator-04:combat-hit:0": {
+      "alias": "gladiator:gladiator-04:combat-hit:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-hit"]
+    },
+    "gladiator:gladiator-04:combat-hit:1": {
+      "alias": "gladiator:gladiator-04:combat-hit:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-hit"]
+    },
+    "gladiator:gladiator-04:combat-block:0": {
+      "alias": "gladiator:gladiator-04:combat-block:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-block"]
+    },
+    "gladiator:gladiator-04:combat-block:1": {
+      "alias": "gladiator:gladiator-04:combat-block:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-block"]
+    },
+    "gladiator:gladiator-04:combat-defeat:0": {
+      "alias": "gladiator:gladiator-04:combat-defeat:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-defeat"]
+    },
+    "gladiator:gladiator-04:combat-defeat:1": {
+      "alias": "gladiator:gladiator-04:combat-defeat:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-defeat"]
+    },
+    "gladiator:gladiator-04:combat-victory:0": {
+      "alias": "gladiator:gladiator-04:combat-victory:0",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-0.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-idle-0.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-victory"]
+    },
+    "gladiator:gladiator-04:combat-victory:1": {
+      "alias": "gladiator:gladiator-04:combat-victory:1",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat/combat-idle-1.png",
+      "fallbackSrc": "/assets/pixel-art/characters/gladiators/gladiator-04/combat-idle-1.svg",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "hitbox": {
+        "x": -60,
+        "y": -180,
+        "width": 120,
+        "height": 180
+      },
+      "renderLayer": "combat.fighters",
+      "tags": ["gladiator", "combat", "gladiator-04", "combat-victory"]
+    },
+    "combat:arena:background": {
+      "alias": "combat:arena:background",
+      "bundleId": "combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/combat/arena-background.webp",
+      "fallbackSrc": "/assets/pixel-art/locations/arena/combat-background.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "hitbox": {
+        "x": 0,
+        "y": 0,
+        "width": 960,
+        "height": 480
+      },
+      "renderLayer": "combat.background",
+      "tags": ["combat", "arena"]
+    },
+    "combat:arena:crowd": {
+      "alias": "combat:arena:crowd",
+      "bundleId": "combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/combat/arena-crowd.webp",
+      "fallbackSrc": "/assets/pixel-art/locations/arena/crowd.svg",
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "hitbox": {
+        "x": 0,
+        "y": 0,
+        "width": 960,
+        "height": 160
+      },
+      "renderLayer": "combat.crowd",
+      "tags": ["combat", "crowd"]
+    }
+  },
+  "spritesheets": {
+    "spritesheet:gladiator:gladiator-01:map": {
+      "alias": "spritesheet:gladiator:gladiator-01:map",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map-spritesheet.png",
+      "productionAtlasSrc": "/assets/pixel-art-production/gladiators/gladiator-01/map-spritesheet.json",
+      "fallbackTextureAliases": [
+        "gladiator:gladiator-01:map-idle:0",
+        "gladiator:gladiator-01:map-idle:1",
+        "gladiator:gladiator-01:map-walk:0",
+        "gladiator:gladiator-01:map-walk:1",
+        "gladiator:gladiator-01:map-train:0",
+        "gladiator:gladiator-01:map-train:1",
+        "gladiator:gladiator-01:map-eat:0",
+        "gladiator:gladiator-01:map-eat:1",
+        "gladiator:gladiator-01:map-rest:0",
+        "gladiator:gladiator-01:map-rest:1",
+        "gladiator:gladiator-01:map-celebrate:0",
+        "gladiator:gladiator-01:map-celebrate:1",
+        "gladiator:gladiator-01:map-healing:0",
+        "gladiator:gladiator-01:map-healing:1"
+      ],
+      "animations": {
+        "map-idle": {
+          "key": "map-idle",
+          "frameAliases": [
+            "gladiator:gladiator-01:map-idle:0",
+            "gladiator:gladiator-01:map-idle:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-walk": {
+          "key": "map-walk",
+          "frameAliases": [
+            "gladiator:gladiator-01:map-walk:0",
+            "gladiator:gladiator-01:map-walk:1"
+          ],
+          "fps": 7,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-train": {
+          "key": "map-train",
+          "frameAliases": [
+            "gladiator:gladiator-01:map-train:0",
+            "gladiator:gladiator-01:map-train:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-eat": {
+          "key": "map-eat",
+          "frameAliases": ["gladiator:gladiator-01:map-eat:0", "gladiator:gladiator-01:map-eat:1"],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-rest": {
+          "key": "map-rest",
+          "frameAliases": [
+            "gladiator:gladiator-01:map-rest:0",
+            "gladiator:gladiator-01:map-rest:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-celebrate": {
+          "key": "map-celebrate",
+          "frameAliases": [
+            "gladiator:gladiator-01:map-celebrate:0",
+            "gladiator:gladiator-01:map-celebrate:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-healing": {
+          "key": "map-healing",
+          "frameAliases": [
+            "gladiator:gladiator-01:map-healing:0",
+            "gladiator:gladiator-01:map-healing:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        }
+      },
+      "tags": ["gladiator", "map", "gladiator-01"]
+    },
+    "spritesheet:gladiator:gladiator-01:combat": {
+      "alias": "spritesheet:gladiator:gladiator-01:combat",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat-spritesheet.png",
+      "productionAtlasSrc": "/assets/pixel-art-production/gladiators/gladiator-01/combat-spritesheet.json",
+      "fallbackTextureAliases": [
+        "gladiator:gladiator-01:combat-idle:0",
+        "gladiator:gladiator-01:combat-idle:1",
+        "gladiator:gladiator-01:combat-attack:0",
+        "gladiator:gladiator-01:combat-attack:1",
+        "gladiator:gladiator-01:combat-hit:0",
+        "gladiator:gladiator-01:combat-hit:1",
+        "gladiator:gladiator-01:combat-block:0",
+        "gladiator:gladiator-01:combat-block:1",
+        "gladiator:gladiator-01:combat-defeat:0",
+        "gladiator:gladiator-01:combat-defeat:1",
+        "gladiator:gladiator-01:combat-victory:0",
+        "gladiator:gladiator-01:combat-victory:1"
+      ],
+      "animations": {
+        "combat-idle": {
+          "key": "combat-idle",
+          "frameAliases": [
+            "gladiator:gladiator-01:combat-idle:0",
+            "gladiator:gladiator-01:combat-idle:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-attack": {
+          "key": "combat-attack",
+          "frameAliases": [
+            "gladiator:gladiator-01:combat-attack:0",
+            "gladiator:gladiator-01:combat-attack:1"
+          ],
+          "fps": 7,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-hit": {
+          "key": "combat-hit",
+          "frameAliases": [
+            "gladiator:gladiator-01:combat-hit:0",
+            "gladiator:gladiator-01:combat-hit:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-block": {
+          "key": "combat-block",
+          "frameAliases": [
+            "gladiator:gladiator-01:combat-block:0",
+            "gladiator:gladiator-01:combat-block:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-defeat": {
+          "key": "combat-defeat",
+          "frameAliases": [
+            "gladiator:gladiator-01:combat-defeat:0",
+            "gladiator:gladiator-01:combat-defeat:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": -8
+        },
+        "combat-victory": {
+          "key": "combat-victory",
+          "frameAliases": [
+            "gladiator:gladiator-01:combat-victory:0",
+            "gladiator:gladiator-01:combat-victory:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        }
+      },
+      "tags": ["gladiator", "combat", "gladiator-01"]
+    },
+    "spritesheet:gladiator:gladiator-02:map": {
+      "alias": "spritesheet:gladiator:gladiator-02:map",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map-spritesheet.png",
+      "productionAtlasSrc": "/assets/pixel-art-production/gladiators/gladiator-02/map-spritesheet.json",
+      "fallbackTextureAliases": [
+        "gladiator:gladiator-02:map-idle:0",
+        "gladiator:gladiator-02:map-idle:1",
+        "gladiator:gladiator-02:map-walk:0",
+        "gladiator:gladiator-02:map-walk:1",
+        "gladiator:gladiator-02:map-train:0",
+        "gladiator:gladiator-02:map-train:1",
+        "gladiator:gladiator-02:map-eat:0",
+        "gladiator:gladiator-02:map-eat:1",
+        "gladiator:gladiator-02:map-rest:0",
+        "gladiator:gladiator-02:map-rest:1",
+        "gladiator:gladiator-02:map-celebrate:0",
+        "gladiator:gladiator-02:map-celebrate:1",
+        "gladiator:gladiator-02:map-healing:0",
+        "gladiator:gladiator-02:map-healing:1"
+      ],
+      "animations": {
+        "map-idle": {
+          "key": "map-idle",
+          "frameAliases": [
+            "gladiator:gladiator-02:map-idle:0",
+            "gladiator:gladiator-02:map-idle:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-walk": {
+          "key": "map-walk",
+          "frameAliases": [
+            "gladiator:gladiator-02:map-walk:0",
+            "gladiator:gladiator-02:map-walk:1"
+          ],
+          "fps": 7,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-train": {
+          "key": "map-train",
+          "frameAliases": [
+            "gladiator:gladiator-02:map-train:0",
+            "gladiator:gladiator-02:map-train:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-eat": {
+          "key": "map-eat",
+          "frameAliases": ["gladiator:gladiator-02:map-eat:0", "gladiator:gladiator-02:map-eat:1"],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-rest": {
+          "key": "map-rest",
+          "frameAliases": [
+            "gladiator:gladiator-02:map-rest:0",
+            "gladiator:gladiator-02:map-rest:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-celebrate": {
+          "key": "map-celebrate",
+          "frameAliases": [
+            "gladiator:gladiator-02:map-celebrate:0",
+            "gladiator:gladiator-02:map-celebrate:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-healing": {
+          "key": "map-healing",
+          "frameAliases": [
+            "gladiator:gladiator-02:map-healing:0",
+            "gladiator:gladiator-02:map-healing:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        }
+      },
+      "tags": ["gladiator", "map", "gladiator-02"]
+    },
+    "spritesheet:gladiator:gladiator-02:combat": {
+      "alias": "spritesheet:gladiator:gladiator-02:combat",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat-spritesheet.png",
+      "productionAtlasSrc": "/assets/pixel-art-production/gladiators/gladiator-02/combat-spritesheet.json",
+      "fallbackTextureAliases": [
+        "gladiator:gladiator-02:combat-idle:0",
+        "gladiator:gladiator-02:combat-idle:1",
+        "gladiator:gladiator-02:combat-attack:0",
+        "gladiator:gladiator-02:combat-attack:1",
+        "gladiator:gladiator-02:combat-hit:0",
+        "gladiator:gladiator-02:combat-hit:1",
+        "gladiator:gladiator-02:combat-block:0",
+        "gladiator:gladiator-02:combat-block:1",
+        "gladiator:gladiator-02:combat-defeat:0",
+        "gladiator:gladiator-02:combat-defeat:1",
+        "gladiator:gladiator-02:combat-victory:0",
+        "gladiator:gladiator-02:combat-victory:1"
+      ],
+      "animations": {
+        "combat-idle": {
+          "key": "combat-idle",
+          "frameAliases": [
+            "gladiator:gladiator-02:combat-idle:0",
+            "gladiator:gladiator-02:combat-idle:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-attack": {
+          "key": "combat-attack",
+          "frameAliases": [
+            "gladiator:gladiator-02:combat-attack:0",
+            "gladiator:gladiator-02:combat-attack:1"
+          ],
+          "fps": 7,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-hit": {
+          "key": "combat-hit",
+          "frameAliases": [
+            "gladiator:gladiator-02:combat-hit:0",
+            "gladiator:gladiator-02:combat-hit:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-block": {
+          "key": "combat-block",
+          "frameAliases": [
+            "gladiator:gladiator-02:combat-block:0",
+            "gladiator:gladiator-02:combat-block:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-defeat": {
+          "key": "combat-defeat",
+          "frameAliases": [
+            "gladiator:gladiator-02:combat-defeat:0",
+            "gladiator:gladiator-02:combat-defeat:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": -8
+        },
+        "combat-victory": {
+          "key": "combat-victory",
+          "frameAliases": [
+            "gladiator:gladiator-02:combat-victory:0",
+            "gladiator:gladiator-02:combat-victory:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        }
+      },
+      "tags": ["gladiator", "combat", "gladiator-02"]
+    },
+    "spritesheet:gladiator:gladiator-03:map": {
+      "alias": "spritesheet:gladiator:gladiator-03:map",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map-spritesheet.png",
+      "productionAtlasSrc": "/assets/pixel-art-production/gladiators/gladiator-03/map-spritesheet.json",
+      "fallbackTextureAliases": [
+        "gladiator:gladiator-03:map-idle:0",
+        "gladiator:gladiator-03:map-idle:1",
+        "gladiator:gladiator-03:map-walk:0",
+        "gladiator:gladiator-03:map-walk:1",
+        "gladiator:gladiator-03:map-train:0",
+        "gladiator:gladiator-03:map-train:1",
+        "gladiator:gladiator-03:map-eat:0",
+        "gladiator:gladiator-03:map-eat:1",
+        "gladiator:gladiator-03:map-rest:0",
+        "gladiator:gladiator-03:map-rest:1",
+        "gladiator:gladiator-03:map-celebrate:0",
+        "gladiator:gladiator-03:map-celebrate:1",
+        "gladiator:gladiator-03:map-healing:0",
+        "gladiator:gladiator-03:map-healing:1"
+      ],
+      "animations": {
+        "map-idle": {
+          "key": "map-idle",
+          "frameAliases": [
+            "gladiator:gladiator-03:map-idle:0",
+            "gladiator:gladiator-03:map-idle:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-walk": {
+          "key": "map-walk",
+          "frameAliases": [
+            "gladiator:gladiator-03:map-walk:0",
+            "gladiator:gladiator-03:map-walk:1"
+          ],
+          "fps": 7,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-train": {
+          "key": "map-train",
+          "frameAliases": [
+            "gladiator:gladiator-03:map-train:0",
+            "gladiator:gladiator-03:map-train:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-eat": {
+          "key": "map-eat",
+          "frameAliases": ["gladiator:gladiator-03:map-eat:0", "gladiator:gladiator-03:map-eat:1"],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-rest": {
+          "key": "map-rest",
+          "frameAliases": [
+            "gladiator:gladiator-03:map-rest:0",
+            "gladiator:gladiator-03:map-rest:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-celebrate": {
+          "key": "map-celebrate",
+          "frameAliases": [
+            "gladiator:gladiator-03:map-celebrate:0",
+            "gladiator:gladiator-03:map-celebrate:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-healing": {
+          "key": "map-healing",
+          "frameAliases": [
+            "gladiator:gladiator-03:map-healing:0",
+            "gladiator:gladiator-03:map-healing:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        }
+      },
+      "tags": ["gladiator", "map", "gladiator-03"]
+    },
+    "spritesheet:gladiator:gladiator-03:combat": {
+      "alias": "spritesheet:gladiator:gladiator-03:combat",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat-spritesheet.png",
+      "productionAtlasSrc": "/assets/pixel-art-production/gladiators/gladiator-03/combat-spritesheet.json",
+      "fallbackTextureAliases": [
+        "gladiator:gladiator-03:combat-idle:0",
+        "gladiator:gladiator-03:combat-idle:1",
+        "gladiator:gladiator-03:combat-attack:0",
+        "gladiator:gladiator-03:combat-attack:1",
+        "gladiator:gladiator-03:combat-hit:0",
+        "gladiator:gladiator-03:combat-hit:1",
+        "gladiator:gladiator-03:combat-block:0",
+        "gladiator:gladiator-03:combat-block:1",
+        "gladiator:gladiator-03:combat-defeat:0",
+        "gladiator:gladiator-03:combat-defeat:1",
+        "gladiator:gladiator-03:combat-victory:0",
+        "gladiator:gladiator-03:combat-victory:1"
+      ],
+      "animations": {
+        "combat-idle": {
+          "key": "combat-idle",
+          "frameAliases": [
+            "gladiator:gladiator-03:combat-idle:0",
+            "gladiator:gladiator-03:combat-idle:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-attack": {
+          "key": "combat-attack",
+          "frameAliases": [
+            "gladiator:gladiator-03:combat-attack:0",
+            "gladiator:gladiator-03:combat-attack:1"
+          ],
+          "fps": 7,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-hit": {
+          "key": "combat-hit",
+          "frameAliases": [
+            "gladiator:gladiator-03:combat-hit:0",
+            "gladiator:gladiator-03:combat-hit:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-block": {
+          "key": "combat-block",
+          "frameAliases": [
+            "gladiator:gladiator-03:combat-block:0",
+            "gladiator:gladiator-03:combat-block:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-defeat": {
+          "key": "combat-defeat",
+          "frameAliases": [
+            "gladiator:gladiator-03:combat-defeat:0",
+            "gladiator:gladiator-03:combat-defeat:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": -8
+        },
+        "combat-victory": {
+          "key": "combat-victory",
+          "frameAliases": [
+            "gladiator:gladiator-03:combat-victory:0",
+            "gladiator:gladiator-03:combat-victory:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        }
+      },
+      "tags": ["gladiator", "combat", "gladiator-03"]
+    },
+    "spritesheet:gladiator:gladiator-04:map": {
+      "alias": "spritesheet:gladiator:gladiator-04:map",
+      "bundleId": "gladiators-map",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map-spritesheet.png",
+      "productionAtlasSrc": "/assets/pixel-art-production/gladiators/gladiator-04/map-spritesheet.json",
+      "fallbackTextureAliases": [
+        "gladiator:gladiator-04:map-idle:0",
+        "gladiator:gladiator-04:map-idle:1",
+        "gladiator:gladiator-04:map-walk:0",
+        "gladiator:gladiator-04:map-walk:1",
+        "gladiator:gladiator-04:map-train:0",
+        "gladiator:gladiator-04:map-train:1",
+        "gladiator:gladiator-04:map-eat:0",
+        "gladiator:gladiator-04:map-eat:1",
+        "gladiator:gladiator-04:map-rest:0",
+        "gladiator:gladiator-04:map-rest:1",
+        "gladiator:gladiator-04:map-celebrate:0",
+        "gladiator:gladiator-04:map-celebrate:1",
+        "gladiator:gladiator-04:map-healing:0",
+        "gladiator:gladiator-04:map-healing:1"
+      ],
+      "animations": {
+        "map-idle": {
+          "key": "map-idle",
+          "frameAliases": [
+            "gladiator:gladiator-04:map-idle:0",
+            "gladiator:gladiator-04:map-idle:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-walk": {
+          "key": "map-walk",
+          "frameAliases": [
+            "gladiator:gladiator-04:map-walk:0",
+            "gladiator:gladiator-04:map-walk:1"
+          ],
+          "fps": 7,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-train": {
+          "key": "map-train",
+          "frameAliases": [
+            "gladiator:gladiator-04:map-train:0",
+            "gladiator:gladiator-04:map-train:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-eat": {
+          "key": "map-eat",
+          "frameAliases": ["gladiator:gladiator-04:map-eat:0", "gladiator:gladiator-04:map-eat:1"],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-rest": {
+          "key": "map-rest",
+          "frameAliases": [
+            "gladiator:gladiator-04:map-rest:0",
+            "gladiator:gladiator-04:map-rest:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-celebrate": {
+          "key": "map-celebrate",
+          "frameAliases": [
+            "gladiator:gladiator-04:map-celebrate:0",
+            "gladiator:gladiator-04:map-celebrate:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        },
+        "map-healing": {
+          "key": "map-healing",
+          "frameAliases": [
+            "gladiator:gladiator-04:map-healing:0",
+            "gladiator:gladiator-04:map-healing:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -32,
+            "y": -96,
+            "width": 64,
+            "height": 96
+          },
+          "renderLayer": "map.characters",
+          "ySortOffset": 0
+        }
+      },
+      "tags": ["gladiator", "map", "gladiator-04"]
+    },
+    "spritesheet:gladiator:gladiator-04:combat": {
+      "alias": "spritesheet:gladiator:gladiator-04:combat",
+      "bundleId": "gladiators-combat",
+      "sourceQuality": "production",
+      "productionSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat-spritesheet.png",
+      "productionAtlasSrc": "/assets/pixel-art-production/gladiators/gladiator-04/combat-spritesheet.json",
+      "fallbackTextureAliases": [
+        "gladiator:gladiator-04:combat-idle:0",
+        "gladiator:gladiator-04:combat-idle:1",
+        "gladiator:gladiator-04:combat-attack:0",
+        "gladiator:gladiator-04:combat-attack:1",
+        "gladiator:gladiator-04:combat-hit:0",
+        "gladiator:gladiator-04:combat-hit:1",
+        "gladiator:gladiator-04:combat-block:0",
+        "gladiator:gladiator-04:combat-block:1",
+        "gladiator:gladiator-04:combat-defeat:0",
+        "gladiator:gladiator-04:combat-defeat:1",
+        "gladiator:gladiator-04:combat-victory:0",
+        "gladiator:gladiator-04:combat-victory:1"
+      ],
+      "animations": {
+        "combat-idle": {
+          "key": "combat-idle",
+          "frameAliases": [
+            "gladiator:gladiator-04:combat-idle:0",
+            "gladiator:gladiator-04:combat-idle:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-attack": {
+          "key": "combat-attack",
+          "frameAliases": [
+            "gladiator:gladiator-04:combat-attack:0",
+            "gladiator:gladiator-04:combat-attack:1"
+          ],
+          "fps": 7,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-hit": {
+          "key": "combat-hit",
+          "frameAliases": [
+            "gladiator:gladiator-04:combat-hit:0",
+            "gladiator:gladiator-04:combat-hit:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-block": {
+          "key": "combat-block",
+          "frameAliases": [
+            "gladiator:gladiator-04:combat-block:0",
+            "gladiator:gladiator-04:combat-block:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        },
+        "combat-defeat": {
+          "key": "combat-defeat",
+          "frameAliases": [
+            "gladiator:gladiator-04:combat-defeat:0",
+            "gladiator:gladiator-04:combat-defeat:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": -8
+        },
+        "combat-victory": {
+          "key": "combat-victory",
+          "frameAliases": [
+            "gladiator:gladiator-04:combat-victory:0",
+            "gladiator:gladiator-04:combat-victory:1"
+          ],
+          "fps": 3,
+          "loop": true,
+          "anchor": {
+            "x": 0.5,
+            "y": 1
+          },
+          "hitbox": {
+            "x": -60,
+            "y": -180,
+            "width": 120,
+            "height": 180
+          },
+          "renderLayer": "combat.fighters",
+          "ySortOffset": 0
+        }
+      },
+      "tags": ["gladiator", "combat", "gladiator-04"]
+    }
+  }
+}

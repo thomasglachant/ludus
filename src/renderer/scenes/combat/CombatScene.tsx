@@ -1,193 +1,733 @@
-import { extend, useTick } from '@pixi/react';
-import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatedSprite, Container, Graphics, Sprite, Texture } from 'pixi.js';
+import type { CombatScreenViewModel } from '../../../ui/combat/combat-screen-view-model';
+import type {
+  PixiAssetLoader,
+  PixiSpritesheetMap,
+  PixiTextureMap,
+} from '../../pixi/PixiAssetLoader';
+import {
+  PixiVisualDebugOverlay,
+  type PixiVisualDebugMetric,
+} from '../../pixi/PixiVisualDebugOverlay';
+import { destroyDisplayObject } from '../../pixi/destroy';
+import { configurePixelArtSprite, setPixelArtSpriteSize } from '../../pixi/pixel-perfect';
+import type { PixiScene, PixiSceneContext } from '../../pixi/PixiScene';
+import { createRenderLayerSetup } from '../../pixi/render-layers';
+import { createCombatSceneViewModel } from './createCombatSceneViewModel';
 import type { CombatSceneCombatantViewModel, CombatSceneViewModel } from './CombatSceneViewModel';
 
-extend({ Container, Graphics, Sprite, Text });
+type CombatLayerId =
+  | 'background'
+  | 'crowd'
+  | 'tribune'
+  | 'sand'
+  | 'fighters'
+  | 'effects'
+  | 'vignette';
 
-interface CombatSceneProps {
-  viewModel: CombatSceneViewModel;
+interface CombatSceneOptions {
+  reducedMotion?: boolean;
 }
 
-interface CombatFighterSpriteProps {
+interface CombatFighterDisplay {
+  animationSignature?: string;
   combatant: CombatSceneCombatantViewModel;
-  isAttacking: boolean;
-  reducedMotion: boolean;
-  texturesByPath: Record<string, Texture>;
+  container: Container;
+  fallback: Graphics;
+  shadow: Graphics;
+  sprite: AnimatedSprite;
 }
 
-function CombatFighterSprite({
-  combatant,
-  isAttacking,
-  reducedMotion,
-  texturesByPath,
-}: CombatFighterSpriteProps) {
-  const containerRef = useRef<Container | null>(null);
-  const spriteRef = useRef<Sprite | null>(null);
-  const frames =
-    isAttacking && combatant.attackFrames.length > 0
-      ? combatant.attackFrames
-      : combatant.idleFrames;
-  const fallbackTexture = frames[0] ? texturesByPath[frames[0]] : undefined;
-  const baseX = combatant.side === 'left' ? 330 : 630;
-  const direction = combatant.side === 'left' ? 1 : -1;
+interface CombatPoint {
+  x: number;
+  y: number;
+}
 
-  useTick(() => {
-    const container = containerRef.current;
-    const sprite = spriteRef.current;
+const COMBAT_LAYER_IDS = [
+  'background',
+  'crowd',
+  'tribune',
+  'sand',
+  'fighters',
+  'effects',
+  'vignette',
+] as const satisfies readonly CombatLayerId[];
+const ARENA_WIDTH = 960;
+const ARENA_HEIGHT = 480;
+const ACTION_DURATION_MS = 620;
+const DUST_DURATION_MS = 760;
+const FIGHTER_BASE_SCALE = 2;
+const FIGHTER_GROUND_Y = 388;
+const FIGHTER_POSITIONS = {
+  left: { x: 338, y: FIGHTER_GROUND_Y },
+  right: { x: 622, y: FIGHTER_GROUND_Y },
+} as const satisfies Record<'left' | 'right', CombatPoint>;
+const ASSET_SIGNATURE_SEPARATOR = '\u0000';
 
-    if (!container) {
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
+function getFacingDirection(side: 'left' | 'right') {
+  return side === 'left' ? 1 : -1;
+}
+
+function collectCombatTextureAssetPaths(viewModel: CombatSceneViewModel): string[] {
+  return Array.from(
+    new Set([
+      viewModel.backgroundPath,
+      viewModel.crowdPath,
+      ...(viewModel.left.spritesheetAtlasPath ? [] : viewModel.left.fallbackFramePaths),
+      ...(viewModel.right.spritesheetAtlasPath ? [] : viewModel.right.fallbackFramePaths),
+    ]),
+  );
+}
+
+function collectCombatSpritesheetAssetPaths(viewModel: CombatSceneViewModel): string[] {
+  return Array.from(
+    new Set(
+      [viewModel.left.spritesheetAtlasPath, viewModel.right.spritesheetAtlasPath].filter(
+        (assetPath): assetPath is string => Boolean(assetPath),
+      ),
+    ),
+  );
+}
+
+function createAssetSignature(viewModel: CombatSceneViewModel): string {
+  return [
+    ...collectCombatTextureAssetPaths(viewModel),
+    ...collectCombatSpritesheetAssetPaths(viewModel),
+  ].join(ASSET_SIGNATURE_SEPARATOR);
+}
+
+function drawArenaFallback(graphics: Graphics): void {
+  graphics.clear();
+  graphics.setFillStyle({ color: 0x4c3224 });
+  graphics.rect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
+  graphics.fill();
+  graphics.setFillStyle({ color: 0x7b4932, alpha: 0.62 });
+  graphics.rect(0, 0, ARENA_WIDTH, 190);
+  graphics.fill();
+  graphics.setFillStyle({ color: 0xd8a25a, alpha: 0.64 });
+  graphics.rect(0, 190, ARENA_WIDTH, ARENA_HEIGHT - 190);
+  graphics.fill();
+}
+
+function drawCrowdFallback(graphics: Graphics): void {
+  graphics.clear();
+  graphics.setFillStyle({ color: 0x271914, alpha: 0.64 });
+  graphics.rect(0, 0, ARENA_WIDTH, 158);
+  graphics.fill();
+
+  for (let y = 18; y < 136; y += 18) {
+    for (let x = 18; x < ARENA_WIDTH; x += 26) {
+      const offset = (x + y) % 3;
+      const color = offset === 0 ? 0xf0c16f : offset === 1 ? 0xa63c32 : 0xe5d0a1;
+
+      graphics.setFillStyle({ color, alpha: 0.34 });
+      graphics.rect(x, y, 8, 6);
+      graphics.fill();
+    }
+  }
+}
+
+function drawTribune(graphics: Graphics): void {
+  graphics.clear();
+  graphics.setFillStyle({ color: 0x241710, alpha: 0.24 });
+  graphics.rect(0, 152, ARENA_WIDTH, 18);
+  graphics.fill();
+  graphics.setFillStyle({ color: 0x8a6140, alpha: 0.2 });
+  graphics.rect(0, 172, ARENA_WIDTH, 8);
+  graphics.fill();
+  graphics.rect(0, 204, ARENA_WIDTH, 10);
+  graphics.fill();
+  graphics.setFillStyle({ color: 0xd2a35b, alpha: 0.18 });
+  graphics.rect(390, 126, 180, 10);
+  graphics.fill();
+  graphics.setFillStyle({ color: 0x241710, alpha: 0.14 });
+
+  for (let x = 28; x < ARENA_WIDTH; x += 76) {
+    graphics.rect(x, 150, 10, 58);
+    graphics.fill();
+  }
+}
+
+function drawSandFloor(graphics: Graphics): void {
+  graphics.clear();
+  graphics.setFillStyle({ color: 0xe0ad61, alpha: 0.54 });
+  graphics.rect(0, 214, ARENA_WIDTH, ARENA_HEIGHT - 214);
+  graphics.fill();
+  graphics.setFillStyle({ color: 0xf2ca7a, alpha: 0.3 });
+  graphics.ellipse(ARENA_WIDTH / 2, 362, 382, 94);
+  graphics.fill();
+  graphics.setStrokeStyle({ color: 0x8b5c35, width: 2, alpha: 0.18 });
+
+  for (let y = 272; y < 450; y += 28) {
+    graphics.moveTo(120, y);
+    graphics.lineTo(ARENA_WIDTH - 120, y + 10);
+  }
+
+  graphics.stroke();
+  graphics.setStrokeStyle({ color: 0xf8dda2, width: 1, alpha: 0.22 });
+
+  for (let x = 124; x < ARENA_WIDTH - 100; x += 86) {
+    graphics.moveTo(x, 236);
+    graphics.lineTo(x - 56, 454);
+  }
+
+  graphics.stroke();
+}
+
+function drawVignette(graphics: Graphics): void {
+  graphics.clear();
+  graphics.setFillStyle({ color: 0x120c08, alpha: 0.16 });
+  graphics.rect(0, 0, ARENA_WIDTH, 32);
+  graphics.fill();
+  graphics.rect(0, ARENA_HEIGHT - 44, ARENA_WIDTH, 44);
+  graphics.fill();
+  graphics.setFillStyle({ color: 0x120c08, alpha: 0.22 });
+  graphics.rect(0, 0, 42, ARENA_HEIGHT);
+  graphics.fill();
+  graphics.rect(ARENA_WIDTH - 42, 0, 42, ARENA_HEIGHT);
+  graphics.fill();
+}
+
+function drawFighterFallback(graphics: Graphics, combatant: CombatSceneCombatantViewModel): void {
+  const color = combatant.side === 'left' ? 0x375f82 : 0x924535;
+
+  graphics.clear();
+  graphics.setFillStyle({ color: 0x221711, alpha: 0.36 });
+  graphics.ellipse(0, 0, 54, 16);
+  graphics.fill();
+  graphics.setFillStyle({ color });
+  graphics.roundRect(-36, -138, 72, 104, 12);
+  graphics.fill();
+  graphics.setFillStyle({ color: 0xd8b17a });
+  graphics.circle(0, -154, 25);
+  graphics.fill();
+}
+
+function drawFighterShadow(graphics: Graphics, intensity: number): void {
+  graphics.clear();
+  graphics.setFillStyle({ color: 0x17100c, alpha: 0.26 + intensity * 0.1 });
+  graphics.ellipse(0, 2, 76 + intensity * 10, 20 + intensity * 3);
+  graphics.fill();
+}
+
+function drawSlash(graphics: Graphics, attackerSide: 'left' | 'right', progress: number): void {
+  const defender = FIGHTER_POSITIONS[attackerSide === 'left' ? 'right' : 'left'];
+  const direction = getFacingDirection(attackerSide);
+  const alpha = 1 - progress * 0.72;
+  const centerX = defender.x - direction * (46 - progress * 18);
+  const centerY = defender.y - 122;
+
+  graphics.setStrokeStyle({ color: 0xffe4a6, width: 12, alpha, cap: 'round' });
+  graphics.moveTo(centerX - direction * 48, centerY - 46);
+  graphics.lineTo(centerX + direction * 42, centerY + 34);
+  graphics.stroke();
+  graphics.setStrokeStyle({ color: 0xffffff, width: 4, alpha: alpha * 0.72, cap: 'round' });
+  graphics.moveTo(centerX - direction * 38, centerY - 34);
+  graphics.lineTo(centerX + direction * 34, centerY + 24);
+  graphics.stroke();
+}
+
+function drawImpactBurst(
+  graphics: Graphics,
+  defenderSide: 'left' | 'right',
+  progress: number,
+): void {
+  const defender = FIGHTER_POSITIONS[defenderSide];
+  const direction = getFacingDirection(defenderSide);
+  const alpha = 1 - progress * 0.82;
+  const centerX = defender.x + direction * 34;
+  const centerY = defender.y - 118;
+  const radius = 18 + progress * 24;
+
+  graphics.setFillStyle({ color: 0xfff0be, alpha: alpha * 0.82 });
+  graphics.circle(centerX, centerY, radius * 0.42);
+  graphics.fill();
+  graphics.setStrokeStyle({ color: 0xffcc66, width: 5, alpha, cap: 'round' });
+
+  for (let index = 0; index < 8; index += 1) {
+    const angle = (Math.PI * 2 * index) / 8;
+    const innerRadius = radius * 0.38;
+    const outerRadius = radius;
+
+    graphics.moveTo(
+      centerX + Math.cos(angle) * innerRadius,
+      centerY + Math.sin(angle) * innerRadius,
+    );
+    graphics.lineTo(
+      centerX + Math.cos(angle) * outerRadius,
+      centerY + Math.sin(angle) * outerRadius,
+    );
+  }
+
+  graphics.stroke();
+}
+
+function drawBlockedHit(
+  graphics: Graphics,
+  defenderSide: 'left' | 'right',
+  progress: number,
+): void {
+  const defender = FIGHTER_POSITIONS[defenderSide];
+  const direction = getFacingDirection(defenderSide);
+  const alpha = 1 - progress * 0.74;
+  const centerX = defender.x + direction * 44;
+  const centerY = defender.y - 122;
+
+  graphics.setStrokeStyle({ color: 0xb9d1df, width: 6, alpha, cap: 'round' });
+  graphics.moveTo(centerX - direction * 26, centerY - 30);
+  graphics.lineTo(centerX + direction * 26, centerY + 30);
+  graphics.stroke();
+  graphics.moveTo(centerX - direction * 28, centerY + 26);
+  graphics.lineTo(centerX + direction * 28, centerY - 26);
+  graphics.stroke();
+}
+
+function drawDust(graphics: Graphics, side: 'left' | 'right', progress: number): void {
+  const position = FIGHTER_POSITIONS[side];
+  const direction = getFacingDirection(side);
+  const alpha = 0.34 * (1 - progress);
+
+  for (let index = 0; index < 14; index += 1) {
+    const wave = ((index * 37) % 100) / 100;
+    const drift = progress * (34 + wave * 48);
+    const x = position.x - direction * (20 + drift) + (wave - 0.5) * 28;
+    const y = position.y + 2 + Math.sin((progress + wave) * Math.PI) * 12;
+    const radius = 3 + wave * 5 + progress * 4;
+
+    graphics.setFillStyle({ color: 0xf0c87a, alpha: alpha * (0.55 + wave * 0.45) });
+    graphics.circle(x, y, radius);
+    graphics.fill();
+  }
+}
+
+export class CombatScene implements PixiScene<CombatScreenViewModel> {
+  readonly root = new Container();
+
+  private readonly app: PixiSceneContext['app'];
+  private readonly assetLoader: PixiAssetLoader;
+  private readonly backgroundFallback = new Graphics({ roundPixels: true });
+  private readonly backgroundSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
+  private readonly crowdFallback = new Graphics({ roundPixels: true });
+  private readonly crowdSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
+  private readonly debugOverlay: PixiVisualDebugOverlay | null;
+  private readonly dustGraphics = new Graphics({ roundPixels: true });
+  private readonly effectGraphics = new Graphics({ roundPixels: true });
+  private readonly fighters = new Map<string, CombatFighterDisplay>();
+  private readonly layers = createRenderLayerSetup(COMBAT_LAYER_IDS, {
+    fighters: { sortableChildren: true },
+  });
+  private readonly reducedMotion: boolean;
+  private readonly sandGraphics = new Graphics({ roundPixels: true });
+  private readonly tribuneGraphics = new Graphics({ roundPixels: true });
+  private readonly vignetteGraphics = new Graphics({ roundPixels: true });
+  private actionSignature?: string;
+  private actionStartedAt = performance.now();
+  private assetLoadId = 0;
+  private assetSignature?: string;
+  private isDestroyed = false;
+  private sceneViewModel: CombatSceneViewModel | null = null;
+  private spritesheets: PixiSpritesheetMap = new Map();
+  private textures: PixiTextureMap = new Map();
+
+  constructor(context: PixiSceneContext, options: CombatSceneOptions = {}) {
+    this.app = context.app;
+    this.assetLoader = context.assetLoader;
+    this.debugOverlay = context.debugMode ? new PixiVisualDebugOverlay() : null;
+    this.reducedMotion = options.reducedMotion ?? false;
+    this.root.label = 'combat-scene';
+    this.root.addChild(this.layers.root);
+    this.layers.layers.background.addChild(this.backgroundFallback, this.backgroundSprite);
+    this.layers.layers.crowd.addChild(this.crowdSprite, this.crowdFallback);
+    this.layers.layers.tribune.addChild(this.tribuneGraphics);
+    this.layers.layers.sand.addChild(this.sandGraphics);
+    this.layers.layers.effects.addChild(this.dustGraphics, this.effectGraphics);
+    this.layers.layers.vignette.addChild(this.vignetteGraphics);
+
+    if (this.debugOverlay) {
+      this.layers.root.addChild(this.debugOverlay.root);
+    }
+  }
+
+  destroy(): void {
+    this.isDestroyed = true;
+    this.debugOverlay?.destroy();
+    this.fighters.clear();
+    destroyDisplayObject(this.root);
+  }
+
+  tick(): void {
+    if (!this.sceneViewModel) {
       return;
     }
 
     const now = performance.now();
-    const attackOffset = isAttacking && !reducedMotion ? Math.sin(now / 90) * 22 * direction : 0;
-    const idleLift = reducedMotion ? 0 : Math.sin(now / 420) * 4;
 
-    container.x = baseX + attackOffset;
-    container.y = 315 + idleLift;
-    container.zIndex = container.y;
+    this.layoutScene();
+    this.updateCrowd(now, this.sceneViewModel.reducedMotion);
+    this.updateEffects(this.sceneViewModel, now);
 
-    if (sprite && frames.length > 0) {
-      const frameIndex = reducedMotion
-        ? 0
-        : Math.floor(now / (isAttacking ? 140 : 360)) % frames.length;
-      const texture = texturesByPath[frames[frameIndex]];
-
-      if (texture) {
-        sprite.texture = texture;
-      }
-    }
-  });
-
-  return (
-    <pixiContainer ref={containerRef}>
-      <pixiGraphics
-        draw={(graphics) => {
-          graphics.clear();
-          graphics.setFillStyle({ color: 0x1d1410, alpha: 0.32 });
-          graphics.ellipse(0, 18, 70, 18);
-          graphics.fill();
-        }}
-      />
-      {fallbackTexture ? (
-        <pixiSprite
-          anchor={{ x: 0.5, y: 1 }}
-          height={180}
-          ref={spriteRef}
-          scale={{ x: direction, y: 1 }}
-          texture={fallbackTexture}
-          width={120}
-        />
-      ) : (
-        <pixiGraphics
-          draw={(graphics) => {
-            graphics.clear();
-            graphics.setFillStyle({ color: combatant.side === 'left' ? 0x2f5f7f : 0x8f2f24 });
-            graphics.circle(0, -70, 42);
-            graphics.fill();
-          }}
-        />
-      )}
-      <pixiGraphics
-        draw={(graphics) => {
-          graphics.clear();
-          graphics.setFillStyle({ color: 0x2b1b14, alpha: 0.88 });
-          graphics.roundRect(-76, -206, 152, 18, 4);
-          graphics.fill();
-          graphics.setFillStyle({ color: combatant.healthRatio > 0.35 ? 0xb8d65a : 0xd6654f });
-          graphics.roundRect(-72, -202, 144 * combatant.healthRatio, 10, 3);
-          graphics.fill();
-        }}
-      />
-      <pixiText
-        anchor={0.5}
-        resolution={2}
-        style={{
-          fill: '#f5deb0',
-          fontFamily: 'serif',
-          fontSize: 20,
-          fontWeight: '700',
-          stroke: { color: '#2f2117', width: 3 },
-        }}
-        text={combatant.name}
-        y={42}
-      />
-    </pixiContainer>
-  );
-}
-
-export function CombatScene({ viewModel }: CombatSceneProps) {
-  const [texturesByPath, setTexturesByPath] = useState<Record<string, Texture>>({});
-  const assetPaths = useMemo(
-    () =>
-      Array.from(
-        new Set([
-          viewModel.backgroundPath,
-          ...viewModel.left.idleFrames,
-          ...viewModel.left.attackFrames,
-          ...viewModel.right.idleFrames,
-          ...viewModel.right.attackFrames,
-        ]),
-      ),
-    [viewModel],
-  );
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadTextures() {
-      const loadedEntries = await Promise.all(
-        assetPaths.map(
-          async (assetPath) => [assetPath, await Assets.load<Texture>(assetPath)] as const,
-        ),
-      );
-
-      if (isMounted) {
-        setTexturesByPath(Object.fromEntries(loadedEntries));
-      }
+    for (const fighter of this.fighters.values()) {
+      this.updateFighterAnimation(fighter, now);
     }
 
-    void loadTextures();
+    this.updateDebugOverlay();
+  }
 
-    return () => {
-      isMounted = false;
+  update(viewModel: CombatScreenViewModel): void {
+    const sceneViewModel = createCombatSceneViewModel(viewModel, {
+      reducedMotion: this.reducedMotion,
+    });
+    const nextActionSignature = [
+      sceneViewModel.currentActionId ?? 'ready',
+      sceneViewModel.effect?.id ?? 'no-effect',
+    ].join(':');
+
+    if (nextActionSignature !== this.actionSignature) {
+      this.actionSignature = nextActionSignature;
+      this.actionStartedAt = performance.now();
+    }
+
+    this.sceneViewModel = sceneViewModel;
+    this.root.label = sceneViewModel.currentActionId ?? 'combat-scene';
+    this.layoutScene();
+    this.reconcile(sceneViewModel);
+    this.loadAssetsIfNeeded(sceneViewModel);
+  }
+
+  private createFighter(combatant: CombatSceneCombatantViewModel): CombatFighterDisplay {
+    const container = new Container();
+    const shadow = new Graphics({ roundPixels: true });
+    const sprite = configurePixelArtSprite(new AnimatedSprite([Texture.EMPTY], false));
+    const fallback = new Graphics({ roundPixels: true });
+
+    container.label = combatant.id;
+    sprite.anchor.set(combatant.animation.anchor.x, combatant.animation.anchor.y);
+    drawFighterShadow(shadow, 0);
+    container.addChild(shadow, sprite, fallback);
+    this.layers.layers.fighters.addChild(container);
+
+    return {
+      combatant,
+      container,
+      fallback,
+      shadow,
+      sprite,
     };
-  }, [assetPaths]);
+  }
 
-  const drawArena = useCallback((graphics: Graphics) => {
-    graphics.clear();
-    graphics.setFillStyle({ color: 0xb9894e });
-    graphics.rect(0, 0, 960, 480);
-    graphics.fill();
-    graphics.setFillStyle({ color: 0x6f2d24, alpha: 0.86 });
-    graphics.rect(0, 0, 960, 116);
-    graphics.fill();
-    graphics.setFillStyle({ color: 0xe0b15e, alpha: 0.28 });
-    graphics.ellipse(480, 336, 380, 96);
-    graphics.fill();
-  }, []);
+  private getActionProgress(now: number, duration: number): number {
+    if (this.reducedMotion) {
+      return 0.58;
+    }
 
-  return (
-    <pixiContainer label={viewModel.currentActionId ?? 'combat-scene'} sortableChildren>
-      {texturesByPath[viewModel.backgroundPath] ? (
-        <pixiSprite height={480} texture={texturesByPath[viewModel.backgroundPath]} width={960} />
-      ) : (
-        <pixiGraphics draw={drawArena} />
-      )}
-      <pixiGraphics draw={drawArena} alpha={texturesByPath[viewModel.backgroundPath] ? 0.32 : 1} />
-      <CombatFighterSprite
-        combatant={viewModel.left}
-        isAttacking={viewModel.latestAttackerId === viewModel.left.id}
-        reducedMotion={viewModel.reducedMotion}
-        texturesByPath={texturesByPath}
-      />
-      <CombatFighterSprite
-        combatant={viewModel.right}
-        isAttacking={viewModel.latestAttackerId === viewModel.right.id}
-        reducedMotion={viewModel.reducedMotion}
-        texturesByPath={texturesByPath}
-      />
-    </pixiContainer>
-  );
+    return clamp((now - this.actionStartedAt) / duration, 0, 1);
+  }
+
+  private getFighterAnimationTextures(combatant: CombatSceneCombatantViewModel): Texture[] {
+    const spritesheet = combatant.spritesheetAtlasPath
+      ? this.spritesheets.get(combatant.spritesheetAtlasPath)
+      : undefined;
+    const spritesheetTextures =
+      spritesheet && combatant.frameNames.length > 0
+        ? combatant.frameNames.flatMap((frameName) => {
+            const texture = spritesheet.textures[frameName];
+
+            return texture ? [texture] : [];
+          })
+        : [];
+
+    if (spritesheetTextures.length > 0) {
+      return spritesheetTextures;
+    }
+
+    return combatant.fallbackFramePaths.flatMap((framePath) => {
+      const texture = this.textures.get(framePath);
+
+      return texture ? [texture] : [];
+    });
+  }
+
+  private async loadAssets(viewModel: CombatSceneViewModel): Promise<void> {
+    const loadId = ++this.assetLoadId;
+    const [textures, spritesheets] = await Promise.all([
+      this.assetLoader.loadTextures(collectCombatTextureAssetPaths(viewModel)),
+      this.assetLoader.loadSpritesheets(collectCombatSpritesheetAssetPaths(viewModel)),
+    ]);
+
+    if (this.isDestroyed || loadId !== this.assetLoadId) {
+      return;
+    }
+
+    this.textures = textures;
+    this.spritesheets = spritesheets;
+
+    if (this.sceneViewModel) {
+      this.reconcile(this.sceneViewModel);
+    }
+  }
+
+  private loadAssetsIfNeeded(viewModel: CombatSceneViewModel): void {
+    const nextAssetSignature = createAssetSignature(viewModel);
+
+    if (nextAssetSignature === this.assetSignature) {
+      return;
+    }
+
+    this.assetSignature = nextAssetSignature;
+    void this.loadAssets(viewModel);
+  }
+
+  private layoutScene(): void {
+    const width = this.app.screen.width;
+    const height = this.app.screen.height;
+
+    if (width <= 0 || height <= 0) {
+      return;
+    }
+
+    const scale = Math.max(width / ARENA_WIDTH, height / ARENA_HEIGHT);
+
+    this.layers.root.scale.set(scale);
+    this.layers.root.position.set(
+      (width - ARENA_WIDTH * scale) / 2,
+      (height - ARENA_HEIGHT * scale) / 2,
+    );
+  }
+
+  private reconcile(viewModel: CombatSceneViewModel): void {
+    const backgroundTexture = this.textures.get(viewModel.backgroundPath);
+    const crowdTexture = this.textures.get(viewModel.crowdPath);
+
+    this.backgroundSprite.visible = Boolean(backgroundTexture);
+    this.backgroundSprite.texture = backgroundTexture ?? Texture.EMPTY;
+    setPixelArtSpriteSize(this.backgroundSprite, ARENA_WIDTH, ARENA_HEIGHT);
+    this.backgroundFallback.alpha = backgroundTexture ? 0.22 : 1;
+    drawArenaFallback(this.backgroundFallback);
+
+    this.crowdSprite.visible = Boolean(crowdTexture);
+    this.crowdSprite.texture = crowdTexture ?? Texture.EMPTY;
+    setPixelArtSpriteSize(this.crowdSprite, ARENA_WIDTH, 160);
+    this.crowdFallback.visible = !crowdTexture;
+    drawCrowdFallback(this.crowdFallback);
+    drawTribune(this.tribuneGraphics);
+    drawSandFloor(this.sandGraphics);
+    drawVignette(this.vignetteGraphics);
+
+    const activeCombatants = [viewModel.left, viewModel.right];
+    const activeIds = new Set(activeCombatants.map((combatant) => combatant.id));
+
+    for (const [combatantId, fighter] of this.fighters) {
+      if (!activeIds.has(combatantId)) {
+        destroyDisplayObject(fighter.container);
+        this.fighters.delete(combatantId);
+      }
+    }
+
+    for (const combatant of activeCombatants) {
+      const fighter = this.fighters.get(combatant.id) ?? this.createFighter(combatant);
+
+      this.fighters.set(combatant.id, fighter);
+      this.updateFighterDisplay(fighter, combatant, viewModel.reducedMotion);
+    }
+
+    this.updateEffects(viewModel, performance.now());
+    this.updateDebugOverlay();
+  }
+
+  private updateCrowd(now: number, reducedMotion: boolean): void {
+    if (reducedMotion) {
+      this.crowdSprite.alpha = 0.78;
+      this.crowdFallback.alpha = 0.78;
+      this.crowdSprite.x = 0;
+      return;
+    }
+
+    const shimmer = 0.76 + Math.sin(now / 420) * 0.05;
+
+    this.crowdSprite.alpha = shimmer;
+    this.crowdFallback.alpha = shimmer;
+    this.crowdSprite.x = Math.sin(now / 1100) * 1.5;
+  }
+
+  private updateEffects(viewModel: CombatSceneViewModel, now: number): void {
+    this.effectGraphics.clear();
+    this.dustGraphics.clear();
+
+    if (!viewModel.effect) {
+      return;
+    }
+
+    const actionProgress = this.getActionProgress(now, ACTION_DURATION_MS);
+    const dustProgress = this.getActionProgress(now, DUST_DURATION_MS);
+
+    if (actionProgress < 1 || viewModel.reducedMotion) {
+      drawSlash(this.effectGraphics, viewModel.effect.attackerSide, actionProgress);
+
+      if (viewModel.effect.didHit) {
+        drawImpactBurst(this.effectGraphics, viewModel.effect.defenderSide, actionProgress);
+      } else {
+        drawBlockedHit(this.effectGraphics, viewModel.effect.defenderSide, actionProgress);
+      }
+    }
+
+    if (!viewModel.reducedMotion && dustProgress < 1) {
+      drawDust(this.dustGraphics, viewModel.effect.attackerSide, dustProgress);
+    }
+  }
+
+  private updateFighterAnimation(fighter: CombatFighterDisplay, now: number): void {
+    const combatant = fighter.combatant;
+    const basePosition = FIGHTER_POSITIONS[combatant.side];
+    const direction = getFacingDirection(combatant.side);
+    const actionProgress = this.getActionProgress(now, ACTION_DURATION_MS);
+    const actionEnvelope = actionProgress >= 1 ? 0 : Math.sin(actionProgress * Math.PI);
+    const idleLift = this.reducedMotion ? 0 : Math.sin(now / 460) * 3;
+    const attackOffset =
+      combatant.animationId === 'attack' && !this.reducedMotion
+        ? actionEnvelope * 48 * direction
+        : 0;
+    const hitOffset =
+      combatant.animationId === 'hit' && !this.reducedMotion ? actionEnvelope * -20 * direction : 0;
+    const blockOffset =
+      combatant.animationId === 'block' && !this.reducedMotion
+        ? actionEnvelope * -10 * direction
+        : 0;
+
+    fighter.container.x = basePosition.x + attackOffset + hitOffset + blockOffset;
+    fighter.container.y = basePosition.y + idleLift;
+    fighter.container.zIndex = fighter.container.y + combatant.animation.ySortOffset;
+    fighter.sprite.scale.set(FIGHTER_BASE_SCALE * direction, FIGHTER_BASE_SCALE);
+    drawFighterShadow(fighter.shadow, actionEnvelope);
+
+    if (!this.reducedMotion && fighter.sprite.visible) {
+      fighter.sprite.update(this.app.ticker);
+    }
+  }
+
+  private updateFighterDisplay(
+    fighter: CombatFighterDisplay,
+    combatant: CombatSceneCombatantViewModel,
+    reducedMotion: boolean,
+  ): void {
+    fighter.combatant = combatant;
+    drawFighterFallback(fighter.fallback, combatant);
+    this.updateFighterSprite(fighter, reducedMotion);
+    this.updateFighterAnimation(fighter, performance.now());
+  }
+
+  private updateFighterSprite(fighter: CombatFighterDisplay, reducedMotion: boolean): void {
+    const { animation } = fighter.combatant;
+    const textures = this.getFighterAnimationTextures(fighter.combatant);
+    const animationSignature = [
+      fighter.combatant.animationRevision,
+      fighter.combatant.animationId,
+      fighter.combatant.spritesheetAtlasPath ?? 'fallback',
+      fighter.combatant.frameNames.join('|'),
+      fighter.combatant.fallbackFramePaths.join('|'),
+    ].join(':');
+
+    fighter.sprite.visible = textures.length > 0;
+    fighter.fallback.visible = textures.length === 0;
+
+    if (textures.length === 0) {
+      return;
+    }
+
+    fighter.sprite.anchor.set(animation.anchor.x, animation.anchor.y);
+    fighter.sprite.loop = animation.loop && !reducedMotion;
+    fighter.sprite.animationSpeed = reducedMotion ? 0 : animation.fps / 60;
+
+    if (fighter.animationSignature !== animationSignature) {
+      fighter.animationSignature = animationSignature;
+      fighter.sprite.textures = textures;
+
+      if (reducedMotion || textures.length === 1) {
+        fighter.sprite.gotoAndStop(0);
+      } else {
+        fighter.sprite.gotoAndPlay(0);
+      }
+    }
+
+    if (reducedMotion || textures.length === 1) {
+      fighter.sprite.gotoAndStop(0);
+      return;
+    }
+
+    if (animation.loop && !fighter.sprite.playing) {
+      fighter.sprite.play();
+    }
+  }
+
+  private updateDebugOverlay(): void {
+    if (!this.debugOverlay) {
+      return;
+    }
+
+    this.debugOverlay.draw([
+      this.createSceneSpriteDebugMetric('arena:background', this.backgroundSprite, 0, 0),
+      this.createSceneSpriteDebugMetric('arena:crowd', this.crowdSprite, 0, 0),
+      ...Array.from(this.fighters.values()).map((fighter) =>
+        this.createFighterDebugMetric(fighter),
+      ),
+    ]);
+  }
+
+  private createSceneSpriteDebugMetric(
+    label: string,
+    sprite: Sprite,
+    x: number,
+    y: number,
+  ): PixiVisualDebugMetric {
+    return {
+      label,
+      x,
+      y,
+      width: Math.abs(sprite.width),
+      height: Math.abs(sprite.height),
+      nativeWidth: sprite.texture === Texture.EMPTY ? undefined : sprite.texture.width,
+      nativeHeight: sprite.texture === Texture.EMPTY ? undefined : sprite.texture.height,
+      scaleX: sprite.texture === Texture.EMPTY ? undefined : sprite.scale.x,
+      scaleY: sprite.texture === Texture.EMPTY ? undefined : sprite.scale.y,
+      anchor: { x: sprite.anchor.x, y: sprite.anchor.y },
+      anchorPosition: {
+        x: x + Math.abs(sprite.width) * sprite.anchor.x,
+        y: y + Math.abs(sprite.height) * sprite.anchor.y,
+      },
+      color: 0x86e7ff,
+    };
+  }
+
+  private createFighterDebugMetric(fighter: CombatFighterDisplay): PixiVisualDebugMetric {
+    const { animation } = fighter.combatant;
+    const { sprite } = fighter;
+    const width = Math.abs(sprite.width);
+    const height = Math.abs(sprite.height);
+    const originX = fighter.container.x + sprite.x;
+    const originY = fighter.container.y + sprite.y;
+
+    return {
+      label: `fighter:${fighter.combatant.id}`,
+      x: originX - width * sprite.anchor.x,
+      y: originY - height * sprite.anchor.y,
+      width,
+      height,
+      nativeWidth: sprite.texture === Texture.EMPTY ? undefined : sprite.texture.width,
+      nativeHeight: sprite.texture === Texture.EMPTY ? undefined : sprite.texture.height,
+      scaleX: sprite.texture === Texture.EMPTY ? undefined : sprite.scale.x,
+      scaleY: sprite.texture === Texture.EMPTY ? undefined : sprite.scale.y,
+      anchor: { x: sprite.anchor.x, y: sprite.anchor.y },
+      anchorPosition: { x: originX, y: originY },
+      hitbox: {
+        x: fighter.container.x + animation.hitbox.x * Math.abs(sprite.scale.x),
+        y: fighter.container.y + animation.hitbox.y * Math.abs(sprite.scale.y),
+        width: animation.hitbox.width * Math.abs(sprite.scale.x),
+        height: animation.hitbox.height * Math.abs(sprite.scale.y),
+      },
+      color: 0xf8e56b,
+    };
+  }
 }

@@ -1,9 +1,10 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useCallback, useState } from 'react';
 import type { MapLocationDefinition } from '../../game-data/map-layout';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
 import { TopHud } from '../hud/TopHud';
 import { BottomGladiatorRoster } from '../roster/BottomGladiatorRoster';
+import { pixiUiChromeStyle } from '../pixi-ui-chrome';
 import type { ContextPanelKind } from './game-shell-types';
 import { LeftNavigationRail } from './LeftNavigationRail';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
@@ -28,10 +29,6 @@ export function GameShell() {
   const [selectedGladiatorId, setSelectedGladiatorId] = useState<string | null>(null);
   const [areAlertsOpen, setAreAlertsOpen] = useState(false);
 
-  if (!currentSave) {
-    return null;
-  }
-
   const activePanelKind: ContextPanelKind | null =
     activeModal?.kind === 'building' ||
     activeModal?.kind === 'gladiator' ||
@@ -43,34 +40,47 @@ export function GameShell() {
       ? activeModal.kind
       : null;
 
-  const openPanel = (panelKind: ContextPanelKind) => {
-    if (panelKind === 'building' || panelKind === 'gladiator') {
-      return;
-    }
+  const openPanel = useCallback(
+    (panelKind: ContextPanelKind) => {
+      if (panelKind === 'building' || panelKind === 'gladiator') {
+        return;
+      }
 
-    setAreAlertsOpen(false);
-    openModal({ kind: panelKind });
-  };
+      setAreAlertsOpen(false);
+      openModal({ kind: panelKind });
+    },
+    [openModal],
+  );
 
-  const selectLocation = (location: MapLocationDefinition) => {
-    setAreAlertsOpen(false);
+  const selectLocation = useCallback(
+    (location: MapLocationDefinition) => {
+      setAreAlertsOpen(false);
 
-    if (location.kind === 'building') {
-      openModal({ buildingId: location.id, kind: 'building' });
-      return;
-    }
+      if (location.kind === 'building') {
+        openModal({ buildingId: location.id, kind: 'building' });
+        return;
+      }
 
-    openModal({ kind: location.id === 'market' ? 'market' : 'arena' });
-  };
+      openModal({ kind: location.id === 'market' ? 'market' : 'arena' });
+    },
+    [openModal],
+  );
 
-  const selectGladiator = (gladiatorId: string) => {
-    setAreAlertsOpen(false);
-    setSelectedGladiatorId(gladiatorId);
-    openModal({ gladiatorId, kind: 'gladiator' });
-  };
+  const selectGladiator = useCallback(
+    (gladiatorId: string) => {
+      setAreAlertsOpen(false);
+      setSelectedGladiatorId(gladiatorId);
+      openModal({ gladiatorId, kind: 'gladiator' });
+    },
+    [openModal],
+  );
+
+  if (!currentSave) {
+    return null;
+  }
 
   return (
-    <section className="game-shell">
+    <section className="game-shell" style={pixiUiChromeStyle}>
       <TopHud
         alertCount={currentSave.planning.alerts.length}
         areAlertsOpen={areAlertsOpen}

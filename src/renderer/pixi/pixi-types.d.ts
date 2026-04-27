@@ -1,3 +1,0 @@
-import '@pixi/react';
-
-export {};

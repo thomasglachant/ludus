@@ -108,9 +108,9 @@ Shared UI primitives live under `src/ui/components` and should be reused before 
 
 Contains real-time scene renderers that are mounted from React.
 
-The first renderer target is PixiJS through `@pixi/react`. PixiJS is used for
-living scenes that need continuous rendering, layered sprites, animation and
-scene hit zones.
+The first renderer target is PixiJS through a small scene host in
+`src/renderer/pixi`. PixiJS is used for living scenes that need continuous
+rendering, layered sprites, animation and scene hit zones.
 
 Examples:
 
@@ -188,6 +188,30 @@ PixiJS must never become a second game engine for business logic. If a scene
 needs to know what to draw, React/state prepares a view-model. If the player
 clicks a scene element, Pixi calls back with an id or intent and React/state
 performs the action.
+
+### Pixi Pixel-Perfect Rendering
+
+Pixi scenes must preserve authored pixel-art edges:
+
+- load pixel-art textures with the Pixi v8 texture source API:
+  `texture.source.scaleMode = 'nearest'`;
+- when using `Assets.load`, pass `data` with `scaleMode: 'nearest'` and
+  `autoGenerateMipmaps: false` for single textures, or pass the same options
+  through `textureOptions` for spritesheets;
+- do not use deprecated `SCALE_MODES` constants for new code;
+- initialize the Pixi renderer with `roundPixels: true` and use `roundPixels`
+  on sprites, graphics and particle containers that represent pixel-art scene
+  elements;
+- do not attach blur filters, linear interpolation, anisotropic filtering or
+  generated mipmaps to pixel-art assets;
+- prefer integer sprite scales for small sprites when the requested visual size
+  is close enough to the native asset size; large backgrounds and buildings may
+  scale to layout dimensions, but their texture sampling still stays nearest;
+- map camera zoom must use readable presets from `src/game-data/map-layout.ts`
+  instead of arbitrary wheel zoom values;
+- visual debug inspection is enabled only through debug UI mode. When
+  `VITE_ENABLE_DEBUG_UI=true`, Pixi scenes may draw overlay metrics for native
+  size, rendered scale, anchor and hitbox.
 
 ## Visual Asset Pipeline
 

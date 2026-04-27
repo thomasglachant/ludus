@@ -1,24 +1,23 @@
 import type { CombatState, CombatTurn, GameSave, Gladiator } from '../../domain/types';
+import type { GladiatorVisualIdentity } from '../../domain/gladiators/types';
 import {
-  getGladiatorCombatSpriteFrames,
   getGladiatorPortraitAssetPath,
   getGladiatorVisualIdentity,
 } from '../../game-data/gladiator-visuals';
-import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
+import { PRODUCTION_VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 
 export type CombatantSide = 'player' | 'opponent';
 
 export interface CombatantViewModel {
   armorKey: string;
-  attackFrames: string[];
   energy: number;
   health: number;
   id: string;
-  idleFrames: string[];
   morale: number;
   name: string;
   portraitPath: string;
   side: CombatantSide;
+  visualIdentity: GladiatorVisualIdentity;
 }
 
 export interface CombatConsequenceViewModel {
@@ -34,6 +33,7 @@ export interface CombatConsequenceViewModel {
 export interface CombatScreenViewModel {
   combat: CombatState;
   combatBackgroundPath: string;
+  combatCrowdPath: string;
   consequence: CombatConsequenceViewModel;
   currentTurnNumber: number;
   isComplete: boolean;
@@ -103,15 +103,14 @@ function createCombatantViewModel(
 
   return {
     armorKey: getArmorKey(gladiator),
-    attackFrames: getGladiatorCombatSpriteFrames(gladiator, 'attack').slice(0, 2),
     energy: clampPercent(energy),
     health: clampPercent(health),
     id: gladiator.id,
-    idleFrames: getGladiatorCombatSpriteFrames(gladiator, 'idle').slice(0, 2),
     morale: clampPercent(morale),
     name: gladiator.name,
     portraitPath: getGladiatorPortraitAssetPath(visualIdentity),
     side,
+    visualIdentity,
   };
 }
 
@@ -132,7 +131,8 @@ export function getCombatScreenViewModel(
 
   return {
     combat,
-    combatBackgroundPath: VISUAL_ASSET_MANIFEST.locations.arena.combatBackground,
+    combatBackgroundPath: PRODUCTION_VISUAL_ASSET_MANIFEST.locations.arena.combatBackground,
+    combatCrowdPath: PRODUCTION_VISUAL_ASSET_MANIFEST.locations.arena.crowd,
     consequence: {
       healthChange: combat.consequence.healthChange,
       energyChange: combat.consequence.energyChange,
