@@ -171,6 +171,8 @@
   "topBar.market": "Marché",
   "topBar.alerts": "Alertes ({count})",
   "topBar.menu": "Menu",
+  "topBar.resources": "Ressources du ludus",
+  "topBar.openGameMenu": "Ouvrir le menu de partie",
   "gameMenu.title": "Menu de partie",
   "gameMenu.saveAs": "Sauvegarder sous",
   "gameMenu.saveAsTitle": "Sauvegarder sous",

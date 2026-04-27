@@ -171,6 +171,8 @@
   "topBar.market": "Market",
   "topBar.alerts": "Alerts ({count})",
   "topBar.menu": "Menu",
+  "topBar.resources": "Ludus resources",
+  "topBar.openGameMenu": "Open game menu",
   "gameMenu.title": "Game menu",
   "gameMenu.saveAs": "Save as",
   "gameMenu.saveAsTitle": "Save as",

@@ -16,19 +16,9 @@ const PixiLudusMap = lazy(() =>
 );
 
 export function GameShell() {
-  const {
-    currentSave,
-    errorKey,
-    advanceToNextDay,
-    isLoading,
-    isSaving,
-    saveCurrentGame,
-    saveNoticeKey,
-    setGameSpeed,
-  } = useGameStore();
+  const { currentSave, errorKey, saveNoticeKey, setGameSpeed } = useGameStore();
   const { activeModal, openModal, t } = useUiStore();
   const [selectedGladiatorId, setSelectedGladiatorId] = useState<string | null>(null);
-  const [areAlertsOpen, setAreAlertsOpen] = useState(false);
 
   const activePanelKind: ContextPanelKind | null =
     activeModal?.kind === 'building' ||
@@ -47,7 +37,6 @@ export function GameShell() {
         return;
       }
 
-      setAreAlertsOpen(false);
       openModal({ kind: panelKind });
     },
     [openModal],
@@ -55,8 +44,6 @@ export function GameShell() {
 
   const selectLocation = useCallback(
     (location: MapLocationDefinition) => {
-      setAreAlertsOpen(false);
-
       if (location.kind === 'building') {
         openModal({ buildingId: location.id, kind: 'building' });
         return;
@@ -69,7 +56,6 @@ export function GameShell() {
 
   const selectGladiator = useCallback(
     (gladiatorId: string) => {
-      setAreAlertsOpen(false);
       setSelectedGladiatorId(gladiatorId);
       openModal({ gladiatorId, kind: 'gladiator' });
     },
@@ -83,17 +69,10 @@ export function GameShell() {
   return (
     <section className="game-shell" style={pixiUiChromeStyle}>
       <TopHud
-        alertCount={currentSave.planning.alerts.length}
-        areAlertsOpen={areAlertsOpen}
-        isSaving={isSaving || isLoading}
         save={currentSave}
-        onAlertsToggle={() => setAreAlertsOpen((isOpen) => !isOpen)}
-        onAdvanceToNextDay={advanceToNextDay}
         onOpenMenu={() => {
-          setAreAlertsOpen(false);
           openModal({ kind: 'gameMenu' });
         }}
-        onSave={() => void saveCurrentGame()}
         onSpeedChange={setGameSpeed}
       />
       <LeftNavigationRail activePanelKind={activePanelKind} onOpenPanel={openPanel} />
@@ -111,7 +90,7 @@ export function GameShell() {
         errorKey={errorKey}
         save={currentSave}
         saveNoticeKey={saveNoticeKey}
-        showAlerts={areAlertsOpen}
+        showAlerts={false}
         onGladiatorSelect={selectGladiator}
       />
     </section>
