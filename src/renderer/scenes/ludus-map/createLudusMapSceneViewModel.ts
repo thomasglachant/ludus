@@ -69,6 +69,7 @@ export function createLudusMapSceneViewModel(
       reducedMotion || save.time.isPaused || save.time.speed === 0
         ? 0
         : (save.time.speed * TIME_CONFIG.minutesPerHour) / TIME_CONFIG.realMillisecondsPerGameHour,
+    animationSpeedMultiplier: reducedMotion || save.time.isPaused ? 0 : save.time.speed,
     reducedMotion,
     defaultCamera: LUDUS_MAP_DEFINITION.defaultCamera,
     defaultZoom: LUDUS_MAP_DEFINITION.defaultZoom,

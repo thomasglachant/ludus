@@ -130,6 +130,7 @@ export interface LudusMapSceneViewModel {
   selectedLocationId?: MapLocationId;
   currentGameMinute: number;
   gameMinutesPerRealMillisecond: number;
+  animationSpeedMultiplier: number;
   reducedMotion: boolean;
   defaultCamera: {
     x: number;

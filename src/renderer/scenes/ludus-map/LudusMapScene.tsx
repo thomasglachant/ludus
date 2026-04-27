@@ -867,7 +867,10 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
 
     display.sprite.anchor.set(animation.anchor.x, animation.anchor.y);
     display.sprite.loop = animation.loop && !(viewModel?.reducedMotion ?? false);
-    display.sprite.animationSpeed = (viewModel?.reducedMotion ?? false) ? 0 : animation.fps / 60;
+    display.sprite.animationSpeed =
+      (viewModel?.reducedMotion ?? false)
+        ? 0
+        : (animation.fps / 60) * (viewModel?.animationSpeedMultiplier ?? 1);
 
     if (display.animationSignature !== animationSignature) {
       display.animationSignature = animationSignature;
