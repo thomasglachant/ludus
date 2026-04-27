@@ -85,7 +85,7 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
     y: -260,
   },
   defaultZoom: 0.78,
-  minZoom: 0.45,
+  minZoom: 0.28,
   maxZoom: 1.45,
   locations: [
     {

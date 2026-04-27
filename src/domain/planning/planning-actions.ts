@@ -1,6 +1,7 @@
 import { PLANNING_THRESHOLDS } from '../../game-data/planning';
 import type { BuildingId } from '../buildings/types';
 import type { CombatStrategy } from '../combat/types';
+import { assignGladiatorMapLocation } from '../gladiators/map-movement';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
 import { calculateEffectiveReadiness } from './readiness';
@@ -347,9 +348,7 @@ export function setManualBuildingOverride(
     gladiators: save.gladiators.map((gladiator) =>
       gladiator.id === gladiatorId
         ? {
-            ...gladiator,
-            currentBuildingId: buildingId,
-            currentActivityId: undefined,
+            ...assignGladiatorMapLocation(gladiator, buildingId, save.time, 'manualOverride'),
           }
         : gladiator,
     ),
@@ -375,9 +374,12 @@ export function applyPlanningRecommendations(save: GameSave): GameSave {
       }
 
       return {
-        ...gladiator,
-        currentBuildingId: recommendation.buildingId,
-        currentActivityId: undefined,
+        ...assignGladiatorMapLocation(
+          gladiator,
+          recommendation.buildingId,
+          synchronizedSave.time,
+          routine.objective,
+        ),
       };
     }),
   });

@@ -40,3 +40,8 @@ Object.defineProperty(globalThis, 'ResizeObserver', {
   configurable: true,
   value: TestResizeObserver,
 });
+
+Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+  configurable: true,
+  value: () => null,
+});

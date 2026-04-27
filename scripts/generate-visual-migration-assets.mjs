@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputRoot = join(root, 'public', 'assets', 'pixel-art');
+const typedManifestRoot = join(root, 'src', 'game-data', 'generated');
 const webRoot = '/assets/pixel-art';
 
 const args = new Set(process.argv.slice(2));
@@ -60,6 +61,13 @@ function writeAsset(relativePath, content) {
     writeFileSync(outputPath, content);
   }
   return `${webRoot}/${relativePath}`;
+}
+
+function writeTypedManifest(content) {
+  if (!dryRun) {
+    ensureDir(typedManifestRoot);
+    writeFileSync(join(typedManifestRoot, 'asset-manifest.visual-migration.json'), content);
+  }
 }
 
 function svg(width, height, body) {
@@ -530,11 +538,15 @@ for (const name of ['parchment-tile', 'bronze-frame-tile', 'roman-divider', 'lau
   manifest.ui[name] = writeAsset(`ui/${name}.svg`, makeUiAsset(name));
 }
 
-writeAsset('asset-manifest.visual-migration.json', `${JSON.stringify(manifest, null, 2)}\n`);
+const manifestContent = `${JSON.stringify(manifest, null, 2)}\n`;
+
+writeAsset('asset-manifest.visual-migration.json', manifestContent);
+writeTypedManifest(manifestContent);
 
 if (dryRun) {
   console.log(JSON.stringify(manifest, null, 2));
 } else {
   console.log(`Generated visual migration assets in ${outputRoot}`);
   console.log(`Manifest: ${join(outputRoot, 'asset-manifest.visual-migration.json')}`);
+  console.log(`Typed manifest: ${join(typedManifestRoot, 'asset-manifest.visual-migration.json')}`);
 }

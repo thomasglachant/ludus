@@ -66,10 +66,7 @@ describe('App', () => {
     const map = await screen.findByTestId('map-container');
     const domusMapLocation = screen.getByTestId('map-building-domus');
 
-    expect(map).toHaveAttribute('data-time-of-day', 'day');
-    expect(map.style.getPropertyValue('--map-background-image')).toContain(
-      '/assets/pixel-art/map/backgrounds/ludus-map-day.svg',
-    );
+    expect(map).toBeInTheDocument();
     expect(domusMapLocation.getAttribute('data-asset')).toContain(
       '/assets/pixel-art/buildings/domus/level-1/exterior.svg',
     );

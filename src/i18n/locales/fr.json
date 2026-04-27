@@ -39,6 +39,8 @@
   "debugDashboard.title": "Dashboard debug",
   "debugDashboard.enabled": "L'interface debug développeur est activée pour ce build.",
   "debugDashboard.unavailable": "L'interface debug développeur est désactivée pour ce build.",
+  "debugDashboard.pixiSceneLabel": "Scène de test du renderer Pixi",
+  "debugDashboard.pixiSceneReady": "Le host Pixi est monté avec les données de carte démo.",
   "navigation.title": "Navigation du jeu",
   "navigation.weeklyPlanning": "Planning",
   "navigation.contracts": "Contrats",

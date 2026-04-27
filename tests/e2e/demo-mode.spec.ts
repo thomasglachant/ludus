@@ -2,19 +2,24 @@ import { expect, test, type Page } from '@playwright/test';
 
 const enabledBaseUrl = process.env.E2E_DEMO_ENABLED_BASE_URL ?? 'http://127.0.0.1:4173';
 const disabledBaseUrl = process.env.E2E_DEMO_DISABLED_BASE_URL ?? 'http://127.0.0.1:4174';
-const baseBuildingIds = [
-  'domus',
-  'canteen',
-  'dormitory',
-  'trainingGround',
-  'pleasureHall',
-  'infirmary',
-];
 
 async function openFresh(page: Page, url: string) {
   await page.goto(new URL(url).origin);
   await page.evaluate(() => localStorage.clear());
   await page.goto(url);
+}
+
+async function clickDomusOnPixiMap(page: Page) {
+  const canvas = page.getByTestId('map-container').locator('canvas').first();
+
+  await canvas.waitFor({ state: 'visible' });
+  const box = await canvas.boundingBox();
+
+  if (!box) {
+    throw new Error('Pixi map canvas is not visible.');
+  }
+
+  await page.mouse.click(box.x + 400, box.y + 290);
 }
 
 test('creates a new game and opens the map-first shell with owned level 1 buildings', async ({
@@ -29,14 +34,10 @@ test('creates a new game and opens the map-first shell with owned level 1 buildi
   await page.getByTestId('new-game-submit').click();
 
   await expect(page.getByTestId('map-container')).toBeVisible();
-
-  for (const buildingId of baseBuildingIds) {
-    const building = page.getByTestId(`map-building-${buildingId}`);
-
-    await expect(building).toBeVisible();
-    await expect(building).toHaveAttribute('data-building-purchased', 'true');
-    await expect(building).toHaveAttribute('data-building-level', '1');
-  }
+  await expect(page.getByTestId('map-container').locator('canvas')).toBeVisible();
+  await clickDomusOnPixiMap(page);
+  await expect(page.getByTestId('building-modal')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Domus' })).toBeVisible();
 });
 
 test('plays the MVP smoke path through market, save, load and arena access', async ({ page }) => {
@@ -118,15 +119,9 @@ test('loads the early demo directly', async ({ page }) => {
   await openFresh(page, `${enabledBaseUrl}/dev/demo/demo-early-ludus`);
 
   const map = page.getByTestId('map-container');
-  const domus = page.getByTestId('map-building-domus');
 
   await expect(map).toBeVisible();
-  await expect(map).toHaveAttribute('data-time-of-day', 'day');
-  await expect(domus).toBeVisible();
-  await expect(domus).toHaveAttribute(
-    'data-asset',
-    /\/assets\/pixel-art\/buildings\/domus\/level-3\/exterior\.svg/,
-  );
+  await expect(map.locator('canvas')).toBeVisible();
   await expect(page.getByTestId('gladiator-list')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-glad-demo-early-marcus')).toBeVisible();
   await expect(page.getByTestId('topbar-treasury')).toContainText('850');
@@ -143,8 +138,7 @@ test('loads the mid demo directly', async ({ page }) => {
 
   await expect(page.getByTestId('map-container')).toBeVisible();
   await expect(page.getByTestId('gladiator-card-glad-demo-mid-gaius')).toBeVisible();
-  await expect(page.getByTestId('map-special-location-market')).toBeVisible();
-  await expect(page.getByTestId('map-special-location-arena')).toBeVisible();
+  await expect(page.getByTestId('map-container').locator('canvas')).toBeVisible();
 });
 
 test('loads the advanced demo directly', async ({ page }) => {

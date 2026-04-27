@@ -1,13 +1,18 @@
-import { useState } from 'react';
-import type { MapLocationDefinition, MapLocationId } from '../../game-data/map-layout';
+import { lazy, Suspense, useState } from 'react';
+import type { MapLocationDefinition } from '../../game-data/map-layout';
 import { useGameStore } from '../../state/game-store';
 import { useUiStore } from '../../state/ui-store';
 import { TopHud } from '../hud/TopHud';
-import { LudusMap } from '../map/LudusMap';
 import { BottomGladiatorRoster } from '../roster/BottomGladiatorRoster';
 import type { ContextPanelKind } from './game-shell-types';
 import { LeftNavigationRail } from './LeftNavigationRail';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
+
+const PixiLudusMap = lazy(() =>
+  import('../map/PixiLudusMap').then((module) => ({
+    default: module.PixiLudusMap,
+  })),
+);
 
 export function GameShell() {
   const {
@@ -19,10 +24,8 @@ export function GameShell() {
     saveNoticeKey,
     setGameSpeed,
   } = useGameStore();
-  const { activeModal, openModal } = useUiStore();
-  const [selectedLocationId, setSelectedLocationId] = useState<MapLocationId | null>(null);
+  const { activeModal, openModal, t } = useUiStore();
   const [selectedGladiatorId, setSelectedGladiatorId] = useState<string | null>(null);
-  const [focusGladiatorId, setFocusGladiatorId] = useState<string | undefined>();
   const [areAlertsOpen, setAreAlertsOpen] = useState(false);
 
   if (!currentSave) {
@@ -51,7 +54,6 @@ export function GameShell() {
 
   const selectLocation = (location: MapLocationDefinition) => {
     setAreAlertsOpen(false);
-    setSelectedLocationId(location.id);
 
     if (location.kind === 'building') {
       openModal({ buildingId: location.id, kind: 'building' });
@@ -64,7 +66,6 @@ export function GameShell() {
   const selectGladiator = (gladiatorId: string) => {
     setAreAlertsOpen(false);
     setSelectedGladiatorId(gladiatorId);
-    setFocusGladiatorId(gladiatorId);
     openModal({ gladiatorId, kind: 'gladiator' });
   };
 
@@ -85,14 +86,9 @@ export function GameShell() {
       />
       <LeftNavigationRail activePanelKind={activePanelKind} onOpenPanel={openPanel} />
       <main className="game-shell__map-stage">
-        <LudusMap
-          focusGladiatorId={focusGladiatorId}
-          save={currentSave}
-          selectedGladiatorId={selectedGladiatorId ?? undefined}
-          selectedLocationId={selectedLocationId}
-          onGladiatorSelect={selectGladiator}
-          onLocationSelect={selectLocation}
-        />
+        <Suspense fallback={<p className="empty-state">{t('common.loading')}</p>}>
+          <PixiLudusMap save={currentSave} onLocationSelect={selectLocation} />
+        </Suspense>
       </main>
       <BottomGladiatorRoster
         save={currentSave}

@@ -1,5 +1,5 @@
 import type { BuildingId } from '../domain/buildings/types';
-import visualAssetManifestData from '../../public/assets/pixel-art/asset-manifest.visual-migration.json';
+import visualAssetManifestData from './generated/asset-manifest.visual-migration.json';
 
 export type TimeOfDayAssetPhase = 'dawn' | 'day' | 'dusk' | 'night';
 export type HomepageBackgroundPhase = 'day' | 'dusk';

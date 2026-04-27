@@ -1,5 +1,13 @@
 import type { BuildingId } from '../buildings/types';
 
+export interface GladiatorMapMovement {
+  currentLocation: BuildingId;
+  targetLocation: BuildingId;
+  activity: string;
+  movementStartedAt: number;
+  movementDuration: number;
+}
+
 export interface GladiatorVisualIdentity {
   portraitAssetId: string;
   spriteAssetId: string;
@@ -26,6 +34,7 @@ export interface Gladiator {
   traits: GladiatorTrait[];
   currentBuildingId?: BuildingId;
   currentActivityId?: string;
+  mapMovement?: GladiatorMapMovement;
   trainingPlan?: GladiatorTrainingPlan;
   visualIdentity?: GladiatorVisualIdentity;
 }

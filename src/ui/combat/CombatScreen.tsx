@@ -1,15 +1,20 @@
 import { ArrowLeft, Banknote, CalendarDays, Menu, Pause, Play } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import type { GameSave, GameSpeed } from '../../domain/types';
 import { GAME_SPEEDS } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store';
 import { DayCycleGauge } from '../components/DayCycleGauge';
 import { formatMoneyAmount } from '../formatters/money';
-import { CombatArenaStage } from './CombatArenaStage';
 import { CombatantPanel } from './CombatantPanel';
 import { CombatLog } from './CombatLog';
 import { CombatSkillBar } from './CombatSkillBar';
 import { getCombatScreenCombat, getCombatScreenViewModel } from './combat-screen-view-model';
+
+const PixiCombatArenaStage = lazy(() =>
+  import('./PixiCombatArenaStage').then((module) => ({
+    default: module.PixiCombatArenaStage,
+  })),
+);
 
 interface CombatScreenProps {
   combatId?: string;
@@ -114,7 +119,9 @@ export function CombatScreen({
       </header>
       <div className="combat-screen__body">
         <CombatantPanel combatant={viewModel.player} />
-        <CombatArenaStage viewModel={viewModel} />
+        <Suspense fallback={<p className="empty-state">{t('common.loading')}</p>}>
+          <PixiCombatArenaStage viewModel={viewModel} />
+        </Suspense>
         <CombatantPanel combatant={viewModel.opponent} />
         <CombatSkillBar
           viewModel={viewModel}

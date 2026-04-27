@@ -37,6 +37,7 @@ ludus/
 │   ├── game-data/
 │   ├── i18n/
 │   ├── persistence/
+│   ├── renderer/
 │   ├── state/
 │   ├── test/
 │   ├── ui/
@@ -105,6 +106,26 @@ React components must not own gameplay formulas, hardcoded balancing values or p
 
 Shared UI primitives live under `src/ui/components` and should be reused before adding feature-specific panel, modal, badge, empty-state, effect-list, cost-summary or tab markup.
 
+### `src/renderer`
+
+Contains real-time scene renderers that are mounted from React.
+
+The first renderer target is PixiJS through `@pixi/react`. PixiJS is used for
+living scenes that need continuous rendering, layered sprites, animation and
+scene hit zones.
+
+Examples:
+
+- ludus map scene;
+- gladiator sprites and map movement;
+- ambient map effects;
+- arena combat presentation.
+
+PixiJS is a renderer only. It must not contain game rules, balance formulas,
+combat resolution, save mutations or business decisions. Scene components
+receive prepared, serializable view-model props from React/state selectors and
+emit user intent through callbacks.
+
 ### `src/ui/view-models`
 
 Contains UI view-model and selector helpers.
@@ -145,6 +166,31 @@ Current flags:
 - `VITE_ENABLE_DEMO_MODE`;
 - `VITE_ENABLE_DEBUG_UI`.
 
+## Scene Renderer
+
+React remains the application shell. It owns routing, HUDs, panels, menus,
+modals, i18n, app providers and state orchestration.
+
+PixiJS renders real-time game scenes inside that shell. It is the renderer for
+the player map and combat presentation, and it is responsible for visual scene
+composition such as sprites, animation loops, hit zones, depth sorting and
+ambience.
+
+The scene renderer boundary is:
+
+- `src/domain` decides game outcomes and legal actions;
+- `src/game-data` defines visual data, layout, asset references and tunable
+  renderer parameters;
+- `src/state` coordinates saves, domain actions and UI state;
+- `src/ui` mounts React screens and passes prepared props;
+- `src/renderer` draws scenes from serializable view-models and reports
+  interaction intent through callbacks.
+
+PixiJS must never become a second game engine for business logic. If a scene
+needs to know what to draw, React/state prepares a view-model. If the player
+clicks a scene element, Pixi calls back with an id or intent and React/state
+performs the action.
+
 ## Visual Asset Pipeline
 
 The player UI uses generated or authored pixel-art assets from:
@@ -159,6 +205,12 @@ The generated baseline manifest is:
 public/assets/pixel-art/asset-manifest.visual-migration.json
 ```
 
+The TypeScript import mirror is generated at:
+
+```text
+src/game-data/generated/asset-manifest.visual-migration.json
+```
+
 The generator command is:
 
 ```bash
@@ -171,7 +223,9 @@ Use `--clean` when intentionally regenerating the complete scaffold:
 node scripts/generate-visual-migration-assets.mjs --clean
 ```
 
-The manifest is exposed to TypeScript through `src/game-data/visual-assets.ts`.
+The generated public manifest is useful for inspection, while the generated
+`src/game-data/generated` mirror is exposed to TypeScript through
+`src/game-data/visual-assets.ts`.
 React components should not import the JSON manifest directly and should not
 hardcode individual generated asset paths.
 

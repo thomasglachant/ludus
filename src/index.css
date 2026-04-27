@@ -77,6 +77,15 @@ button:disabled {
   opacity: 0.65;
 }
 
+.pixi-scene-viewport canvas {
+  cursor: grab;
+  touch-action: none;
+}
+
+.pixi-scene-viewport canvas:active {
+  cursor: grabbing;
+}
+
 h1,
 h2,
 h3,

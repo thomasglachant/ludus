@@ -113,6 +113,7 @@ describe('planning actions', () => {
       withPurchasedBuildings(
         withGladiators(createTestSave(), [
           createGladiator({
+            currentBuildingId: 'domus',
             health: 40,
           }),
         ]),
@@ -126,6 +127,11 @@ describe('planning actions', () => {
       isAvailable: true,
     });
     expect(result.gladiators[0].currentBuildingId).toBe('infirmary');
+    expect(result.gladiators[0].mapMovement).toMatchObject({
+      currentLocation: 'domus',
+      targetLocation: 'infirmary',
+      activity: 'balanced',
+    });
   });
 
   it('allows objective and intensity updates', () => {
@@ -146,6 +152,7 @@ describe('planning actions', () => {
       withPurchasedBuildings(
         withGladiators(createTestSave(), [
           createGladiator({
+            currentBuildingId: 'domus',
             health: 40,
           }),
         ]),
@@ -160,5 +167,9 @@ describe('planning actions', () => {
       lockedBuildingId: 'dormitory',
     });
     expect(result.gladiators[0].currentBuildingId).toBe('dormitory');
+    expect(result.gladiators[0].mapMovement).toMatchObject({
+      targetLocation: 'dormitory',
+      activity: 'manualOverride',
+    });
   });
 });

@@ -39,6 +39,8 @@
   "debugDashboard.title": "Debug dashboard",
   "debugDashboard.enabled": "The developer debug UI is enabled for this build.",
   "debugDashboard.unavailable": "The developer debug UI is disabled for this build.",
+  "debugDashboard.pixiSceneLabel": "Pixi renderer test scene",
+  "debugDashboard.pixiSceneReady": "Pixi scene host mounted with demo map data.",
   "navigation.title": "Game navigation",
   "navigation.weeklyPlanning": "Planning",
   "navigation.contracts": "Contracts",

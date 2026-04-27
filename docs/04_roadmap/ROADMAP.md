@@ -24,6 +24,10 @@ The Phase 1 MVP playable loop is stable enough to serve as the baseline for Phas
 
 The next work should move Phase 2 systems forward while preserving the architectural split between `src/game-data`, `src/domain`, `src/state`, `src/persistence` and `src/ui`.
 
+The renderer direction is now React + PixiJS: React remains the app shell, while
+PixiJS renders the living map and combat scenes. The previous DOM visual
+renderers have been retired from the normal player experience.
+
 ## Phase 1: MVP Baseline Maintenance
 
 Goal: keep the weekly preparation loop and Sunday arena loop stable while Phase 2 work begins.
@@ -126,6 +130,8 @@ Focus areas:
 - improve performance on large rosters;
 - improve Playwright visual confidence for map states;
 - refine pixel-art placeholder assets into stronger final assets;
+- replace temporary renderer placeholder art with authored spritesheets and
+  building assets;
 - add audio if it supports the atmosphere without hurting usability.
 
 Acceptance:
@@ -151,4 +157,4 @@ Acceptance:
 - Gladiator death and severe injury rules.
 - Employee/staff system.
 - Final asset production workflow.
-- Whether the long-term map renderer remains DOM/CSS or moves to Canvas/PixiJS.
+- Exact scope for any future debug-only renderer inspection tools.

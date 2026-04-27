@@ -91,7 +91,10 @@ Required motion language:
 - subtle clouds, grass, banners, smoke, torch flicker and arena crowd hints;
 - two-frame or short-loop gladiator map animations;
 - two-frame or short-loop combat idle/attack motion;
-- transform and opacity based CSS animations for ambient loops;
+- real gladiator movement between buildings and activity locations;
+- idle animations and walking animations for visible characters;
+- depth sorting based on vertical scene position;
+- PixiJS animation loops for living map and combat scenes;
 - static equivalent states under `prefers-reduced-motion`.
 
 React must not run per-frame ambient animation state.
@@ -131,9 +134,33 @@ Map layout, buildings, paths, decorations, hit areas, external locations, time
 themes and asset paths belong in `src/game-data` or adjacent visual data
 modules.
 
-The current DOM/CSS renderer is acceptable for the product stage. A future
-Canvas or PixiJS renderer may be introduced only if it preserves the same domain
-and game-data boundaries.
+The map target is a living PixiJS-rendered scene: a rich 2D or isometric
+pixel-art ludus with visible buildings, readable terrain, moving gladiators,
+ambient effects and stable interaction zones.
+
+Required map scene behavior:
+
+- gladiators move through the map instead of teleporting between static slots;
+- idle, walking, training, resting, eating and injured states are visually
+  distinct where assets exist;
+- movement is simple and readable: the simulation decides where a gladiator is
+  going, while the renderer interpolates how the sprite gets there;
+- scene layers use depth sorting so lower objects and characters appear in
+  front of higher ones;
+- torches, smoke, banners, shadows, crowd hints and time-of-day ambience make
+  the ludus feel inhabited;
+- `prefers-reduced-motion` disables non-essential animation while preserving
+  readable state.
+
+PixiJS is the renderer for the living map, while React keeps the surrounding HUD,
+panels, modals and routing. The previous DOM/CSS map renderer is no longer part
+of the normal player experience.
+
+The visual target matches the provided pixel-art references: a dense Roman
+map-first scene with a dark bronze HUD, parchment panels, visible characters,
+clear building silhouettes and theatrical arena presentation. Weak generated
+SVG placeholders are acceptable only as temporary scaffolding; final quality
+comes from authored pixel-art spritesheets and building assets.
 
 ## Time Of Day
 
@@ -242,6 +269,12 @@ The generated manifest is:
 
 ```text
 public/assets/pixel-art/asset-manifest.visual-migration.json
+```
+
+The TypeScript import mirror is:
+
+```text
+src/game-data/generated/asset-manifest.visual-migration.json
 ```
 
 Typed access to the manifest belongs in `src/game-data/visual-assets.ts` and
