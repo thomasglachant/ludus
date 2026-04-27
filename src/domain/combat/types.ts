@@ -22,10 +22,20 @@ export type CombatStrategy =
 
 export interface ArenaState {
   currentCombatId?: string;
+  arenaDay?: ArenaDayState;
   pendingCombats: CombatState[];
   resolvedCombats: CombatState[];
   isArenaDayActive: boolean;
   betting?: BettingState;
+}
+
+export type ArenaDayPhase = 'intro' | 'combats' | 'summary';
+
+export interface ArenaDayState {
+  year: number;
+  week: number;
+  phase: ArenaDayPhase;
+  presentedCombatIds: string[];
 }
 
 export interface BettingState {

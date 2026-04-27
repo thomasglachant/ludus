@@ -5,6 +5,7 @@ import { pixiUiChromeStyle } from '../pixi-ui-chrome';
 
 interface AppModalProps {
   children: ReactNode;
+  dismissible?: boolean;
   footer?: ReactNode;
   onBack?(): void;
   onClose(): void;
@@ -17,6 +18,7 @@ interface AppModalProps {
 
 export function AppModal({
   children,
+  dismissible = true,
   footer,
   onBack,
   onClose,
@@ -34,10 +36,12 @@ export function AppModal({
   const [modalBottomOffset, setModalBottomOffset] = useState(18);
 
   useEffect(() => {
-    closeButtonRef.current?.focus();
+    if (dismissible) {
+      closeButtonRef.current?.focus();
+    }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (dismissible && event.key === 'Escape') {
         onClose();
       }
     };
@@ -45,7 +49,7 @@ export function AppModal({
     window.addEventListener('keydown', handleKeyDown);
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [dismissible, onClose]);
 
   useEffect(() => {
     const modal = modalRef.current;
@@ -90,7 +94,7 @@ export function AppModal({
       data-testid={testId}
       role="presentation"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (dismissible && event.target === event.currentTarget) {
           onClose();
         }
       }}
@@ -104,7 +108,7 @@ export function AppModal({
         style={modalStyle}
       >
         <div className="app-modal__header">
-          {onBack ? (
+          {dismissible && onBack ? (
             <button
               aria-label={t('common.back')}
               className="app-modal__back"
@@ -117,15 +121,17 @@ export function AppModal({
           <div className="app-modal__title">
             <h1 id={titleId}>{titleKey ? t(titleKey, titleParams) : title}</h1>
           </div>
-          <button
-            aria-label={t('common.close')}
-            className="app-modal__close"
-            ref={closeButtonRef}
-            type="button"
-            onClick={onClose}
-          >
-            <X aria-hidden="true" size={18} />
-          </button>
+          {dismissible ? (
+            <button
+              aria-label={t('common.close')}
+              className="app-modal__close"
+              ref={closeButtonRef}
+              type="button"
+              onClick={onClose}
+            >
+              <X aria-hidden="true" size={18} />
+            </button>
+          ) : null}
         </div>
         <div className="app-modal__body">{children}</div>
         {footer ? <div className="app-modal__footer">{footer}</div> : null}

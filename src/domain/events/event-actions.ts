@@ -238,7 +238,10 @@ export function synchronizeEvents(save: GameSave, random: RandomSource = Math.ra
   const hasEventForCurrentDay =
     pendingEvents.length > 0 ||
     save.events.resolvedEvents.some((event) => isSameEventDay(save, event));
-  const canCreateEvent = save.time.dayOfWeek !== 'sunday' && !hasEventForCurrentDay;
+  const canCreateEvent =
+    save.time.dayOfWeek !== 'sunday' &&
+    save.time.hour >= EVENT_CONFIG.dailyEventStartHour &&
+    !hasEventForCurrentDay;
   const nextPendingEvents =
     canCreateEvent && pendingEvents.length < EVENT_CONFIG.maxEventsPerDay
       ? [...pendingEvents, createDailyEvent(save, random)].filter((event): event is GameEvent =>

@@ -1,9 +1,11 @@
 import { DAYS_OF_WEEK, TIME_CONFIG, TRAINING_INTENSITY_EFFECTS } from '../../game-data/time';
+import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { getHourlyBuildingEffects } from '../buildings/building-effects';
 import type { BuildingEffect, BuildingId, GameSave, GameSpeed, GameTickContext } from '../types';
 import { synchronizeArena, synchronizeBetting } from '../combat/combat-actions';
 import { synchronizeContracts } from '../contracts/contract-actions';
 import { synchronizeEvents } from '../events/event-actions';
+import { isGameInterrupted } from '../game-flow/interruption';
 import {
   applyPlanningRecommendations,
   getRoutineForGladiator,
@@ -41,6 +43,7 @@ const effectFieldByType: Partial<Record<BuildingEffect['type'], GladiatorNumeric
 };
 
 const decreasingEffects = new Set<BuildingEffect['type']>(['decreaseEnergy', 'decreaseMorale']);
+const SUNDAY_ARENA_START_HOUR = 8;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -53,7 +56,7 @@ function roundStat(value: number) {
 function getNextWeekState(year: number, week: number) {
   const nextWeek = week + 1;
 
-  if (nextWeek > 8) {
+  if (nextWeek > PROGRESSION_CONFIG.weeksPerYear) {
     return {
       year: year + 1,
       week: 1,
@@ -63,6 +66,76 @@ function getNextWeekState(year: number, week: number) {
   return {
     year,
     week: nextWeek,
+  };
+}
+
+function getGameMinuteStamp(time: GameTimeState) {
+  const dayIndex = DAYS_OF_WEEK.indexOf(time.dayOfWeek);
+
+  return (
+    (((time.year - 1) * PROGRESSION_CONFIG.weeksPerYear + (time.week - 1)) * DAYS_OF_WEEK.length +
+      dayIndex) *
+      TIME_CONFIG.hoursPerDay *
+      TIME_CONFIG.minutesPerHour +
+    time.hour * TIME_CONFIG.minutesPerHour +
+    time.minute
+  );
+}
+
+function createTimeFromMinuteStamp(stamp: number, template: GameTimeState): GameTimeState {
+  const minutesPerDay = TIME_CONFIG.hoursPerDay * TIME_CONFIG.minutesPerHour;
+  const minutesPerWeek = DAYS_OF_WEEK.length * minutesPerDay;
+  const weeksPerYear = PROGRESSION_CONFIG.weeksPerYear;
+  const absoluteWeekIndex = Math.floor(stamp / minutesPerWeek);
+  const minuteInWeek = stamp % minutesPerWeek;
+  const dayIndex = Math.floor(minuteInWeek / minutesPerDay);
+  const minuteInDay = minuteInWeek % minutesPerDay;
+
+  return {
+    ...template,
+    year: Math.floor(absoluteWeekIndex / weeksPerYear) + 1,
+    week: (absoluteWeekIndex % weeksPerYear) + 1,
+    dayOfWeek: DAYS_OF_WEEK[dayIndex],
+    hour: Math.floor(minuteInDay / TIME_CONFIG.minutesPerHour),
+    minute: minuteInDay % TIME_CONFIG.minutesPerHour,
+  };
+}
+
+function getNextSundayArenaStartStamp(time: GameTimeState) {
+  const minutesPerDay = TIME_CONFIG.hoursPerDay * TIME_CONFIG.minutesPerHour;
+  const minutesPerWeek = DAYS_OF_WEEK.length * minutesPerDay;
+  const currentStamp = getGameMinuteStamp(time);
+  const weekStartStamp = Math.floor(currentStamp / minutesPerWeek) * minutesPerWeek;
+  const sundayIndex = DAYS_OF_WEEK.indexOf('sunday');
+  let targetStamp =
+    weekStartStamp +
+    sundayIndex * minutesPerDay +
+    SUNDAY_ARENA_START_HOUR * TIME_CONFIG.minutesPerHour;
+
+  while (targetStamp <= currentStamp) {
+    targetStamp += minutesPerWeek;
+  }
+
+  return targetStamp;
+}
+
+function clampToSundayArenaStart(currentTime: GameTimeState, intendedMinutes: number) {
+  const currentStamp = getGameMinuteStamp(currentTime);
+  const intendedStamp = currentStamp + intendedMinutes;
+  const arenaStartStamp = getNextSundayArenaStartStamp(currentTime);
+
+  if (arenaStartStamp > intendedStamp) {
+    return {
+      advancedGameMinutes: intendedMinutes,
+      time: advanceGameTime(currentTime, intendedMinutes),
+    };
+  }
+
+  const advancedGameMinutes = arenaStartStamp - currentStamp;
+
+  return {
+    advancedGameMinutes,
+    time: createTimeFromMinuteStamp(arenaStartStamp, currentTime),
   };
 }
 
@@ -274,10 +347,7 @@ export function setGameSpeed(save: GameSave, speed: GameSpeed): GameSave {
 }
 
 export function tickGame(context: GameTickContext): GameTickResult {
-  const speed = context.currentSave.time.isPaused ? 0 : context.speed;
-  const advancedGameMinutes = getAdvancedGameMinutes(context.elapsedRealMilliseconds, speed);
-
-  if (advancedGameMinutes <= 0) {
+  if (isGameInterrupted(context.currentSave)) {
     return {
       save: context.currentSave,
       advancedGameMinutes: 0,
@@ -286,7 +356,22 @@ export function tickGame(context: GameTickContext): GameTickResult {
     };
   }
 
-  const nextTime = advanceGameTime(context.currentSave.time, advancedGameMinutes);
+  const speed = context.currentSave.time.isPaused ? 0 : context.speed;
+  const intendedGameMinutes = getAdvancedGameMinutes(context.elapsedRealMilliseconds, speed);
+
+  if (intendedGameMinutes <= 0) {
+    return {
+      save: context.currentSave,
+      advancedGameMinutes: 0,
+      appliedEffectHours: 0,
+      effectAccumulatorMinutes: context.effectAccumulatorMinutes ?? 0,
+    };
+  }
+
+  const { advancedGameMinutes, time: nextTime } = clampToSundayArenaStart(
+    context.currentSave.time,
+    intendedGameMinutes,
+  );
   const accumulatedEffectMinutes = (context.effectAccumulatorMinutes ?? 0) + advancedGameMinutes;
   const appliedEffectHours = Math.floor(accumulatedEffectMinutes / TIME_CONFIG.minutesPerHour);
   const effectAccumulatorMinutes = accumulatedEffectMinutes % TIME_CONFIG.minutesPerHour;
@@ -317,4 +402,30 @@ export function tickGame(context: GameTickContext): GameTickResult {
     appliedEffectHours,
     effectAccumulatorMinutes,
   };
+}
+
+export function completeSundayArenaDay(save: GameSave): GameSave {
+  if (!save.arena.arenaDay) {
+    return save;
+  }
+
+  const saveWithResolvedContracts = synchronizeContracts(save);
+  const sundayEveningSave: GameSave = {
+    ...saveWithResolvedContracts,
+    time: {
+      ...saveWithResolvedContracts.time,
+      dayOfWeek: 'sunday',
+      hour: 20,
+      minute: 0,
+    },
+    arena: {
+      ...saveWithResolvedContracts.arena,
+      arenaDay: undefined,
+      currentCombatId: undefined,
+      pendingCombats: [],
+      isArenaDayActive: true,
+    },
+  };
+
+  return synchronizePlanning(synchronizeEvents(synchronizeBetting(sundayEveningSave)));
 }

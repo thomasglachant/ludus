@@ -4,6 +4,8 @@ import { formatMoneyAmount } from '../formatters/money';
 import type { CombatScreenViewModel } from './combat-screen-view-model';
 
 interface CombatSkillBarProps {
+  canClose?: boolean;
+  closeLabelKey?: string;
   viewModel: CombatScreenViewModel;
   onAdvance(): void;
   onClose(): void;
@@ -20,7 +22,13 @@ function formatSignedValue(value: number) {
   return value > 0 ? `+${value}` : String(value);
 }
 
-export function CombatSkillBar({ onAdvance, onClose, viewModel }: CombatSkillBarProps) {
+export function CombatSkillBar({
+  canClose = true,
+  closeLabelKey = 'combatScreen.returnToArena',
+  onAdvance,
+  onClose,
+  viewModel,
+}: CombatSkillBarProps) {
   const { t } = useUiStore();
 
   return (
@@ -64,8 +72,8 @@ export function CombatSkillBar({ onAdvance, onClose, viewModel }: CombatSkillBar
             {viewModel.isComplete ? t('arena.logComplete') : t('combatScreen.advanceTurn')}
           </span>
         </button>
-        <button type="button" onClick={onClose}>
-          <span>{t('combatScreen.returnToArena')}</span>
+        <button disabled={!canClose} type="button" onClick={onClose}>
+          <span>{t(closeLabelKey)}</span>
         </button>
       </div>
     </section>

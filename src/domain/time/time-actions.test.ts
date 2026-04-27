@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { BuildingId, GameSave, Gladiator } from '../types';
 import { createInitialSave } from '../saves/create-initial-save';
 import { updateGladiatorRoutine } from '../planning/planning-actions';
-import { setGameSpeed, tickGame } from './time-actions';
+import { completeSundayArenaDay, setGameSpeed, tickGame } from './time-actions';
 
 function createTestSave() {
   return createInitialSave({
@@ -148,7 +148,7 @@ describe('time actions', () => {
     });
   });
 
-  it('triggers Sunday arena combats when the day starts', () => {
+  it('does not trigger Sunday arena combats before 8:00', () => {
     const save: GameSave = {
       ...createTestSave(),
       time: {
@@ -174,9 +174,47 @@ describe('time actions', () => {
       hour: 0,
       minute: 30,
     });
+    expect(result.save.arena.isArenaDayActive).toBe(false);
+    expect(result.save.arena.resolvedCombats).toHaveLength(0);
+  });
+
+  it('triggers Sunday arena combats at 8:00 and blocks further ticks', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      time: {
+        year: 1,
+        week: 1,
+        dayOfWeek: 'sunday',
+        hour: 7,
+        minute: 59,
+        speed: 1,
+        isPaused: false,
+      },
+      gladiators: [createGladiator()],
+    };
+    const result = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 5_000,
+      speed: save.time.speed,
+      random: () => 0,
+    });
+    const blockedTick = tickGame({
+      currentSave: result.save,
+      elapsedRealMilliseconds: 5_000,
+      speed: result.save.time.speed,
+      random: () => 0,
+    });
+
+    expect(result.save.time).toMatchObject({
+      dayOfWeek: 'sunday',
+      hour: 8,
+      minute: 0,
+    });
     expect(result.save.arena.isArenaDayActive).toBe(true);
+    expect(result.save.arena.arenaDay).toMatchObject({ phase: 'intro' });
     expect(result.save.arena.resolvedCombats).toHaveLength(1);
-    expect(result.save.gladiators[0].wins + result.save.gladiators[0].losses).toBe(1);
+    expect(blockedTick.advancedGameMinutes).toBe(0);
+    expect(blockedTick.save.time).toEqual(result.save.time);
   });
 
   it('does not double-apply Sunday arena consequences on later Sunday ticks', () => {
@@ -195,7 +233,7 @@ describe('time actions', () => {
     };
     const sundayStart = tickGame({
       currentSave: save,
-      elapsedRealMilliseconds: 5_000,
+      elapsedRealMilliseconds: 43_000,
       speed: save.time.speed,
       random: () => 0,
     }).save;
@@ -209,6 +247,49 @@ describe('time actions', () => {
     expect(laterSunday.arena.resolvedCombats).toHaveLength(1);
     expect(laterSunday.ludus.treasury).toBe(sundayStart.ludus.treasury);
     expect(laterSunday.gladiators[0].wins + laterSunday.gladiators[0].losses).toBe(1);
+  });
+
+  it('completes Sunday arena day into Sunday evening without retriggering arena', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      time: {
+        year: 1,
+        week: 8,
+        dayOfWeek: 'sunday',
+        hour: 7,
+        minute: 59,
+        speed: 1,
+        isPaused: false,
+      },
+      gladiators: [createGladiator()],
+    };
+    const arenaDay = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 5_000,
+      speed: save.time.speed,
+      random: () => 0,
+    }).save;
+    const completed = completeSundayArenaDay(arenaDay);
+
+    expect(completed.time).toMatchObject({
+      year: 1,
+      week: 8,
+      dayOfWeek: 'sunday',
+      hour: 20,
+      minute: 0,
+    });
+    expect(completed.arena.arenaDay).toBeUndefined();
+    expect(completed.arena.isArenaDayActive).toBe(true);
+
+    const laterSunday = tickGame({
+      currentSave: completed,
+      elapsedRealMilliseconds: 5_000,
+      speed: completed.time.speed,
+      random: () => 0,
+    }).save;
+
+    expect(laterSunday.arena.arenaDay).toBeUndefined();
+    expect(laterSunday.arena.resolvedCombats).toHaveLength(1);
   });
 
   it('applies purchased building effects to assigned gladiators once per game hour', () => {

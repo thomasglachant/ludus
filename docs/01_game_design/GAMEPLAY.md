@@ -142,19 +142,26 @@ Main actions:
 
 ### Sunday: Arena
 
+Sunday becomes a special arena day at 08:00. The game enters a blocking event mode, automatically opens the arena interface and pauses simulation time until the player completes the arena flow.
+
 Gladiators fight. Combats are turn-based and shown through a combat log. Results affect money, reputation, morale, injuries and future opportunities.
 
 Sunday is the weekly climax and should be readable as a focused arena flow:
 
-- weekly preparation is locked once Sunday arena resolution starts;
+- weekly preparation is locked once Sunday arena resolution starts at 08:00;
+- the player first sees an arena-day introduction explaining the schedule;
 - eligible owned gladiators are placed into a combat queue for the current week;
-- each combat has a visible opponent, rank, strategy, victory or defeat badge, rewards and consequences;
-- the player can advance through the current combat log turn by turn or review already revealed turns;
-- resolved combats stay available in the Sunday summary as pending and resolved lists change;
+- each combat has a visible opponent, rank and strategy;
+- the player chooses the next combat from the arena hub;
+- the combat presentation reveals the existing combat log turn by turn;
+- the player returns to the arena hub between combats;
 - rewards and consequences are applied once per combat and cannot be doubled by repeated Sunday ticks;
-- once all combats are resolved, the player can review total treasury, reputation, condition and win/loss changes before returning to the next Monday flow.
+- once all combats have been presented, the player reviews a final summary showing win/loss record, arena gains, contract gains, total gains and reputation changes;
+- accepting the summary ends the arena flow and advances automatically to Sunday 20:00.
 
-If no gladiator is eligible, the arena should show a clear empty state and let time continue back into the weekly loop.
+If no gladiator is eligible, the arena still opens at 08:00, shows a clear empty state and lets the player acknowledge the summary before advancing to Sunday 20:00.
+
+Daily events also use blocking event mode. When a daily event appears during the week, the game opens the event modal and pauses simulation time until the player chooses a resolution. Daily events do not appear on Sunday.
 
 ## Weekly Objectives
 

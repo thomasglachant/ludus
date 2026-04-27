@@ -18,6 +18,7 @@ const PixiCombatArenaStage = lazy(() =>
 
 interface CombatScreenProps {
   combatId?: string;
+  isBlocking?: boolean;
   save: GameSave;
   onClose(): void;
   onOpenMenu(): void;
@@ -26,6 +27,7 @@ interface CombatScreenProps {
 
 export function CombatScreen({
   combatId,
+  isBlocking = false,
   onClose,
   onOpenMenu,
   onSpeedChange,
@@ -84,37 +86,43 @@ export function CombatScreen({
             })}
           </span>
         </div>
-        <div className="combat-screen__speeds">
-          {GAME_SPEEDS.map((speed) => (
-            <button
-              aria-label={t(speed === 0 ? 'speed.pause' : `speed.x${speed}`)}
-              className={save.time.speed === speed ? 'is-selected' : ''}
-              key={speed}
-              type="button"
-              onClick={() => onSpeedChange(speed)}
-            >
-              {speed === 0 ? (
-                <Pause aria-hidden="true" size={14} />
-              ) : (
-                <Play aria-hidden="true" size={14} />
-              )}
-              <span>{t(speed === 0 ? 'speed.pause' : `speed.x${speed}`)}</span>
-            </button>
-          ))}
-        </div>
+        {!isBlocking ? (
+          <div className="combat-screen__speeds">
+            {GAME_SPEEDS.map((speed) => (
+              <button
+                aria-label={t(speed === 0 ? 'speed.pause' : `speed.x${speed}`)}
+                className={save.time.speed === speed ? 'is-selected' : ''}
+                key={speed}
+                type="button"
+                onClick={() => onSpeedChange(speed)}
+              >
+                {speed === 0 ? (
+                  <Pause aria-hidden="true" size={14} />
+                ) : (
+                  <Play aria-hidden="true" size={14} />
+                )}
+                <span>{t(speed === 0 ? 'speed.pause' : `speed.x${speed}`)}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="combat-screen__resources">
           <span>
             <Banknote aria-hidden="true" size={18} />
             {formatMoneyAmount(save.ludus.treasury)}
           </span>
-          <button type="button" onClick={onOpenMenu}>
-            <Menu aria-hidden="true" size={18} />
-            <span>{t('topBar.menu')}</span>
-          </button>
-          <button type="button" onClick={onClose}>
-            <ArrowLeft aria-hidden="true" size={18} />
-            <span>{t('common.back')}</span>
-          </button>
+          {!isBlocking ? (
+            <>
+              <button type="button" onClick={onOpenMenu}>
+                <Menu aria-hidden="true" size={18} />
+                <span>{t('topBar.menu')}</span>
+              </button>
+              <button type="button" onClick={onClose}>
+                <ArrowLeft aria-hidden="true" size={18} />
+                <span>{t('common.back')}</span>
+              </button>
+            </>
+          ) : null}
         </div>
       </header>
       <div className="combat-screen__body">
@@ -124,6 +132,8 @@ export function CombatScreen({
         </Suspense>
         <CombatantPanel combatant={viewModel.opponent} />
         <CombatSkillBar
+          canClose={!isBlocking || viewModel.isComplete}
+          closeLabelKey="combatScreen.returnToArena"
           viewModel={viewModel}
           onAdvance={() => setTurnProgress({ combatId: combat.id, count: visibleTurnCount + 1 })}
           onClose={onClose}

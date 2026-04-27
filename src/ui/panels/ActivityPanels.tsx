@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Eye, Swords } from 'lucide-react';
 import { getArenaBettingState, validateScouting } from '../../domain/combat/combat-actions';
 import { getContractProgress } from '../../domain/contracts/contract-actions';
-import type { CombatState, GameSave } from '../../domain/types';
+import type { CombatState, GameSave, WeeklyContract } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store';
 import {
   Badge,
@@ -31,8 +31,11 @@ interface EventsPanelProps extends PanelProps {
 }
 
 interface ArenaPanelProps extends PanelProps {
+  onCompleteArenaDay(): void;
   onOpenCombat(combatId: string): void;
   onScoutOpponent(gladiatorId: string): void;
+  onShowArenaDaySummary(): void;
+  onStartArenaDayCombats(): void;
 }
 
 function formatSignedValue(value: number) {
@@ -52,6 +55,28 @@ function getCombatTitleParams(combat: CombatState) {
     gladiator: combat.gladiator.name,
     opponent: combat.opponent.name,
   };
+}
+
+function isCurrentWeekContract(save: GameSave, contract: WeeklyContract) {
+  return contract.issuedAtYear === save.time.year && contract.issuedAtWeek === save.time.week;
+}
+
+function getProjectedArenaContractRewards(save: GameSave) {
+  return save.contracts.acceptedContracts
+    .filter(
+      (contract) =>
+        contract.status === 'accepted' &&
+        contract.objective.type !== 'sellGladiatorForAtLeast' &&
+        isCurrentWeekContract(save, contract) &&
+        getContractProgress(save, contract).isComplete,
+    )
+    .reduce(
+      (summary, contract) => ({
+        reputation: summary.reputation + (contract.rewardReputation ?? 0),
+        treasury: summary.treasury + contract.rewardTreasury,
+      }),
+      { reputation: 0, treasury: 0 },
+    );
 }
 
 export function ContractsPanel({ save, onAcceptContract, onClose }: ContractsPanelProps) {
@@ -170,7 +195,15 @@ export function EventsPanel({ save, onClose, onResolveEventChoice }: EventsPanel
   );
 }
 
-export function ArenaPanel({ save, onClose, onOpenCombat, onScoutOpponent }: ArenaPanelProps) {
+export function ArenaPanel({
+  save,
+  onClose,
+  onCompleteArenaDay,
+  onOpenCombat,
+  onScoutOpponent,
+  onShowArenaDaySummary,
+  onStartArenaDayCombats,
+}: ArenaPanelProps) {
   const { t } = useUiStore();
   const betting = getArenaBettingState(save);
   const viewModel = useMemo(() => getArenaPanelViewModel(save), [save]);
@@ -190,6 +223,180 @@ export function ArenaPanel({ save, onClose, onOpenCombat, onScoutOpponent }: Are
   const visibleTurnCount = turnProgress.combatId === selectedCombat?.id ? turnProgress.count : 1;
   const visibleTurns = selectedCombat?.turns.slice(0, visibleTurnCount) ?? [];
   const isLogComplete = selectedCombat ? visibleTurnCount >= selectedCombat.turns.length : true;
+  const arenaDay = save.arena.arenaDay;
+  const presentedCombatIds = new Set(arenaDay?.presentedCombatIds ?? []);
+  const unpresentedCombats = viewModel.resolvedCombats.filter(
+    (combat) => !presentedCombatIds.has(combat.id),
+  );
+  const contractRewards = getProjectedArenaContractRewards(save);
+  const totalTreasuryReward = viewModel.summary.totalReward + contractRewards.treasury;
+  const totalReputationReward = viewModel.summary.reputationChange + contractRewards.reputation;
+
+  if (arenaDay) {
+    return (
+      <PanelShell
+        eyebrowKey="arena.eyebrow"
+        titleKey="arena.title"
+        testId="arena-panel"
+        wide
+        onClose={onClose}
+      >
+        <div className="arena-panel__header">
+          <Badge label={t('arenaDay.locked')} tone="warning" />
+          <Badge
+            label={t('arena.combatProgress', {
+              resolved: presentedCombatIds.size,
+              total: viewModel.resolvedCombats.length,
+            })}
+          />
+        </div>
+        {arenaDay.phase === 'intro' ? (
+          <SectionCard titleKey="arenaDay.introTitle" testId="arena-day-intro">
+            <p>{t('arenaDay.introBody')}</p>
+            <MetricList
+              columns={3}
+              items={[
+                {
+                  labelKey: 'arenaDay.scheduledCombats',
+                  value: viewModel.resolvedCombats.length,
+                },
+                {
+                  labelKey: 'arenaDay.eligibleGladiators',
+                  value: viewModel.resolvedCombats.length,
+                },
+                {
+                  labelKey: 'arenaDay.nextStep',
+                  value: t('arenaDay.nextStepCombats'),
+                },
+              ]}
+            />
+            <div className="context-panel__actions">
+              <button type="button" onClick={onStartArenaDayCombats}>
+                <Swords aria-hidden="true" size={17} />
+                <span>{t('arenaDay.startCombats')}</span>
+              </button>
+            </div>
+          </SectionCard>
+        ) : null}
+        {arenaDay.phase === 'combats' ? (
+          <>
+            <SectionCard titleKey="arenaDay.combatQueue" testId="arena-day-combat-queue">
+              {viewModel.resolvedCombats.length > 0 ? (
+                <div className="combat-selector">
+                  {viewModel.resolvedCombats.map((combat) => {
+                    const isPresented = presentedCombatIds.has(combat.id);
+
+                    return (
+                      <button
+                        className={selectedCombat?.id === combat.id ? 'is-selected' : ''}
+                        key={combat.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCombatId(combat.id);
+                          setTurnProgress({ combatId: combat.id, count: 1 });
+                        }}
+                      >
+                        <span>{t(`arena.ranks.${combat.rank}`)}</span>
+                        <strong>{combat.gladiator.name}</strong>
+                        <Badge
+                          label={t(isPresented ? 'arenaDay.combatSeen' : 'arenaDay.combatReady')}
+                          tone={isPresented ? 'success' : 'warning'}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <EmptyState messageKey="arena.noEligible" />
+              )}
+            </SectionCard>
+            {selectedCombat ? (
+              <SectionCard titleKey="arena.currentCombat" testId="arena-day-current-combat">
+                <div className="context-panel__portrait-row">
+                  <GladiatorPortrait gladiator={selectedCombat.gladiator} size="small" />
+                  <div>
+                    <strong>{t('arena.combatTitle', getCombatTitleParams(selectedCombat))}</strong>
+                    <span>{t('arenaDay.presentationHint')}</span>
+                  </div>
+                  <Swords aria-hidden="true" size={20} />
+                </div>
+                <div className="context-panel__actions">
+                  <button
+                    data-testid="arena-open-combat-presentation"
+                    type="button"
+                    onClick={() => onOpenCombat(selectedCombat.id)}
+                  >
+                    <Swords aria-hidden="true" size={17} />
+                    <span>{t('arenaDay.openSelectedCombat')}</span>
+                  </button>
+                </div>
+              </SectionCard>
+            ) : null}
+            {unpresentedCombats.length === 0 ? (
+              <div className="context-panel__actions">
+                <button type="button" onClick={onShowArenaDaySummary}>
+                  <span>{t('arenaDay.showSummary')}</span>
+                </button>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+        {arenaDay.phase === 'summary' ? (
+          <SectionCard titleKey="arenaDay.summaryTitle" testId="arena-day-summary">
+            <MetricList
+              columns={3}
+              items={[
+                {
+                  labelKey: 'arena.summaryRecord',
+                  value: t('arena.summaryRecordValue', {
+                    wins: viewModel.summary.wins,
+                    losses: viewModel.summary.losses,
+                  }),
+                },
+                {
+                  labelKey: 'arenaDay.arenaTreasuryReward',
+                  value: formatMoneyAmount(viewModel.summary.totalReward),
+                },
+                {
+                  labelKey: 'arenaDay.contractTreasuryReward',
+                  value: formatMoneyAmount(contractRewards.treasury),
+                },
+                {
+                  labelKey: 'arenaDay.totalTreasuryReward',
+                  value: formatMoneyAmount(totalTreasuryReward),
+                },
+                {
+                  labelKey: 'arenaDay.arenaReputationReward',
+                  value: formatSignedValue(viewModel.summary.reputationChange),
+                },
+                {
+                  labelKey: 'arenaDay.contractReputationReward',
+                  value: formatSignedValue(contractRewards.reputation),
+                },
+                {
+                  labelKey: 'arenaDay.totalReputationReward',
+                  value: formatSignedValue(totalReputationReward),
+                },
+                {
+                  labelKey: 'arena.healthChange',
+                  value: formatSignedValue(viewModel.summary.healthChange),
+                },
+                {
+                  labelKey: 'arena.energyChange',
+                  value: formatSignedValue(viewModel.summary.energyChange),
+                },
+              ]}
+            />
+            <div className="context-panel__actions">
+              <button type="button" onClick={onCompleteArenaDay}>
+                <span>{t('arenaDay.finishDay')}</span>
+              </button>
+            </div>
+          </SectionCard>
+        ) : null}
+      </PanelShell>
+    );
+  }
 
   if (viewModel.resolvedCombats.length > 0 || viewModel.pendingCombats.length > 0) {
     return (

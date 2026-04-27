@@ -73,6 +73,8 @@ The following must not be permanently displayed on the main screen:
 
 They should open through centered modals or dedicated full-screen presentations when a system needs a theatrical scene, such as combat.
 
+Blocking flows may temporarily override the hidden-by-default rule. A pending daily event auto-opens a non-dismissible event modal. Sunday at 08:00 auto-opens the arena flow, and the player cannot return to the map until the combat presentations and final summary are complete.
+
 ## 5. Main Map
 
 The map should occupy most of the viewport.

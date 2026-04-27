@@ -4,7 +4,10 @@ import {
 } from '../domain/contracts/contract-actions';
 import { resolveGameEventChoice as resolveGameEventChoiceAction } from '../domain/events/event-actions';
 import {
+  markArenaCombatPresented as markArenaCombatPresentedAction,
   scoutOpponent as scoutOpponentAction,
+  showArenaDaySummary as showArenaDaySummaryAction,
+  startArenaDayCombats as startArenaDayCombatsAction,
   synchronizeBetting,
 } from '../domain/combat/combat-actions';
 import {
@@ -33,7 +36,12 @@ import {
   synchronizePlanning,
   updateGladiatorRoutine,
 } from '../domain/planning/planning-actions';
-import { setGameSpeed as setSaveGameSpeed, tickGame } from '../domain/time/time-actions';
+import {
+  completeSundayArenaDay as completeSundayArenaDayAction,
+  setGameSpeed as setSaveGameSpeed,
+  tickGame,
+} from '../domain/time/time-actions';
+import { getActiveGameInterruption, isGameInterrupted } from '../domain/game-flow/interruption';
 import type {
   BuildingId,
   DemoSaveId,
@@ -88,6 +96,10 @@ interface GameStoreValue {
   acceptWeeklyContract(contractId: string): void;
   resolveGameEventChoice(eventId: string, choiceId: string): void;
   scoutOpponent(gladiatorId: string): void;
+  startArenaDayCombats(): void;
+  markArenaCombatPresented(combatId: string): void;
+  showArenaDaySummary(): void;
+  completeSundayArenaDay(): void;
   clearError(): void;
 }
 
@@ -113,7 +125,7 @@ function synchronizeLoadedSave(save: GameSave): GameSave {
 }
 
 export function GameStoreProvider({ children }: { children: ReactNode }) {
-  const { screen, setLanguage, navigate } = useUiStore();
+  const { activeModal, screen, setLanguage, navigate, replaceModal } = useUiStore();
   const [saveService] = useState(createSaveService);
   const [activeSessionProvider] = useState(createActiveSessionProvider);
   const [initialActiveSession] = useState(() => {
@@ -156,6 +168,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const activeSaveId = currentSave?.saveId;
   const activeSpeed = currentSave?.time.speed;
   const isPaused = currentSave?.time.isPaused;
+  const isSimulationBlocked = currentSave ? isGameInterrupted(currentSave) : false;
 
   const refreshLocalSaves = useCallback(async () => {
     setIsLoading(true);
@@ -494,6 +507,25 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     [applyPlayerChange],
   );
 
+  const startArenaDayCombats = useCallback(() => {
+    applyPlayerChange((save) => startArenaDayCombatsAction(save));
+  }, [applyPlayerChange]);
+
+  const markArenaCombatPresented = useCallback(
+    (combatId: string) => {
+      applyPlayerChange((save) => markArenaCombatPresentedAction(save, combatId));
+    },
+    [applyPlayerChange],
+  );
+
+  const showArenaDaySummary = useCallback(() => {
+    applyPlayerChange((save) => showArenaDaySummaryAction(save));
+  }, [applyPlayerChange]);
+
+  const completeSundayArenaDay = useCallback(() => {
+    applyPlayerChange((save) => completeSundayArenaDayAction(save));
+  }, [applyPlayerChange]);
+
   const clearError = useCallback(() => setErrorKey(null), []);
 
   const writeActiveSession = useCallback(
@@ -638,7 +670,13 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   }, [saveService]);
 
   useEffect(() => {
-    if (!activeSaveId || activeSpeed === undefined || activeSpeed === 0 || isPaused) {
+    if (
+      !activeSaveId ||
+      activeSpeed === undefined ||
+      activeSpeed === 0 ||
+      isPaused ||
+      isSimulationBlocked
+    ) {
       lastTickAt.current = null;
       return undefined;
     }
@@ -676,7 +714,24 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     }, 1_000);
 
     return () => window.clearInterval(intervalId);
-  }, [activeSaveId, activeSpeed, isPaused]);
+  }, [activeSaveId, activeSpeed, isPaused, isSimulationBlocked]);
+
+  useEffect(() => {
+    if (!currentSave || screen !== 'ludus') {
+      return;
+    }
+
+    const interruption = getActiveGameInterruption(currentSave);
+
+    if (interruption?.kind === 'dailyEvent' && activeModal?.kind !== 'events') {
+      replaceModal({ kind: 'events' });
+      return;
+    }
+
+    if (interruption?.kind === 'sundayArena' && activeModal?.kind !== 'arena') {
+      replaceModal({ kind: 'arena' });
+    }
+  }, [activeModal?.kind, currentSave, replaceModal, screen]);
 
   const value = useMemo<GameStoreValue>(() => {
     return {
@@ -712,6 +767,10 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       acceptWeeklyContract,
       resolveGameEventChoice,
       scoutOpponent,
+      startArenaDayCombats,
+      markArenaCombatPresented,
+      showArenaDaySummary,
+      completeSundayArenaDay,
       clearError,
     };
   }, [
@@ -741,6 +800,10 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     saveNoticeKey,
     resolveGameEventChoice,
     scoutOpponent,
+    startArenaDayCombats,
+    markArenaCombatPresented,
+    showArenaDaySummary,
+    completeSundayArenaDay,
     sellGladiatorAction,
     selectBuildingPolicyAction,
     setAutomaticAssignmentAction,

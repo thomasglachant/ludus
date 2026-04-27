@@ -50,6 +50,8 @@ export type {
 } from './market/market-actions';
 export type {
   ArenaRank,
+  ArenaDayPhase,
+  ArenaDayState,
   CombatStrategy,
   ArenaState,
   BettingOdds,
@@ -60,6 +62,7 @@ export type {
   CombatConsequence,
   ScoutingReport,
 } from './combat/types';
+export type { GameInterruption } from './game-flow/interruption';
 export type {
   ContractStatus,
   WeeklyContract,

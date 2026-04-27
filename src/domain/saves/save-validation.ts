@@ -91,6 +91,7 @@ function isArenaState(value: unknown) {
   return (
     isRecord(value) &&
     hasOptionalString(value, 'currentCombatId') &&
+    (value.arenaDay === undefined || isRecord(value.arenaDay)) &&
     hasArray(value, 'pendingCombats') &&
     hasArray(value, 'resolvedCombats') &&
     hasBoolean(value, 'isArenaDayActive')

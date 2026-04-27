@@ -391,6 +391,10 @@ A tick can:
 6. trigger weekly events when needed;
 7. trigger arena flow on Sunday.
 
+Blocking game flows are derived from the save, not from transient component state. `getActiveGameInterruption(save)` returns a daily event interruption when an event is pending, or a Sunday arena interruption when `arena.arenaDay` exists. The game store uses this derived state to stop the real-time tick loop and auto-open the relevant UI.
+
+Sunday arena resolution is checkpointed at Sunday 08:00. If a tick would pass beyond that time, `tickGame` clamps the time advancement to 08:00, starts the arena day and leaves further progression blocked until the arena day is completed. Completing the arena day resolves weekly arena contracts before moving the clock to Sunday 20:00. `arena.isArenaDayActive` stays true until the natural Monday rollover so Sunday evening ticks do not restart the arena flow.
+
 Tick behavior should remain testable through explicit inputs.
 
 ## Determinism

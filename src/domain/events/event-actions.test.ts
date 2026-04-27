@@ -32,10 +32,21 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
   };
 }
 
+function duringEventWindow(save: GameSave): GameSave {
+  return {
+    ...save,
+    time: {
+      ...save.time,
+      hour: 10,
+      minute: 0,
+    },
+  };
+}
+
 describe('event actions', () => {
   it('generates one daily event and resolves a choice', () => {
     const save: GameSave = {
-      ...createTestSave(),
+      ...duringEventWindow(createTestSave()),
       gladiators: [createGladiator()],
     };
     const synchronized = synchronizeEvents(save, () => 0);
@@ -56,7 +67,7 @@ describe('event actions', () => {
   });
 
   it('expires unresolved events when the day changes', () => {
-    const synchronized = synchronizeEvents(createTestSave(), () => 0);
+    const synchronized = synchronizeEvents(duringEventWindow(createTestSave()), () => 0);
     const nextDaySave: GameSave = {
       ...synchronized,
       time: {

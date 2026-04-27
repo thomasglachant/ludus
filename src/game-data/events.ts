@@ -1,6 +1,7 @@
 import type { GameEventEffect } from '../domain/types';
 
 export const EVENT_CONFIG = {
+  dailyEventStartHour: 10,
   maxEventsPerDay: 1,
 } as const;
 

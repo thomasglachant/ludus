@@ -686,17 +686,118 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
   };
 }
 
+export function startArenaDay(save: GameSave, random: RandomSource = Math.random): GameSave {
+  if (save.arena.arenaDay) {
+    return save;
+  }
+
+  const resolvedSave = resolveArenaDay(save, random);
+
+  return {
+    ...resolvedSave,
+    arena: {
+      ...resolvedSave.arena,
+      arenaDay: {
+        year: resolvedSave.time.year,
+        week: resolvedSave.time.week,
+        phase: 'intro',
+        presentedCombatIds: [],
+      },
+    },
+  };
+}
+
+export function startArenaDayCombats(save: GameSave): GameSave {
+  if (!save.arena.arenaDay) {
+    return save;
+  }
+
+  const phase = save.arena.resolvedCombats.length === 0 ? 'summary' : 'combats';
+
+  return {
+    ...save,
+    arena: {
+      ...save.arena,
+      arenaDay: {
+        ...save.arena.arenaDay,
+        phase,
+      },
+    },
+  };
+}
+
+export function markArenaCombatPresented(save: GameSave, combatId: string): GameSave {
+  const arenaDay = save.arena.arenaDay;
+
+  if (!arenaDay || arenaDay.presentedCombatIds.includes(combatId)) {
+    return save;
+  }
+
+  const presentedCombatIds = [...arenaDay.presentedCombatIds, combatId];
+  const allCombatsPresented = save.arena.resolvedCombats.every((combat) =>
+    presentedCombatIds.includes(combat.id),
+  );
+
+  return {
+    ...save,
+    arena: {
+      ...save.arena,
+      arenaDay: {
+        ...arenaDay,
+        phase: allCombatsPresented ? 'summary' : 'combats',
+        presentedCombatIds,
+      },
+    },
+  };
+}
+
+export function showArenaDaySummary(save: GameSave): GameSave {
+  if (!save.arena.arenaDay) {
+    return save;
+  }
+
+  return {
+    ...save,
+    arena: {
+      ...save.arena,
+      arenaDay: {
+        ...save.arena.arenaDay,
+        phase: 'summary',
+      },
+    },
+  };
+}
+
 export function synchronizeArena(save: GameSave, random: RandomSource = Math.random): GameSave {
+  if (save.arena.arenaDay) {
+    return save;
+  }
+
   if (save.time.dayOfWeek !== 'sunday') {
     return {
       ...save,
       arena: {
         ...save.arena,
+        arenaDay: undefined,
         pendingCombats: [],
         isArenaDayActive: false,
       },
     };
   }
 
-  return resolveArenaDay(save, random);
+  if (save.time.hour < 8) {
+    return {
+      ...save,
+      arena: {
+        ...save.arena,
+        isArenaDayActive: false,
+      },
+    };
+  }
+
+  if (save.arena.isArenaDayActive) {
+    return save;
+  }
+
+  return startArenaDay(save, random);
 }
