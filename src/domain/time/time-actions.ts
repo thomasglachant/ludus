@@ -1,5 +1,6 @@
 import { DAYS_OF_WEEK, TIME_CONFIG, TRAINING_INTENSITY_EFFECTS } from '../../game-data/time';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
+import { GAME_BALANCE } from '../../game-data/balance';
 import { getHourlyBuildingEffects } from '../buildings/building-effects';
 import type { BuildingEffect, BuildingId, GameSave, GameSpeed, GameTickContext } from '../types';
 import { synchronizeArena, synchronizeBetting } from '../combat/combat-actions';
@@ -47,7 +48,7 @@ function expirePendingEvents(save: GameSave): GameSave {
           status: 'expired' as const,
         })),
         ...save.events.resolvedEvents,
-      ].slice(0, 12),
+      ].slice(0, GAME_BALANCE.events.resolvedEventHistoryLimit),
     },
   };
 }
@@ -76,22 +77,9 @@ const effectFieldByType: Partial<Record<BuildingEffect['type'], GladiatorNumeric
 };
 
 const decreasingEffects = new Set<BuildingEffect['type']>(['decreaseEnergy', 'decreaseMorale']);
-const SUNDAY_ARENA_START_HOUR = 8;
-
-const ACTIVITY_NEED_EFFECTS: Record<
-  BuildingId,
-  {
-    satiety: number;
-    morale: number;
-  }
-> = {
-  domus: { satiety: -1, morale: 0 },
-  canteen: { satiety: -1, morale: 1 },
-  dormitory: { satiety: -1, morale: 0 },
-  trainingGround: { satiety: -6, morale: -4 },
-  pleasureHall: { satiety: -3, morale: 0 },
-  infirmary: { satiety: -1, morale: -3 },
-};
+const SUNDAY_ARENA_START_HOUR = GAME_BALANCE.arena.startHour;
+const ACTIVITY_NEED_EFFECTS: Record<BuildingId, { satiety: number; morale: number }> =
+  GAME_BALANCE.buildings.activityNeedsPerHour;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -244,7 +232,7 @@ function restoreRestedGladiatorEnergy(save: GameSave): GameSave {
     ...save,
     gladiators: save.gladiators.map((gladiator) => ({
       ...gladiator,
-      energy: 100,
+      energy: GAME_BALANCE.gladiators.gauges.maximum,
     })),
   };
 }
@@ -342,7 +330,9 @@ function applyEffect(gladiator: Gladiator, effect: BuildingEffect, hours: number
 
   const direction = decreasingEffects.has(effect.type) ? -1 : 1;
   const nextValue = gladiator[field] + effect.value * hours * direction;
-  const max = field === 'strength' || field === 'agility' || field === 'defense' ? 100 : 100;
+  const max = isGladiatorSkillName(field)
+    ? GAME_BALANCE.gladiators.skills.maximum
+    : GAME_BALANCE.gladiators.gauges.maximum;
 
   if (isGladiatorSkillName(field)) {
     return {
@@ -353,7 +343,7 @@ function applyEffect(gladiator: Gladiator, effect: BuildingEffect, hours: number
 
   return {
     ...gladiator,
-    [field]: roundStat(clamp(nextValue, 0, max)),
+    [field]: roundStat(clamp(nextValue, GAME_BALANCE.gladiators.gauges.minimum, max)),
   };
 }
 
@@ -393,8 +383,20 @@ function applyActivityNeedEffects(
 
   return {
     ...gladiator,
-    satiety: roundStat(clamp(gladiator.satiety + effect.satiety * hours, 0, 100)),
-    morale: roundStat(clamp(gladiator.morale + effect.morale * hours, 0, 100)),
+    satiety: roundStat(
+      clamp(
+        gladiator.satiety + effect.satiety * hours,
+        GAME_BALANCE.gladiators.gauges.minimum,
+        GAME_BALANCE.gladiators.gauges.maximum,
+      ),
+    ),
+    morale: roundStat(
+      clamp(
+        gladiator.morale + effect.morale * hours,
+        GAME_BALANCE.gladiators.gauges.minimum,
+        GAME_BALANCE.gladiators.gauges.maximum,
+      ),
+    ),
   };
 }
 
@@ -690,8 +692,8 @@ export function advanceToNextDay(
       ...startSave,
       time: {
         ...startSave.time,
-        speed: 1,
-        isPaused: false,
+        speed: PROGRESSION_CONFIG.initialSpeed,
+        isPaused: PROGRESSION_CONFIG.initialIsPaused,
       },
     },
     advancedGameMinutes: 0,
@@ -703,7 +705,7 @@ export function advanceToNextDay(
     const nextResult = tickGame({
       currentSave: result.save,
       elapsedRealMilliseconds: TIME_CONFIG.realMillisecondsPerGameHour * TIME_CONFIG.hoursPerDay,
-      speed: 1,
+      speed: PROGRESSION_CONFIG.initialSpeed,
       effectAccumulatorMinutes: result.effectAccumulatorMinutes,
       random: input.random,
     });
@@ -756,8 +758,8 @@ export function completeSundayArenaDay(save: GameSave): GameSave {
     ...saveWithResolvedContracts,
     time: {
       ...saveWithResolvedContracts.time,
-      dayOfWeek: 'sunday',
-      hour: 20,
+      dayOfWeek: GAME_BALANCE.arena.dayOfWeek,
+      hour: GAME_BALANCE.arena.endHour,
       minute: 0,
     },
     arena: {

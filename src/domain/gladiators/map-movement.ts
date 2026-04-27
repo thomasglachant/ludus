@@ -1,19 +1,21 @@
 import type { GameTimeState } from '../time/types';
 import type { Gladiator, GladiatorLocationId, GladiatorMapMovement } from './types';
+import { PROGRESSION_CONFIG } from '../../game-data/progression';
+import { DAYS_OF_WEEK, TIME_CONFIG } from '../../game-data/time';
 import {
   getGladiatorMapMovementDuration,
   isGladiatorBuildingLocation,
 } from '../../game-data/gladiator-map-movement';
 
 export function getGameMinuteStamp(time: GameTimeState) {
+  const dayIndex = DAYS_OF_WEEK.indexOf(time.dayOfWeek);
+
   return (
-    (((time.year - 1) * 8 + (time.week - 1)) * 7 +
-      ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].indexOf(
-        time.dayOfWeek,
-      )) *
-      24 *
-      60 +
-    time.hour * 60 +
+    (((time.year - 1) * PROGRESSION_CONFIG.weeksPerYear + (time.week - 1)) * DAYS_OF_WEEK.length +
+      dayIndex) *
+      TIME_CONFIG.hoursPerDay *
+      TIME_CONFIG.minutesPerHour +
+    time.hour * TIME_CONFIG.minutesPerHour +
     time.minute
   );
 }

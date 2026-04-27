@@ -1,4 +1,5 @@
 import type { ArenaRank, ContractObjective } from '../domain/types';
+import { GAME_BALANCE } from './balance';
 
 export interface WeeklyContractDefinition {
   id: string;
@@ -10,7 +11,9 @@ export interface WeeklyContractDefinition {
 }
 
 export const CONTRACT_CONFIG = {
-  availableContractsPerWeek: 3,
+  availableContractsPerWeek: GAME_BALANCE.contracts.availableContractsPerWeek,
+  rotationYearMultiplier: GAME_BALANCE.contracts.rotationYearMultiplier,
+  rotationWeekMultiplier: GAME_BALANCE.contracts.rotationWeekMultiplier,
 } as const;
 
 export const WEEKLY_CONTRACT_DEFINITIONS: WeeklyContractDefinition[] = [

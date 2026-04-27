@@ -13,7 +13,7 @@ Useful commands: `npm run build`, `npm run lint`, `npm run test`.
 - Speak French with the user; write code, identifiers, comments and technical docs in English.
 - Use Conventional Commits when committing.
 - Player-facing UI copy must use i18n keys for French and English; React components must not hardcode visible copy.
-- Game rules and balance data belong in `src/game-data`; pure business logic belongs in `src/domain`.
+- Game rules and balance data belong in `src/game-data`; new tunable balance variables must start in `src/game-data/balance.ts`; pure business logic belongs in `src/domain`.
 - React components should render state and call store actions, selectors or domain services.
 - Reuse shared UI primitives and modal infrastructure before adding feature-specific UI.
 - Save data must include `schemaVersion`; local save is always available; cloud save remains behind an abstraction.

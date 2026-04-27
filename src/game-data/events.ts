@@ -1,8 +1,11 @@
 import type { GameEventEffect } from '../domain/types';
+import { GAME_BALANCE } from './balance';
 
 export const EVENT_CONFIG = {
-  dailyEventStartHour: 10,
-  maxEventsPerDay: 1,
+  dailyEventStartHour: GAME_BALANCE.events.dailyEventStartHour,
+  maxEventsPerDay: GAME_BALANCE.events.maxEventsPerDay,
+  injuredHealthThreshold: GAME_BALANCE.events.injuredHealthThreshold,
+  resolvedEventHistoryLimit: GAME_BALANCE.events.resolvedEventHistoryLimit,
 } as const;
 
 export type DailyEventGladiatorSelector = 'any' | 'injured';

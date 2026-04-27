@@ -4,6 +4,7 @@ import {
   type DailyEventDefinition,
   type DailyEventEffectTemplate,
 } from '../../game-data/events';
+import { GAME_BALANCE } from '../../game-data/balance';
 import type { Gladiator } from '../gladiators/types';
 import { addSkillLevels } from '../gladiators/skills';
 import { synchronizePlanning } from '../planning/planning-actions';
@@ -62,7 +63,9 @@ function canUseDefinition(save: GameSave, definition: DailyEventDefinition) {
   }
 
   if (definition.gladiatorSelector === 'injured') {
-    return save.gladiators.some((gladiator) => gladiator.health < 80);
+    return save.gladiators.some(
+      (gladiator) => gladiator.health < EVENT_CONFIG.injuredHealthThreshold,
+    );
   }
 
   return save.gladiators.length > 0;
@@ -79,7 +82,9 @@ function selectGladiator(
 
   const candidates =
     definition.gladiatorSelector === 'injured'
-      ? save.gladiators.filter((gladiator) => gladiator.health < 80)
+      ? save.gladiators.filter(
+          (gladiator) => gladiator.health < EVENT_CONFIG.injuredHealthThreshold,
+        )
       : save.gladiators;
 
   if (candidates.length === 0) {
@@ -175,7 +180,10 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect): GameSave {
       ...save,
       ludus: {
         ...save.ludus,
-        treasury: Math.max(0, save.ludus.treasury + effect.amount),
+        treasury: Math.max(
+          GAME_BALANCE.economy.minimumTreasury,
+          save.ludus.treasury + effect.amount,
+        ),
       },
     };
   }
@@ -185,7 +193,10 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect): GameSave {
       ...save,
       ludus: {
         ...save.ludus,
-        reputation: Math.max(0, save.ludus.reputation + effect.amount),
+        reputation: Math.max(
+          GAME_BALANCE.economy.minimumReputation,
+          save.ludus.reputation + effect.amount,
+        ),
       },
     };
   }
@@ -216,7 +227,11 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect): GameSave {
       gladiator.id === effect.gladiatorId
         ? {
             ...gladiator,
-            [field]: clamp(gladiator[field] + effect.amount, 0, 100),
+            [field]: clamp(
+              gladiator[field] + effect.amount,
+              GAME_BALANCE.gladiators.gauges.minimum,
+              GAME_BALANCE.gladiators.gauges.maximum,
+            ),
           }
         : gladiator,
     ),
@@ -235,7 +250,7 @@ export function synchronizeEvents(save: GameSave, random: RandomSource = Math.ra
     pendingEvents.length > 0 ||
     save.events.resolvedEvents.some((event) => isSameEventDay(save, event));
   const canCreateEvent =
-    save.time.dayOfWeek !== 'sunday' &&
+    save.time.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek &&
     save.time.hour >= EVENT_CONFIG.dailyEventStartHour &&
     !hasEventForCurrentDay;
   const nextPendingEvents =
@@ -249,7 +264,10 @@ export function synchronizeEvents(save: GameSave, random: RandomSource = Math.ra
     ...save,
     events: {
       pendingEvents: nextPendingEvents,
-      resolvedEvents: [...expiredEvents, ...save.events.resolvedEvents].slice(0, 12),
+      resolvedEvents: [...expiredEvents, ...save.events.resolvedEvents].slice(
+        0,
+        EVENT_CONFIG.resolvedEventHistoryLimit,
+      ),
     },
   };
 }
@@ -301,7 +319,10 @@ export function resolveGameEventChoice(
       ...saveWithEffects,
       events: {
         pendingEvents: save.events.pendingEvents.filter((candidate) => candidate.id !== eventId),
-        resolvedEvents: [resolvedEvent, ...save.events.resolvedEvents].slice(0, 12),
+        resolvedEvents: [resolvedEvent, ...save.events.resolvedEvents].slice(
+          0,
+          EVENT_CONFIG.resolvedEventHistoryLimit,
+        ),
       },
     }),
   };

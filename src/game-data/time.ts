@@ -1,28 +1,24 @@
 import type { DayOfWeek, GameSpeed, TrainingIntensity } from '../domain/types';
+import { GAME_BALANCE } from './balance';
 
-export const GAME_SPEEDS = [0, 1, 2, 4] as const satisfies GameSpeed[];
+export const GAME_SPEEDS = GAME_BALANCE.time.gameSpeeds satisfies readonly GameSpeed[];
 
-export const DAYS_OF_WEEK = [
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-  'sunday',
-] as const satisfies DayOfWeek[];
+export const SUPPORTED_GAME_SPEEDS = GAME_BALANCE.time
+  .supportedGameSpeeds satisfies readonly GameSpeed[];
+
+export const DAYS_OF_WEEK = GAME_BALANCE.time.daysOfWeek satisfies readonly DayOfWeek[];
 
 export const TIME_CONFIG = {
-  realMillisecondsPerGameHour: 5_000,
-  minutesPerHour: 60,
-  hoursPerDay: 24,
-  dawnStartHour: 6,
-  dayStartHour: 8,
-  duskStartHour: 21,
-  nightStartHour: 22,
-  wakeUpHour: 6,
-  sleepStartHour: 22,
-  minimumTaskMinutes: 144,
+  realMillisecondsPerGameHour: GAME_BALANCE.time.realMillisecondsPerGameHour,
+  minutesPerHour: GAME_BALANCE.time.minutesPerHour,
+  hoursPerDay: GAME_BALANCE.time.hoursPerDay,
+  dawnStartHour: GAME_BALANCE.time.dawnStartHour,
+  dayStartHour: GAME_BALANCE.time.dayStartHour,
+  duskStartHour: GAME_BALANCE.time.duskStartHour,
+  nightStartHour: GAME_BALANCE.time.nightStartHour,
+  wakeUpHour: GAME_BALANCE.time.wakeUpHour,
+  sleepStartHour: GAME_BALANCE.time.sleepStartHour,
+  minimumTaskMinutes: GAME_BALANCE.time.minimumTaskMinutes,
 } as const;
 
 export const TRAINING_INTENSITY_EFFECTS: Record<
@@ -33,24 +29,8 @@ export const TRAINING_INTENSITY_EFFECTS: Record<
     moraleCost: number;
   }
 > = {
-  light: {
-    statMultiplier: 1,
-    energyCostMultiplier: 0.5,
-    moraleCost: 0,
-  },
-  normal: {
-    statMultiplier: 1,
-    energyCostMultiplier: 1,
-    moraleCost: 0,
-  },
-  hard: {
-    statMultiplier: 2,
-    energyCostMultiplier: 1.5,
-    moraleCost: 0,
-  },
-  brutal: {
-    statMultiplier: 3,
-    energyCostMultiplier: 2,
-    moraleCost: 1,
-  },
+  light: GAME_BALANCE.training.intensityEffects.light,
+  normal: GAME_BALANCE.training.intensityEffects.normal,
+  hard: GAME_BALANCE.training.intensityEffects.hard,
+  brutal: GAME_BALANCE.training.intensityEffects.brutal,
 };

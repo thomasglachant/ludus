@@ -1,20 +1,13 @@
+import { BUILDING_IDS } from '../../game-data/buildings';
+import { DAYS_OF_WEEK, SUPPORTED_GAME_SPEEDS } from '../../game-data/time';
 import type { BuildingId } from '../buildings/types';
 import type { Gladiator, GladiatorLocationId } from '../gladiators/types';
 import type { GameSave } from './types';
 import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 
-const requiredBuildingIds: BuildingId[] = [
-  'domus',
-  'canteen',
-  'dormitory',
-  'trainingGround',
-  'pleasureHall',
-  'infirmary',
-];
-
-const dayOfWeeks = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-
-const gameSpeeds = [0, 1, 2, 4, 8, 16];
+const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
+const dayOfWeeks = [...DAYS_OF_WEEK];
+const gameSpeeds = [...SUPPORTED_GAME_SPEEDS];
 const supportedSchemaVersions = [1, CURRENT_SCHEMA_VERSION];
 const locationIds = [...requiredBuildingIds, 'arena'];
 

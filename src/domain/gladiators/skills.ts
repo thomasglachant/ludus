@@ -1,11 +1,12 @@
+import { GAME_BALANCE } from '../../game-data/balance';
 import type { Gladiator } from './types';
 
-export const GLADIATOR_SKILL_NAMES = ['strength', 'agility', 'defense'] as const;
+export const GLADIATOR_SKILL_NAMES = GAME_BALANCE.gladiators.skills.names;
 
 export type GladiatorSkillName = (typeof GLADIATOR_SKILL_NAMES)[number];
 
-const SKILL_MINIMUM = 0;
-const SKILL_MAXIMUM = 100;
+const SKILL_MINIMUM = GAME_BALANCE.gladiators.skills.minimum;
+const SKILL_MAXIMUM = GAME_BALANCE.gladiators.skills.maximum;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -21,13 +22,25 @@ export function getGladiatorEffectiveSkill(gladiator: Gladiator, skill: Gladiato
 
 export function getSkillTrainingProgress(value: number) {
   const clampedValue = clamp(value, SKILL_MINIMUM, SKILL_MAXIMUM);
-  const progress = (clampedValue - Math.floor(clampedValue)) * 100;
+  const progress =
+    (clampedValue - Math.floor(clampedValue)) *
+    GAME_BALANCE.gladiators.skills.progressPointsPerLevel;
 
-  return Math.floor(clamp(progress, 0, 99));
+  return Math.floor(
+    clamp(
+      progress,
+      GAME_BALANCE.gladiators.skills.minimum,
+      GAME_BALANCE.gladiators.skills.maximumDisplayedProgress,
+    ),
+  );
 }
 
 export function addSkillTrainingProgress(value: number, progressPoints: number) {
-  return clamp(value + progressPoints / 100, SKILL_MINIMUM, SKILL_MAXIMUM);
+  return clamp(
+    value + progressPoints / GAME_BALANCE.gladiators.skills.progressPointsPerLevel,
+    SKILL_MINIMUM,
+    SKILL_MAXIMUM,
+  );
 }
 
 export function addSkillLevels(value: number, levels: number) {

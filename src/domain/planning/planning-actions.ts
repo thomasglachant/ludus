@@ -1,5 +1,6 @@
-import { PLANNING_THRESHOLDS } from '../../game-data/planning';
+import { DEFAULT_ROUTINE_CONFIG, PLANNING_THRESHOLDS } from '../../game-data/planning';
 import { TIME_CONFIG } from '../../game-data/time';
+import { GAME_BALANCE } from '../../game-data/balance';
 import type { BuildingId } from '../buildings/types';
 import type { CombatStrategy } from '../combat/types';
 import { assignGladiatorMapLocation, getGameMinuteStamp } from '../gladiators/map-movement';
@@ -62,8 +63,8 @@ function isSleepTime(hour: number) {
 
 function isArenaAssemblyLocked(save: GameSave, gladiator: Gladiator) {
   return (
-    save.time.dayOfWeek === 'sunday' &&
-    save.time.hour >= 8 &&
+    save.time.dayOfWeek === GAME_BALANCE.arena.dayOfWeek &&
+    save.time.hour >= GAME_BALANCE.arena.startHour &&
     !save.arena.arenaDay &&
     !save.arena.isArenaDayActive &&
     (gladiator.currentLocationId === 'arena' || gladiator.mapMovement?.targetLocation === 'arena')
@@ -83,9 +84,9 @@ function isTaskLocked(gladiator: Gladiator, save: GameSave) {
 function createDefaultRoutine(gladiatorId: string): GladiatorRoutine {
   return {
     gladiatorId,
-    objective: 'balanced',
-    intensity: 'normal',
-    allowAutomaticAssignment: true,
+    objective: DEFAULT_ROUTINE_CONFIG.objective,
+    intensity: DEFAULT_ROUTINE_CONFIG.intensity,
+    allowAutomaticAssignment: DEFAULT_ROUTINE_CONFIG.allowAutomaticAssignment,
   };
 }
 
@@ -282,7 +283,7 @@ export function getPlanningRecommendation(
   if (
     !gladiator.mapMovement &&
     gladiator.currentBuildingId === 'canteen' &&
-    gladiator.satiety < 100
+    gladiator.satiety < GAME_BALANCE.gladiators.gauges.maximum
   ) {
     return getAvailableRecommendation(save, 'canteen', 'weeklyPlan.recommendations.satiety');
   }

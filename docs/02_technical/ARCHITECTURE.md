@@ -50,6 +50,10 @@ ludus/
 
 Contains tunable game definitions, content and balance parameters.
 
+`src/game-data/balance.ts` is the canonical home for gameplay balance values. New variables that tune economy, progression, training, combat, market, arena, planning, contracts, events, gauges, skills or building behavior must be added to `GAME_BALANCE` before being consumed elsewhere.
+
+Dedicated game-data modules may re-export compatibility constants from `GAME_BALANCE` or combine those constants with larger content definitions. Domain, state, UI, persistence and renderer modules must not introduce new hardcoded balance constants.
+
 Examples:
 
 - building definitions;

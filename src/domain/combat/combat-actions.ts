@@ -7,6 +7,7 @@ import {
   COMBAT_CONFIG,
   COMBAT_STRATEGY_MODIFIERS,
 } from '../../game-data/combat';
+import { GAME_BALANCE } from '../../game-data/balance';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
 import { DAYS_OF_WEEK } from '../../game-data/time';
@@ -55,7 +56,7 @@ interface CombatHealth {
 }
 
 const DEFAULT_STRATEGY: CombatStrategy = 'balanced';
-const SUNDAY_ARENA_START_HOUR = 8;
+const SUNDAY_ARENA_START_HOUR = GAME_BALANCE.arena.startHour;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -141,7 +142,11 @@ function getStrategy(gladiator: Gladiator, save: GameSave) {
 }
 
 function getParticipantHealth(gladiator: Gladiator) {
-  return clamp(roundStat(gladiator.health), 1, 100);
+  return clamp(
+    roundStat(gladiator.health),
+    GAME_BALANCE.gladiators.gauges.minimumAliveHealth,
+    GAME_BALANCE.gladiators.gauges.maximum,
+  );
 }
 
 function getParticipantName(participant: CombatParticipant) {
@@ -171,9 +176,12 @@ function createOpponentStat(baseValue: number, rank: ArenaRank, random: RandomSo
   const multiplier = ARENA_OPPONENT_CONFIG[rank].statMultiplier;
 
   return clamp(
-    roundStat(getEffectiveSkillValue(baseValue) * multiplier + getRandomOffset(random, 3)),
-    3,
-    100,
+    roundStat(
+      getEffectiveSkillValue(baseValue) * multiplier +
+        getRandomOffset(random, GAME_BALANCE.combat.opponentGeneration.statRandomOffsetSpread),
+    ),
+    GAME_BALANCE.combat.opponentGeneration.minGeneratedStat,
+    GAME_BALANCE.combat.opponentGeneration.maxGeneratedStat,
   );
 }
 
@@ -221,12 +229,12 @@ function getParticipantRating(gladiator: Gladiator, strategy: CombatStrategy) {
   const defense = getGladiatorEffectiveSkill(gladiator, 'defense');
 
   return (
-    strength * modifier.damageMultiplier * 1.15 +
+    strength * modifier.damageMultiplier * GAME_BALANCE.combat.participantRating.strengthWeight +
     agility * (1 + modifier.hitChanceBonus) +
     defense * modifier.defenseMultiplier +
-    gladiator.health * 0.24 +
-    gladiator.energy * 0.18 +
-    gladiator.morale * 0.08
+    gladiator.health * GAME_BALANCE.combat.participantRating.healthWeight +
+    gladiator.energy * GAME_BALANCE.combat.participantRating.energyWeight +
+    gladiator.morale * GAME_BALANCE.combat.participantRating.moraleWeight
   );
 }
 
@@ -239,11 +247,19 @@ function calculateProjectedWinChance(
   const opponentRating = getParticipantRating(opponent, DEFAULT_STRATEGY);
   const chance = playerRating / (playerRating + opponentRating);
 
-  return roundChance(clamp(chance, 0.15, 0.85));
+  return roundChance(
+    clamp(
+      chance,
+      GAME_BALANCE.combat.projectedWinChance.minimum,
+      GAME_BALANCE.combat.projectedWinChance.maximum,
+    ),
+  );
 }
 
 function calculateDecimalOdds(chance: number) {
-  return roundOdds(Math.max(1.1, (1 / chance) * (1 - BETTING_CONFIG.houseEdge)));
+  return roundOdds(
+    Math.max(BETTING_CONFIG.minimumDecimalOdds, (1 / chance) * (1 - BETTING_CONFIG.houseEdge)),
+  );
 }
 
 function isCurrentWeekBetting(save: GameSave, betting?: BettingState) {
@@ -358,7 +374,7 @@ export function calculateDamage(
 
 export function calculateGladiatorReputation(wins: number, losses: number) {
   return Math.max(
-    0,
+    GAME_BALANCE.economy.minimumReputation,
     wins * COMBAT_CONFIG.winReputationValue - losses * COMBAT_CONFIG.lossReputationPenalty,
   );
 }
@@ -387,17 +403,24 @@ export function generateOpponent(
   return {
     id: opponentId,
     name: GLADIATOR_NAMES[nameOffset],
-    age: clamp(18 + pickIndex(17, random), 18, 34),
+    age:
+      GAME_BALANCE.combat.opponentGeneration.minAge +
+      pickIndex(
+        GAME_BALANCE.combat.opponentGeneration.maxAge -
+          GAME_BALANCE.combat.opponentGeneration.minAge +
+          1,
+        random,
+      ),
     strength: createOpponentStat(gladiator.strength, rank, random),
     agility: createOpponentStat(gladiator.agility, rank, random),
     defense: createOpponentStat(gladiator.defense, rank, random),
-    energy: 100,
-    health: 100,
-    morale: 75,
-    satiety: 80,
+    energy: GAME_BALANCE.gladiators.opponentDefaults.energy,
+    health: GAME_BALANCE.gladiators.opponentDefaults.health,
+    morale: GAME_BALANCE.gladiators.opponentDefaults.morale,
+    satiety: GAME_BALANCE.gladiators.opponentDefaults.satiety,
     reputation: ARENA_OPPONENT_CONFIG[rank].reputation,
-    wins: 0,
-    losses: 0,
+    wins: GAME_BALANCE.gladiators.opponentDefaults.wins,
+    losses: GAME_BALANCE.gladiators.opponentDefaults.losses,
     traits: [],
     visualIdentity: createGladiatorVisualIdentity(opponentId),
   };
@@ -423,7 +446,11 @@ export function resolveCombat(
   let attacker = getOpeningAttacker(player, rival, random);
   let defender = getNextParticipant(attacker, player, rival);
 
-  while (health.player > 0 && health.opponent > 0 && turns.length < COMBAT_CONFIG.maxTurns) {
+  while (
+    health.player >= GAME_BALANCE.gladiators.gauges.minimumAliveHealth &&
+    health.opponent >= GAME_BALANCE.gladiators.gauges.minimumAliveHealth &&
+    turns.length < COMBAT_CONFIG.maxTurns
+  ) {
     const attackerHealthKey = getParticipantHealthKey(attacker, player);
     const defenderHealthKey = getParticipantHealthKey(defender, player);
     const hitChance = calculateHitChance(attacker.gladiator, defender.gladiator, attacker.strategy);
@@ -437,7 +464,11 @@ export function resolveCombat(
         )
       : 0;
 
-    health[defenderHealthKey] = clamp(health[defenderHealthKey] - damage, 0, 100);
+    health[defenderHealthKey] = clamp(
+      health[defenderHealthKey] - damage,
+      GAME_BALANCE.gladiators.gauges.minimum,
+      GAME_BALANCE.gladiators.gauges.maximum,
+    );
     turns.push({
       turnNumber: turns.length + 1,
       attackerId: attacker.gladiator.id,
@@ -459,7 +490,9 @@ export function resolveCombat(
   }
 
   const didPlayerWin =
-    health.opponent <= 0 || (health.player > 0 && health.player >= health.opponent);
+    health.opponent < GAME_BALANCE.gladiators.gauges.minimumAliveHealth ||
+    (health.player >= GAME_BALANCE.gladiators.gauges.minimumAliveHealth &&
+      health.player >= health.opponent);
   const winnerId = didPlayerWin ? gladiator.id : opponent.id;
   const loserId = didPlayerWin ? opponent.id : gladiator.id;
   const finalCombatHealth = didPlayerWin
@@ -469,9 +502,13 @@ export function resolveCombat(
             (gladiator.health - health.player) * COMBAT_CONFIG.winnerHealthRecoveryRatio,
         ),
         COMBAT_CONFIG.loserMinimumHealth,
-        100,
+        GAME_BALANCE.gladiators.gauges.maximum,
       )
-    : clamp(health.player, COMBAT_CONFIG.loserMinimumHealth, 100);
+    : clamp(
+        health.player,
+        COMBAT_CONFIG.loserMinimumHealth,
+        GAME_BALANCE.gladiators.gauges.maximum,
+      );
   const energyChange = calculateEnergyChange(turns.length, strategy);
   const moraleChange = didPlayerWin
     ? COMBAT_CONFIG.winnerMoraleChange
@@ -499,8 +536,16 @@ export function resolveCombat(
       moraleChange,
       reputationChange: finalReputation - gladiator.reputation,
       finalHealth: finalCombatHealth,
-      finalEnergy: clamp(gladiator.energy + energyChange, 0, 100),
-      finalMorale: clamp(gladiator.morale + moraleChange, 0, 100),
+      finalEnergy: clamp(
+        gladiator.energy + energyChange,
+        GAME_BALANCE.gladiators.gauges.minimum,
+        GAME_BALANCE.gladiators.gauges.maximum,
+      ),
+      finalMorale: clamp(
+        gladiator.morale + moraleChange,
+        GAME_BALANCE.gladiators.gauges.minimum,
+        GAME_BALANCE.gladiators.gauges.maximum,
+      ),
       finalReputation,
     },
   };
@@ -534,7 +579,7 @@ export function synchronizeBetting(save: GameSave, random: RandomSource = Math.r
       .map((odds) => [odds.gladiatorId, odds]),
   );
   const odds = save.gladiators
-    .filter((gladiator) => gladiator.health > 0)
+    .filter((gladiator) => gladiator.health >= GAME_BALANCE.arena.minimumEligibleHealth)
     .map((gladiator) => {
       const existingOdds = existingOddsByGladiatorId.get(gladiator.id);
       const report = scoutingReports.find((candidate) => candidate.gladiatorId === gladiator.id);
@@ -677,7 +722,7 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
   );
   const resolvedGladiatorIds = new Set(currentWeekCombats.map((combat) => combat.gladiator.id));
   const missingCombats = save.gladiators
-    .filter((gladiator) => gladiator.health > 0)
+    .filter((gladiator) => gladiator.health >= GAME_BALANCE.arena.minimumEligibleHealth)
     .filter((gladiator) => !resolvedGladiatorIds.has(gladiator.id))
     .map((gladiator) => resolveCombat(save, gladiator, random));
   const resolvedCombats = [...currentWeekCombats, ...missingCombats];
@@ -811,7 +856,7 @@ export function synchronizeArena(save: GameSave, random: RandomSource = Math.ran
     return save;
   }
 
-  if (save.time.dayOfWeek !== 'sunday') {
+  if (save.time.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek) {
     return {
       ...save,
       arena: {

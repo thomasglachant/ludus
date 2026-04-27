@@ -1,4 +1,5 @@
 import { CONTRACT_CONFIG, WEEKLY_CONTRACT_DEFINITIONS } from '../../game-data/contracts';
+import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import type { GameSave } from '../saves/types';
 import type { ContractProgress, WeeklyContract } from './types';
 
@@ -15,7 +16,7 @@ export interface ContractActionResult {
 }
 
 function getAbsoluteWeek(year: number, week: number) {
-  return (year - 1) * 8 + week;
+  return (year - 1) * PROGRESSION_CONFIG.weeksPerYear + week;
 }
 
 function isCurrentWeek(save: GameSave, contract: WeeklyContract) {
@@ -107,7 +108,10 @@ function completeContract(save: GameSave, contract: WeeklyContract): GameSave {
 }
 
 export function createWeeklyContracts(year: number, week: number): WeeklyContract[] {
-  const startIndex = (year * 7 + week * 3) % WEEKLY_CONTRACT_DEFINITIONS.length;
+  const startIndex =
+    (year * CONTRACT_CONFIG.rotationYearMultiplier +
+      week * CONTRACT_CONFIG.rotationWeekMultiplier) %
+    WEEKLY_CONTRACT_DEFINITIONS.length;
   const definitions = Array.from(
     { length: CONTRACT_CONFIG.availableContractsPerWeek },
     (_, index) =>

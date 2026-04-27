@@ -1,10 +1,11 @@
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
+import { GAME_BALANCE } from '../../game-data/balance';
 import { MARKET_CONFIG } from '../../game-data/market';
 import { getAvailableLudusGladiatorPlaces } from '../ludus/capacity';
 import { getGladiatorEffectiveSkill } from '../gladiators/skills';
 import { completeSaleContracts } from '../contracts/contract-actions';
-import type { Gladiator, GladiatorTrait } from '../gladiators/types';
+import type { Gladiator } from '../gladiators/types';
 import { synchronizePlanning } from '../planning/planning-actions';
 import type { GameSave } from '../saves/types';
 import type { MarketGladiator, MarketState } from './types';
@@ -29,24 +30,12 @@ export interface MarketActionResult {
   validation: MarketActionValidation;
 }
 
-const generatedTraits: GladiatorTrait[] = [
-  'disciplined',
-  'lazy',
-  'brave',
-  'cowardly',
-  'ambitious',
-  'fragile',
-  'crowdFavorite',
-  'rivalrous',
-  'stoic',
-];
-
 function pickIndex(length: number, random: RandomSource) {
   return Math.min(length - 1, Math.floor(random() * length));
 }
 
 function createGeneratedStats(random: RandomSource) {
-  const statCount = 3;
+  const statCount = GAME_BALANCE.gladiators.skills.names.length;
   const stats = Array.from({ length: statCount }, () => MARKET_CONFIG.minGeneratedStat);
   let remainingPoints = MARKET_CONFIG.totalStatPoints - MARKET_CONFIG.minGeneratedStat * statCount;
 
@@ -101,7 +90,7 @@ export function generateMarketGladiators(
 
   return Array.from({ length: MARKET_CONFIG.availableGladiatorCount }, (_, index) => {
     const stats = createGeneratedStats(random);
-    const reputation = 0;
+    const reputation = GAME_BALANCE.gladiators.marketDefaults.reputation;
     const gladiator: Gladiator = {
       id: `market-${year}-${week}-${index + 1}`,
       name: GLADIATOR_NAMES[(nameOffset + index) % GLADIATOR_NAMES.length],
@@ -109,14 +98,18 @@ export function generateMarketGladiators(
       strength: stats.strength,
       agility: stats.agility,
       defense: stats.defense,
-      energy: 100,
-      health: 100,
-      morale: 100,
-      satiety: 80,
+      energy: GAME_BALANCE.gladiators.marketDefaults.energy,
+      health: GAME_BALANCE.gladiators.marketDefaults.health,
+      morale: GAME_BALANCE.gladiators.marketDefaults.morale,
+      satiety: GAME_BALANCE.gladiators.marketDefaults.satiety,
       reputation,
-      wins: 0,
-      losses: 0,
-      traits: [generatedTraits[pickIndex(generatedTraits.length, random)]],
+      wins: GAME_BALANCE.gladiators.marketDefaults.wins,
+      losses: GAME_BALANCE.gladiators.marketDefaults.losses,
+      traits: [
+        GAME_BALANCE.market.generatedTraitPool[
+          pickIndex(GAME_BALANCE.market.generatedTraitPool.length, random)
+        ],
+      ],
       visualIdentity: createGladiatorVisualIdentity(`market-${year}-${week}-${index + 1}`),
     };
 

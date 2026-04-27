@@ -4,9 +4,13 @@
 
 This document is the long-term source of truth for gameplay data, balance values and tunable rules.
 
-Implementation constants live in `src/game-data`. When a balance value changes, update both the source module and this document so design intent and implementation stay aligned.
+Implementation balance constants live in `src/game-data/balance.ts` under `GAME_BALANCE`. When a balance value changes, update both `GAME_BALANCE` and this document so design intent and implementation stay aligned.
+
+All future gameplay variables that affect economy, progression, training, combat, arena, market, planning, contracts, events, gauges, skills or building tuning must be added to `GAME_BALANCE` first. Other `src/game-data` modules may re-export slices of `GAME_BALANCE` or combine them with content definitions, but `src/domain`, `src/state`, `src/ui`, persistence and renderer code must not introduce new hardcoded balance values.
 
 React components must not hardcode balancing values or gameplay formulas.
+
+Large content tables such as event definitions, contract definitions, building definitions and visual layout data may stay in their dedicated `src/game-data` modules. Their reusable numeric tuning values should still come from `GAME_BALANCE` when they are expected to be adjusted during balancing.
 
 ## Economy
 
@@ -15,7 +19,7 @@ Currency: denarius.
 The ludus money reserve is named `treasury` in code.
 
 ```ts
-export const INITIAL_TREASURY = 500;
+GAME_BALANCE.economy.initialTreasury = 500;
 ```
 
 ## Time and Progression
@@ -25,13 +29,17 @@ export const PROGRESSION_CONFIG = {
   weeksPerYear: 8,
   startingYear: 1,
   startingWeek: 1,
+  startingDayOfWeek: 'monday',
   startingHour: 8,
   startingMinute: 0,
+  initialSpeed: 1,
+  initialIsPaused: false,
 } as const;
 ```
 
 ```ts
-export const GAME_SPEEDS = [0, 1, 2, 4, 8, 16] as const;
+GAME_BALANCE.time.gameSpeeds = [0, 1, 2, 4];
+GAME_BALANCE.time.supportedGameSpeeds = [0, 1, 2, 4, 8, 16];
 ```
 
 ```ts
@@ -39,6 +47,9 @@ export const TIME_CONFIG = {
   realMillisecondsPerGameHour: 5_000,
   minutesPerHour: 60,
   hoursPerDay: 24,
+  wakeUpHour: 6,
+  sleepStartHour: 22,
+  minimumTaskMinutes: 144,
 } as const;
 ```
 
@@ -159,7 +170,7 @@ Improvement effects are permanent or contextual unless an effect explicitly decl
 | `betterKitchen`        | Canteen         |   90 |              1 | n/a                   | `increaseSatiety +2` assigned gladiator   |
 | `proteinRations`       | Canteen         |  130 |              1 | n/a                   | `increaseStrength +1` assigned gladiator  |
 | `grainStorage`         | Canteen         |  110 |              1 | n/a                   | `increaseSatiety +1` all gladiators       |
-| `strawBeds`            | Dormitory       |   70 |              1 | n/a                   | `increaseCapacity +1` ludus               |
+| `strawBeds`            | Dormitory       |   70 |              1 | n/a                   | `increaseEnergy +1` assigned gladiator    |
 | `woodenBeds`           | Dormitory       |  130 |              1 | `strawBeds`           | `increaseEnergy +2` assigned gladiator    |
 | `quietQuarters`        | Dormitory       |  150 |              1 | n/a                   | `increaseMorale +1` assigned gladiator    |
 | `woodenWeapons`        | Training Ground |  100 |              1 | n/a                   | `increaseReadiness +2` assigned gladiator |
@@ -277,6 +288,17 @@ export const WEEKLY_OBJECTIVES = [
 
 ### Training Intensities
 
+Gladiator skills store fractional training progress. A gladiator gains one effective visible skill level after `100` training progress points.
+
+Training Ground level effects currently grant:
+
+| Training Ground level | Skill progress per hour | Energy cost per hour |
+| --------------------: | ----------------------: | -------------------: |
+|                     1 |                       1 |                    4 |
+|                     2 |                       2 |                    4 |
+
+At level 1 and normal intensity, one hour of training gives `1` progress point, so a full effective skill level requires `100` hours before intensity and other modifiers.
+
 ```ts
 export const TRAINING_INTENSITIES = ['light', 'normal', 'hard', 'brutal'] as const;
 ```
@@ -392,8 +414,8 @@ export const COMBAT_CONFIG = {
   energyCostPerTurn: 0.45,
   minEnergyCost: 8,
   maxEnergyCost: 34,
-  winnerMoraleChange: 8,
-  loserMoraleChange: -10,
+  winnerMoraleChange: 15,
+  loserMoraleChange: -8,
   winReputationValue: 10,
   lossReputationPenalty: 3,
 } as const;
@@ -457,7 +479,10 @@ Initial weekly contract definitions:
 
 ```ts
 export const EVENT_CONFIG = {
+  dailyEventStartHour: 10,
   maxEventsPerDay: 1,
+  injuredHealthThreshold: 80,
+  resolvedEventHistoryLimit: 12,
 } as const;
 ```
 
@@ -477,10 +502,10 @@ export type TimeOfDayPhase = 'dawn' | 'day' | 'dusk' | 'night';
 
 Current hour mapping:
 
-- `dawn`: 05:00 to 08:00;
-- `day`: 08:00 to 18:00;
-- `dusk`: 18:00 to 21:00;
-- `night`: 21:00 to 05:00.
+- `dawn`: 06:00 to 08:00;
+- `day`: 08:00 to 21:00;
+- `dusk`: 21:00 to 22:00;
+- `night`: 22:00 to 06:00.
 
 The player-facing HUD presents these phases as a day-night cycle gauge instead
 of an exact clock. Hour and minute values remain internal timing data for rules

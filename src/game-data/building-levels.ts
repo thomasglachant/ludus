@@ -1,11 +1,13 @@
+import { GAME_BALANCE } from './balance';
+
 export const BUILDING_UPGRADE_COST_CONFIG = {
-  baseCost: 150,
-  growthFactor: 2.2,
+  baseCost: GAME_BALANCE.buildings.upgradeCost.baseCost,
+  growthFactor: GAME_BALANCE.buildings.upgradeCost.growthFactor,
 } as const;
 
 export const LUDUS_CAPACITY_CONFIG = {
-  minimumGladiators: 1,
-  maximumGladiators: 6,
+  minimumGladiators: GAME_BALANCE.buildings.capacity.minimumGladiators,
+  maximumGladiators: GAME_BALANCE.buildings.capacity.maximumGladiators,
 } as const;
 
 export function calculateBuildingUpgradeCost(targetLevel: number) {

@@ -1,32 +1,28 @@
-export const WEEKLY_OBJECTIVES = [
-  'balanced',
-  'fightPreparation',
-  'trainStrength',
-  'trainAgility',
-  'trainDefense',
-  'recovery',
-  'moraleBoost',
-  'protectChampion',
-  'prepareForSale',
-] as const;
+import { GAME_BALANCE } from './balance';
 
-export const TRAINING_INTENSITIES = ['light', 'normal', 'hard', 'brutal'] as const;
+export const WEEKLY_OBJECTIVES = GAME_BALANCE.planning.weeklyObjectives;
+
+export const TRAINING_INTENSITIES = GAME_BALANCE.planning.trainingIntensities;
 
 export const PLANNING_THRESHOLDS = {
-  criticalHealth: 35,
-  lowHealth: 55,
-  criticalEnergy: 30,
-  lowEnergy: 50,
-  criticalSatiety: 25,
-  lowSatiety: 50,
-  criticalMorale: 30,
-  lowMorale: 50,
+  criticalHealth: GAME_BALANCE.planning.thresholds.criticalHealth,
+  lowHealth: GAME_BALANCE.planning.thresholds.lowHealth,
+  criticalEnergy: GAME_BALANCE.planning.thresholds.criticalEnergy,
+  lowEnergy: GAME_BALANCE.planning.thresholds.lowEnergy,
+  criticalSatiety: GAME_BALANCE.planning.thresholds.criticalSatiety,
+  lowSatiety: GAME_BALANCE.planning.thresholds.lowSatiety,
+  criticalMorale: GAME_BALANCE.planning.thresholds.criticalMorale,
+  lowMorale: GAME_BALANCE.planning.thresholds.lowMorale,
 } as const;
 
 export const READINESS_WEIGHTS = {
-  health: 0.35,
-  energy: 0.25,
-  morale: 0.15,
-  satiety: 0.15,
-  reputationStability: 0.1,
+  health: GAME_BALANCE.planning.readinessWeights.health,
+  energy: GAME_BALANCE.planning.readinessWeights.energy,
+  morale: GAME_BALANCE.planning.readinessWeights.morale,
+  satiety: GAME_BALANCE.planning.readinessWeights.satiety,
+  reputationStability: GAME_BALANCE.planning.readinessWeights.reputationStability,
 } as const;
+
+export const DEFAULT_ROUTINE_CONFIG = GAME_BALANCE.planning.defaultRoutine;
+
+export const READINESS_CONFIG = GAME_BALANCE.planning.readiness;

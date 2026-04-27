@@ -1,4 +1,5 @@
 import { INITIAL_TREASURY } from '../../game-data/economy';
+import { GAME_BALANCE } from '../../game-data/balance';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { createInitialBuildings } from '../buildings/initial-buildings';
 import { createWeeklyContracts } from '../contracts/contract-actions';
@@ -27,16 +28,16 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     },
     ludus: {
       treasury: INITIAL_TREASURY,
-      reputation: 0,
+      reputation: GAME_BALANCE.economy.initialReputation,
     },
     time: {
       year: PROGRESSION_CONFIG.startingYear,
       week: PROGRESSION_CONFIG.startingWeek,
-      dayOfWeek: 'monday',
+      dayOfWeek: PROGRESSION_CONFIG.startingDayOfWeek,
       hour: PROGRESSION_CONFIG.startingHour,
       minute: PROGRESSION_CONFIG.startingMinute,
-      speed: 1,
-      isPaused: false,
+      speed: PROGRESSION_CONFIG.initialSpeed,
+      isPaused: PROGRESSION_CONFIG.initialIsPaused,
     },
     buildings: createInitialBuildings(),
     gladiators: [],

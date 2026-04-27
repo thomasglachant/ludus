@@ -1,12 +1,14 @@
+import { GAME_BALANCE } from './balance';
+
 export const MARKET_CONFIG = {
-  availableGladiatorCount: 5,
-  minAge: 16,
-  maxAge: 20,
-  totalStatPoints: 20,
-  minGeneratedStat: 1,
-  maxGeneratedStat: 10,
-  basePrice: 100,
-  reputationPriceMultiplier: 5,
-  statPriceMultiplier: 10,
-  saleValueMultiplier: 0.5,
+  availableGladiatorCount: GAME_BALANCE.market.availableGladiatorCount,
+  minAge: GAME_BALANCE.market.minAge,
+  maxAge: GAME_BALANCE.market.maxAge,
+  totalStatPoints: GAME_BALANCE.market.totalStatPoints,
+  minGeneratedStat: GAME_BALANCE.market.minGeneratedStat,
+  maxGeneratedStat: GAME_BALANCE.market.maxGeneratedStat,
+  basePrice: GAME_BALANCE.market.basePrice,
+  reputationPriceMultiplier: GAME_BALANCE.market.reputationPriceMultiplier,
+  statPriceMultiplier: GAME_BALANCE.market.statPriceMultiplier,
+  saleValueMultiplier: GAME_BALANCE.market.saleValueMultiplier,
 } as const;

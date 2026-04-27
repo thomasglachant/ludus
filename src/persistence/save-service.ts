@@ -1,4 +1,5 @@
 import { createInitialSave } from '../domain/saves/create-initial-save';
+import { PROGRESSION_CONFIG } from '../game-data/progression';
 import type { GameSave, GameSaveMetadata } from '../domain/types';
 import { createId } from '../utils/id';
 import { SaveNotFoundError } from './save-provider';
@@ -159,8 +160,8 @@ export class SaveService {
       ...save,
       time: {
         ...save.time,
-        speed: 1,
-        isPaused: false,
+        speed: PROGRESSION_CONFIG.initialSpeed,
+        isPaused: PROGRESSION_CONFIG.initialIsPaused,
       },
     };
   }
