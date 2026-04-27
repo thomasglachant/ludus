@@ -1,5 +1,5 @@
 import type { LanguageCode } from '../../domain/types';
-import { useGameStore } from '../../state/game-store';
+import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store';
 
 export function LanguageSwitcher() {

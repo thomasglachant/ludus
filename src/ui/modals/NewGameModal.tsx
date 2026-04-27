@@ -1,7 +1,7 @@
 import { Dices, Landmark } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { generateLudusName, generateLudusOwnerName } from '../../domain/ludus/name-generator';
-import { useGameStore } from '../../state/game-store';
+import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store';
 import { ActionButton } from '../components/ActionButton';
 import { AppModal } from './AppModal';

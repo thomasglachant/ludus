@@ -10,16 +10,7 @@ import {
   startArenaDayCombats as startArenaDayCombatsAction,
   synchronizeBetting,
 } from '../domain/combat/combat-actions';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { isGameSessionPath } from '../app/routes';
 import { featureFlags } from '../config/features';
 import {
@@ -57,55 +48,8 @@ import { DemoSaveProvider } from '../persistence/demo-save-provider';
 import { LocalSaveProvider } from '../persistence/local-save-provider';
 import { SaveService } from '../persistence/save-service';
 import { ActiveSessionProvider } from '../persistence/active-session-provider';
+import { GameStoreContext, type GameStoreValue, type NewGameInput } from './game-store-context';
 import { useUiStore } from './ui-store';
-
-interface NewGameInput {
-  ownerName: string;
-  ludusName: string;
-}
-
-interface GameStoreValue {
-  currentSave: GameSave | null;
-  localSaves: GameSaveMetadata[];
-  demoSaves: GameSaveMetadata[];
-  isLoading: boolean;
-  isSaving: boolean;
-  hasUnsavedChanges: boolean;
-  lastSavedAt: string | null;
-  errorKey: string | null;
-  saveNoticeKey: string | null;
-  refreshLocalSaves(): Promise<void>;
-  refreshDemoSaves(): Promise<void>;
-  createNewGame(input: NewGameInput): Promise<void>;
-  loadLocalSave(saveId: string): Promise<boolean>;
-  loadDemoSave(saveId: DemoSaveId): Promise<boolean>;
-  resetActiveDemo(): Promise<void>;
-  saveCurrentGame(): Promise<void>;
-  saveCurrentGameAs(input?: { ludusName?: string }): Promise<void>;
-  changeLanguage(language: LanguageCode): Promise<void>;
-  setGameSpeed(speed: GameSpeed): void;
-  advanceToNextDay(): void;
-  purchaseBuilding(buildingId: BuildingId): void;
-  purchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
-  selectBuildingPolicy(buildingId: BuildingId, policyId: string): void;
-  upgradeBuilding(buildingId: BuildingId): void;
-  buyMarketGladiator(candidateId: string): void;
-  sellGladiator(gladiatorId: string): void;
-  updateGladiatorRoutine(gladiatorId: string, update: GladiatorRoutineUpdate): void;
-  setAutomaticAssignment(gladiatorId: string, allowAutomaticAssignment: boolean): void;
-  setManualBuildingOverride(gladiatorId: string, buildingId?: BuildingId): void;
-  applyPlanningRecommendations(): void;
-  acceptWeeklyContract(contractId: string): void;
-  resolveGameEventChoice(eventId: string, choiceId: string): void;
-  scoutOpponent(gladiatorId: string): void;
-  startArenaDayCombats(): void;
-  markArenaCombatPresented(combatId: string): void;
-  showArenaDaySummary(): void;
-  completeSundayArenaDay(): void;
-  clearError(): void;
-}
-
-const GameStoreContext = createContext<GameStoreValue | null>(null);
 const ACTIVE_SESSION_WRITE_DELAY_MS = 750;
 const ACTIVE_SESSION_SYNC_INTERVAL_MS = 10_000;
 const AUTO_SAVE_INTERVAL_MS = 30_000;
@@ -833,14 +777,4 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   ]);
 
   return <GameStoreContext.Provider value={value}>{children}</GameStoreContext.Provider>;
-}
-
-export function useGameStore() {
-  const context = useContext(GameStoreContext);
-
-  if (!context) {
-    throw new Error('useGameStore must be used inside GameStoreProvider');
-  }
-
-  return context;
 }

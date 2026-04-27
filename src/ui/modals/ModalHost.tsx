@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useGameStore } from '../../state/game-store';
+import { useGameStore } from '../../state/game-store-context';
 import { useUiStore, type FormModalField, type UiModalState } from '../../state/ui-store';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { CombatScreen } from '../combat/CombatScreen';

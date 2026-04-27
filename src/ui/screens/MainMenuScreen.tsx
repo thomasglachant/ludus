@@ -1,7 +1,7 @@
 import { Flame, FolderOpen, Play, Settings } from 'lucide-react';
 import { useEffect, type CSSProperties } from 'react';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
-import { useGameStore } from '../../state/game-store';
+import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store';
 
 export function MainMenuScreen() {

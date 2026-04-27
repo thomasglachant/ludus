@@ -202,9 +202,9 @@ export const GAME_BALANCE = {
       },
       canteen: {
         // Satiety restored per hour by Canteen level 1.
-        1: { satietyPerHour: 6 },
+        1: { satietyPerHour: 100 },
         // Satiety restored per hour by Canteen level 2.
-        2: { satietyPerHour: 8 },
+        2: { satietyPerHour: 100 },
       },
       dormitory: {
         // Energy restored per hour by Dormitory level 1.
@@ -252,7 +252,7 @@ export const GAME_BALANCE = {
       },
       canteen: {
         // Satiety change per hour while assigned to Canteen.
-        satiety: -1,
+        satiety: 0,
         // Morale change per hour while assigned to Canteen.
         morale: 1,
       },

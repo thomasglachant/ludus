@@ -2,7 +2,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useEffect } from 'react';
 import { featureFlags } from '../config/features';
 import { isDemoSaveId } from '../game-data/demo-saves';
-import { useGameStore } from '../state/game-store';
+import { useGameStore } from '../state/game-store-context';
 import { useUiStore } from '../state/ui-store';
 import { ActionButton } from '../ui/components/ActionButton';
 import { ScreenShell } from '../ui/layout/ScreenShell';

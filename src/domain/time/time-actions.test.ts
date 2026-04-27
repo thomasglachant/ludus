@@ -360,8 +360,28 @@ describe('time actions', () => {
     expect(result.save.gladiators[0]).toMatchObject({
       currentBuildingId: 'canteen',
       morale: 76,
-      satiety: 55,
+      satiety: 100,
     });
+  });
+
+  it('fully restores satiety after one game hour at the canteen', () => {
+    const save: GameSave = {
+      ...withPurchasedBuildings(createTestSave(), ['canteen']),
+      gladiators: [
+        createGladiator({
+          currentBuildingId: 'canteen',
+          satiety: 0,
+        }),
+      ],
+    };
+
+    const result = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 5_000,
+      speed: save.time.speed,
+    });
+
+    expect(result.save.gladiators[0].satiety).toBe(100);
   });
 
   it('ignores permanent building effects during hourly ticks', () => {
@@ -388,7 +408,7 @@ describe('time actions', () => {
       speed: save.time.speed,
     });
 
-    expect(result.save.gladiators[0].satiety).toBe(55);
+    expect(result.save.gladiators[0].satiety).toBe(100);
   });
 
   it('drains satiety and morale faster while training', () => {
