@@ -11,6 +11,7 @@ import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
 import { DAYS_OF_WEEK } from '../../game-data/time';
 import { assignGladiatorMapLocation } from '../gladiators/map-movement';
+import { getEffectiveSkillValue, getGladiatorEffectiveSkill } from '../gladiators/skills';
 import type { Gladiator } from '../gladiators/types';
 import { getRoutineForGladiator } from '../planning/planning-actions';
 import type { GameSave } from '../saves/types';
@@ -169,7 +170,11 @@ function isCurrentWeekCombat(save: GameSave, combat: CombatState) {
 function createOpponentStat(baseValue: number, rank: ArenaRank, random: RandomSource) {
   const multiplier = ARENA_OPPONENT_CONFIG[rank].statMultiplier;
 
-  return clamp(roundStat(baseValue * multiplier + getRandomOffset(random, 3)), 3, 100);
+  return clamp(
+    roundStat(getEffectiveSkillValue(baseValue) * multiplier + getRandomOffset(random, 3)),
+    3,
+    100,
+  );
 }
 
 function getOpeningAttacker(
@@ -177,11 +182,14 @@ function getOpeningAttacker(
   opponent: CombatParticipant,
   random: RandomSource,
 ) {
-  if (player.gladiator.agility === opponent.gladiator.agility) {
+  const playerAgility = getGladiatorEffectiveSkill(player.gladiator, 'agility');
+  const opponentAgility = getGladiatorEffectiveSkill(opponent.gladiator, 'agility');
+
+  if (playerAgility === opponentAgility) {
     return random() >= 0.5 ? player : opponent;
   }
 
-  return player.gladiator.agility > opponent.gladiator.agility ? player : opponent;
+  return playerAgility > opponentAgility ? player : opponent;
 }
 
 function getNextParticipant(
@@ -208,11 +216,14 @@ function calculateEnergyChange(turnCount: number, strategy: CombatStrategy) {
 
 function getParticipantRating(gladiator: Gladiator, strategy: CombatStrategy) {
   const modifier = COMBAT_STRATEGY_MODIFIERS[strategy];
+  const strength = getGladiatorEffectiveSkill(gladiator, 'strength');
+  const agility = getGladiatorEffectiveSkill(gladiator, 'agility');
+  const defense = getGladiatorEffectiveSkill(gladiator, 'defense');
 
   return (
-    gladiator.strength * modifier.damageMultiplier * 1.15 +
-    gladiator.agility * (1 + modifier.hitChanceBonus) +
-    gladiator.defense * modifier.defenseMultiplier +
+    strength * modifier.damageMultiplier * 1.15 +
+    agility * (1 + modifier.hitChanceBonus) +
+    defense * modifier.defenseMultiplier +
     gladiator.health * 0.24 +
     gladiator.energy * 0.18 +
     gladiator.morale * 0.08
@@ -312,12 +323,14 @@ export function calculateHitChance(
   attackerStrategy: CombatStrategy = DEFAULT_STRATEGY,
 ) {
   const modifier = COMBAT_STRATEGY_MODIFIERS[attackerStrategy];
+  const attackerAgility = getGladiatorEffectiveSkill(attacker, 'agility');
+  const defenderAgility = getGladiatorEffectiveSkill(defender, 'agility');
 
   return clamp(
     COMBAT_CONFIG.baseHitChance +
       modifier.hitChanceBonus +
-      attacker.agility * COMBAT_CONFIG.attackerAgilityHitMultiplier -
-      defender.agility * COMBAT_CONFIG.defenderAgilityDodgeMultiplier,
+      attackerAgility * COMBAT_CONFIG.attackerAgilityHitMultiplier -
+      defenderAgility * COMBAT_CONFIG.defenderAgilityDodgeMultiplier,
     COMBAT_CONFIG.minHitChance,
     COMBAT_CONFIG.maxHitChance,
   );
@@ -331,14 +344,14 @@ export function calculateDamage(
 ) {
   const attackerModifier = COMBAT_STRATEGY_MODIFIERS[attackerStrategy];
   const defenderModifier = COMBAT_STRATEGY_MODIFIERS[defenderStrategy];
+  const attackerStrength = getGladiatorEffectiveSkill(attacker, 'strength');
+  const defenderDefense = getGladiatorEffectiveSkill(defender, 'defense');
   const rawDamage =
-    (COMBAT_CONFIG.baseDamage + attacker.strength * COMBAT_CONFIG.strengthDamageMultiplier) *
+    (COMBAT_CONFIG.baseDamage + attackerStrength * COMBAT_CONFIG.strengthDamageMultiplier) *
     attackerModifier.damageMultiplier;
   const reducedDamage =
     rawDamage -
-    defender.defense *
-      COMBAT_CONFIG.defenseReductionMultiplier *
-      defenderModifier.defenseMultiplier;
+    defenderDefense * COMBAT_CONFIG.defenseReductionMultiplier * defenderModifier.defenseMultiplier;
 
   return clamp(roundStat(reducedDamage), COMBAT_CONFIG.minDamage, COMBAT_CONFIG.maxDamage);
 }
@@ -619,9 +632,9 @@ export function scoutOpponent(save: GameSave, gladiatorId: string): ScoutingResu
     id: `scouting-${synchronizedSave.time.year}-${synchronizedSave.time.week}-${gladiatorId}`,
     gladiatorId,
     opponentId: odds.opponent.id,
-    opponentStrength: odds.opponent.strength,
-    opponentAgility: odds.opponent.agility,
-    opponentDefense: odds.opponent.defense,
+    opponentStrength: getGladiatorEffectiveSkill(odds.opponent, 'strength'),
+    opponentAgility: getGladiatorEffectiveSkill(odds.opponent, 'agility'),
+    opponentDefense: getGladiatorEffectiveSkill(odds.opponent, 'defense'),
     summaryKey: 'betting.scoutingReport.standard',
     createdAtYear: synchronizedSave.time.year,
     createdAtWeek: synchronizedSave.time.week,

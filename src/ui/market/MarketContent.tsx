@@ -3,6 +3,7 @@ import {
   getAvailableLudusGladiatorPlaces,
   getLudusGladiatorCapacity,
 } from '../../domain/ludus/capacity';
+import { getEffectiveSkillValue } from '../../domain/gladiators/skills';
 import {
   calculateGladiatorSaleValue,
   validateMarketPurchase,
@@ -27,8 +28,10 @@ function getMarketValidationMessageKey(validation: MarketActionValidation) {
 
 function StatBlock({
   gladiator,
+  showCondition = false,
 }: {
   gladiator: Pick<Gladiator, 'strength' | 'agility' | 'defense' | 'health' | 'energy' | 'morale'>;
+  showCondition?: boolean;
 }) {
   const { t } = useUiStore();
 
@@ -36,28 +39,32 @@ function StatBlock({
     <dl className="gladiator-stat-list">
       <div>
         <dt>{t('market.stats.strength')}</dt>
-        <dd>{gladiator.strength}</dd>
+        <dd>{getEffectiveSkillValue(gladiator.strength)}</dd>
       </div>
       <div>
         <dt>{t('market.stats.agility')}</dt>
-        <dd>{gladiator.agility}</dd>
+        <dd>{getEffectiveSkillValue(gladiator.agility)}</dd>
       </div>
       <div>
         <dt>{t('market.stats.defense')}</dt>
-        <dd>{gladiator.defense}</dd>
+        <dd>{getEffectiveSkillValue(gladiator.defense)}</dd>
       </div>
-      <div>
-        <dt>{t('market.stats.health')}</dt>
-        <dd>{gladiator.health}</dd>
-      </div>
-      <div>
-        <dt>{t('market.stats.energy')}</dt>
-        <dd>{gladiator.energy}</dd>
-      </div>
-      <div>
-        <dt>{t('market.stats.morale')}</dt>
-        <dd>{gladiator.morale}</dd>
-      </div>
+      {showCondition ? (
+        <>
+          <div>
+            <dt>{t('market.stats.health')}</dt>
+            <dd>{gladiator.health}</dd>
+          </div>
+          <div>
+            <dt>{t('market.stats.energy')}</dt>
+            <dd>{gladiator.energy}</dd>
+          </div>
+          <div>
+            <dt>{t('market.stats.morale')}</dt>
+            <dd>{gladiator.morale}</dd>
+          </div>
+        </>
+      ) : null}
     </dl>
   );
 }
@@ -110,7 +117,7 @@ function MarketCandidateCard({
         <ActionButton
           disabled={!validation.isAllowed}
           icon={<ShoppingCart aria-hidden="true" size={18} />}
-          label={t('market.buy')}
+          label={t('market.buyWithPrice', { price: formatMoneyAmount(candidate.price) })}
           testId={`market-buy-${candidate.id}`}
           variant="primary"
           onClick={() => onBuy(candidate.id)}
@@ -140,7 +147,7 @@ function OwnedGladiatorCard({
         </div>
         <strong>{t('market.saleValue', { price: formatMoneyAmount(saleValue) })}</strong>
       </div>
-      <StatBlock gladiator={gladiator} />
+      <StatBlock gladiator={gladiator} showCondition />
       <TraitList gladiator={gladiator} />
       <div className="gladiator-card__actions">
         <ActionButton

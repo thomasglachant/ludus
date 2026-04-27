@@ -156,30 +156,41 @@ export function EventsPanel({ save, onClose, onResolveEventChoice }: EventsPanel
       onClose={onClose}
     >
       {save.events.pendingEvents.length > 0 ? (
-        <SectionCard titleKey="events.title">
-          <div className="context-panel__list">
+        <SectionCard className="events-panel__section" titleKey="events.title">
+          <div className="events-panel__list">
             {save.events.pendingEvents.map((event) => {
               const gladiator = save.gladiators.find(
                 (candidate) => candidate.id === event.gladiatorId,
               );
 
               return (
-                <article key={event.id}>
-                  <div className="context-panel__portrait-row">
-                    {gladiator ? <GladiatorPortrait gladiator={gladiator} size="small" /> : null}
-                    <div>
-                      <strong>{t(event.titleKey)}</strong>
-                      <span>{t(event.descriptionKey)}</span>
+                <article className="events-panel__event" key={event.id}>
+                  <div className="events-panel__event-header">
+                    <div className="context-panel__portrait-row">
+                      {gladiator ? <GladiatorPortrait gladiator={gladiator} size="small" /> : null}
+                      <div className="events-panel__summary">
+                        <Badge label={t('events.status.pending')} tone="warning" />
+                        <h3>{t(event.titleKey)}</h3>
+                        {gladiator ? (
+                          <small>{t('events.concerns', { name: gladiator.name })}</small>
+                        ) : null}
+                      </div>
                     </div>
+                    <p>{t(event.descriptionKey)}</p>
                   </div>
+                  <strong className="events-panel__choice-heading">
+                    {t('events.choicesTitle')}
+                  </strong>
                   <div className="event-choice-grid">
                     {event.choices.map((choice) => (
                       <button
+                        className="events-panel__choice"
                         key={choice.id}
                         type="button"
                         onClick={() => onResolveEventChoice(event.id, choice.id)}
                       >
-                        {t(choice.labelKey)}
+                        <strong>{t(choice.labelKey)}</strong>
+                        <span>{t(choice.consequenceKey)}</span>
                       </button>
                     ))}
                   </div>

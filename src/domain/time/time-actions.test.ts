@@ -415,6 +415,25 @@ describe('time actions', () => {
     });
   });
 
+  it('adds training progress as skill decimals instead of full levels', () => {
+    const save: GameSave = {
+      ...withPurchasedBuildings(createTestSave(), ['trainingGround']),
+      gladiators: [
+        createGladiator({
+          currentBuildingId: 'trainingGround',
+          strength: 7.99,
+        }),
+      ],
+    };
+    const result = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 5_000,
+      speed: save.time.speed,
+    });
+
+    expect(result.save.gladiators[0].strength).toBeCloseTo(8);
+  });
+
   it('starts automatic movement before new building effects apply', () => {
     const saveWithGladiator: GameSave = {
       ...withPurchasedBuildings(createTestSave(), ['trainingGround']),

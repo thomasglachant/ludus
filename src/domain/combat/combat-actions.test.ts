@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { ARENA_REWARDS, ARENA_REWARD_SPLIT } from '../../game-data/combat';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave, Gladiator } from '../types';
-import { getArenaRank, resolveArenaDay, resolveCombat, synchronizeArena } from './combat-actions';
+import {
+  calculateDamage,
+  calculateHitChance,
+  getArenaRank,
+  resolveArenaDay,
+  resolveCombat,
+  synchronizeArena,
+} from './combat-actions';
 
 function createTestSave() {
   return createInitialSave({
@@ -69,6 +76,24 @@ describe('combat actions', () => {
     expect(combat.opponent.visualIdentity?.portraitAssetId).toMatch(/^gladiator-/);
     expect(combat.consequence.didPlayerWin).toBe(true);
     expect(combat.consequence.playerReward).toBe(expectedWinnerReward);
+  });
+
+  it('uses floored skill values for combat calculations', () => {
+    const attacker = createGladiator({ strength: 20.99, agility: 18.99 });
+    const defender = createGladiator({ id: 'defender-test', defense: 18.99, agility: 17.99 });
+    const flooredAttacker = createGladiator({ strength: 20, agility: 18 });
+    const flooredDefender = createGladiator({
+      id: 'floored-defender-test',
+      defense: 18,
+      agility: 17,
+    });
+
+    expect(calculateHitChance(attacker, defender)).toBe(
+      calculateHitChance(flooredAttacker, flooredDefender),
+    );
+    expect(calculateDamage(attacker, defender)).toBe(
+      calculateDamage(flooredAttacker, flooredDefender),
+    );
   });
 
   it('applies Sunday arena consequences and treasury rewards once', () => {

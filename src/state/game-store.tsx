@@ -127,7 +127,7 @@ function synchronizeLoadedSave(save: GameSave): GameSave {
 }
 
 export function GameStoreProvider({ children }: { children: ReactNode }) {
-  const { activeModal, screen, setLanguage, navigate, replaceModal } = useUiStore();
+  const { activeModal, screen, setLanguage, navigate, openModal, replaceModal } = useUiStore();
   const [saveService] = useState(createSaveService);
   const [activeSessionProvider] = useState(createActiveSessionProvider);
   const [initialActiveSession] = useState(() => {
@@ -737,15 +737,18 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
     const interruption = getActiveGameInterruption(currentSave);
 
-    if (interruption?.kind === 'dailyEvent' && activeModal?.kind !== 'events') {
-      replaceModal({ kind: 'events' });
+    if (interruption?.kind === 'dailyEvent') {
+      if (!activeModal) {
+        openModal({ kind: 'events' });
+      }
+
       return;
     }
 
     if (interruption?.kind === 'sundayArena' && activeModal?.kind !== 'arena') {
       replaceModal({ kind: 'arena' });
     }
-  }, [activeModal?.kind, currentSave, replaceModal, screen]);
+  }, [activeModal, currentSave, openModal, replaceModal, screen]);
 
   const value = useMemo<GameStoreValue>(() => {
     return {

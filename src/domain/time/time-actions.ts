@@ -17,6 +17,7 @@ import {
   getGladiatorMapMovementArrivalStamp,
   resolveGladiatorMapMovement,
 } from '../gladiators/map-movement';
+import { addSkillTrainingProgress, isGladiatorSkillName } from '../gladiators/skills';
 import type { Gladiator, GladiatorLocationId } from '../gladiators/types';
 import type { GameTimeState } from './types';
 
@@ -342,6 +343,13 @@ function applyEffect(gladiator: Gladiator, effect: BuildingEffect, hours: number
   const direction = decreasingEffects.has(effect.type) ? -1 : 1;
   const nextValue = gladiator[field] + effect.value * hours * direction;
   const max = field === 'strength' || field === 'agility' || field === 'defense' ? 100 : 100;
+
+  if (isGladiatorSkillName(field)) {
+    return {
+      ...gladiator,
+      [field]: addSkillTrainingProgress(gladiator[field], effect.value * hours * direction),
+    };
+  }
 
   return {
     ...gladiator,

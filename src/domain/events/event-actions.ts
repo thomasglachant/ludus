@@ -5,6 +5,7 @@ import {
   type DailyEventEffectTemplate,
 } from '../../game-data/events';
 import type { Gladiator } from '../gladiators/types';
+import { addSkillLevels } from '../gladiators/skills';
 import { synchronizePlanning } from '../planning/planning-actions';
 import type { GameSave } from '../saves/types';
 import type { GameEvent, GameEventChoice, GameEventEffect } from './types';
@@ -196,7 +197,7 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect): GameSave {
         gladiator.id === effect.gladiatorId
           ? {
               ...gladiator,
-              [effect.stat]: clamp(gladiator[effect.stat] + effect.amount, 0, 100),
+              [effect.stat]: addSkillLevels(gladiator[effect.stat], effect.amount),
             }
           : gladiator,
       ),

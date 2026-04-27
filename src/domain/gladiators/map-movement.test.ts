@@ -110,4 +110,27 @@ describe('gladiator map movement', () => {
     expect(gladiator.currentBuildingId).toBe('dormitory');
     expect(gladiator.currentLocationId).toBe('dormitory');
   });
+
+  it('keeps an existing movement when reassigning the same target', () => {
+    const movingGladiator = assignGladiatorMapLocation(
+      baseGladiator,
+      'trainingGround',
+      time,
+      'balanced',
+    );
+    const reassigned = assignGladiatorMapLocation(
+      movingGladiator,
+      'trainingGround',
+      {
+        ...time,
+        minute: time.minute + 5,
+      },
+      'balanced',
+    );
+
+    expect(reassigned.currentBuildingId).toBeUndefined();
+    expect(reassigned.currentLocationId).toBeUndefined();
+    expect(reassigned.currentTaskStartedAt).toBe(movingGladiator.currentTaskStartedAt);
+    expect(reassigned.mapMovement).toEqual(movingGladiator.mapMovement);
+  });
 });

@@ -80,6 +80,23 @@ export function assignGladiatorMapLocation(
   time: GameTimeState,
   activity = 'idle',
 ): Gladiator {
+  const activeMovement = gladiator.mapMovement;
+
+  if (activeMovement && activeMovement.targetLocation === targetLocation) {
+    return {
+      ...gladiator,
+      currentActivityId: activity,
+      currentTaskStartedAt:
+        activeMovement.activity === activity
+          ? gladiator.currentTaskStartedAt
+          : getGameMinuteStamp(time),
+      mapMovement: {
+        ...activeMovement,
+        activity,
+      },
+    };
+  }
+
   const currentLocation = gladiator.currentLocationId ?? gladiator.currentBuildingId;
   const currentTaskStartedAt =
     currentLocation === targetLocation && gladiator.currentActivityId === activity

@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
+import { getEffectiveSkillValue, getSkillTrainingProgress } from '../../domain/gladiators/skills';
 import {
   getPlanningRecommendation,
   getRoutineForGladiator,
@@ -41,6 +42,10 @@ interface StatChipProps {
   value: number | string;
 }
 
+interface SkillChipProps extends StatChipProps {
+  progress: number;
+}
+
 interface ResourceMeterProps {
   Icon: LucideIcon;
   label: string;
@@ -58,6 +63,24 @@ function StatChip({ Icon, label, value }: StatChipProps) {
       <Icon aria-hidden="true" size={19} />
       <span>{label}</span>
       <strong>{value}</strong>
+    </div>
+  );
+}
+
+function SkillChip({ Icon, label, value, progress }: SkillChipProps) {
+  const { t } = useUiStore();
+
+  return (
+    <div className="gladiator-stat-chip gladiator-stat-chip--skill">
+      <Icon aria-hidden="true" size={19} />
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <span
+        className="gladiator-skill-progress"
+        aria-label={t('gladiatorPanel.skillProgress', { progress })}
+      >
+        <span className="gladiator-skill-progress__value" style={{ width: `${progress}%` }} />
+      </span>
     </div>
   );
 }
@@ -124,9 +147,24 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
   const currentArenaRecord = getCurrentArenaRecord(save, gladiator);
   const bettingOdds = save.arena.betting?.odds.find((odds) => odds.gladiatorId === gladiator.id);
   const skillStats = [
-    { Icon: Dumbbell, label: t('market.stats.strength'), value: gladiator.strength },
-    { Icon: Wind, label: t('market.stats.agility'), value: gladiator.agility },
-    { Icon: Shield, label: t('market.stats.defense'), value: gladiator.defense },
+    {
+      Icon: Dumbbell,
+      label: t('market.stats.strength'),
+      value: getEffectiveSkillValue(gladiator.strength),
+      progress: getSkillTrainingProgress(gladiator.strength),
+    },
+    {
+      Icon: Wind,
+      label: t('market.stats.agility'),
+      value: getEffectiveSkillValue(gladiator.agility),
+      progress: getSkillTrainingProgress(gladiator.agility),
+    },
+    {
+      Icon: Shield,
+      label: t('market.stats.defense'),
+      value: getEffectiveSkillValue(gladiator.defense),
+      progress: getSkillTrainingProgress(gladiator.defense),
+    },
   ];
   const resourceStats = [
     {
@@ -192,7 +230,13 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
             <h2>{t('gladiatorPanel.combatSkills')}</h2>
             <div className="gladiator-skill-grid">
               {skillStats.map((stat) => (
-                <StatChip key={stat.label} Icon={stat.Icon} label={stat.label} value={stat.value} />
+                <SkillChip
+                  key={stat.label}
+                  Icon={stat.Icon}
+                  label={stat.label}
+                  value={stat.value}
+                  progress={stat.progress}
+                />
               ))}
             </div>
           </section>
@@ -320,17 +364,17 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
               <StatChip
                 Icon={Dumbbell}
                 label={t('market.stats.strength')}
-                value={gladiator.trainingPlan.strength}
+                value={getEffectiveSkillValue(gladiator.trainingPlan.strength)}
               />
               <StatChip
                 Icon={Wind}
                 label={t('market.stats.agility')}
-                value={gladiator.trainingPlan.agility}
+                value={getEffectiveSkillValue(gladiator.trainingPlan.agility)}
               />
               <StatChip
                 Icon={Shield}
                 label={t('market.stats.defense')}
-                value={gladiator.trainingPlan.defense}
+                value={getEffectiveSkillValue(gladiator.trainingPlan.defense)}
               />
             </div>
           </section>

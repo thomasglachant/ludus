@@ -135,6 +135,9 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
 export function createMarketGladiator(gladiator: Gladiator & { price: number }): MarketGladiator {
   return {
     ...gladiator,
+    health: 100,
+    energy: 100,
+    morale: 100,
     visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity),
   };
 }

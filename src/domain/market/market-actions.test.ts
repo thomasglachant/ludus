@@ -78,8 +78,23 @@ describe('market actions', () => {
       expect(gladiator.strength).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
       expect(gladiator.agility).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
       expect(gladiator.defense).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
+      expect(gladiator.health).toBe(100);
+      expect(gladiator.energy).toBe(100);
+      expect(gladiator.morale).toBe(100);
       expect(gladiator.price).toBe(calculateGladiatorMarketPrice(gladiator));
     }
+  });
+
+  it('uses floored skill values for market pricing', () => {
+    const gladiator = createOwnedGladiator({
+      strength: 7.99,
+      agility: 6.99,
+      defense: 7.99,
+    });
+
+    expect(calculateGladiatorMarketPrice(gladiator)).toBe(
+      calculateGladiatorMarketPrice(createOwnedGladiator()),
+    );
   });
 
   it('prevents buying a market gladiator when the free dormitory bed is occupied', () => {

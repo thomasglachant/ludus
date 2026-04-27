@@ -2,6 +2,7 @@ import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { MARKET_CONFIG } from '../../game-data/market';
 import { getAvailableLudusGladiatorPlaces } from '../ludus/capacity';
+import { getGladiatorEffectiveSkill } from '../gladiators/skills';
 import { completeSaleContracts } from '../contracts/contract-actions';
 import type { Gladiator, GladiatorTrait } from '../gladiators/types';
 import { synchronizePlanning } from '../planning/planning-actions';
@@ -75,7 +76,10 @@ function createGeneratedAge(random: RandomSource) {
 }
 
 export function calculateGladiatorMarketPrice(gladiator: Gladiator) {
-  const totalStats = gladiator.strength + gladiator.agility + gladiator.defense;
+  const totalStats =
+    getGladiatorEffectiveSkill(gladiator, 'strength') +
+    getGladiatorEffectiveSkill(gladiator, 'agility') +
+    getGladiatorEffectiveSkill(gladiator, 'defense');
 
   return (
     MARKET_CONFIG.basePrice +
@@ -107,7 +111,7 @@ export function generateMarketGladiators(
       defense: stats.defense,
       energy: 100,
       health: 100,
-      morale: 70,
+      morale: 100,
       satiety: 80,
       reputation,
       wins: 0,
