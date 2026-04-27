@@ -15,7 +15,29 @@ export interface MapAmbientElementDefinition extends MapRect {
   zIndex?: number;
 }
 
+export interface MapWaterAnimationDefinition extends MapRect {
+  id: string;
+  color: string;
+  lineCount: number;
+  lineWidth: number;
+  opacity: number;
+  speed: number;
+}
+
 const ambientAssets = VISUAL_ASSET_MANIFEST.map.ambient;
+
+export const LUDUS_MAP_WATER_ANIMATION: MapWaterAnimationDefinition = {
+  id: 'coastal-sea',
+  x: 760,
+  y: 150,
+  width: 2140,
+  height: 390,
+  color: '#d8f6ff',
+  lineCount: 18,
+  lineWidth: 3,
+  opacity: 0.18,
+  speed: 0.22,
+};
 
 export const LUDUS_MAP_AMBIENT_ELEMENTS: MapAmbientElementDefinition[] = [
   {

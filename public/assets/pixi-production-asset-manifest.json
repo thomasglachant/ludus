@@ -373,7 +373,7 @@
       "alias": "map:background:dawn",
       "bundleId": "map-base",
       "sourceQuality": "production",
-      "productionSrc": "/assets/pixel-art-production/map/ludus-map-dawn.webp",
+      "productionSrc": "/assets/pixel-art-production/map/ludus-map-coastal-base.webp",
       "fallbackSrc": "/assets/pixel-art/map/backgrounds/ludus-map-dawn.png",
       "anchor": {
         "x": 0,
@@ -382,8 +382,8 @@
       "hitbox": {
         "x": 0,
         "y": 0,
-        "width": 2400,
-        "height": 1500
+        "width": 3200,
+        "height": 2000
       },
       "renderLayer": "map.background",
       "tags": ["map", "background", "dawn"]
@@ -392,7 +392,7 @@
       "alias": "map:background:day",
       "bundleId": "map-base",
       "sourceQuality": "production",
-      "productionSrc": "/assets/pixel-art-production/map/ludus-map-day.webp",
+      "productionSrc": "/assets/pixel-art-production/map/ludus-map-coastal-base.webp",
       "fallbackSrc": "/assets/pixel-art/map/backgrounds/ludus-map-day.png",
       "anchor": {
         "x": 0,
@@ -401,8 +401,8 @@
       "hitbox": {
         "x": 0,
         "y": 0,
-        "width": 2400,
-        "height": 1500
+        "width": 3200,
+        "height": 2000
       },
       "renderLayer": "map.background",
       "tags": ["map", "background", "day"]
@@ -411,7 +411,7 @@
       "alias": "map:background:dusk",
       "bundleId": "map-base",
       "sourceQuality": "production",
-      "productionSrc": "/assets/pixel-art-production/map/ludus-map-dusk.webp",
+      "productionSrc": "/assets/pixel-art-production/map/ludus-map-coastal-base.webp",
       "fallbackSrc": "/assets/pixel-art/map/backgrounds/ludus-map-dusk.png",
       "anchor": {
         "x": 0,
@@ -420,8 +420,8 @@
       "hitbox": {
         "x": 0,
         "y": 0,
-        "width": 2400,
-        "height": 1500
+        "width": 3200,
+        "height": 2000
       },
       "renderLayer": "map.background",
       "tags": ["map", "background", "dusk"]
@@ -430,7 +430,7 @@
       "alias": "map:background:night",
       "bundleId": "map-base",
       "sourceQuality": "production",
-      "productionSrc": "/assets/pixel-art-production/map/ludus-map-night.webp",
+      "productionSrc": "/assets/pixel-art-production/map/ludus-map-coastal-base.webp",
       "fallbackSrc": "/assets/pixel-art/map/backgrounds/ludus-map-night.png",
       "anchor": {
         "x": 0,
@@ -439,8 +439,8 @@
       "hitbox": {
         "x": 0,
         "y": 0,
-        "width": 2400,
-        "height": 1500
+        "width": 3200,
+        "height": 2000
       },
       "renderLayer": "map.background",
       "tags": ["map", "background", "night"]
@@ -487,7 +487,7 @@
       "alias": "location:arena:exterior",
       "bundleId": "map-base",
       "sourceQuality": "production",
-      "productionSrc": "/assets/pixel-art-production/map/locations/arena-exterior.webp",
+      "productionSrc": "/assets/pixel-art-production/map/locations/arena-exterior-transparent.png",
       "fallbackSrc": "/assets/pixel-art/locations/arena/exterior.svg",
       "anchor": {
         "x": 0.5,

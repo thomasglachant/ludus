@@ -21,10 +21,18 @@ export interface MapDecorationDefinition {
 
 export const LUDUS_MAP_DECORATIONS: MapDecorationDefinition[] = [
   { id: 'olive-north-west', style: 'oliveTree', x: 610, y: 330, width: 74, height: 92 },
+  { id: 'olive-north-plateau', style: 'oliveTree', x: 910, y: 270, width: 86, height: 104 },
   { id: 'olive-south-west', style: 'oliveTree', x: 560, y: 1060, width: 82, height: 98 },
+  { id: 'olive-west-ridge', style: 'oliveTree', x: 420, y: 1260, width: 92, height: 108 },
   { id: 'olive-south-east', style: 'oliveTree', x: 1620, y: 1100, width: 78, height: 96 },
+  { id: 'olive-east-plateau', style: 'oliveTree', x: 1880, y: 960, width: 88, height: 106 },
+  { id: 'olive-far-east', style: 'oliveTree', x: 2290, y: 1180, width: 84, height: 102 },
+  { id: 'olive-south-field', style: 'oliveTree', x: 1780, y: 1420, width: 96, height: 112 },
   { id: 'cypress-north-east', style: 'cypressTree', x: 1650, y: 340, width: 56, height: 128 },
   { id: 'cypress-gate', style: 'cypressTree', x: 520, y: 780, width: 52, height: 120 },
+  { id: 'cypress-sea-road', style: 'cypressTree', x: 260, y: 520, width: 46, height: 112 },
+  { id: 'cypress-east-slope', style: 'cypressTree', x: 2140, y: 770, width: 50, height: 122 },
+  { id: 'cypress-south-edge', style: 'cypressTree', x: 1280, y: 1450, width: 54, height: 128 },
   { id: 'well-courtyard', style: 'well', x: 955, y: 820, width: 72, height: 72 },
   { id: 'storage-canteen', style: 'storage', x: 620, y: 690, width: 84, height: 58 },
   { id: 'field-west', style: 'field', x: 90, y: 1010, width: 310, height: 230, rotation: -4 },

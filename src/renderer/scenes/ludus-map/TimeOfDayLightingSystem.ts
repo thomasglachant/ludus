@@ -2,6 +2,7 @@ import { Container, Graphics, Sprite, Texture, type Ticker } from 'pixi.js';
 import { destroyDisplayObject } from '../../pixi/destroy';
 import type {
   LudusMapSceneAmbientElementViewModel,
+  LudusMapSceneLocationViewModel,
   LudusMapSceneThemeViewModel,
   LudusMapSceneViewModel,
 } from './LudusMapSceneViewModel';
@@ -16,6 +17,11 @@ interface TimeOfDayLightingSystemOptions {
 interface TorchLightDisplay {
   source: LudusMapSceneAmbientElementViewModel;
   sprite: Sprite;
+}
+
+interface BuildingLightDisplay {
+  graphics: Graphics;
+  location: LudusMapSceneLocationViewModel;
 }
 
 const LIGHT_UPDATE_MILLISECONDS = 90;
@@ -38,6 +44,7 @@ function getCycle(elapsedSeconds: number, durationSeconds: number): number {
 }
 
 export class TimeOfDayLightingSystem {
+  private readonly buildingLights = new Map<string, BuildingLightDisplay>();
   private readonly brightnessTargets: Container[];
   private readonly lightLayer: Container;
   private readonly lights = new Map<string, TorchLightDisplay>();
@@ -66,7 +73,12 @@ export class TimeOfDayLightingSystem {
       destroyDisplayObject(display.sprite);
     }
 
+    for (const display of this.buildingLights.values()) {
+      destroyDisplayObject(display.graphics);
+    }
+
     this.lights.clear();
+    this.buildingLights.clear();
     destroyDisplayObject(this.overlay);
   }
 
@@ -78,6 +90,7 @@ export class TimeOfDayLightingSystem {
     this.reconcileTorchLights(
       viewModel.ambientElements.filter((element) => element.kind === 'torch'),
     );
+    this.reconcileBuildingLights(viewModel.locations);
     this.updateLights(performance.now());
   }
 
@@ -110,6 +123,17 @@ export class TimeOfDayLightingSystem {
     this.lightLayer.addChild(sprite);
 
     return { source, sprite };
+  }
+
+  private createBuildingLight(location: LudusMapSceneLocationViewModel): BuildingLightDisplay {
+    const graphics = new Graphics({ roundPixels: true });
+
+    graphics.blendMode = 'add';
+    graphics.eventMode = 'none';
+    graphics.label = `${location.id}:building-glow`;
+    this.lightLayer.addChild(graphics);
+
+    return { graphics, location };
   }
 
   private drawOverlay(viewModel: LudusMapSceneViewModel): void {
@@ -157,6 +181,29 @@ export class TimeOfDayLightingSystem {
     }
   }
 
+  private reconcileBuildingLights(locations: LudusMapSceneLocationViewModel[]): void {
+    const activeLocations =
+      (this.theme?.buildingLightOpacity ?? 0) > 0
+        ? locations.filter((location) => location.isOwned)
+        : [];
+    const activeIds = new Set(activeLocations.map((location) => location.id));
+
+    for (const [locationId, display] of this.buildingLights) {
+      if (!activeIds.has(locationId)) {
+        destroyDisplayObject(display.graphics);
+        this.buildingLights.delete(locationId);
+      }
+    }
+
+    for (const location of activeLocations) {
+      const display = this.buildingLights.get(location.id) ?? this.createBuildingLight(location);
+
+      display.location = location;
+      display.graphics.zIndex = location.sortY + 2;
+      this.buildingLights.set(location.id, display);
+    }
+  }
+
   private updateLights(now: number): void {
     const theme = this.theme;
 
@@ -174,6 +221,31 @@ export class TimeOfDayLightingSystem {
       sprite.tint = theme.lightColor;
       sprite.alpha = source.opacity * 0.38 * flicker;
       sprite.visible = sprite.alpha > 0.015;
+    }
+
+    for (const display of this.buildingLights.values()) {
+      const { graphics, location } = display;
+      const cycle = getCycle(now / 1000 + location.sortY * 0.013, 2.4);
+      const wave = Math.sin(cycle * Math.PI * 2);
+      const flicker = this.reducedMotion ? 0.86 : 0.74 + Math.abs(wave) * 0.26;
+      const alpha =
+        theme.buildingLightOpacity * flicker * (location.kind === 'external' ? 0.72 : 1);
+      const centerX = location.x + location.width / 2;
+      const centerY = location.y + location.height * 0.62;
+
+      graphics.clear();
+      graphics.visible = alpha > 0.015;
+
+      if (!graphics.visible) {
+        continue;
+      }
+
+      graphics.setFillStyle({ color: theme.lightColor, alpha: alpha * 0.2 });
+      graphics.ellipse(centerX, centerY, location.width * 0.72, location.height * 0.44);
+      graphics.fill();
+      graphics.setFillStyle({ color: theme.lightColor, alpha: alpha * 0.32 });
+      graphics.ellipse(centerX, centerY, location.width * 0.46, location.height * 0.28);
+      graphics.fill();
     }
   }
 }

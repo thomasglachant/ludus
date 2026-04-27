@@ -13,10 +13,10 @@
   "map": {
     "sourceQuality": "production",
     "backgrounds": {
-      "day": "/assets/pixel-art-production/map/ludus-map-day.webp",
-      "dawn": "/assets/pixel-art-production/map/ludus-map-dawn.webp",
-      "dusk": "/assets/pixel-art-production/map/ludus-map-dusk.webp",
-      "night": "/assets/pixel-art-production/map/ludus-map-night.webp"
+      "day": "/assets/pixel-art-production/map/ludus-map-coastal-base.webp",
+      "dawn": "/assets/pixel-art-production/map/ludus-map-coastal-base.webp",
+      "dusk": "/assets/pixel-art-production/map/ludus-map-coastal-base.webp",
+      "night": "/assets/pixel-art-production/map/ludus-map-coastal-base.webp"
     },
     "ambient": {
       "cloud-01": "/assets/pixel-art-production/map/ambient/cloud-01.png",
@@ -25,7 +25,9 @@
       "banner-red": "/assets/pixel-art-production/map/ambient/banner-red.png",
       "torch-on": "/assets/pixel-art-production/map/ambient/torch-on.png",
       "smoke-puff": "/assets/pixel-art-production/map/ambient/smoke-puff.png",
-      "crowd-dot": "/assets/pixel-art-production/map/ambient/crowd-dot.png"
+      "crowd-dot": "/assets/pixel-art-production/map/ambient/crowd-dot.png",
+      "olive-tree": "/assets/pixel-art-production/map/ambient/olive-tree.png",
+      "cypress-tree": "/assets/pixel-art-production/map/ambient/cypress-tree.png"
     }
   },
   "buildings": {
@@ -194,7 +196,7 @@
     },
     "arena": {
       "sourceQuality": "production",
-      "exterior": "/assets/pixel-art-production/map/locations/arena-exterior.webp",
+      "exterior": "/assets/pixel-art-production/map/locations/arena-exterior-transparent.png",
       "combatBackground": "/assets/pixel-art-production/combat/arena-background.webp",
       "crowd": "/assets/pixel-art-production/combat/arena-crowd.webp"
     }

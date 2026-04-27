@@ -97,6 +97,19 @@ export interface LudusMapSceneAmbientElementViewModel {
   zIndex: number;
 }
 
+export interface LudusMapSceneWaterAnimationViewModel {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: number;
+  lineCount: number;
+  lineWidth: number;
+  opacity: number;
+  speed: number;
+}
+
 export interface LudusMapSceneThemeViewModel {
   skyColor: number;
   terrainColor: number;
@@ -106,6 +119,7 @@ export interface LudusMapSceneThemeViewModel {
   lightColor: number;
   shadowColor: number;
   spriteBrightness: number;
+  buildingLightOpacity: number;
   backgroundAssetPath?: string;
 }
 
@@ -129,6 +143,7 @@ export interface LudusMapSceneViewModel {
   paths: LudusMapScenePathViewModel[];
   decorations: LudusMapSceneDecorationViewModel[];
   ambientElements: LudusMapSceneAmbientElementViewModel[];
+  waterAnimation: LudusMapSceneWaterAnimationViewModel;
   locations: LudusMapSceneLocationViewModel[];
   gladiators: LudusMapSceneGladiatorViewModel[];
 }

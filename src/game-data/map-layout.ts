@@ -58,6 +58,7 @@ export interface GladiatorMapSlotDefinition extends MapPoint {
 
 export interface LudusMapDefinition {
   size: MapSize;
+  contentOffset: MapPoint;
   ludusBounds: MapRect;
   defaultCamera: MapPoint;
   defaultZoom: number;
@@ -70,27 +71,61 @@ export interface LudusMapDefinition {
   gladiatorSlots: GladiatorMapSlotDefinition[];
 }
 
+const MAP_CONTENT_OFFSET: MapPoint = {
+  x: 420,
+  y: 260,
+};
+
+function offsetPoint(point: MapPoint): MapPoint {
+  return {
+    x: point.x + MAP_CONTENT_OFFSET.x,
+    y: point.y + MAP_CONTENT_OFFSET.y,
+  };
+}
+
+function offsetRect<T extends MapRect>(rect: T): T {
+  return {
+    ...rect,
+    ...offsetPoint(rect),
+  };
+}
+
+function offsetPath(path: MapPathDefinition): MapPathDefinition {
+  return {
+    ...path,
+    points: path.points.map(offsetPoint),
+  };
+}
+
+function offsetDecoration(decoration: MapDecorationDefinition): MapDecorationDefinition {
+  return {
+    ...decoration,
+    ...offsetPoint(decoration),
+  };
+}
+
 export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
   size: {
-    width: 2400,
-    height: 1500,
+    width: 3200,
+    height: 2000,
   },
-  ludusBounds: {
+  contentOffset: MAP_CONTENT_OFFSET,
+  ludusBounds: offsetRect({
     x: 520,
     y: 300,
     width: 1220,
     height: 890,
-  },
+  }),
   defaultCamera: {
     x: -520,
-    y: -260,
+    y: -330,
   },
-  defaultZoom: 0.75,
-  minZoom: 0.5,
-  maxZoom: 1.5,
-  zoomPresets: [0.5, 0.75, 1, 1.25, 1.5],
+  defaultZoom: 0.58,
+  minZoom: 0.48,
+  maxZoom: 1.45,
+  zoomPresets: [0.48, 0.58, 0.75, 1, 1.25, 1.45],
   locations: [
-    {
+    offsetRect({
       id: 'domus',
       kind: 'building',
       nameKey: 'buildings.domus.name',
@@ -100,8 +135,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       y: 610,
       width: 280,
       height: 190,
-    },
-    {
+    }),
+    offsetRect({
       id: 'canteen',
       kind: 'building',
       nameKey: 'buildings.canteen.name',
@@ -111,8 +146,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       y: 520,
       width: 230,
       height: 160,
-    },
-    {
+    }),
+    offsetRect({
       id: 'dormitory',
       kind: 'building',
       nameKey: 'buildings.dormitory.name',
@@ -122,8 +157,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       y: 850,
       width: 250,
       height: 170,
-    },
-    {
+    }),
+    offsetRect({
       id: 'trainingGround',
       kind: 'building',
       nameKey: 'buildings.trainingGround.name',
@@ -133,8 +168,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       y: 880,
       width: 300,
       height: 210,
-    },
-    {
+    }),
+    offsetRect({
       id: 'pleasureHall',
       kind: 'building',
       nameKey: 'buildings.pleasureHall.name',
@@ -144,8 +179,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       y: 510,
       width: 250,
       height: 170,
-    },
-    {
+    }),
+    offsetRect({
       id: 'infirmary',
       kind: 'building',
       nameKey: 'buildings.infirmary.name',
@@ -155,8 +190,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       y: 1010,
       width: 240,
       height: 160,
-    },
-    {
+    }),
+    offsetRect({
       id: 'market',
       kind: 'external',
       nameKey: 'map.locations.market.name',
@@ -167,8 +202,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       y: 760,
       width: 260,
       height: 180,
-    },
-    {
+    }),
+    offsetRect({
       id: 'arena',
       kind: 'external',
       nameKey: 'map.locations.arena.name',
@@ -179,10 +214,10 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       y: 420,
       width: 310,
       height: 240,
-    },
+    }),
   ],
   paths: [
-    {
+    offsetPath({
       id: 'domus-canteen',
       kind: 'internal',
       points: [
@@ -190,8 +225,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
         { x: 920, y: 700 },
         { x: 840, y: 680 },
       ],
-    },
-    {
+    }),
+    offsetPath({
       id: 'domus-dormitory',
       kind: 'internal',
       points: [
@@ -199,8 +234,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
         { x: 920, y: 830 },
         { x: 820, y: 870 },
       ],
-    },
-    {
+    }),
+    offsetPath({
       id: 'domus-training-ground',
       kind: 'internal',
       points: [
@@ -208,8 +243,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
         { x: 1360, y: 870 },
         { x: 1460, y: 930 },
       ],
-    },
-    {
+    }),
+    offsetPath({
       id: 'domus-pleasure-hall',
       kind: 'internal',
       points: [
@@ -217,8 +252,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
         { x: 1390, y: 620 },
         { x: 1470, y: 600 },
       ],
-    },
-    {
+    }),
+    offsetPath({
       id: 'domus-infirmary',
       kind: 'internal',
       points: [
@@ -226,8 +261,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
         { x: 1180, y: 930 },
         { x: 1170, y: 1010 },
       ],
-    },
-    {
+    }),
+    offsetPath({
       id: 'market-road',
       kind: 'external',
       points: [
@@ -236,8 +271,8 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
         { x: 700, y: 800 },
         { x: 850, y: 740 },
       ],
-    },
-    {
+    }),
+    offsetPath({
       id: 'arena-road',
       kind: 'external',
       points: [
@@ -246,22 +281,30 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
         { x: 1900, y: 530 },
         { x: 1970, y: 530 },
       ],
-    },
+    }),
   ],
-  decorations: LUDUS_MAP_DECORATIONS,
+  decorations: LUDUS_MAP_DECORATIONS.map(offsetDecoration),
   gladiatorSlots: [
-    { id: 'slot-domus-1', buildingId: 'domus', x: 1110, y: 825 },
-    { id: 'slot-domus-2', buildingId: 'domus', x: 1240, y: 815 },
-    { id: 'slot-canteen-1', buildingId: 'canteen', x: 780, y: 710 },
-    { id: 'slot-canteen-2', buildingId: 'canteen', x: 880, y: 720 },
-    { id: 'slot-dormitory-1', buildingId: 'dormitory', x: 760, y: 1050 },
-    { id: 'slot-dormitory-2', buildingId: 'dormitory', x: 900, y: 1045 },
-    { id: 'slot-training-1', buildingId: 'trainingGround', x: 1420, y: 1115 },
-    { id: 'slot-training-2', buildingId: 'trainingGround', x: 1535, y: 1110 },
-    { id: 'slot-pleasure-1', buildingId: 'pleasureHall', x: 1465, y: 710 },
-    { id: 'slot-pleasure-2', buildingId: 'pleasureHall', x: 1570, y: 720 },
-    { id: 'slot-infirmary-1', buildingId: 'infirmary', x: 1110, y: 1200 },
-    { id: 'slot-infirmary-2', buildingId: 'infirmary', x: 1230, y: 1195 },
+    { id: 'slot-domus-1', buildingId: 'domus', ...offsetPoint({ x: 1110, y: 825 }) },
+    { id: 'slot-domus-2', buildingId: 'domus', ...offsetPoint({ x: 1240, y: 815 }) },
+    { id: 'slot-canteen-1', buildingId: 'canteen', ...offsetPoint({ x: 780, y: 710 }) },
+    { id: 'slot-canteen-2', buildingId: 'canteen', ...offsetPoint({ x: 880, y: 720 }) },
+    { id: 'slot-dormitory-1', buildingId: 'dormitory', ...offsetPoint({ x: 760, y: 1050 }) },
+    { id: 'slot-dormitory-2', buildingId: 'dormitory', ...offsetPoint({ x: 900, y: 1045 }) },
+    {
+      id: 'slot-training-1',
+      buildingId: 'trainingGround',
+      ...offsetPoint({ x: 1420, y: 1115 }),
+    },
+    {
+      id: 'slot-training-2',
+      buildingId: 'trainingGround',
+      ...offsetPoint({ x: 1535, y: 1110 }),
+    },
+    { id: 'slot-pleasure-1', buildingId: 'pleasureHall', ...offsetPoint({ x: 1465, y: 710 }) },
+    { id: 'slot-pleasure-2', buildingId: 'pleasureHall', ...offsetPoint({ x: 1570, y: 720 }) },
+    { id: 'slot-infirmary-1', buildingId: 'infirmary', ...offsetPoint({ x: 1110, y: 1200 }) },
+    { id: 'slot-infirmary-2', buildingId: 'infirmary', ...offsetPoint({ x: 1230, y: 1195 }) },
   ],
 };
 

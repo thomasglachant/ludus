@@ -210,7 +210,7 @@ export function buildPixiProductionAssetManifest(options = {}) {
         fallbackManifest.map.backgrounds[phase],
         renderLayers.mapBackground,
         {
-          hitbox: rect(2400, 1500),
+          hitbox: rect(3200, 2000),
           productionSrc: productionManifest.map.backgrounds[phase],
           tags: ['map', 'background', phase],
         },
@@ -335,22 +335,20 @@ export function buildPixiProductionAssetManifest(options = {}) {
     for (const animationKey of mapAnimationKeys) {
       const productionFrames = assetSet.frames[animationKey] ?? [];
       const fallbackFrames = fallbackAssetSet.frames[animationKey] ?? productionFrames;
-      const frameAliases = productionFrames
-        .slice(0, 2)
-        .map((productionSrc, index) => {
-          const fallbackSrc = fallbackFrames[index] ?? productionSrc;
-          const alias = textureAlias('gladiator', variantId, animationKey, String(index));
-          addTexture(
-            manifest,
-            createTexture(alias, 'gladiators-map', fallbackSrc, renderLayers.mapCharacters, {
-              anchor: point(0.5, 1),
-              hitbox: rect(64, 96, -32, -96),
-              productionSrc,
-              tags: ['gladiator', 'map', variantId, animationKey],
-            }),
-          );
-          return alias;
-        });
+      const frameAliases = productionFrames.slice(0, 2).map((productionSrc, index) => {
+        const fallbackSrc = fallbackFrames[index] ?? productionSrc;
+        const alias = textureAlias('gladiator', variantId, animationKey, String(index));
+        addTexture(
+          manifest,
+          createTexture(alias, 'gladiators-map', fallbackSrc, renderLayers.mapCharacters, {
+            anchor: point(0.5, 1),
+            hitbox: rect(64, 96, -32, -96),
+            productionSrc,
+            tags: ['gladiator', 'map', variantId, animationKey],
+          }),
+        );
+        return alias;
+      });
 
       mapFrameAliases.push(...frameAliases);
       mapAnimations[animationKey] = createFrameAnimation(
@@ -380,22 +378,20 @@ export function buildPixiProductionAssetManifest(options = {}) {
       const sourceAnimationKey = combatAnimationSourceKeyByAnimationKey[animationKey];
       const productionFrames = assetSet.frames[sourceAnimationKey] ?? [];
       const fallbackFrames = fallbackAssetSet.frames[sourceAnimationKey] ?? productionFrames;
-      const frameAliases = productionFrames
-        .slice(0, 2)
-        .map((productionSrc, index) => {
-          const fallbackSrc = fallbackFrames[index] ?? productionSrc;
-          const alias = textureAlias('gladiator', variantId, animationKey, String(index));
-          addTexture(
-            manifest,
-            createTexture(alias, 'gladiators-combat', fallbackSrc, renderLayers.combatFighters, {
-              anchor: point(0.5, 1),
-              hitbox: rect(120, 180, -60, -180),
-              productionSrc,
-              tags: ['gladiator', 'combat', variantId, animationKey],
-            }),
-          );
-          return alias;
-        });
+      const frameAliases = productionFrames.slice(0, 2).map((productionSrc, index) => {
+        const fallbackSrc = fallbackFrames[index] ?? productionSrc;
+        const alias = textureAlias('gladiator', variantId, animationKey, String(index));
+        addTexture(
+          manifest,
+          createTexture(alias, 'gladiators-combat', fallbackSrc, renderLayers.combatFighters, {
+            anchor: point(0.5, 1),
+            hitbox: rect(120, 180, -60, -180),
+            productionSrc,
+            tags: ['gladiator', 'combat', variantId, animationKey],
+          }),
+        );
+        return alias;
+      });
 
       combatFrameAliases.push(...frameAliases);
       combatAnimations[animationKey] = createFrameAnimation(

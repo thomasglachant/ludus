@@ -159,6 +159,46 @@ function drawTerrainOverlay(graphics: Graphics, viewModel: LudusMapSceneViewMode
   graphics.fill();
 }
 
+function drawOceanWaves(graphics: Graphics, viewModel: LudusMapSceneViewModel, now: number): void {
+  const water = viewModel.waterAnimation;
+
+  graphics.clear();
+
+  if (water.opacity <= 0) {
+    return;
+  }
+
+  const elapsedSeconds = viewModel.reducedMotion ? 0 : now / 1000;
+  const segmentCount = 12;
+  const rowGap = water.height / Math.max(water.lineCount, 1);
+
+  for (let row = 0; row < water.lineCount; row += 1) {
+    const rowProgress = row / Math.max(water.lineCount - 1, 1);
+    const y = water.y + row * rowGap;
+    const waveOffset = elapsedSeconds * water.speed * 120 + row * 19;
+    const alpha = water.opacity * (0.38 + rowProgress * 0.62);
+
+    graphics.setStrokeStyle({
+      color: water.color,
+      width: water.lineWidth,
+      alpha,
+      cap: 'round',
+      join: 'round',
+    });
+    graphics.moveTo(water.x, y);
+
+    for (let segment = 1; segment <= segmentCount; segment += 1) {
+      const segmentProgress = segment / segmentCount;
+      const x = water.x + segmentProgress * water.width;
+      const wave = Math.sin(segmentProgress * Math.PI * 4 + waveOffset * 0.04);
+
+      graphics.lineTo(x, y + wave * (3 + rowProgress * 5));
+    }
+
+    graphics.stroke();
+  }
+}
+
 function drawPaths(graphics: Graphics, paths: LudusMapScenePathViewModel[]): void {
   graphics.clear();
 
@@ -280,6 +320,27 @@ function getDecorationLayerId(decoration: LudusMapSceneDecorationViewModel): Lud
   return 'static-props';
 }
 
+function shouldSwayDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
+  return decoration.style === 'oliveTree' || decoration.style === 'cypressTree';
+}
+
+function getDecorationPivot(decoration: LudusMapSceneDecorationViewModel): {
+  x: number;
+  y: number;
+} {
+  if (shouldSwayDecoration(decoration)) {
+    return {
+      x: decoration.width / 2,
+      y: decoration.height,
+    };
+  }
+
+  return {
+    x: decoration.width / 2,
+    y: decoration.height / 2,
+  };
+}
+
 function getLocationLabelZoomThreshold(location: LudusMapSceneLocationViewModel): number {
   return location.kind === 'external'
     ? EXTERNAL_LABEL_ZOOM_THRESHOLD
@@ -308,6 +369,7 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
   private readonly lightingSystem: TimeOfDayLightingSystem;
   private readonly locations = new Map<string, LocationDisplay>();
   private readonly options: LudusMapSceneOptions;
+  private readonly oceanWaveGraphics = new Graphics({ roundPixels: true });
   private readonly particleEffectSystem: ParticleEffectSystem;
   private readonly pathGraphics = new Graphics({ roundPixels: true });
   private readonly terrainOverlay = new Graphics({ roundPixels: true });
@@ -331,10 +393,11 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     this.root.addChild(this.layers.root);
     this.backgroundSprite.label = 'map-background-raster';
     this.backgroundFallback.label = 'map-background-fallback';
+    this.oceanWaveGraphics.label = 'map-ocean-waves';
     this.pathGraphics.label = 'map-paths';
     this.terrainOverlay.label = 'terrain-overlay';
     this.layers.layers.background.addChild(this.backgroundFallback, this.backgroundSprite);
-    this.layers.layers['terrain-overlays'].addChild(this.terrainOverlay);
+    this.layers.layers['terrain-overlays'].addChild(this.terrainOverlay, this.oceanWaveGraphics);
     this.layers.layers.paths.addChild(this.pathGraphics);
     this.ambientAnimationSystem = new AmbientAnimationSystem({
       ambientLayer: this.layers.layers['ambient-effects'],
@@ -388,6 +451,12 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     }
 
     const now = performance.now();
+
+    drawOceanWaves(this.oceanWaveGraphics, this.viewModel, now);
+
+    for (const decorationDisplay of this.decorations.values()) {
+      this.updateDecorationAnimation(decorationDisplay, now);
+    }
 
     for (const gladiatorDisplay of this.gladiators.values()) {
       this.updateGladiatorAnimation(gladiatorDisplay, now);
@@ -615,6 +684,7 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     this.backgroundSprite.texture = backgroundTexture ?? Texture.EMPTY;
     setPixelArtSpriteSize(this.backgroundSprite, viewModel.width, viewModel.height);
     drawTerrainOverlay(this.terrainOverlay, viewModel);
+    drawOceanWaves(this.oceanWaveGraphics, viewModel, performance.now());
     drawPaths(this.pathGraphics, viewModel.paths);
     this.reconcileDecorations(viewModel.decorations);
     this.reconcileLocations(viewModel.locations);
@@ -644,11 +714,13 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
 
       this.decorations.set(decoration.id, display);
       display.decoration = decoration;
+      const pivot = getDecorationPivot(decoration);
+
       display.container.label = decoration.id;
-      display.container.pivot.set(decoration.width / 2, decoration.height / 2);
+      display.container.pivot.set(pivot.x, pivot.y);
       display.container.rotation = (decoration.rotation * Math.PI) / 180;
-      display.container.x = decoration.x + decoration.width / 2;
-      display.container.y = decoration.y + decoration.height / 2;
+      display.container.x = decoration.x + pivot.x;
+      display.container.y = decoration.y + pivot.y;
       display.container.zIndex = decoration.sortY;
       display.sprite.texture = texture ?? Texture.EMPTY;
       display.sprite.visible = Boolean(texture);
@@ -657,7 +729,25 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       });
       display.fallback.visible = false;
       display.fallback.clear();
+      this.updateDecorationAnimation(display, performance.now());
     }
+  }
+
+  private updateDecorationAnimation(display: DecorationDisplay, now: number): void {
+    const viewModel = this.viewModel;
+    const { decoration } = display;
+    const baseRotation = (decoration.rotation * Math.PI) / 180;
+
+    if (!viewModel || viewModel.reducedMotion || !shouldSwayDecoration(decoration)) {
+      display.container.rotation = baseRotation;
+      return;
+    }
+
+    const elapsedSeconds = now / 1000 + decoration.sortY * 0.003;
+    const amplitudeDegrees = decoration.style === 'cypressTree' ? 1.6 : 2.4;
+    const wave = Math.sin(elapsedSeconds * 1.25);
+
+    display.container.rotation = baseRotation + (wave * amplitudeDegrees * Math.PI) / 180;
   }
 
   private reconcileGladiators(gladiators: LudusMapSceneGladiatorViewModel[]): void {

@@ -13,6 +13,7 @@ export interface TimeOfDayVisualTheme {
   shadowColor: string;
   torchOpacity: number;
   spriteBrightness: number;
+  buildingLightOpacity: number;
   mapBackgroundAssetPath?: string;
   cloudOpacity?: number;
   ambientSpeedMultiplier?: number;
@@ -42,7 +43,8 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       shadowColor: '#5d3c38',
       torchOpacity: 0.45,
       spriteBrightness: 1.04,
-      mapBackgroundAssetPath: VISUAL_ASSET_MANIFEST.map.backgrounds.dawn,
+      buildingLightOpacity: 0.08,
+      mapBackgroundAssetPath: VISUAL_ASSET_MANIFEST.map.backgrounds.day,
       cloudOpacity: 0.75,
       ambientSpeedMultiplier: 0.85,
     },
@@ -62,6 +64,7 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       shadowColor: '#4f3a28',
       torchOpacity: 0.12,
       spriteBrightness: 1,
+      buildingLightOpacity: 0,
       mapBackgroundAssetPath: VISUAL_ASSET_MANIFEST.map.backgrounds.day,
       cloudOpacity: 1,
       ambientSpeedMultiplier: 1,
@@ -82,7 +85,8 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       shadowColor: '#3d2632',
       torchOpacity: 0.72,
       spriteBrightness: 0.92,
-      mapBackgroundAssetPath: VISUAL_ASSET_MANIFEST.map.backgrounds.dusk,
+      buildingLightOpacity: 0.16,
+      mapBackgroundAssetPath: VISUAL_ASSET_MANIFEST.map.backgrounds.day,
       cloudOpacity: 0.68,
       ambientSpeedMultiplier: 0.75,
     },
@@ -101,8 +105,9 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       lightColor: '#ff9f43',
       shadowColor: '#0d1828',
       torchOpacity: 1,
-      spriteBrightness: 0.76,
-      mapBackgroundAssetPath: VISUAL_ASSET_MANIFEST.map.backgrounds.night,
+      spriteBrightness: 0.82,
+      buildingLightOpacity: 0.3,
+      mapBackgroundAssetPath: VISUAL_ASSET_MANIFEST.map.backgrounds.day,
       cloudOpacity: 0.35,
       ambientSpeedMultiplier: 0.55,
     },

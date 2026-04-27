@@ -6,7 +6,10 @@ import {
   getGladiatorMapAnimationDefinitionById,
 } from '../../../game-data/gladiator-animations';
 import { getGladiatorMapPoint } from '../../../game-data/gladiator-map-movement';
-import { LUDUS_MAP_AMBIENT_ELEMENTS } from '../../../game-data/map-visuals';
+import {
+  LUDUS_MAP_AMBIENT_ELEMENTS,
+  LUDUS_MAP_WATER_ANIMATION,
+} from '../../../game-data/map-visuals';
 import { TIME_CONFIG } from '../../../game-data/time';
 import { getTimeOfDayDefinition } from '../../../game-data/time-of-day';
 import {
@@ -25,6 +28,28 @@ interface CreateLudusMapSceneViewModelOptions {
 
 function parseHexColor(hexColor: string) {
   return Number.parseInt(hexColor.replace('#', ''), 16);
+}
+
+function getDecorationAssetPath(style: string): string | undefined {
+  const ambientAssets = VISUAL_ASSET_MANIFEST.map.ambient;
+
+  if (style === 'oliveTree') {
+    return ambientAssets['olive-tree'];
+  }
+
+  if (style === 'cypressTree') {
+    return ambientAssets['cypress-tree'];
+  }
+
+  if (style === 'torch') {
+    return ambientAssets['torch-on'];
+  }
+
+  return undefined;
+}
+
+function shouldOffsetAmbientElement(kind: string): boolean {
+  return kind !== 'cloud';
 }
 
 export function createLudusMapSceneViewModel(
@@ -63,6 +88,7 @@ export function createLudusMapSceneViewModel(
       lightColor: parseHexColor(timeOfDay.visualTheme.lightColor),
       shadowColor: parseHexColor(timeOfDay.visualTheme.shadowColor),
       spriteBrightness: timeOfDay.visualTheme.spriteBrightness,
+      buildingLightOpacity: timeOfDay.visualTheme.buildingLightOpacity,
       backgroundAssetPath: timeOfDay.visualTheme.mapBackgroundAssetPath,
     },
     paths: LUDUS_MAP_DEFINITION.paths.map((path) => ({
@@ -78,30 +104,50 @@ export function createLudusMapSceneViewModel(
       width: decoration.width,
       height: decoration.height,
       rotation: decoration.rotation ?? 0,
-      assetPath:
-        decoration.style === 'torch' ? VISUAL_ASSET_MANIFEST.map.ambient['torch-on'] : undefined,
+      assetPath: getDecorationAssetPath(decoration.style),
       sortY: decoration.y + decoration.height,
     })),
-    ambientElements: LUDUS_MAP_AMBIENT_ELEMENTS.map((element) => ({
-      id: element.id,
-      kind: element.kind,
-      assetPath: element.assetPath,
-      x: element.x,
-      y: element.y,
-      width: element.width,
-      height: element.height,
-      opacity:
-        element.kind === 'torch'
-          ? (element.opacity ?? 1) * timeOfDay.visualTheme.torchOpacity
-          : element.kind === 'cloud'
-            ? (element.opacity ?? 1) * (timeOfDay.visualTheme.cloudOpacity ?? 1)
-            : (element.opacity ?? 1),
-      rotation: element.rotation ?? 0,
-      animationDelaySeconds: element.animationDelaySeconds ?? 0,
-      animationDurationSeconds:
-        (element.animationDurationSeconds ?? 4) / Math.max(ambientSpeedMultiplier, 0.1),
-      zIndex: element.zIndex ?? 1,
-    })),
+    ambientElements: LUDUS_MAP_AMBIENT_ELEMENTS.map((element) => {
+      const xOffset = shouldOffsetAmbientElement(element.kind)
+        ? LUDUS_MAP_DEFINITION.contentOffset.x
+        : 0;
+      const yOffset = shouldOffsetAmbientElement(element.kind)
+        ? LUDUS_MAP_DEFINITION.contentOffset.y
+        : 0;
+
+      return {
+        id: element.id,
+        kind: element.kind,
+        assetPath: element.assetPath,
+        x: element.x + xOffset,
+        y: element.y + yOffset,
+        width: element.width,
+        height: element.height,
+        opacity:
+          element.kind === 'torch'
+            ? (element.opacity ?? 1) * timeOfDay.visualTheme.torchOpacity
+            : element.kind === 'cloud'
+              ? (element.opacity ?? 1) * (timeOfDay.visualTheme.cloudOpacity ?? 1)
+              : (element.opacity ?? 1),
+        rotation: element.rotation ?? 0,
+        animationDelaySeconds: element.animationDelaySeconds ?? 0,
+        animationDurationSeconds:
+          (element.animationDurationSeconds ?? 4) / Math.max(ambientSpeedMultiplier, 0.1),
+        zIndex: element.zIndex ?? 1,
+      };
+    }),
+    waterAnimation: {
+      id: LUDUS_MAP_WATER_ANIMATION.id,
+      x: LUDUS_MAP_WATER_ANIMATION.x,
+      y: LUDUS_MAP_WATER_ANIMATION.y,
+      width: LUDUS_MAP_WATER_ANIMATION.width,
+      height: LUDUS_MAP_WATER_ANIMATION.height,
+      color: parseHexColor(LUDUS_MAP_WATER_ANIMATION.color),
+      lineCount: LUDUS_MAP_WATER_ANIMATION.lineCount,
+      lineWidth: LUDUS_MAP_WATER_ANIMATION.lineWidth,
+      opacity: LUDUS_MAP_WATER_ANIMATION.opacity,
+      speed: LUDUS_MAP_WATER_ANIMATION.speed,
+    },
     locations: LUDUS_MAP_DEFINITION.locations.map((location) => {
       const building = location.kind === 'building' ? save.buildings[location.id] : null;
       const visual =
