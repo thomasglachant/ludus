@@ -64,6 +64,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     wins: gladiator.wins,
     losses: gladiator.losses,
     traits: gladiator.traits,
+    currentLocationId: gladiator.currentLocationId ?? gladiator.currentBuildingId,
     currentBuildingId: gladiator.currentBuildingId,
     currentActivityId: gladiator.currentActivityId,
     currentTaskStartedAt: gladiator.currentTaskStartedAt,

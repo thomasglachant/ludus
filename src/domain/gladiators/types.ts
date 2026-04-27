@@ -1,8 +1,10 @@
 import type { BuildingId } from '../buildings/types';
 
+export type GladiatorLocationId = BuildingId | 'arena';
+
 export interface GladiatorMapMovement {
-  currentLocation: BuildingId;
-  targetLocation: BuildingId;
+  currentLocation: GladiatorLocationId;
+  targetLocation: GladiatorLocationId;
   activity: string;
   movementStartedAt: number;
   movementDuration: number;
@@ -32,6 +34,7 @@ export interface Gladiator {
   wins: number;
   losses: number;
   traits: GladiatorTrait[];
+  currentLocationId?: GladiatorLocationId;
   currentBuildingId?: BuildingId;
   currentActivityId?: string;
   currentTaskStartedAt?: number;

@@ -84,7 +84,7 @@ describe('combat actions', () => {
     expect(gladiator).toMatchObject({
       wins: 1,
       losses: 0,
-      morale: 78,
+      morale: 85,
       reputation: 10,
     });
     expect(gladiator.energy).toBeLessThan(90);
@@ -127,7 +127,7 @@ describe('combat actions', () => {
     expect(gladiator).toMatchObject({
       wins: 0,
       losses: 1,
-      morale: 60,
+      morale: 62,
       reputation: 0,
     });
   });

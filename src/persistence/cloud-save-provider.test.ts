@@ -26,7 +26,7 @@ describe('CloudSaveProvider', () => {
         ownerName: 'Flavia',
         ludusName: 'Aquila',
         updatedAt: '2026-04-25T12:00:00.000Z',
-        schemaVersion: 1,
+        schemaVersion: 2,
       },
     ]);
     await expect(provider.loadSave('save-cloud')).resolves.toEqual(save);

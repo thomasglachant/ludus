@@ -83,7 +83,7 @@ describe('demo save definitions', () => {
       const save = definition.save;
 
       expect(isGameSave(save)).toBe(true);
-      expect(save.schemaVersion).toBe(1);
+      expect(save.schemaVersion).toBe(2);
       expect(save.metadata).toEqual({
         demoSaveId: definition.id,
       });

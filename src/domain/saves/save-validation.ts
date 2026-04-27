@@ -1,4 +1,5 @@
 import type { BuildingId } from '../buildings/types';
+import type { Gladiator, GladiatorLocationId } from '../gladiators/types';
 import type { GameSave } from './types';
 import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 
@@ -14,6 +15,8 @@ const requiredBuildingIds: BuildingId[] = [
 const dayOfWeeks = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 const gameSpeeds = [0, 1, 2, 4, 8, 16];
+const supportedSchemaVersions = [1, CURRENT_SCHEMA_VERSION];
+const locationIds = [...requiredBuildingIds, 'arena'];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -45,6 +48,10 @@ function hasStringFrom(value: Record<string, unknown>, key: string, allowedValue
 
 function hasNumberFrom(value: Record<string, unknown>, key: string, allowedValues: number[]) {
   return typeof value[key] === 'number' && allowedValues.includes(value[key]);
+}
+
+function isLocationId(value: unknown): value is GladiatorLocationId {
+  return typeof value === 'string' && locationIds.includes(value);
 }
 
 function isBuildingState(value: unknown, buildingId: BuildingId) {
@@ -118,12 +125,12 @@ function isEventState(value: unknown) {
   return isRecord(value) && hasArray(value, 'pendingEvents') && hasArray(value, 'resolvedEvents');
 }
 
-export function isGameSave(value: unknown): value is GameSave {
+function isSupportedGameSave(value: unknown): value is GameSave {
   if (!isRecord(value)) {
     return false;
   }
 
-  if (value.schemaVersion !== CURRENT_SCHEMA_VERSION) {
+  if (!hasNumberFrom(value, 'schemaVersion', supportedSchemaVersions)) {
     return false;
   }
 
@@ -173,8 +180,50 @@ export function isGameSave(value: unknown): value is GameSave {
   );
 }
 
+export function isGameSave(value: unknown): value is GameSave {
+  return isSupportedGameSave(value) && value.schemaVersion === CURRENT_SCHEMA_VERSION;
+}
+
+function normalizeGladiator(gladiator: Gladiator): Gladiator {
+  const movement = gladiator.mapMovement;
+
+  if (movement) {
+    return {
+      ...gladiator,
+      currentLocationId: undefined,
+      currentBuildingId: undefined,
+      mapMovement: {
+        ...movement,
+        currentLocation: isLocationId(movement.currentLocation)
+          ? movement.currentLocation
+          : (gladiator.currentBuildingId ?? 'domus'),
+        targetLocation: isLocationId(movement.targetLocation)
+          ? movement.targetLocation
+          : (gladiator.currentBuildingId ?? 'domus'),
+      },
+    };
+  }
+
+  const currentLocationId = isLocationId(gladiator.currentLocationId)
+    ? gladiator.currentLocationId
+    : gladiator.currentBuildingId;
+
+  return {
+    ...gladiator,
+    currentLocationId,
+    currentBuildingId:
+      currentLocationId && requiredBuildingIds.includes(currentLocationId as BuildingId)
+        ? (currentLocationId as BuildingId)
+        : undefined,
+  };
+}
+
 export function normalizeGameSave(save: GameSave): GameSave {
-  const normalizedSave: GameSave & { settings?: unknown } = { ...save };
+  const normalizedSave: GameSave & { settings?: unknown } = {
+    ...save,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    gladiators: save.gladiators.map(normalizeGladiator),
+  };
 
   delete normalizedSave.settings;
 
@@ -185,7 +234,7 @@ export function parseGameSave(value: string): GameSave | null {
   try {
     const parsed = JSON.parse(value) as unknown;
 
-    return isGameSave(parsed) ? normalizeGameSave(parsed) : null;
+    return isSupportedGameSave(parsed) ? normalizeGameSave(parsed) : null;
   } catch {
     return null;
   }

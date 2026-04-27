@@ -11,8 +11,13 @@ import {
   getRoutineForGladiator,
   synchronizePlanning,
 } from '../planning/planning-actions';
-import { assignGladiatorMapLocation } from '../gladiators/map-movement';
-import type { Gladiator } from '../gladiators/types';
+import { isGladiatorBuildingLocation } from '../../game-data/gladiator-map-movement';
+import {
+  assignGladiatorMapLocation,
+  getGladiatorMapMovementArrivalStamp,
+  resolveGladiatorMapMovement,
+} from '../gladiators/map-movement';
+import type { Gladiator, GladiatorLocationId } from '../gladiators/types';
 import type { GameTimeState } from './types';
 
 export interface GameTickResult {
@@ -71,6 +76,21 @@ const effectFieldByType: Partial<Record<BuildingEffect['type'], GladiatorNumeric
 
 const decreasingEffects = new Set<BuildingEffect['type']>(['decreaseEnergy', 'decreaseMorale']);
 const SUNDAY_ARENA_START_HOUR = 8;
+
+const ACTIVITY_NEED_EFFECTS: Record<
+  BuildingId,
+  {
+    satiety: number;
+    morale: number;
+  }
+> = {
+  domus: { satiety: -1, morale: 0 },
+  canteen: { satiety: -1, morale: 1 },
+  dormitory: { satiety: -1, morale: 0 },
+  trainingGround: { satiety: -6, morale: -4 },
+  pleasureHall: { satiety: -3, morale: 0 },
+  infirmary: { satiety: -1, morale: -3 },
+};
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -329,8 +349,13 @@ function applyEffect(gladiator: Gladiator, effect: BuildingEffect, hours: number
   };
 }
 
-function applyTrainingMoraleCost(save: GameSave, gladiator: Gladiator, hours: number) {
-  if (gladiator.currentBuildingId !== 'trainingGround') {
+function applyTrainingMoraleCost(
+  save: GameSave,
+  gladiator: Gladiator,
+  buildingId: BuildingId,
+  hours: number,
+) {
+  if (buildingId !== 'trainingGround') {
     return gladiator;
   }
 
@@ -351,31 +376,131 @@ function applyTrainingMoraleCost(save: GameSave, gladiator: Gladiator, hours: nu
   );
 }
 
-function applyAssignedBuildingEffects(save: GameSave, gladiator: Gladiator, hours: number) {
-  if (!gladiator.currentBuildingId) {
-    return gladiator;
+function applyActivityNeedEffects(
+  gladiator: Gladiator,
+  buildingId: BuildingId | undefined,
+  hours: number,
+): Gladiator {
+  const effect = buildingId ? ACTIVITY_NEED_EFFECTS[buildingId] : ACTIVITY_NEED_EFFECTS.domus;
+
+  return {
+    ...gladiator,
+    satiety: roundStat(clamp(gladiator.satiety + effect.satiety * hours, 0, 100)),
+    morale: roundStat(clamp(gladiator.morale + effect.morale * hours, 0, 100)),
+  };
+}
+
+function applyAssignedBuildingEffects(
+  save: GameSave,
+  gladiator: Gladiator,
+  buildingId: BuildingId | undefined,
+  hours: number,
+) {
+  if (!buildingId || hours <= 0) {
+    return hours > 0 ? applyActivityNeedEffects(gladiator, undefined, hours) : gladiator;
   }
 
-  const effects = getHourlyBuildingEffects(save, gladiator.currentBuildingId).filter(
+  const effects = getHourlyBuildingEffects(save, buildingId).filter(
     (effect) => (effect.target ?? 'assignedGladiator') === 'assignedGladiator',
   );
 
+  const withBuildingEffects = effects.reduce((updatedGladiator, effect) => {
+    return applyEffect(
+      updatedGladiator,
+      getAdjustedEffect(save, updatedGladiator, buildingId, effect),
+      hours,
+    );
+  }, gladiator);
+
   return applyTrainingMoraleCost(
     save,
-    effects.reduce((updatedGladiator, effect) => {
-      return applyEffect(
-        updatedGladiator,
-        getAdjustedEffect(
-          save,
-          updatedGladiator,
-          gladiator.currentBuildingId as BuildingId,
-          effect,
-        ),
-        hours,
-      );
-    }, gladiator),
+    applyActivityNeedEffects(withBuildingEffects, buildingId, hours),
+    buildingId,
     hours,
   );
+}
+
+function getBuildingLocationId(
+  locationId: GladiatorLocationId | undefined,
+): BuildingId | undefined {
+  return locationId && isGladiatorBuildingLocation(locationId) ? locationId : undefined;
+}
+
+function applyMovementAwareAssignedEffects(
+  save: GameSave,
+  gladiator: Gladiator,
+  effectWindowStartStamp: number,
+  effectWindowEndStamp: number,
+) {
+  const movement = gladiator.mapMovement;
+  const windowMinutes = effectWindowEndStamp - effectWindowStartStamp;
+
+  if (windowMinutes <= 0) {
+    return resolveGladiatorMapMovement(gladiator, save.time);
+  }
+
+  if (!movement) {
+    return applyAssignedBuildingEffects(
+      save,
+      gladiator,
+      getBuildingLocationId(gladiator.currentLocationId ?? gladiator.currentBuildingId),
+      windowMinutes / TIME_CONFIG.minutesPerHour,
+    );
+  }
+
+  let updatedGladiator = gladiator;
+  const movementStartStamp = movement.movementStartedAt;
+  const arrivalStamp = getGladiatorMapMovementArrivalStamp(movement);
+  const originBuildingId = getBuildingLocationId(movement.currentLocation);
+  const targetBuildingId = getBuildingLocationId(movement.targetLocation);
+  const originMinutes = clamp(
+    Math.min(movementStartStamp, effectWindowEndStamp) - effectWindowStartStamp,
+    0,
+    windowMinutes,
+  );
+  const movementMinutes = clamp(
+    Math.min(arrivalStamp, effectWindowEndStamp) -
+      Math.max(movementStartStamp, effectWindowStartStamp),
+    0,
+    windowMinutes,
+  );
+  const targetMinutes = clamp(
+    effectWindowEndStamp - Math.max(arrivalStamp, effectWindowStartStamp),
+    0,
+    windowMinutes,
+  );
+
+  if (originMinutes > 0) {
+    updatedGladiator = applyAssignedBuildingEffects(
+      save,
+      updatedGladiator,
+      originBuildingId,
+      originMinutes / TIME_CONFIG.minutesPerHour,
+    );
+  }
+
+  if (movementMinutes > 0) {
+    updatedGladiator = applyActivityNeedEffects(
+      updatedGladiator,
+      undefined,
+      movementMinutes / TIME_CONFIG.minutesPerHour,
+    );
+  }
+
+  if (targetMinutes > 0) {
+    updatedGladiator = applyAssignedBuildingEffects(
+      save,
+      updatedGladiator,
+      targetBuildingId,
+      targetMinutes / TIME_CONFIG.minutesPerHour,
+    );
+  }
+
+  if (arrivalStamp <= effectWindowEndStamp) {
+    return resolveGladiatorMapMovement(updatedGladiator, save.time);
+  }
+
+  return updatedGladiator;
 }
 
 function applyAllGladiatorEffects(save: GameSave, gladiator: Gladiator, hours: number) {
@@ -388,15 +513,36 @@ function applyAllGladiatorEffects(save: GameSave, gladiator: Gladiator, hours: n
     .reduce((updatedGladiator, effect) => applyEffect(updatedGladiator, effect, hours), gladiator);
 }
 
+function resolveCompletedGladiatorMovements(save: GameSave): GameSave {
+  return {
+    ...save,
+    gladiators: save.gladiators.map((gladiator) =>
+      resolveGladiatorMapMovement(gladiator, save.time),
+    ),
+  };
+}
+
 function applyHourlyBuildingEffects(save: GameSave, hours: number): GameSave {
   if (hours <= 0 || save.gladiators.length === 0) {
-    return save;
+    return resolveCompletedGladiatorMovements(save);
   }
+
+  const effectWindowEndStamp = getGameMinuteStamp(save.time);
+  const effectWindowStartStamp = effectWindowEndStamp - hours * TIME_CONFIG.minutesPerHour;
 
   return synchronizePlanning({
     ...save,
     gladiators: save.gladiators.map((gladiator) =>
-      applyAllGladiatorEffects(save, applyAssignedBuildingEffects(save, gladiator, hours), hours),
+      applyAllGladiatorEffects(
+        save,
+        applyMovementAwareAssignedEffects(
+          save,
+          gladiator,
+          effectWindowStartStamp,
+          effectWindowEndStamp,
+        ),
+        hours,
+      ),
     ),
   });
 }
@@ -483,10 +629,10 @@ export function tickGame(context: GameTickContext): GameTickResult {
       saveWithWeeklyLayers,
       context.currentSave.time,
     );
-    const saveWithSleepEffects =
-      appliedEffectHours > 0
-        ? applyHourlyBuildingEffects(saveWithSleepAssignments, appliedEffectHours)
-        : saveWithSleepAssignments;
+    const saveWithSleepEffects = applyHourlyBuildingEffects(
+      saveWithSleepAssignments,
+      appliedEffectHours,
+    );
     const saveWithRestoredEnergy = restoreRestedGladiatorEnergy(saveWithSleepEffects);
 
     return {
@@ -501,13 +647,11 @@ export function tickGame(context: GameTickContext): GameTickResult {
     appliedEffectHours > 0 || isSleepTime(nextTime.hour)
       ? applyPlanningRecommendations(saveWithWeeklyLayers)
       : saveWithWeeklyLayers;
-  const saveWithEffects =
-    appliedEffectHours > 0
-      ? applyHourlyBuildingEffects(saveWithAssignments, appliedEffectHours)
-      : saveWithAssignments;
+  const saveWithEffects = applyHourlyBuildingEffects(saveWithAssignments, appliedEffectHours);
+  const saveWithArenaStart = synchronizeArena(saveWithEffects, context.random);
 
   return {
-    save: saveWithEffects,
+    save: saveWithArenaStart,
     advancedGameMinutes,
     appliedEffectHours,
     effectAccumulatorMinutes,

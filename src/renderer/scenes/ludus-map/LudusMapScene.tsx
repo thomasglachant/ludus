@@ -275,12 +275,11 @@ function drawLocationFallbackFrame(
 function drawLocationHighlight(
   graphics: Graphics,
   location: LudusMapSceneLocationViewModel,
-  isHovered: boolean,
   isSelected: boolean,
 ): void {
   graphics.clear();
 
-  if (!isHovered && !isSelected) {
+  if (!isSelected) {
     graphics.visible = false;
     return;
   }
@@ -288,14 +287,14 @@ function drawLocationHighlight(
   graphics.visible = true;
   graphics.setFillStyle({
     color: 0x7a4f2a,
-    alpha: isSelected ? 0.08 : 0.04,
+    alpha: 0.08,
   });
   graphics.roundRect(0, 0, location.hitArea.width, location.hitArea.height, 10);
   graphics.fill();
   graphics.setStrokeStyle({
-    color: isSelected ? 0xc78b3d : 0x8a6134,
-    width: isSelected ? 3 : 2,
-    alpha: isSelected ? 0.52 : 0.34,
+    color: 0xc78b3d,
+    width: 3,
+    alpha: 0.52,
   });
   graphics.roundRect(0, 0, location.hitArea.width, location.hitArea.height, 10);
   graphics.stroke();
@@ -311,7 +310,6 @@ function getDecorationLayerId(decoration: LudusMapSceneDecorationViewModel): Lud
     decoration.style === 'cypressTree' ||
     decoration.style === 'well' ||
     decoration.style === 'storage' ||
-    decoration.style === 'torch' ||
     decoration.style === 'amphora'
   ) {
     return 'characters-y-sorted';
@@ -905,7 +903,7 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
 
       display.label.visible = shouldShowLabel;
       display.label.alpha = isSelected ? 1 : isHovered ? 0.96 : 0.74;
-      drawLocationHighlight(display.highlight, location, isHovered, isSelected);
+      drawLocationHighlight(display.highlight, location, isSelected);
     }
   }
 

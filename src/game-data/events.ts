@@ -155,4 +155,96 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
       },
     ],
   },
+  {
+    id: 'badOmen',
+    titleKey: 'events.badOmen.title',
+    descriptionKey: 'events.badOmen.description',
+    gladiatorSelector: 'any',
+    choices: [
+      {
+        id: 'performRite',
+        labelKey: 'events.badOmen.performRite.label',
+        consequenceKey: 'events.badOmen.performRite.consequence',
+        effects: [
+          { type: 'changeTreasury', amount: -15 },
+          { type: 'changeSelectedGladiatorMorale', amount: -2 },
+        ],
+      },
+      {
+        id: 'dismissFear',
+        labelKey: 'events.badOmen.dismissFear.label',
+        consequenceKey: 'events.badOmen.dismissFear.consequence',
+        effects: [{ type: 'changeSelectedGladiatorMorale', amount: -7 }],
+      },
+    ],
+  },
+  {
+    id: 'spoiledRations',
+    titleKey: 'events.spoiledRations.title',
+    descriptionKey: 'events.spoiledRations.description',
+    gladiatorSelector: 'any',
+    choices: [
+      {
+        id: 'replaceRations',
+        labelKey: 'events.spoiledRations.replaceRations.label',
+        consequenceKey: 'events.spoiledRations.replaceRations.consequence',
+        effects: [
+          { type: 'changeTreasury', amount: -25 },
+          { type: 'changeSelectedGladiatorMorale', amount: -3 },
+        ],
+      },
+      {
+        id: 'serveAnyway',
+        labelKey: 'events.spoiledRations.serveAnyway.label',
+        consequenceKey: 'events.spoiledRations.serveAnyway.consequence',
+        effects: [
+          { type: 'changeSelectedGladiatorMorale', amount: -9 },
+          { type: 'changeSelectedGladiatorSatiety', amount: -6 },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'insultFromVeteran',
+    titleKey: 'events.insultFromVeteran.title',
+    descriptionKey: 'events.insultFromVeteran.description',
+    gladiatorSelector: 'any',
+    choices: [
+      {
+        id: 'mediate',
+        labelKey: 'events.insultFromVeteran.mediate.label',
+        consequenceKey: 'events.insultFromVeteran.mediate.consequence',
+        effects: [{ type: 'changeSelectedGladiatorMorale', amount: -4 }],
+      },
+      {
+        id: 'letItStand',
+        labelKey: 'events.insultFromVeteran.letItStand.label',
+        consequenceKey: 'events.insultFromVeteran.letItStand.consequence',
+        effects: [{ type: 'changeSelectedGladiatorMorale', amount: -10 }],
+      },
+    ],
+  },
+  {
+    id: 'homesickNight',
+    titleKey: 'events.homesickNight.title',
+    descriptionKey: 'events.homesickNight.description',
+    gladiatorSelector: 'any',
+    choices: [
+      {
+        id: 'grantLetter',
+        labelKey: 'events.homesickNight.grantLetter.label',
+        consequenceKey: 'events.homesickNight.grantLetter.consequence',
+        effects: [
+          { type: 'changeTreasury', amount: -10 },
+          { type: 'changeSelectedGladiatorMorale', amount: -2 },
+        ],
+      },
+      {
+        id: 'demandFocus',
+        labelKey: 'events.homesickNight.demandFocus.label',
+        consequenceKey: 'events.homesickNight.demandFocus.consequence',
+        effects: [{ type: 'changeSelectedGladiatorMorale', amount: -6 }],
+      },
+    ],
+  },
 ];

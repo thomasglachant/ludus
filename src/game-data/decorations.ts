@@ -6,7 +6,6 @@ export type MapDecorationStyle =
   | 'field'
   | 'wall'
   | 'fence'
-  | 'torch'
   | 'amphora';
 
 export interface MapDecorationDefinition {
@@ -51,8 +50,6 @@ export const LUDUS_MAP_DECORATIONS: MapDecorationDefinition[] = [
     height: 26,
     rotation: -11,
   },
-  { id: 'torch-gate-west', style: 'torch', x: 548, y: 765, width: 28, height: 64 },
-  { id: 'torch-domus', style: 'torch', x: 1320, y: 740, width: 28, height: 64 },
   { id: 'amphora-canteen', style: 'amphora', x: 660, y: 660, width: 42, height: 58 },
   { id: 'amphora-dormitory', style: 'amphora', x: 910, y: 1005, width: 42, height: 58 },
 ];

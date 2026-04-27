@@ -22,8 +22,9 @@ import {
   getPlanningRecommendation,
   getRoutineForGladiator,
 } from '../../domain/planning/planning-actions';
-import type { GameSave, Gladiator } from '../../domain/types';
+import type { GameSave, Gladiator, GladiatorLocationId } from '../../domain/types';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
+import { getMapLocation } from '../../game-data/map-layout';
 import { useUiStore } from '../../state/ui-store';
 import { PanelShell } from '../components/shared';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
@@ -90,14 +91,33 @@ function getCurrentArenaRecord(save: GameSave, gladiator: Gladiator) {
   };
 }
 
+function getLocationName(
+  t: (key: string, params?: Record<string, string | number>) => string,
+  locationId?: GladiatorLocationId,
+) {
+  if (!locationId) {
+    return t('weeklyPlan.noAssignment');
+  }
+
+  const location = getMapLocation(locationId);
+
+  return location ? t(location.nameKey) : t('weeklyPlan.noAssignment');
+}
+
 export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDetailPanelProps) {
   const { t } = useUiStore();
   const routine = getRoutineForGladiator(save, gladiator.id);
   const recommendation = getPlanningRecommendation(save, gladiator, routine);
   const readiness = calculateEffectiveReadiness(save, gladiator);
-  const currentBuildingName = gladiator.currentBuildingId
-    ? t(BUILDING_DEFINITIONS[gladiator.currentBuildingId].nameKey)
-    : t('weeklyPlan.noAssignment');
+  const currentLocationName = getLocationName(
+    t,
+    gladiator.currentLocationId ?? gladiator.currentBuildingId,
+  );
+  const currentAssignmentName = gladiator.mapMovement
+    ? t('gladiatorPanel.movingTo', {
+        location: getLocationName(t, gladiator.mapMovement.targetLocation),
+      })
+    : currentLocationName;
   const recommendedBuildingName = recommendation.buildingId
     ? t(BUILDING_DEFINITIONS[recommendation.buildingId].nameKey)
     : t('weeklyPlan.noAssignment');
@@ -250,7 +270,7 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
           <dl>
             <div>
               <dt>{t('gladiatorPanel.currentAssignment')}</dt>
-              <dd>{currentBuildingName}</dd>
+              <dd>{currentAssignmentName}</dd>
             </div>
             <div>
               <dt>{t('weeklyPlan.suggestedAssignment')}</dt>

@@ -1,7 +1,9 @@
-import type { BuildingId } from '../buildings/types';
 import type { GameTimeState } from '../time/types';
-import type { Gladiator, GladiatorMapMovement } from './types';
-import { getGladiatorMapMovementDuration } from '../../game-data/gladiator-map-movement';
+import type { Gladiator, GladiatorLocationId, GladiatorMapMovement } from './types';
+import {
+  getGladiatorMapMovementDuration,
+  isGladiatorBuildingLocation,
+} from '../../game-data/gladiator-map-movement';
 
 export function getGameMinuteStamp(time: GameTimeState) {
   return (
@@ -18,12 +20,15 @@ export function getGameMinuteStamp(time: GameTimeState) {
 
 export function createGladiatorMapMovement(
   gladiator: Gladiator,
-  targetLocation: BuildingId,
+  targetLocation: GladiatorLocationId,
   time: GameTimeState,
   activity: string,
 ): GladiatorMapMovement | undefined {
   const currentLocation =
-    gladiator.mapMovement?.targetLocation ?? gladiator.currentBuildingId ?? targetLocation;
+    gladiator.currentLocationId ??
+    gladiator.currentBuildingId ??
+    gladiator.mapMovement?.targetLocation ??
+    'domus';
 
   if (currentLocation === targetLocation) {
     return undefined;
@@ -38,21 +43,69 @@ export function createGladiatorMapMovement(
   };
 }
 
+export function getGladiatorMapMovementArrivalStamp(movement: GladiatorMapMovement) {
+  return movement.movementStartedAt + movement.movementDuration;
+}
+
+export function isGladiatorMapMovementComplete(
+  movement: GladiatorMapMovement,
+  time: GameTimeState,
+) {
+  return getGameMinuteStamp(time) >= getGladiatorMapMovementArrivalStamp(movement);
+}
+
+export function resolveGladiatorMapMovement(gladiator: Gladiator, time: GameTimeState): Gladiator {
+  const movement = gladiator.mapMovement;
+
+  if (!movement || !isGladiatorMapMovementComplete(movement, time)) {
+    return gladiator;
+  }
+
+  const targetLocation = movement.targetLocation;
+  const isBuilding = isGladiatorBuildingLocation(targetLocation);
+
+  return {
+    ...gladiator,
+    currentLocationId: targetLocation,
+    currentBuildingId: isBuilding ? targetLocation : undefined,
+    currentActivityId: movement.activity,
+    currentTaskStartedAt: getGladiatorMapMovementArrivalStamp(movement),
+    mapMovement: undefined,
+  };
+}
+
 export function assignGladiatorMapLocation(
   gladiator: Gladiator,
-  targetLocation: BuildingId | undefined,
+  targetLocation: GladiatorLocationId | undefined,
   time: GameTimeState,
   activity = 'idle',
 ): Gladiator {
+  const currentLocation = gladiator.currentLocationId ?? gladiator.currentBuildingId;
   const currentTaskStartedAt =
-    gladiator.currentBuildingId === targetLocation && gladiator.currentActivityId === activity
+    currentLocation === targetLocation && gladiator.currentActivityId === activity
       ? gladiator.currentTaskStartedAt
       : getGameMinuteStamp(time);
 
   if (!targetLocation) {
     return {
       ...gladiator,
+      currentLocationId: undefined,
       currentBuildingId: undefined,
+      currentActivityId: activity,
+      currentTaskStartedAt,
+      mapMovement: undefined,
+    };
+  }
+
+  const movement = createGladiatorMapMovement(gladiator, targetLocation, time, activity);
+
+  if (!movement) {
+    const isBuilding = isGladiatorBuildingLocation(targetLocation);
+
+    return {
+      ...gladiator,
+      currentLocationId: targetLocation,
+      currentBuildingId: isBuilding ? targetLocation : undefined,
       currentActivityId: activity,
       currentTaskStartedAt,
       mapMovement: undefined,
@@ -61,9 +114,10 @@ export function assignGladiatorMapLocation(
 
   return {
     ...gladiator,
-    currentBuildingId: targetLocation,
+    currentLocationId: undefined,
+    currentBuildingId: undefined,
     currentActivityId: activity,
     currentTaskStartedAt,
-    mapMovement: createGladiatorMapMovement(gladiator, targetLocation, time, activity),
+    mapMovement: movement,
   };
 }

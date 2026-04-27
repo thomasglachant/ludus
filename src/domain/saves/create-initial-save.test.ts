@@ -13,7 +13,7 @@ describe('createInitialSave', () => {
       createdAt: '2026-04-25T12:00:00.000Z',
     });
 
-    expect(save.schemaVersion).toBe(1);
+    expect(save.schemaVersion).toBe(2);
     expect(save.ludus.treasury).toBe(INITIAL_TREASURY);
     expect(save.time).toMatchObject({
       year: 1,

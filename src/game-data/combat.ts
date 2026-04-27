@@ -63,8 +63,8 @@ export const COMBAT_CONFIG = {
   energyCostPerTurn: 0.45,
   minEnergyCost: 8,
   maxEnergyCost: 34,
-  winnerMoraleChange: 8,
-  loserMoraleChange: -10,
+  winnerMoraleChange: 15,
+  loserMoraleChange: -8,
   winReputationValue: 10,
   lossReputationPenalty: 3,
 } as const;

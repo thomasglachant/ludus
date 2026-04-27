@@ -60,6 +60,16 @@ function isSleepTime(hour: number) {
   return hour >= TIME_CONFIG.sleepStartHour || hour < TIME_CONFIG.wakeUpHour;
 }
 
+function isArenaAssemblyLocked(save: GameSave, gladiator: Gladiator) {
+  return (
+    save.time.dayOfWeek === 'sunday' &&
+    save.time.hour >= 8 &&
+    !save.arena.arenaDay &&
+    !save.arena.isArenaDayActive &&
+    (gladiator.currentLocationId === 'arena' || gladiator.mapMovement?.targetLocation === 'arena')
+  );
+}
+
 function isTaskLocked(gladiator: Gladiator, save: GameSave) {
   if (gladiator.currentTaskStartedAt === undefined) {
     return false;
@@ -269,6 +279,14 @@ export function getPlanningRecommendation(
     return getAvailableRecommendation(save, 'dormitory', 'weeklyPlan.recommendations.energy');
   }
 
+  if (
+    !gladiator.mapMovement &&
+    gladiator.currentBuildingId === 'canteen' &&
+    gladiator.satiety < 100
+  ) {
+    return getAvailableRecommendation(save, 'canteen', 'weeklyPlan.recommendations.satiety');
+  }
+
   if (gladiator.satiety <= PLANNING_THRESHOLDS.lowSatiety) {
     return getAvailableRecommendation(save, 'canteen', 'weeklyPlan.recommendations.satiety');
   }
@@ -390,6 +408,10 @@ export function applyPlanningRecommendations(save: GameSave): GameSave {
     ...synchronizedSave,
     gladiators: synchronizedSave.gladiators.map((gladiator) => {
       const routine = getRoutineForGladiator(synchronizedSave, gladiator.id);
+
+      if (isArenaAssemblyLocked(synchronizedSave, gladiator)) {
+        return gladiator;
+      }
 
       if (isSleepTime(synchronizedSave.time.hour)) {
         return assignGladiatorMapLocation(gladiator, 'dormitory', synchronizedSave.time, 'sleep');

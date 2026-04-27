@@ -41,10 +41,6 @@ function getDecorationAssetPath(style: string): string | undefined {
     return ambientAssets['cypress-tree'];
   }
 
-  if (style === 'torch') {
-    return ambientAssets['torch-on'];
-  }
-
   return undefined;
 }
 
@@ -192,8 +188,12 @@ export function createLudusMapSceneViewModel(
       };
     }),
     gladiators: save.gladiators.map((gladiator) => {
-      const targetBuildingId = gladiator.currentBuildingId ?? 'domus';
-      const slotIndex = usedSlotsByBuilding.get(targetBuildingId) ?? 0;
+      const targetLocationId =
+        gladiator.mapMovement?.targetLocation ??
+        gladiator.currentLocationId ??
+        gladiator.currentBuildingId ??
+        'domus';
+      const slotIndex = usedSlotsByBuilding.get(targetLocationId) ?? 0;
       const movement = gladiator.mapMovement;
       const animation = movement
         ? getGladiatorMapAnimationDefinitionById('walk')
@@ -201,13 +201,13 @@ export function createLudusMapSceneViewModel(
       const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity);
       const animationAsset = getGladiatorMapAnimationAsset(visualIdentity, animation.id);
 
-      usedSlotsByBuilding.set(targetBuildingId, slotIndex + 1);
+      usedSlotsByBuilding.set(targetLocationId, slotIndex + 1);
 
       return {
         id: gladiator.id,
         name: gladiator.name,
-        from: getGladiatorMapPoint(movement?.currentLocation ?? targetBuildingId, slotIndex),
-        to: getGladiatorMapPoint(movement?.targetLocation ?? targetBuildingId, slotIndex),
+        from: getGladiatorMapPoint(movement?.currentLocation ?? targetLocationId, slotIndex),
+        to: getGladiatorMapPoint(movement?.targetLocation ?? targetLocationId, slotIndex),
         movementStartedAt: movement?.movementStartedAt ?? currentGameMinute,
         movementDuration: movement?.movementDuration ?? 1,
         animation,

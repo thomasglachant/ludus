@@ -4,6 +4,7 @@ import {
   assignGladiatorMapLocation,
   createGladiatorMapMovement,
   getGameMinuteStamp,
+  resolveGladiatorMapMovement,
 } from './map-movement';
 
 const baseGladiator: Gladiator = {
@@ -58,7 +59,7 @@ describe('gladiator map movement', () => {
     ).toBeUndefined();
   });
 
-  it('assigns the target building and preserves movement as renderer-only state', () => {
+  it('starts movement without assigning the target building yet', () => {
     const gladiator = assignGladiatorMapLocation(
       baseGladiator,
       'trainingGround',
@@ -66,13 +67,31 @@ describe('gladiator map movement', () => {
       'trainAgility',
     );
 
-    expect(gladiator.currentBuildingId).toBe('trainingGround');
+    expect(gladiator.currentBuildingId).toBeUndefined();
+    expect(gladiator.currentLocationId).toBeUndefined();
     expect(gladiator.currentActivityId).toBe('trainAgility');
     expect(gladiator.mapMovement).toMatchObject({
       currentLocation: 'dormitory',
       targetLocation: 'trainingGround',
     });
     expect(gladiator.currentTaskStartedAt).toBe(getGameMinuteStamp(time));
+  });
+
+  it('assigns the target building when movement is complete', () => {
+    const movingGladiator = assignGladiatorMapLocation(
+      baseGladiator,
+      'trainingGround',
+      time,
+      'trainAgility',
+    );
+    const resolved = resolveGladiatorMapMovement(movingGladiator, {
+      ...time,
+      hour: 12,
+    });
+
+    expect(resolved.currentBuildingId).toBe('trainingGround');
+    expect(resolved.currentLocationId).toBe('trainingGround');
+    expect(resolved.mapMovement).toBeUndefined();
   });
 
   it('preserves the task start when the assignment does not change', () => {
@@ -88,5 +107,7 @@ describe('gladiator map movement', () => {
     );
 
     expect(gladiator.currentTaskStartedAt).toBe(120);
+    expect(gladiator.currentBuildingId).toBe('dormitory');
+    expect(gladiator.currentLocationId).toBe('dormitory');
   });
 });

@@ -10,6 +10,7 @@ import {
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
 import { DAYS_OF_WEEK } from '../../game-data/time';
+import { assignGladiatorMapLocation } from '../gladiators/map-movement';
 import type { Gladiator } from '../gladiators/types';
 import { getRoutineForGladiator } from '../planning/planning-actions';
 import type { GameSave } from '../saves/types';
@@ -53,6 +54,7 @@ interface CombatHealth {
 }
 
 const DEFAULT_STRATEGY: CombatStrategy = 'balanced';
+const SUNDAY_ARENA_START_HOUR = 8;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -88,6 +90,29 @@ function getOpponentId(save: GameSave, gladiatorId: string) {
 
 function getCurrentWeekCombatPrefix(save: GameSave) {
   return `combat-${save.time.year}-${save.time.week}-`;
+}
+
+function isAtArena(gladiator: Gladiator) {
+  return gladiator.currentLocationId === 'arena';
+}
+
+function isMovingToArena(gladiator: Gladiator) {
+  return gladiator.mapMovement?.targetLocation === 'arena';
+}
+
+function sendGladiatorsToArena(save: GameSave): GameSave {
+  return {
+    ...save,
+    gladiators: save.gladiators.map((gladiator) =>
+      isAtArena(gladiator) || isMovingToArena(gladiator)
+        ? gladiator
+        : assignGladiatorMapLocation(gladiator, 'arena', save.time, 'arenaTravel'),
+    ),
+  };
+}
+
+function areAllGladiatorsAtArena(save: GameSave) {
+  return save.gladiators.every((gladiator) => isAtArena(gladiator));
 }
 
 function getBettingWindowStartIndex() {
@@ -785,7 +810,7 @@ export function synchronizeArena(save: GameSave, random: RandomSource = Math.ran
     };
   }
 
-  if (save.time.hour < 8) {
+  if (save.time.hour < SUNDAY_ARENA_START_HOUR) {
     return {
       ...save,
       arena: {
@@ -799,5 +824,9 @@ export function synchronizeArena(save: GameSave, random: RandomSource = Math.ran
     return save;
   }
 
-  return startArenaDay(save, random);
+  if (save.gladiators.length === 0 || areAllGladiatorsAtArena(save)) {
+    return startArenaDay(save, random);
+  }
+
+  return sendGladiatorsToArena(save);
 }

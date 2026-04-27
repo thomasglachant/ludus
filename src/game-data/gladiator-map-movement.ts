@@ -1,4 +1,5 @@
 import type { BuildingId } from '../domain/buildings/types';
+import type { GladiatorLocationId } from '../domain/gladiators/types';
 import type { GladiatorAnimationState } from './gladiator-animations';
 import { LUDUS_MAP_DEFINITION, type MapPoint } from './map-layout';
 
@@ -63,12 +64,18 @@ export function getGladiatorMapSlots(buildingId: BuildingId) {
   return LUDUS_MAP_DEFINITION.gladiatorSlots.filter((slot) => slot.buildingId === buildingId);
 }
 
-export function getGladiatorMapPoint(buildingId: BuildingId, slotIndex = 0): MapPoint {
-  const slots = getGladiatorMapSlots(buildingId);
-  const slot = slots[slotIndex % Math.max(slots.length, 1)];
-  const location = LUDUS_MAP_DEFINITION.locations.find(
-    (candidate) => candidate.kind === 'building' && candidate.id === buildingId,
+export function isGladiatorBuildingLocation(
+  locationId: GladiatorLocationId,
+): locationId is BuildingId {
+  return LUDUS_MAP_DEFINITION.locations.some(
+    (location) => location.kind === 'building' && location.id === locationId,
   );
+}
+
+export function getGladiatorMapPoint(locationId: GladiatorLocationId, slotIndex = 0): MapPoint {
+  const slots = isGladiatorBuildingLocation(locationId) ? getGladiatorMapSlots(locationId) : [];
+  const slot = slots[slotIndex % Math.max(slots.length, 1)];
+  const location = LUDUS_MAP_DEFINITION.locations.find((candidate) => candidate.id === locationId);
 
   return {
     x: slot?.x ?? (location ? location.x + location.width / 2 : 1120),
@@ -77,8 +84,8 @@ export function getGladiatorMapPoint(buildingId: BuildingId, slotIndex = 0): Map
 }
 
 export function getGladiatorMapMovementDuration(
-  currentLocation: BuildingId,
-  targetLocation: BuildingId,
+  currentLocation: GladiatorLocationId,
+  targetLocation: GladiatorLocationId,
 ) {
   const currentPoint = getGladiatorMapPoint(currentLocation);
   const targetPoint = getGladiatorMapPoint(targetLocation);

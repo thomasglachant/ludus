@@ -4,7 +4,6 @@ import {
   type DailyEventDefinition,
   type DailyEventEffectTemplate,
 } from '../../game-data/events';
-import { DAYS_OF_WEEK } from '../../game-data/time';
 import type { Gladiator } from '../gladiators/types';
 import { synchronizePlanning } from '../planning/planning-actions';
 import type { GameSave } from '../saves/types';
@@ -153,11 +152,7 @@ function createDailyEvent(save: GameSave, random: RandomSource): GameEvent | nul
     return null;
   }
 
-  const dayOffset = DAYS_OF_WEEK.indexOf(save.time.dayOfWeek);
-  const definition =
-    availableDefinitions[
-      (save.time.year * 11 + save.time.week * 5 + dayOffset) % availableDefinitions.length
-    ];
+  const definition = availableDefinitions[pickIndex(availableDefinitions.length, random)];
   const gladiator = selectGladiator(save, definition, random);
 
   return {
