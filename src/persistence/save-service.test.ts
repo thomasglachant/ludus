@@ -38,6 +38,7 @@ describe('SaveService demo saves', () => {
       time: {
         ...localSave.time,
         speed: 4,
+        isPaused: true,
       },
     });
 
@@ -48,6 +49,7 @@ describe('SaveService demo saves', () => {
       saveId: localSave.saveId,
       time: {
         speed: 1,
+        isPaused: false,
       },
       updatedAt: updatedSave.updatedAt,
     });
@@ -88,6 +90,7 @@ describe('SaveService demo saves', () => {
       time: {
         ...originalSave.time,
         speed: 8,
+        isPaused: true,
       },
     });
 
@@ -95,6 +98,7 @@ describe('SaveService demo saves', () => {
     await expect(service.loadLocalSave(copiedSave.saveId)).resolves.toMatchObject({
       time: {
         speed: 1,
+        isPaused: false,
       },
     });
   });

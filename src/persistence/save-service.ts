@@ -160,6 +160,7 @@ export class SaveService {
       time: {
         ...save.time,
         speed: 1,
+        isPaused: false,
       },
     };
   }
