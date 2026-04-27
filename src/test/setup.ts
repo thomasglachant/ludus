@@ -1,47 +1,30 @@
-import '@testing-library/jest-dom/vitest';
+import { beforeEach, vi } from 'vitest';
 
 function createMemoryStorage(): Storage {
-  const entries = new Map<string, string>();
+  const values = new Map<string, string>();
 
   return {
     get length() {
-      return entries.size;
+      return values.size;
     },
     clear() {
-      entries.clear();
+      values.clear();
     },
     getItem(key: string) {
-      return entries.get(key) ?? null;
+      return values.get(key) ?? null;
     },
     key(index: number) {
-      return [...entries.keys()][index] ?? null;
+      return Array.from(values.keys())[index] ?? null;
     },
     removeItem(key: string) {
-      entries.delete(key);
+      values.delete(key);
     },
     setItem(key: string, value: string) {
-      entries.set(key, value);
+      values.set(key, value);
     },
   };
 }
 
-Object.defineProperty(globalThis, 'localStorage', {
-  configurable: true,
-  value: createMemoryStorage(),
-});
-
-class TestResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
-Object.defineProperty(globalThis, 'ResizeObserver', {
-  configurable: true,
-  value: TestResizeObserver,
-});
-
-Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
-  configurable: true,
-  value: () => null,
+beforeEach(() => {
+  vi.stubGlobal('localStorage', createMemoryStorage());
 });

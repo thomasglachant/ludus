@@ -54,9 +54,9 @@ Do not copy the reference images pixel-for-pixel. Use them as art-direction refe
 - All player-facing UI text must keep using i18n keys.
 - React components must not own gameplay formulas.
 - Map layout, visual definitions, asset paths, animation definitions, and time-of-day values must remain data-driven.
-- Preserve stable `data-testid` values used by Vitest/Playwright.
+- Preserve stable `data-testid` values where they support manual review or future smoke coverage.
 - Keep the debug dashboard hidden behind debug routing/feature flag.
-- Use `npm run build`, `npm run lint`, `npm run test`, and `npm run test:e2e` as the final quality gate.
+- Use `npm run build`, `npm run lint` and `npm run test` as the current lightweight quality gate.
 
 ## Files in This Folder
 

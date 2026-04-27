@@ -8,7 +8,7 @@ The project already has the core React + TypeScript application structure, local
 
 The save UX baseline is manual local save with clear store-owned UI state. The ludus HUD exposes manual save, dirty state, in-progress saving state, latest successful save time and save success or failure notices. New local saves and loaded saves start clean. Player-driven game-state changes mark the active save dirty, successful saves clear dirty state, and failed saves keep dirty state. Demo saves are predefined start templates exposed from the load flow; loading one creates a normal local save that can be played and saved like any other game while the template remains reusable.
 
-The quality baseline is defined by a local and GitHub Actions CI gate covering `npm run build`, `npm run lint`, `npm run test` and `npm run test:e2e`. Playwright coverage is reserved for high-value player flows and stable demo states rather than exhaustive UI coverage, including the new-game-to-map-first-shell smoke flow.
+The quality baseline is currently optimized for fast MVP prototyping: local and GitHub Actions CI gates cover `npm run build`, `npm run lint` and a lean `npm run test` suite focused on durable domain rules, persistence behavior and i18n key hygiene. Component, renderer and Playwright coverage are paused until the MVP interaction model stabilizes.
 
 The UI baseline includes shared primitives for centered feature modals, section cards, tabs, empty states, notices, metric lists, effect lists, cost summaries, badges and global confirmation or lightweight form modals. Building and gladiator detail views already use these primitives, and building display data is prepared through reusable view-model helpers.
 
@@ -20,7 +20,7 @@ The market respects ludus capacity before buying gladiators. Buying a gladiator 
 
 The arena baseline resolves eligible Sunday combats once per week, protects rewards and consequences from repeated Sunday ticks, and exposes the Sunday results through the map-first arena modal. The modal shows the arena status, resolved combat list, selected combat details, turn log progression, victory or defeat badges, rewards, condition and reputation consequences, Sunday totals and empty states for days without eligible combatants. Before Sunday, the same modal still supports scouting odds when available.
 
-The Phase 1 MVP playable loop is stable enough to serve as the baseline for Phase 2. New-game smoke coverage validates the map-first shell, owned level 1 base buildings, market recruitment with ludus capacity, manual save, local load and arena access. Demo coverage validates deterministic early, mid and advanced states, including an advanced Saturday evening path into Sunday arena resolution. A basic i18n audit guards against obvious hardcoded visible JSX strings in app and UI components.
+The Phase 1 MVP playable loop is stable enough to serve as the baseline for Phase 2. The current automated coverage protects core rules and persistence while the player-facing flows continue to move quickly. A basic i18n audit guards against obvious hardcoded visible JSX strings in app and UI components.
 
 The next work should move Phase 2 systems forward while preserving the architectural split between `src/game-data`, `src/domain`, `src/state`, `src/persistence` and `src/ui`.
 
@@ -34,7 +34,7 @@ Goal: keep the weekly preparation loop and Sunday arena loop stable while Phase 
 
 Product outcomes:
 
-- keep demo saves stable for early, mid and advanced Playwright coverage;
+- keep demo saves useful for manual review and future smoke coverage;
 - keep visible player text i18n-backed;
 - keep map-first UI, local save, building setup, market capacity, planning, time advancement, building effects and Sunday arena review working together;
 - treat regressions in the MVP smoke path as release-blocking.
@@ -42,7 +42,7 @@ Product outcomes:
 Acceptance:
 
 - the app runs locally;
-- the quality gate passes locally and in CI;
+- the lean quality gate passes locally and in CI;
 - visible UI text uses i18n keys;
 - no building budget slider exists;
 - normal gameplay opens the map-first shell;

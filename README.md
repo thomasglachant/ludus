@@ -23,8 +23,6 @@ The game combines:
 - lint-staged
 - commitlint
 - Vitest
-- React Testing Library
-- Playwright
 
 ## Development
 
@@ -36,6 +34,7 @@ npm run dev
 Useful checks:
 
 ```bash
+npm run build
 npm run lint
 npm run test
 ```

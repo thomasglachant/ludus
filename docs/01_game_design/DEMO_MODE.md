@@ -226,16 +226,17 @@ The save service treats active demo saves as read-only templates. Autosave stays
 
 ## Test Expectations
 
+During MVP prototyping, automated coverage for demo mode is limited to durable provider and data-shape checks. Browser smoke coverage should return only when the demo flows become stable enough to justify the maintenance cost.
+
 Unit tests should cover:
 
-- feature flag parsing;
 - demo provider metadata;
 - demo save deep cloning;
 - read-only provider operations;
 - schema validation;
 - absence of building budget fields.
 
-Playwright tests should cover:
+Future browser smoke tests may cover:
 
 - demo mode hidden when disabled;
 - each demo route blocked when disabled;

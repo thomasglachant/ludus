@@ -12,9 +12,7 @@ The application is a browser game built with:
 - Husky;
 - lint-staged;
 - commitlint;
-- Vitest;
-- React Testing Library;
-- Playwright.
+- Vitest.
 
 ## Repository Structure
 
@@ -405,7 +403,9 @@ It must not be the default player interface and should be available only through
 
 ## Testing Strategy
 
-Unit tests should focus on domain logic first.
+During MVP prototyping, tests are intentionally narrow. The default suite should protect durable game rules, save behavior and i18n hygiene. It should not try to lock down volatile UI flows, component structure, visual layout or end-to-end player paths while the product shape is still changing quickly.
+
+Add or update tests only when a change affects durable behavior, fixes a recurring bug, protects save compatibility, or covers a rule that would be expensive to verify manually. Prefer build and lint checks for routine UI iteration.
 
 Priority test areas:
 
@@ -425,7 +425,7 @@ Priority test areas:
 - corrupted save handling;
 - demo provider read-only behavior.
 
-Playwright tests should cover high-value player flows and demo-mode visual states.
+Component, renderer and Playwright tests are paused until the MVP interaction model stabilizes. Reintroduce them selectively for high-value smoke flows and stable demo states once those flows become release-blocking.
 
 ## Quality Gate
 
@@ -437,19 +437,17 @@ The local quality gate is:
 npm run build
 npm run lint
 npm run test
-npm run test:e2e
 ```
 
 Command responsibilities:
 
 - `npm run build` checks TypeScript project references and produces the Vite production build;
 - `npm run lint` checks source, tests and configuration files with ESLint;
-- `npm run test` runs the Vitest unit and component test suite;
-- `npm run test:e2e` runs Playwright smoke coverage for high-value player flows.
+- `npm run test` runs the lean Vitest core suite for `src/domain`, `src/persistence` and i18n key hygiene.
 
-Playwright should stay focused on critical player paths and stable demo states. It is not expected to cover every component, every balance branch or every minor UI state. Low-level rules should remain covered by Vitest domain tests whenever possible.
+Low-level rules should remain covered by Vitest domain tests whenever practical. UI and E2E coverage should return only when the protected flow is stable enough that the maintenance cost is clearly worth it.
 
-The CI quality gate should mirror the local commands and install Playwright browsers before running the e2e suite.
+The CI quality gate should mirror the local commands.
 
 ## Feature Implementation Sequence
 
@@ -457,7 +455,7 @@ When adding a durable feature:
 
 1. add or update game data;
 2. implement domain logic;
-3. add tests;
+3. add tests only for durable rules, save behavior or recurring bugs;
 4. expose store actions or selectors;
 5. create UI components;
 6. add i18n keys;

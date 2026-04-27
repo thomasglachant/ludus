@@ -6,7 +6,7 @@ Keep this file short: OpenCode loads it into every session. Load the referenced 
 
 `ludus` is a Vite + React + TypeScript browser management game about running a Roman gladiator school.
 
-Useful commands: `npm run lint`, `npm run test`, `npm run build`, `npm run test:e2e`.
+Useful commands: `npm run build`, `npm run lint`, `npm run test`.
 
 ## Required Conventions
 

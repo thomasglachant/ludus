@@ -6,7 +6,7 @@
 
 ## Current Stack
 
-`ludus` is a Vite + React + TypeScript browser game with Vitest, React Testing Library, Playwright, ESLint, Prettier, Husky, lint-staged, and commitlint.
+At the time of the visual migration, `ludus` was a Vite + React + TypeScript browser game with Vitest, React Testing Library, Playwright, ESLint, Prettier, Husky, lint-staged, and commitlint.
 
 The current architecture already supports the migration because it separates:
 
