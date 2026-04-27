@@ -2,7 +2,7 @@ import { Banknote, CalendarDays, Menu, Pause, Play, RotateCcw, Store } from 'luc
 import type { GameSave, GameSpeed } from '../../domain/types';
 import { getDemoSaveDefinition } from '../../game-data/demo-saves';
 import { GAME_SPEEDS } from '../../game-data/time';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { formatMoneyAmount } from '../formatters/money';
 import { ActionButton } from './ActionButton';
 import { DayCycleGauge } from './DayCycleGauge';

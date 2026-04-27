@@ -1,7 +1,7 @@
 import { Check, Hammer } from 'lucide-react';
 import { useState } from 'react';
 import type { BuildingId, GameSave } from '../../domain/types';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import {
   EffectList,
   EmptyState,

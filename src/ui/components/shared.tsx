@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 
 interface PanelShellProps {
   children: ReactNode;

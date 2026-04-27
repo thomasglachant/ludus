@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import type { ScreenName } from './routes';
-import { useUiStore } from '../state/ui-store';
+import { useUiStore } from '../state/ui-store-context';
 import { DevDemoRoute } from './DevDemoRoute';
 import { getDevDemoSaveId } from './dev-demo-route-utils';
 import { AppLayout } from '../ui/layout/AppLayout';

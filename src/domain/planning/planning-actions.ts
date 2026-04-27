@@ -1,6 +1,7 @@
 import { DEFAULT_ROUTINE_CONFIG, PLANNING_THRESHOLDS } from '../../game-data/planning';
 import { TIME_CONFIG } from '../../game-data/time';
 import { GAME_BALANCE } from '../../game-data/balance';
+import { isGladiatorBuildingLocation } from '../../game-data/gladiator-map-movement';
 import type { BuildingId } from '../buildings/types';
 import type { CombatStrategy } from '../combat/types';
 import { assignGladiatorMapLocation, getGameMinuteStamp } from '../gladiators/map-movement';
@@ -199,6 +200,19 @@ function getDaytimeObjectiveRecommendation(objective: GladiatorWeeklyObjective) 
   };
 }
 
+function getCurrentBuildingId(gladiator: Gladiator): BuildingId | undefined {
+  return (
+    gladiator.currentBuildingId ??
+    (gladiator.currentLocationId && isGladiatorBuildingLocation(gladiator.currentLocationId)
+      ? gladiator.currentLocationId
+      : undefined)
+  );
+}
+
+function shouldResumeDaytimeActivity(gladiator: Gladiator) {
+  return gladiator.currentActivityId === 'sleep';
+}
+
 export function getRoutineForGladiator(save: GameSave, gladiatorId: string): GladiatorRoutine {
   return getExistingRoutine(save, gladiatorId) ?? createDefaultRoutine(gladiatorId);
 }
@@ -280,20 +294,26 @@ export function getPlanningRecommendation(
     return getAvailableRecommendation(save, 'dormitory', 'weeklyPlan.recommendations.energy');
   }
 
-  if (
-    !gladiator.mapMovement &&
-    gladiator.currentBuildingId === 'canteen' &&
-    gladiator.satiety < GAME_BALANCE.gladiators.gauges.maximum
-  ) {
+  if (gladiator.energy <= PLANNING_THRESHOLDS.primaryNeedReassignment) {
+    return getAvailableRecommendation(save, 'dormitory', 'weeklyPlan.recommendations.energy');
+  }
+
+  if (gladiator.satiety <= PLANNING_THRESHOLDS.primaryNeedReassignment) {
     return getAvailableRecommendation(save, 'canteen', 'weeklyPlan.recommendations.satiety');
   }
 
-  if (gladiator.satiety <= PLANNING_THRESHOLDS.lowSatiety) {
-    return getAvailableRecommendation(save, 'canteen', 'weeklyPlan.recommendations.satiety');
-  }
-
-  if (gladiator.morale <= PLANNING_THRESHOLDS.lowMorale) {
+  if (gladiator.morale <= PLANNING_THRESHOLDS.primaryNeedReassignment) {
     return getAvailableRecommendation(save, 'pleasureHall', 'weeklyPlan.recommendations.morale');
+  }
+
+  const currentBuildingId = getCurrentBuildingId(gladiator);
+
+  if (!gladiator.mapMovement && currentBuildingId && !shouldResumeDaytimeActivity(gladiator)) {
+    return getAvailableRecommendation(
+      save,
+      currentBuildingId,
+      'weeklyPlan.recommendations.current',
+    );
   }
 
   const objectiveRecommendation = getDaytimeObjectiveRecommendation(routine.objective);

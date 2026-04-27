@@ -1,6 +1,6 @@
 import { CalendarCheck, ScrollText, Store, Swords, TriangleAlert } from 'lucide-react';
 import type { ContextPanelKind } from './game-shell-types';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 
 interface LeftNavigationRailProps {
   activePanelKind: ContextPanelKind | null;

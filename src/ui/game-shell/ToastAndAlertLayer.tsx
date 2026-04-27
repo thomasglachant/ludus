@@ -1,6 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
 import type { GameSave } from '../../domain/types';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface ToastAndAlertLayerProps {

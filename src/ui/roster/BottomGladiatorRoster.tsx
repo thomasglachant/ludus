@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import type { GameSave, Gladiator } from '../../domain/types';
 import { getGladiatorPlanningStatuses } from '../../domain/planning/planning-actions';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { GladiatorPortrait } from './GladiatorPortrait';
 
 interface BottomGladiatorRosterProps {

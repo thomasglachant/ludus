@@ -2,7 +2,7 @@ import { ArrowLeft, Dices, Landmark } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { generateLudusName, generateLudusOwnerName } from '../../domain/ludus/name-generator';
 import { useGameStore } from '../../state/game-store-context';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { ScreenShell } from '../layout/ScreenShell';
 

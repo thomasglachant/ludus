@@ -1,6 +1,6 @@
 import type { LanguageCode } from '../../domain/types';
 import { useGameStore } from '../../state/game-store-context';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 
 export function LanguageSwitcher() {
   const { language, t } = useUiStore();

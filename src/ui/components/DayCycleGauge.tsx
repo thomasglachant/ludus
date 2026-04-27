@@ -1,7 +1,7 @@
 import { Moon, Sun, Sunrise, Sunset, type LucideIcon } from 'lucide-react';
 import type { GameTimeState } from '../../domain/time/types';
 import type { TimeOfDayPhase } from '../../game-data/time-of-day';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { getDayCycleViewModel } from '../view-models/day-cycle-view-model';
 
 interface DayCycleGaugeProps {

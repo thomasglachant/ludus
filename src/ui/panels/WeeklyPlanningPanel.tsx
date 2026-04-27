@@ -5,7 +5,7 @@ import type { GameSave, GladiatorRoutineUpdate } from '../../domain/types';
 import { BUILDING_DEFINITIONS, BUILDING_IDS } from '../../game-data/buildings';
 import { COMBAT_STRATEGIES } from '../../game-data/combat';
 import { TRAINING_INTENSITIES, WEEKLY_OBJECTIVES } from '../../game-data/planning';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface WeeklyPlanningPanelProps {

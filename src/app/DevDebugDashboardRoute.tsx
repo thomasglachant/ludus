@@ -5,7 +5,7 @@ import type { PixiSceneContext } from '../renderer/pixi/PixiScene';
 import { PixiSceneViewport } from '../renderer/pixi/PixiSceneViewport';
 import { LudusMapScene } from '../renderer/scenes/ludus-map/LudusMapScene';
 import { createLudusMapSceneViewModel } from '../renderer/scenes/ludus-map/createLudusMapSceneViewModel';
-import { useUiStore } from '../state/ui-store';
+import { useUiStore } from '../state/ui-store-context';
 import { ActionButton } from '../ui/components/ActionButton';
 import { ScreenShell } from '../ui/layout/ScreenShell';
 

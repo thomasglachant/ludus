@@ -1,6 +1,6 @@
 import type { Gladiator } from '../../domain/types';
 import { useGameStore } from '../../state/game-store-context';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { MarketContent } from '../market/MarketContent';
 import { AppModal } from './AppModal';
 

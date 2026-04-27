@@ -13,6 +13,7 @@ export const PLANNING_THRESHOLDS = {
   lowSatiety: GAME_BALANCE.planning.thresholds.lowSatiety,
   criticalMorale: GAME_BALANCE.planning.thresholds.criticalMorale,
   lowMorale: GAME_BALANCE.planning.thresholds.lowMorale,
+  primaryNeedReassignment: GAME_BALANCE.planning.thresholds.primaryNeedReassignment,
 } as const;
 
 export const READINESS_WEIGHTS = {

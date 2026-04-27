@@ -2,7 +2,7 @@ import { ArrowLeft, Banknote, CalendarDays, Menu, Pause, Play } from 'lucide-rea
 import { lazy, Suspense, useMemo, useState } from 'react';
 import type { GameSave, GameSpeed } from '../../domain/types';
 import { GAME_SPEEDS } from '../../game-data/time';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { DayCycleGauge } from '../components/DayCycleGauge';
 import { formatMoneyAmount } from '../formatters/money';
 import { CombatantPanel } from './CombatantPanel';

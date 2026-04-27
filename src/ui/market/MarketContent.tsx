@@ -10,7 +10,7 @@ import {
   type MarketActionValidation,
 } from '../../domain/market/market-actions';
 import type { GameSave, Gladiator, MarketGladiator } from '../../domain/types';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { EmptyState, MetricList, NoticeBox } from '../components/shared';
 import { formatMoneyAmount } from '../formatters/money';

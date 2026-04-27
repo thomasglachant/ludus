@@ -431,6 +431,7 @@
   "weeklyPlan.recommendations.protectChampion": "Keep this fighter fresh.",
   "weeklyPlan.recommendations.prepareForSale": "Improve visible condition for sale.",
   "weeklyPlan.recommendations.balanced": "Keep a balanced weekly routine.",
+  "weeklyPlan.recommendations.current": "Continue the current activity.",
   "weeklyPlan.recommendations.manualOverride": "Manual assignment is locked.",
   "weeklyPlan.objectives.balanced": "Balanced",
   "weeklyPlan.objectives.fightPreparation": "Fight preparation",

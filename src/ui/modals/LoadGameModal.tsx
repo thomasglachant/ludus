@@ -6,7 +6,7 @@ import { BUILDING_IDS } from '../../game-data/buildings';
 import { DEMO_SAVE_DEFINITIONS } from '../../game-data/demo-saves';
 import { getTimeOfDayDefinition } from '../../game-data/time-of-day';
 import { useGameStore } from '../../state/game-store-context';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { AppModal } from './AppModal';
 

@@ -26,7 +26,7 @@ import {
 import type { GameSave, Gladiator, GladiatorLocationId } from '../../domain/types';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { getMapLocation } from '../../game-data/map-layout';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { PanelShell } from '../components/shared';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 

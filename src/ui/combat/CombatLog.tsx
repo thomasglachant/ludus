@@ -1,5 +1,5 @@
 import { Swords, Trophy } from 'lucide-react';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import type { CombatScreenViewModel } from './combat-screen-view-model';
 
 interface CombatLogProps {

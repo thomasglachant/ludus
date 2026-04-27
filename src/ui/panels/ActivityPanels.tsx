@@ -3,7 +3,7 @@ import { Eye, Swords } from 'lucide-react';
 import { getArenaBettingState, validateScouting } from '../../domain/combat/combat-actions';
 import { getContractProgress } from '../../domain/contracts/contract-actions';
 import type { CombatState, GameSave, WeeklyContract } from '../../domain/types';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import {
   Badge,
   EmptyState,

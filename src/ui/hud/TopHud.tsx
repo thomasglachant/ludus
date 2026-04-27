@@ -1,6 +1,6 @@
 import type { GameSave, GameSpeed } from '../../domain/types';
 import { getTimeOfDayPhase, type TimeOfDayPhase } from '../../game-data/time-of-day';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { formatMoneyAmount } from '../formatters/money';
 
 interface TopHudProps {

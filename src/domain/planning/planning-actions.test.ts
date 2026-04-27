@@ -208,7 +208,7 @@ describe('planning actions', () => {
     });
   });
 
-  it('does not send tired gladiators to sleep during daytime', () => {
+  it('sends critically tired gladiators to the dormitory during daytime', () => {
     const save = synchronizePlanning(
       withGladiators(createTestSave(), [
         createGladiator({
@@ -221,17 +221,40 @@ describe('planning actions', () => {
 
     expect(result.gladiators[0].currentBuildingId).toBeUndefined();
     expect(result.gladiators[0].mapMovement).toMatchObject({
-      targetLocation: 'trainingGround',
+      targetLocation: 'dormitory',
     });
   });
 
-  it('keeps automatic gladiators at the canteen until satiety is full', () => {
+  it('keeps automatic gladiators on their current activity above critical needs', () => {
     const save = synchronizePlanning(
       withPurchasedBuildings(
         withGladiators(createTestSave(), [
           createGladiator({
-            currentBuildingId: 'canteen',
-            satiety: 99,
+            currentBuildingId: 'trainingGround',
+            energy: 11,
+            morale: 11,
+            satiety: 11,
+          }),
+        ]),
+        ['canteen', 'dormitory', 'pleasureHall', 'trainingGround'],
+      ),
+    );
+    const result = applyPlanningRecommendations(save);
+
+    expect(getPlanningRecommendation(save, save.gladiators[0])).toMatchObject({
+      buildingId: 'trainingGround',
+      isAvailable: true,
+    });
+    expect(result.gladiators[0].currentBuildingId).toBe('trainingGround');
+  });
+
+  it('sends critically hungry gladiators to the canteen', () => {
+    const save = synchronizePlanning(
+      withPurchasedBuildings(
+        withGladiators(createTestSave(), [
+          createGladiator({
+            currentBuildingId: 'trainingGround',
+            satiety: 10,
           }),
         ]),
         ['canteen', 'trainingGround'],
@@ -239,11 +262,10 @@ describe('planning actions', () => {
     );
     const result = applyPlanningRecommendations(save);
 
-    expect(getPlanningRecommendation(save, save.gladiators[0])).toMatchObject({
-      buildingId: 'canteen',
-      isAvailable: true,
+    expect(result.gladiators[0].currentBuildingId).toBeUndefined();
+    expect(result.gladiators[0].mapMovement).toMatchObject({
+      targetLocation: 'canteen',
     });
-    expect(result.gladiators[0].currentBuildingId).toBe('canteen');
   });
 
   it('keeps automatic tasks locked for a minimum duration', () => {

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useState } from 'react';
 import type { MapLocationDefinition } from '../../game-data/map-layout';
 import { useGameStore } from '../../state/game-store-context';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { TopHud } from '../hud/TopHud';
 import { BottomGladiatorRoster } from '../roster/BottomGladiatorRoster';
 import { pixiUiChromeStyle } from '../pixi-ui-chrome';

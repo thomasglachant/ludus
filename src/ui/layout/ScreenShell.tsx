@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Shield } from 'lucide-react';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 
 interface ScreenShellProps {
   titleKey: string;

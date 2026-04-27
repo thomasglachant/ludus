@@ -49,7 +49,7 @@ import { LocalSaveProvider } from '../persistence/local-save-provider';
 import { SaveService } from '../persistence/save-service';
 import { ActiveSessionProvider } from '../persistence/active-session-provider';
 import { GameStoreContext, type GameStoreValue, type NewGameInput } from './game-store-context';
-import { useUiStore } from './ui-store';
+import { useUiStore } from './ui-store-context';
 const ACTIVE_SESSION_WRITE_DELAY_MS = 750;
 const ACTIVE_SESSION_SYNC_INTERVAL_MS = 10_000;
 const AUTO_SAVE_INTERVAL_MS = 30_000;

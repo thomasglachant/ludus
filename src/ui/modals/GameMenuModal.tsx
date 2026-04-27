@@ -1,6 +1,6 @@
 import { Copy, FolderOpen, LogOut, Save, Settings } from 'lucide-react';
 import { useState } from 'react';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { AppModal } from './AppModal';

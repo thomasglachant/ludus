@@ -1,5 +1,5 @@
 import { Footprints, Shield, Swords, Target, Trophy } from 'lucide-react';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { formatMoneyAmount } from '../formatters/money';
 import type { CombatScreenViewModel } from './combat-screen-view-model';
 

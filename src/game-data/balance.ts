@@ -698,6 +698,8 @@ export const GAME_BALANCE = {
       criticalMorale: 30,
       // Morale value at or below which morale is low.
       lowMorale: 50,
+      // Primary need value at or below which automatic assignment changes activity.
+      primaryNeedReassignment: 10,
     },
     readinessWeights: {
       // Health contribution to readiness score.

@@ -20,7 +20,7 @@ import {
   pixiTextureAliases,
   type PixiBuildingPart,
 } from '../../rendering/pixi/assets/texture-aliases';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { formatMoneyAmount } from '../formatters/money';
 import type { BuildingActionEffectPreview } from '../view-models/building-panel-view-model';
 

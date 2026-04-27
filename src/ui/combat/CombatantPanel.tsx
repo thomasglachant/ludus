@@ -1,5 +1,5 @@
 import { Heart, Shield, Sparkles, Zap } from 'lucide-react';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import type { CombatantViewModel } from './combat-screen-view-model';
 
 interface CombatantPanelProps {

@@ -3,7 +3,7 @@ import { featureFlags } from '../../config/features';
 import type { PixiSceneContext } from '../../renderer/pixi/PixiScene';
 import { PixiSceneViewport } from '../../renderer/pixi/PixiSceneViewport';
 import { CombatScene } from '../../renderer/scenes/combat/CombatScene';
-import { useUiStore } from '../../state/ui-store';
+import { useUiStore } from '../../state/ui-store-context';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 import type { CombatScreenViewModel } from './combat-screen-view-model';
 
