@@ -2,7 +2,6 @@ import productionManifestData from '../../../game-data/generated/asset-manifest.
 import {
   PIXI_ASSET_BUNDLE_IDS,
   PIXI_BUILDING_IDS,
-  PIXI_BUILDING_LEVELS,
   PIXI_BUILDING_PARTS,
   PIXI_COMBAT_ANIMATION_KEYS,
   PIXI_GLADIATOR_FRAME_COUNT,
@@ -101,7 +100,7 @@ interface ProductionManifest {
     backgrounds: Partial<Record<PixiHomepagePhase, string>>;
     lastSaveThumbnail: string;
   };
-  buildings: Record<PixiBuildingId, Record<string, ProductionBuildingAssetSet>>;
+  buildings: Partial<Record<PixiBuildingId, Record<string, ProductionBuildingAssetSet>>>;
   locations: {
     arena: {
       combatBackground: string;
@@ -264,10 +263,12 @@ function addBuildingAssets(
   bundles: Record<PixiAssetBundleId, PixiAssetBundleDefinition>,
 ) {
   for (const buildingId of PIXI_BUILDING_IDS) {
-    for (const level of PIXI_BUILDING_LEVELS) {
-      const assetSet = productionManifest.buildings[buildingId]?.[`level-${level}`];
+    for (const [levelKey, assetSet] of Object.entries(
+      productionManifest.buildings[buildingId] ?? {},
+    )) {
+      const level = Number(levelKey.replace('level-', ''));
 
-      if (!assetSet) {
+      if (!Number.isFinite(level)) {
         continue;
       }
 

@@ -40,8 +40,7 @@ export const PIXI_BUILDING_IDS = [
 
 export type PixiBuildingId = (typeof PIXI_BUILDING_IDS)[number];
 
-export const PIXI_BUILDING_LEVELS = [0, 1, 2, 3] as const;
-export type PixiBuildingLevel = (typeof PIXI_BUILDING_LEVELS)[number];
+export type PixiBuildingLevel = number;
 
 export const PIXI_BUILDING_PARTS = ['exterior', 'roof', 'interior', 'props'] as const;
 export type PixiBuildingPart = (typeof PIXI_BUILDING_PARTS)[number];

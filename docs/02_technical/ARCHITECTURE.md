@@ -329,8 +329,6 @@ Current visual data boundaries:
 
 - `src/game-data/visual-assets.ts` owns manifest types and low-level asset set
   helpers;
-- `src/game-data/building-visuals.ts` maps building ids and levels to rendered
-  building assets;
 - `src/game-data/gladiator-visuals.ts` resolves deterministic gladiator
   identities, portraits, map frames and combat frames;
 - `src/game-data/gladiator-animations.ts` maps gladiator state to animation

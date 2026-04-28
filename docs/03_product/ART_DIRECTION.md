@@ -300,7 +300,6 @@ src/game-data/generated/asset-manifest.production.json
 Typed access to manifests belongs in `src/game-data/visual-assets.ts`,
 `src/rendering/pixi/assets` and adjacent visual modules such as:
 
-- `src/game-data/building-visuals.ts`;
 - `src/game-data/gladiator-visuals.ts`;
 - `src/game-data/gladiator-animations.ts`;
 - `src/game-data/map-visuals.ts`;

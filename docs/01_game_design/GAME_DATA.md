@@ -527,13 +527,12 @@ Demo saves must follow the current save schema, remain deterministic and include
 
 ## Visual Data
 
-Map layout, building visuals, flag/banner ambience, gladiator visuals, animations and time-of-day data are game data.
+Map layout, flag/banner ambience, gladiator visuals, animations and time-of-day data are game data.
 
 They should remain centralized in modules such as:
 
 - `src/game-data/map.ts`;
 - `src/game-data/map-layout.ts`;
-- `src/game-data/building-visuals.ts`;
 - `src/game-data/decorations.ts`;
 - `src/game-data/gladiator-visuals.ts`;
 - `src/game-data/gladiator-animations.ts`;
