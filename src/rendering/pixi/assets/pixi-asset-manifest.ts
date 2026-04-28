@@ -98,7 +98,7 @@ interface ProductionManifest {
   generatedAt: string;
   homepage: {
     backgrounds: Partial<Record<PixiHomepagePhase, string>>;
-    lastSaveThumbnail: string;
+    lastSaveThumbnail?: string;
   };
   buildings: Partial<Record<PixiBuildingId, Record<string, ProductionBuildingAssetSet>>>;
   locations: {
@@ -245,17 +245,19 @@ function addMainMenuAssets(
     );
   }
 
-  addTexture(
-    textures,
-    createTextureAsset(
-      pixiTextureAliases.homepageLastSaveThumbnail,
-      'main-menu',
-      productionManifest.homepage.lastSaveThumbnail,
-      PIXI_RENDER_LAYERS.homepageBackground,
-      { hitbox: rect(320, 180), tags: ['homepage', 'thumbnail'] },
-    ),
-    bundles,
-  );
+  if (productionManifest.homepage.lastSaveThumbnail) {
+    addTexture(
+      textures,
+      createTextureAsset(
+        pixiTextureAliases.homepageLastSaveThumbnail,
+        'main-menu',
+        productionManifest.homepage.lastSaveThumbnail,
+        PIXI_RENDER_LAYERS.homepageBackground,
+        { hitbox: rect(320, 180), tags: ['homepage', 'thumbnail'] },
+      ),
+      bundles,
+    );
+  }
 }
 
 function addBuildingAssets(

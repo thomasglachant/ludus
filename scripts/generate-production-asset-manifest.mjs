@@ -164,13 +164,20 @@ function buildMeta(variant) {
 }
 
 function buildHomepageManifest() {
+  const lastSaveThumbnailPath = join(publicAssetsRoot, 'main-menu', 'last-save-thumbnail.webp');
+  const backgrounds = Object.fromEntries(
+    [
+      ['day', join(publicAssetsRoot, 'main-menu', 'main-menu-background-day.webp')],
+      ['dusk', join(publicAssetsRoot, 'main-menu', 'main-menu-background-dusk.webp')],
+    ]
+      .filter(([, path]) => existsSync(path))
+      .map(([phase, path]) => [phase, toWebPath(path)]),
+  );
+
   return {
     sourceQuality: 'production',
-    backgrounds: {
-      day: '/assets/main-menu/main-menu-background-day.webp',
-      dusk: '/assets/main-menu/main-menu-background-dusk.webp',
-    },
-    lastSaveThumbnail: '/assets/main-menu/last-save-thumbnail.webp',
+    backgrounds,
+    ...(existsSync(lastSaveThumbnailPath) ? { lastSaveThumbnail: toWebPath(lastSaveThumbnailPath) } : {}),
   };
 }
 

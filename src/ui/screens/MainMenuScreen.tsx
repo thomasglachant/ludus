@@ -1,13 +1,10 @@
-import { Flame, FolderOpen, Play, Settings } from 'lucide-react';
-import { useEffect, type CSSProperties } from 'react';
+import { FolderOpen, Play, Settings } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
-import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 
 export function MainMenuScreen() {
-  const { language, openModal, t } = useUiStore();
-  const { isLoading, loadLocalSave, localSaves, refreshLocalSaves } = useGameStore();
-  const latestSave = localSaves[0];
+  const { openModal, t } = useUiStore();
   const backgroundPath = VISUAL_ASSET_MANIFEST.homepage.backgrounds.day;
   const mainMenuStyle = {
     '--main-menu-background': `url("${backgroundPath}")`,
@@ -16,18 +13,6 @@ export function MainMenuScreen() {
   const openLoadGame = () => {
     openModal({ kind: 'loadGame' });
   };
-
-  const continueLatestSave = () => {
-    if (!latestSave) {
-      return;
-    }
-
-    void loadLocalSave(latestSave.saveId);
-  };
-
-  useEffect(() => {
-    void refreshLocalSaves();
-  }, [refreshLocalSaves]);
 
   return (
     <section className="main-menu-screen" style={mainMenuStyle}>
@@ -59,48 +44,7 @@ export function MainMenuScreen() {
             <span>{t('mainMenu.options')}</span>
           </button>
         </nav>
-
-        <aside className="main-menu-screen__tip">
-          <Flame aria-hidden="true" size={28} />
-          <div>
-            <strong>{t('mainMenu.lanistaTipTitle')}</strong>
-            <p>{t('mainMenu.lanistaTipBody')}</p>
-          </div>
-        </aside>
       </div>
-
-      <aside className="main-menu-screen__last-save" data-testid="main-menu-last-save-card">
-        <p className="main-menu-screen__card-title">{t('mainMenu.lastSaveTitle')}</p>
-        <div className="main-menu-screen__last-save-body">
-          <img
-            className="main-menu-screen__last-save-thumbnail"
-            src={VISUAL_ASSET_MANIFEST.homepage.lastSaveThumbnail}
-            alt=""
-            aria-hidden="true"
-          />
-          {latestSave ? (
-            <div className="main-menu-screen__last-save-meta">
-              <h2>{latestSave.ludusName}</h2>
-              <p>{t('loadGame.ownerLine', { owner: latestSave.ownerName })}</p>
-              <p>{new Date(latestSave.updatedAt).toLocaleString(language)}</p>
-            </div>
-          ) : (
-            <p className="main-menu-screen__last-save-empty">
-              {isLoading ? t('common.loading') : t('mainMenu.noLastSave')}
-            </p>
-          )}
-        </div>
-        {latestSave ? (
-          <button
-            data-testid="main-menu-continue-save"
-            type="button"
-            disabled={isLoading}
-            onClick={continueLatestSave}
-          >
-            {t('mainMenu.continueLastSave')}
-          </button>
-        ) : null}
-      </aside>
     </section>
   );
 }

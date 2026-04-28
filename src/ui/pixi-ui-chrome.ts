@@ -6,10 +6,8 @@ type PixiUiChromeVariable = `--pixi-ui-${string}`;
 type PixiUiChromeStyle = CSSProperties & Partial<Record<PixiUiChromeVariable, string>>;
 
 const uiChromeAssets: [PixiUiChromeVariable, string][] = [
-  ['--pixi-ui-parchment-tile', 'parchment-tile'],
   ['--pixi-ui-bronze-frame-tile', 'bronze-frame-tile'],
   ['--pixi-ui-roman-divider', 'roman-divider'],
-  ['--pixi-ui-panel-corner', 'panel-corner'],
 ];
 
 function getProductionUiAssetUrl(assetId: string) {

@@ -61,7 +61,7 @@ export interface VisualAssetManifest {
   homepage: {
     sourceQuality?: VisualAssetSourceQuality;
     backgrounds: Partial<Record<HomepageBackgroundPhase, string>>;
-    lastSaveThumbnail: string;
+    lastSaveThumbnail?: string;
   };
   buildings: Partial<Record<BuildingId, Record<string, BuildingAssetSet>>>;
   locations: Record<VisualLocationId, Record<string, string>>;
