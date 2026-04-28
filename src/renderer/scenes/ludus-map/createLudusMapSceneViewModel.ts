@@ -1,23 +1,30 @@
 import { getGameMinuteStamp } from '../../../domain/gladiators/map-movement';
+import { getPlacementCells } from '../../../domain/map/occupancy';
 import type { GameSave } from '../../../domain/types';
-import { getBuildingVisualDefinition } from '../../../game-data/building-visuals';
 import {
   getGladiatorMapAnimationDefinition,
   getGladiatorMapAnimationDefinitionById,
 } from '../../../game-data/gladiator-animations';
-import { getGladiatorMapPoint } from '../../../game-data/gladiator-map-movement';
 import {
-  LUDUS_MAP_AMBIENT_ELEMENTS,
-  LUDUS_MAP_WATER_ANIMATION,
-} from '../../../game-data/map-visuals';
+  getGladiatorMapEntrancePoint,
+  getGladiatorMapPoint,
+  getGladiatorMapRoute,
+  getGladiatorMapRoutePoints,
+} from '../../../game-data/gladiator-map-movement';
+import { LUDUS_MAP_AMBIENT_ELEMENTS } from '../../../game-data/map-visuals';
 import { TIME_CONFIG } from '../../../game-data/time';
 import { getTimeOfDayDefinition } from '../../../game-data/time-of-day';
 import {
   getGladiatorMapAnimationAsset,
   getGladiatorVisualIdentity,
 } from '../../../game-data/gladiator-visuals';
-import { LUDUS_MAP_DEFINITION, type MapLocationId } from '../../../game-data/map-layout';
-import { VISUAL_ASSET_MANIFEST } from '../../../game-data/visual-assets';
+import {
+  createInitialLudusMapState,
+  getLudusMapTiles,
+  getMapObjectDefinitions,
+  LUDUS_MAP_DEFINITION,
+  type MapLocationId,
+} from '../../../game-data/map-layout';
 import type { LudusMapSceneViewModel } from './LudusMapSceneViewModel';
 
 interface CreateLudusMapSceneViewModelOptions {
@@ -67,6 +74,8 @@ export function createLudusMapSceneViewModel(
   const timeOfDay = getTimeOfDayDefinition(save.time.hour);
   const ambientSpeedMultiplier = timeOfDay.visualTheme.ambientSpeedMultiplier ?? 1;
   const reducedMotion = options.reducedMotion ?? false;
+  const mapState = save.map ?? createInitialLudusMapState();
+  const mapObjectDefinitions = getMapObjectDefinitions();
 
   return {
     width: LUDUS_MAP_DEFINITION.size.width,
@@ -95,8 +104,38 @@ export function createLudusMapSceneViewModel(
       shadowColor: parseHexColor(timeOfDay.visualTheme.shadowColor),
       spriteBrightness: timeOfDay.visualTheme.spriteBrightness,
       buildingLightOpacity: timeOfDay.visualTheme.buildingLightOpacity,
-      backgroundAssetPath: timeOfDay.visualTheme.mapBackgroundAssetPath,
+      backgroundAssetPath: undefined,
     },
+    grid: {
+      columns: LUDUS_MAP_DEFINITION.grid.columns,
+      rows: LUDUS_MAP_DEFINITION.grid.rows,
+      cellSize: LUDUS_MAP_DEFINITION.grid.cellSize,
+    },
+    tiles: getLudusMapTiles(mapState).map((tile) => ({
+      id: tile.id,
+      column: tile.coord.column,
+      row: tile.coord.row,
+      terrainId: tile.terrainId,
+      groundId: tile.groundId,
+      x: tile.x,
+      y: tile.y,
+      width: tile.width,
+      height: tile.height,
+    })),
+    walls: mapState.placements
+      .filter((placement) => placement.kind === 'wall')
+      .flatMap((placement) =>
+        getPlacementCells(placement, mapObjectDefinitions).map((cell) => ({
+          id: `${placement.id}-${cell.column}-${cell.row}`,
+          column: cell.column,
+          row: cell.row,
+          x: cell.column * LUDUS_MAP_DEFINITION.grid.cellSize,
+          y: cell.row * LUDUS_MAP_DEFINITION.grid.cellSize,
+          width: LUDUS_MAP_DEFINITION.grid.cellSize,
+          height: LUDUS_MAP_DEFINITION.grid.cellSize,
+          sortY: (cell.row + 1) * LUDUS_MAP_DEFINITION.grid.cellSize,
+        })),
+      ),
     terrainZones: LUDUS_MAP_DEFINITION.terrainZones.map((zone) => ({
       id: zone.id,
       kind: zone.kind,
@@ -149,29 +188,8 @@ export function createLudusMapSceneViewModel(
         zIndex: element.zIndex ?? 1,
       };
     }),
-    waterAnimation: {
-      id: LUDUS_MAP_WATER_ANIMATION.id,
-      x: LUDUS_MAP_WATER_ANIMATION.x,
-      y: LUDUS_MAP_WATER_ANIMATION.y,
-      width: LUDUS_MAP_WATER_ANIMATION.width,
-      height: LUDUS_MAP_WATER_ANIMATION.height,
-      color: parseHexColor(LUDUS_MAP_WATER_ANIMATION.color),
-      lineCount: LUDUS_MAP_WATER_ANIMATION.lineCount,
-      lineWidth: LUDUS_MAP_WATER_ANIMATION.lineWidth,
-      opacity: LUDUS_MAP_WATER_ANIMATION.opacity,
-      speed: LUDUS_MAP_WATER_ANIMATION.speed,
-    },
     locations: LUDUS_MAP_DEFINITION.locations.map((location) => {
       const building = location.kind === 'building' ? save.buildings[location.id] : null;
-      const visual =
-        location.kind === 'building'
-          ? getBuildingVisualDefinition(location.id, building?.level ?? 0)
-          : undefined;
-      const externalVisual =
-        location.kind === 'external' ? VISUAL_ASSET_MANIFEST.locations[location.id] : undefined;
-      const exteriorAssetPath = visual?.exteriorAssetPath ?? location.assetPath;
-      const propsAssetPath = visual?.propsAssetPath ?? externalVisual?.props;
-      const roofAssetPath = visual?.roofAssetPath;
       const width = location.width;
       const height = location.height;
       const level = building?.level ?? (location.id === 'arena' ? 1 : 0);
@@ -198,10 +216,19 @@ export function createLudusMapSceneViewModel(
           x: slot.x,
           y: slot.y,
         })),
-        exteriorAssetPath,
-        propsAssetPath,
-        roofAssetPath,
-        assetPath: exteriorAssetPath,
+        entrancePosition: {
+          id: `${location.id}-entrance`,
+          x:
+            location.entrance.column * LUDUS_MAP_DEFINITION.grid.cellSize +
+            LUDUS_MAP_DEFINITION.grid.cellSize / 2,
+          y:
+            location.entrance.row * LUDUS_MAP_DEFINITION.grid.cellSize +
+            LUDUS_MAP_DEFINITION.grid.cellSize / 2,
+        },
+        exteriorAssetPath: undefined,
+        propsAssetPath: undefined,
+        roofAssetPath: undefined,
+        assetPath: undefined,
         hitArea: {
           x: 0,
           y: 0,
@@ -232,14 +259,27 @@ export function createLudusMapSceneViewModel(
         gladiator.classId,
       );
       const animationAsset = getGladiatorMapAnimationAsset(visualIdentity, animation.id);
+      const movementRoute = movement
+        ? movement.route && movement.route.length > 0
+          ? movement.route
+          : getGladiatorMapRoute(movement.currentLocation, movement.targetLocation, mapState)
+        : undefined;
+      const routePoints = getGladiatorMapRoutePoints(movementRoute);
+      const fallbackFrom = movement
+        ? getGladiatorMapEntrancePoint(movement.currentLocation)
+        : getGladiatorMapPoint(targetLocationId, slotIndex);
+      const fallbackTo = movement
+        ? getGladiatorMapEntrancePoint(movement.targetLocation)
+        : fallbackFrom;
 
       usedSlotsByBuilding.set(targetLocationId, slotIndex + 1);
 
       return {
         id: gladiator.id,
         name: gladiator.name,
-        from: getGladiatorMapPoint(movement?.currentLocation ?? targetLocationId, slotIndex),
-        to: getGladiatorMapPoint(movement?.targetLocation ?? targetLocationId, slotIndex),
+        from: routePoints[0] ?? fallbackFrom,
+        to: routePoints[routePoints.length - 1] ?? fallbackTo,
+        routePoints,
         movementStartedAt: movement?.movementStartedAt ?? currentGameMinute,
         movementDuration: movement?.movementDuration ?? 1,
         animation,

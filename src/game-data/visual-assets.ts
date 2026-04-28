@@ -1,10 +1,8 @@
 import type { BuildingId } from '../domain/buildings/types';
-import { featureFlags } from '../config/features';
+import { GLADIATOR_VISUAL_VARIANT_LIMIT } from './gladiator-visual-variants';
 import productionVisualAssetManifestData from './generated/asset-manifest.production.json';
-import placeholderVisualAssetManifestData from './generated/asset-manifest.visual-migration.json';
 
-export type VisualAssetSourceQuality = 'placeholder' | 'production';
-export type TimeOfDayAssetPhase = 'dawn' | 'day' | 'dusk' | 'night';
+export type VisualAssetSourceQuality = 'production';
 export type HomepageBackgroundPhase = 'day' | 'dusk';
 export type MapFrameKey =
   | 'map-idle'
@@ -22,7 +20,7 @@ export type CombatFrameKey =
   | 'combat-defeat'
   | 'combat-victory';
 export type GladiatorFrameKey = MapFrameKey | CombatFrameKey;
-export type VisualLocationId = 'market' | 'arena';
+export type VisualLocationId = 'arena';
 
 export interface BuildingAssetSet {
   sourceQuality?: VisualAssetSourceQuality;
@@ -65,33 +63,24 @@ export interface VisualAssetManifest {
     backgrounds: Partial<Record<HomepageBackgroundPhase, string>>;
     lastSaveThumbnail: string;
   };
-  map: {
-    sourceQuality?: VisualAssetSourceQuality;
-    backgrounds: Record<TimeOfDayAssetPhase, string>;
-    ambient: Record<string, string>;
-  };
   buildings: Record<BuildingId, Record<string, BuildingAssetSet>>;
   locations: Record<VisualLocationId, Record<string, string>>;
   gladiators: Record<string, GladiatorAssetSet>;
   ui: Record<string, string>;
 }
 
-export const PLACEHOLDER_VISUAL_ASSET_MANIFEST = {
-  sourceQuality: 'placeholder',
-  ...placeholderVisualAssetManifestData,
-} as VisualAssetManifest;
-
 export const PRODUCTION_VISUAL_ASSET_MANIFEST =
   productionVisualAssetManifestData as VisualAssetManifest;
 
-export const VISUAL_ASSET_MANIFEST = featureFlags.usePlaceholderArt
-  ? PLACEHOLDER_VISUAL_ASSET_MANIFEST
-  : PRODUCTION_VISUAL_ASSET_MANIFEST;
+export const VISUAL_ASSET_MANIFEST = PRODUCTION_VISUAL_ASSET_MANIFEST;
 
 export const PIXEL_ART_BUILDING_LEVELS = [0, 1, 2, 3] as const;
 export type PixelArtBuildingLevel = (typeof PIXEL_ART_BUILDING_LEVELS)[number];
 
-export const GLADIATOR_VISUAL_ASSET_IDS = Object.keys(VISUAL_ASSET_MANIFEST.gladiators);
+export const GLADIATOR_VISUAL_ASSET_IDS = Object.keys(VISUAL_ASSET_MANIFEST.gladiators).slice(
+  0,
+  GLADIATOR_VISUAL_VARIANT_LIMIT,
+);
 
 export function getPixelArtBuildingLevel(level: number): PixelArtBuildingLevel {
   const minimumLevel = PIXEL_ART_BUILDING_LEVELS[0];

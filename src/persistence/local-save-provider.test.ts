@@ -25,7 +25,7 @@ describe('LocalSaveProvider', () => {
         ownerName: 'Flavia',
         ludusName: 'Aquila',
         updatedAt: '2026-04-25T12:00:00.000Z',
-        schemaVersion: 2,
+        schemaVersion: 3,
       },
     ]);
     await expect(provider.loadSave('save-local')).resolves.toEqual(save);

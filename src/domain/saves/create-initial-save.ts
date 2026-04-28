@@ -1,5 +1,6 @@
 import { INITIAL_TREASURY } from '../../game-data/economy';
 import { GAME_BALANCE } from '../../game-data/balance';
+import { createInitialLudusMapState } from '../../game-data/map-layout';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { createInitialBuildings } from '../buildings/initial-buildings';
 import { createWeeklyContracts } from '../contracts/contract-actions';
@@ -13,7 +14,7 @@ export interface InitialSaveInput {
   createdAt: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
   return {
@@ -39,6 +40,7 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
       speed: PROGRESSION_CONFIG.initialSpeed,
       isPaused: PROGRESSION_CONFIG.initialIsPaused,
     },
+    map: createInitialLudusMapState(),
     buildings: createInitialBuildings(),
     gladiators: [],
     market: createMarketState(PROGRESSION_CONFIG.startingYear, PROGRESSION_CONFIG.startingWeek),

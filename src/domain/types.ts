@@ -2,6 +2,18 @@ export type { LanguageCode } from './common/types';
 export type { GameSpeed, DayOfWeek, GameTimeState, GameTickContext } from './time/types';
 export type { LudusState } from './ludus/types';
 export type {
+  GridCoord,
+  GridSize,
+  LudusMapPlacement,
+  LudusMapState,
+  LudusMapTileOverride,
+  MapGroundId,
+  MapObjectFootprintDefinition,
+  MapPlacementKind,
+  MapRotation,
+  MapTerrainId,
+} from './map/types';
+export type {
   BuildingId,
   BuildingState,
   BuildingConfiguration,

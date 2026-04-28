@@ -1,4 +1,3 @@
-import { VISUAL_ASSET_MANIFEST } from './visual-assets';
 import { TIME_CONFIG } from './time';
 
 export type TimeOfDayPhase = 'dawn' | 'day' | 'dusk' | 'night';
@@ -13,7 +12,6 @@ export interface TimeOfDayVisualTheme {
   shadowColor: string;
   spriteBrightness: number;
   buildingLightOpacity: number;
-  mapBackgroundAssetPath?: string;
   ambientSpeedMultiplier?: number;
 }
 
@@ -41,7 +39,6 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       shadowColor: '#5d3c38',
       spriteBrightness: 1.04,
       buildingLightOpacity: 0.08,
-      mapBackgroundAssetPath: VISUAL_ASSET_MANIFEST.map.backgrounds.dawn,
       ambientSpeedMultiplier: 0.85,
     },
   },
@@ -60,7 +57,6 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       shadowColor: '#4f3a28',
       spriteBrightness: 1,
       buildingLightOpacity: 0,
-      mapBackgroundAssetPath: VISUAL_ASSET_MANIFEST.map.backgrounds.dusk,
       ambientSpeedMultiplier: 1,
     },
   },
@@ -79,7 +75,6 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       shadowColor: '#3d2632',
       spriteBrightness: 0.92,
       buildingLightOpacity: 0.16,
-      mapBackgroundAssetPath: VISUAL_ASSET_MANIFEST.map.backgrounds.night,
       ambientSpeedMultiplier: 0.75,
     },
   },
@@ -98,7 +93,6 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       shadowColor: '#0d1828',
       spriteBrightness: 0.82,
       buildingLightOpacity: 0.3,
-      mapBackgroundAssetPath: VISUAL_ASSET_MANIFEST.map.backgrounds.day,
       ambientSpeedMultiplier: 0.55,
     },
   },

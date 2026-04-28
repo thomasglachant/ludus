@@ -13,7 +13,7 @@ describe('createInitialSave', () => {
       createdAt: '2026-04-25T12:00:00.000Z',
     });
 
-    expect(save.schemaVersion).toBe(2);
+    expect(save.schemaVersion).toBe(3);
     expect(save.ludus.treasury).toBe(INITIAL_TREASURY);
     expect(save.time).toMatchObject({
       year: 1,
@@ -47,6 +47,11 @@ describe('createInitialSave', () => {
       configuration: { carePolicyId: 'basicCare' },
       selectedPolicyId: 'basicCare',
     });
+    expect(save.map).toMatchObject({
+      schemaVersion: 1,
+      gridId: 'default-ludus-grid',
+    });
+    expect(save.map.placements.some((placement) => placement.definitionId === 'domus')).toBe(true);
     expect(getLudusGladiatorCapacity(save)).toBe(1);
     expect(save.gladiators).toEqual([]);
     expect(save.market.availableGladiators).toHaveLength(5);

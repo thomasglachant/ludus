@@ -30,11 +30,11 @@ export function resolvePixiTextureAsset(
 
 export function resolvePixiTextureSource(
   alias: string,
-  options: { allowPlaceholderFallback?: boolean; manifest?: PixiProductionAssetManifest } = {},
+  options: { manifest?: PixiProductionAssetManifest } = {},
 ) {
   const asset = resolvePixiTextureAsset(alias, options.manifest);
 
-  return asset ? getPixiTextureSource(asset, options) : undefined;
+  return asset ? getPixiTextureSource(asset) : undefined;
 }
 
 export function resolvePixiSpritesheet(
@@ -47,7 +47,7 @@ export function resolvePixiSpritesheet(
 export function resolvePixiAnimation(
   spritesheetAlias: string,
   animationKey: string,
-  options: { allowPlaceholderFallback?: boolean; manifest?: PixiProductionAssetManifest } = {},
+  options: { manifest?: PixiProductionAssetManifest } = {},
 ): ResolvedPixiAnimation | undefined {
   const manifest = options.manifest ?? PIXI_PRODUCTION_ASSET_MANIFEST;
   const spritesheet = resolvePixiSpritesheet(spritesheetAlias, manifest);
@@ -59,7 +59,7 @@ export function resolvePixiAnimation(
 
   const frames = animation.frameAliases.flatMap((alias) => {
     const texture = resolvePixiTextureAsset(alias, manifest);
-    const src = texture ? getPixiTextureSource(texture, options) : undefined;
+    const src = texture ? getPixiTextureSource(texture) : undefined;
 
     return texture && src ? [{ alias, src, texture }] : [];
   });
@@ -80,7 +80,7 @@ export function resolvePixiBundle(
 
 export function resolvePixiBundleTextureSources(
   bundleId: PixiAssetBundleId,
-  options: { allowPlaceholderFallback?: boolean; manifest?: PixiProductionAssetManifest } = {},
+  options: { manifest?: PixiProductionAssetManifest } = {},
 ) {
   const manifest = options.manifest ?? PIXI_PRODUCTION_ASSET_MANIFEST;
   const bundle = resolvePixiBundle(bundleId, manifest);
@@ -91,7 +91,7 @@ export function resolvePixiBundleTextureSources(
 
   return bundle.textureAliases.flatMap((alias) => {
     const texture = resolvePixiTextureAsset(alias, manifest);
-    const src = texture ? getPixiTextureSource(texture, options) : undefined;
+    const src = texture ? getPixiTextureSource(texture) : undefined;
 
     return texture && src ? [{ alias, src, texture }] : [];
   });

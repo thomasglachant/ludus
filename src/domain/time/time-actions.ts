@@ -184,12 +184,17 @@ function getNextSleepBoundaryStamp(time: GameTimeState) {
   return nextDayWakeUpStamp;
 }
 
-function clampToSundayArenaStart(currentTime: GameTimeState, intendedMinutes: number) {
+function clampToSundayArenaStart(
+  currentTime: GameTimeState,
+  intendedMinutes: number,
+  shouldStopAtArenaStart: boolean,
+) {
   const currentStamp = getGameMinuteStamp(currentTime);
   const intendedStamp = currentStamp + intendedMinutes;
-  const arenaStartStamp = getNextSundayArenaStartStamp(currentTime);
   const sleepBoundaryStamp = getNextSleepBoundaryStamp(currentTime);
-  const interruptionStamp = Math.min(arenaStartStamp, sleepBoundaryStamp);
+  const interruptionStamp = shouldStopAtArenaStart
+    ? Math.min(getNextSundayArenaStartStamp(currentTime), sleepBoundaryStamp)
+    : sleepBoundaryStamp;
 
   if (interruptionStamp > intendedStamp) {
     return {
@@ -222,7 +227,7 @@ function assignNightSleep(save: GameSave, time = save.time): GameSave {
   return {
     ...save,
     gladiators: save.gladiators.map((gladiator) =>
-      assignGladiatorMapLocation(gladiator, 'dormitory', time, 'sleep'),
+      assignGladiatorMapLocation(gladiator, 'dormitory', time, 'sleep', save.map),
     ),
   };
 }
@@ -616,6 +621,7 @@ export function tickGame(context: GameTickContext): GameTickResult {
   const { advancedGameMinutes, time: nextTime } = clampToSundayArenaStart(
     context.currentSave.time,
     intendedGameMinutes,
+    context.currentSave.gladiators.length > 0,
   );
   const accumulatedEffectMinutes = (context.effectAccumulatorMinutes ?? 0) + advancedGameMinutes;
   const appliedEffectHours = Math.floor(accumulatedEffectMinutes / TIME_CONFIG.minutesPerHour);

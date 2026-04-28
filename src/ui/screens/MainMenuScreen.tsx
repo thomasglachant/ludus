@@ -8,9 +8,7 @@ export function MainMenuScreen() {
   const { language, openModal, t } = useUiStore();
   const { isLoading, loadLocalSave, localSaves, refreshLocalSaves } = useGameStore();
   const latestSave = localSaves[0];
-  const backgroundPath =
-    VISUAL_ASSET_MANIFEST.homepage.backgrounds.day ??
-    '/assets/pixel-art/homepage/homepage-background-day.svg';
+  const backgroundPath = VISUAL_ASSET_MANIFEST.homepage.backgrounds.day;
   const mainMenuStyle = {
     '--main-menu-background': `url("${backgroundPath}")`,
   } as CSSProperties;

@@ -26,10 +26,6 @@ const buildingVisualSizes: Record<BuildingId, { width: number; height: number }>
   infirmary: { width: 240, height: 160 },
 };
 
-function getLegacyBuildingAssetPath(buildingId: BuildingId, level: number) {
-  return `/assets/buildings/${buildingId}-level-${level}.svg`;
-}
-
 function createBuildingVisualDefinition(
   buildingId: BuildingId,
   level: number,
@@ -41,7 +37,7 @@ function createBuildingVisualDefinition(
   return {
     buildingId,
     level,
-    exteriorAssetPath: assetSet?.exterior ?? getLegacyBuildingAssetPath(buildingId, level),
+    exteriorAssetPath: assetSet.exterior,
     roofAssetPath: assetSet?.roof,
     interiorAssetPath: assetSet?.interior,
     propsAssetPath: assetSet?.props,

@@ -250,6 +250,7 @@ export function synchronizeEvents(save: GameSave, random: RandomSource = Math.ra
     pendingEvents.length > 0 ||
     save.events.resolvedEvents.some((event) => isSameEventDay(save, event));
   const canCreateEvent =
+    save.gladiators.length > 0 &&
     save.time.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek &&
     save.time.hour >= EVENT_CONFIG.dailyEventStartHour &&
     !hasEventForCurrentDay;

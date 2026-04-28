@@ -13,15 +13,8 @@ const productionManifestPath = join(
   'generated',
   'asset-manifest.production.json',
 );
-const publicManifestPath = join(
-  root,
-  'public',
-  'assets',
-  'pixel-art-production',
-  'asset-manifest.production.json',
-);
-const outputRoot = join(root, 'public', 'assets', 'pixel-art-production', 'gladiators');
-const webRoot = '/assets/pixel-art-production/gladiators';
+const outputRoot = join(root, 'public', 'assets', 'gladiators');
+const webRoot = '/assets/gladiators';
 const generatedAt = '2026-04-28T00:00:00.000Z';
 
 const mapFrameKeys = [
@@ -110,9 +103,19 @@ function parseArrayConstant(source, name) {
   return Array.from(match[1].matchAll(/'([^']+)'/g), ([, value]) => value);
 }
 
+function parseNumberConstant(source, name) {
+  const match = source.match(new RegExp(`export const ${name} = (\\d+);`));
+  if (!match) {
+    throw new Error(`Missing variant constant: ${name}`);
+  }
+
+  return Number(match[1]);
+}
+
 function readVariantConfig() {
   const source = readFileSync(variantsPath, 'utf8');
   return {
+    maxVariantCount: parseNumberConstant(source, 'GLADIATOR_VISUAL_VARIANT_LIMIT'),
     clothingStyles: parseArrayConstant(source, 'GLADIATOR_CLOTHING_STYLES'),
     clothingColors: parseArrayConstant(source, 'GLADIATOR_CLOTHING_COLORS'),
     hairAndBeardStyles: parseArrayConstant(source, 'GLADIATOR_HAIR_AND_BEARD_STYLES'),
@@ -125,10 +128,12 @@ function readVariantConfig() {
 }
 
 function parseArgs(args) {
+  const limitArg = args.find((arg) => arg.startsWith('--limit='));
+
   return {
     clean: args.includes('--clean'),
     dryRun: args.includes('--dry-run'),
-    limit: Number(args.find((arg) => arg.startsWith('--limit='))?.slice('--limit='.length) ?? 625),
+    limit: limitArg ? Number(limitArg.slice('--limit='.length)) : undefined,
   };
 }
 
@@ -928,12 +933,17 @@ function writeManifest(path, manifest, dryRun) {
 
 function run() {
   const options = parseArgs(process.argv.slice(2));
-  if (!Number.isInteger(options.limit) || options.limit < classOrder.length) {
-    throw new Error('--limit must be an integer >= 5');
+  const config = readVariantConfig();
+  const limit = options.limit ?? config.maxVariantCount;
+
+  if (!Number.isInteger(limit) || limit < classOrder.length) {
+    throw new Error(`--limit must be an integer >= ${classOrder.length}`);
+  }
+  if (limit > config.maxVariantCount) {
+    throw new Error(`--limit must be <= ${config.maxVariantCount}`);
   }
 
-  const config = readVariantConfig();
-  const variants = buildVariants(config, options.limit);
+  const variants = buildVariants(config, limit);
   const productionManifest = readManifest(productionManifestPath);
   const gladiators = {};
 
@@ -956,7 +966,6 @@ function run() {
   };
 
   writeManifest(productionManifestPath, nextManifest, options.dryRun);
-  writeManifest(publicManifestPath, nextManifest, options.dryRun);
 
   console.log(
     `Generated ${variants.length} gladiator production asset sets${options.dryRun ? ' (dry run)' : ''}.`,

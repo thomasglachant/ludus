@@ -171,18 +171,14 @@ of the normal player experience.
 
 The visual target is a dense Roman map-first scene with a dark bronze HUD,
 parchment panels, visible characters, clear building silhouettes and theatrical
-arena presentation. Generated SVG scaffolding is placeholder-only and must not
-be accepted as final player-facing art. Final quality comes from authored
-pixel-art spritesheets, backgrounds and building assets.
+arena presentation. Final quality comes from the current production pixel-art
+spritesheets, backgrounds and building assets.
 
 ## Visual Acceptance Checklist
 
 Before accepting player-facing visual work, verify:
 
-- [ ] no flat vector placeholder background is used as a final background;
 - [ ] no debug grid is visible in the normal player experience;
-- [ ] no geometric placeholder gladiators are visible in the normal player
-      experience;
 - [ ] final building art is not made mainly from SVG primitives;
 - [ ] the map, combat screen and homepage preserve the intended composition,
       mood, materials, density and game feel.
@@ -286,32 +282,13 @@ Combat formulas, rewards and consequences remain in domain modules.
 Production pixel-art assets live under:
 
 ```text
-public/assets/pixel-art-production/
-```
-
-Generated fallback assets live under:
-
-```text
-public/assets/pixel-art/
-```
-
-The production manifest is:
-
-```text
-public/assets/pixel-art-production/asset-manifest.production.json
-```
-
-The fallback manifest is:
-
-```text
-public/assets/pixel-art/asset-manifest.visual-migration.json
+public/assets/
 ```
 
 TypeScript import mirrors are:
 
 ```text
 src/game-data/generated/asset-manifest.production.json
-src/game-data/generated/asset-manifest.visual-migration.json
 ```
 
 Typed access to manifests belongs in `src/game-data/visual-assets.ts`,
@@ -333,7 +310,7 @@ manifest and game-data boundaries.
 
 Map asset priorities:
 
-- replace weak generated SVG map placeholders with authored pixel-art tiles;
+- create authored pixel-art tiles for the grid map;
 - normalize tile size and map scale;
 - create terrain tile sets for countryside, paths, sand, stone and building
   foundations;

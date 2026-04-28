@@ -15,7 +15,7 @@ const uiChromeAssets: [PixiUiChromeVariable, string][] = [
 function getProductionUiAssetUrl(assetId: string) {
   const texture = PIXI_PRODUCTION_ASSET_MANIFEST.textures[pixiTextureAliases.coreUi(assetId)];
 
-  return texture?.productionSrc ? `url("${texture.productionSrc}")` : undefined;
+  return texture?.src ? `url("${texture.src}")` : undefined;
 }
 
 export const pixiUiChromeStyle = Object.fromEntries(

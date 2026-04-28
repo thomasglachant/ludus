@@ -9,7 +9,7 @@ interface TopHudProps {
   onSpeedChange(speed: GameSpeed): void;
 }
 
-const TOP_HUD_ASSET_BASE_PATH = '/assets/pixel-art-production/ui/top-hud';
+const TOP_HUD_ASSET_BASE_PATH = '/assets/ui/top-hud';
 
 const TIME_OF_DAY_ICON_PATHS: Record<TimeOfDayPhase, string> = {
   dawn: `${TOP_HUD_ASSET_BASE_PATH}/time-dawn.png`,

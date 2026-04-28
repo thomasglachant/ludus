@@ -1,5 +1,6 @@
 import type { MapLocationId } from '../../../game-data/map-layout';
 import type { MapDecorationStyle } from '../../../game-data/decorations';
+import type { MapGroundId, MapTerrainId } from '../../../domain/map/types';
 import type {
   GladiatorMapAnimationDefinition,
   GladiatorMapAnimationId,
@@ -19,6 +20,27 @@ export interface LudusMapSceneRectViewModel extends LudusMapScenePointViewModel 
   height: number;
 }
 
+export interface LudusMapSceneGridViewModel {
+  columns: number;
+  rows: number;
+  cellSize: number;
+}
+
+export interface LudusMapSceneTileViewModel extends LudusMapSceneRectViewModel {
+  id: string;
+  column: number;
+  row: number;
+  terrainId: MapTerrainId;
+  groundId?: MapGroundId;
+}
+
+export interface LudusMapSceneWallViewModel extends LudusMapSceneRectViewModel {
+  id: string;
+  column: number;
+  row: number;
+  sortY: number;
+}
+
 export interface LudusMapSceneLocationViewModel {
   id: string;
   mapLocationId: MapLocationId;
@@ -35,6 +57,7 @@ export interface LudusMapSceneLocationViewModel {
   isOwned: boolean;
   level: number;
   activitySlots: LudusMapScenePointViewModel[];
+  entrancePosition: LudusMapScenePointViewModel;
   exteriorAssetPath?: string;
   roofAssetPath?: string;
   propsAssetPath?: string;
@@ -55,6 +78,10 @@ export interface LudusMapSceneGladiatorViewModel {
     x: number;
     y: number;
   };
+  routePoints: {
+    x: number;
+    y: number;
+  }[];
   movementStartedAt: number;
   movementDuration: number;
   animation: GladiatorMapAnimationDefinition;
@@ -76,7 +103,7 @@ export interface LudusMapScenePathViewModel {
 
 export interface LudusMapSceneTerrainZoneViewModel extends LudusMapSceneRectViewModel {
   id: string;
-  kind: 'sea' | 'cliff' | 'compoundGround';
+  kind: 'compoundGround' | 'countryside';
 }
 
 export interface LudusMapSceneDecorationViewModel {
@@ -111,19 +138,6 @@ export interface LudusMapSceneAmbientElementViewModel {
   zIndex: number;
 }
 
-export interface LudusMapSceneWaterAnimationViewModel {
-  id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color: number;
-  lineCount: number;
-  lineWidth: number;
-  opacity: number;
-  speed: number;
-}
-
 export interface LudusMapSceneThemeViewModel {
   skyColor: number;
   terrainColor: number;
@@ -155,11 +169,13 @@ export interface LudusMapSceneViewModel {
   maxZoom: number;
   zoomPresets: number[];
   theme: LudusMapSceneThemeViewModel;
+  grid: LudusMapSceneGridViewModel;
+  tiles: LudusMapSceneTileViewModel[];
+  walls: LudusMapSceneWallViewModel[];
   terrainZones: LudusMapSceneTerrainZoneViewModel[];
   paths: LudusMapScenePathViewModel[];
   decorations: LudusMapSceneDecorationViewModel[];
   ambientElements: LudusMapSceneAmbientElementViewModel[];
-  waterAnimation: LudusMapSceneWaterAnimationViewModel;
   locations: LudusMapSceneLocationViewModel[];
   gladiators: LudusMapSceneGladiatorViewModel[];
 }

@@ -76,7 +76,7 @@ function getProductionBuildingArtwork(buildingId: BuildingId, level: number) {
     const alias = pixiTextureAliases.building(buildingId, visualLevel, part);
     const texture = PIXI_PRODUCTION_ASSET_MANIFEST.textures[alias];
 
-    return texture?.productionSrc ? [{ part, src: texture.productionSrc }] : [];
+    return texture?.src ? [{ part, src: texture.src }] : [];
   });
 }
 

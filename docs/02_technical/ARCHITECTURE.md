@@ -198,8 +198,7 @@ Contains feature flag parsing and other runtime configuration.
 Current flags:
 
 - `VITE_ENABLE_DEMO_MODE`;
-- `VITE_ENABLE_DEBUG_UI`;
-- `VITE_USE_PLACEHOLDER_ART`.
+- `VITE_ENABLE_DEBUG_UI`.
 
 ## Scene Renderer
 
@@ -255,10 +254,11 @@ This keeps scenes testable, replaceable and limited to rendering.
 ### Map Movement And Ambience
 
 Gladiator movement is represented as game state, not as Pixi business logic.
-Domain/state decides the target location and may store a movement intent such as
-current location, target location, activity, start time and duration.
-Game-data defines map points, activity destinations and movement speed. Pixi
-interpolates between prepared points for presentation only.
+Domain/state decides the target location and stores a movement intent such as
+current location, target location, activity, grid route, start time and duration.
+Game-data defines the map grid, fixed building footprints, entrances and movement
+speed. Domain pathfinding resolves cardinal routes over traversable cells. Pixi
+interpolates along prepared route points for presentation only.
 
 When a save has no movement intent, the scene renders the gladiator at the
 current assigned building or location. This keeps existing saves compatible and
@@ -305,56 +305,16 @@ Pixi scenes must preserve authored pixel-art edges:
 The player UI uses generated or authored pixel-art assets from:
 
 ```text
-public/assets/pixel-art-production/
-public/assets/pixel-art/
-```
-
-The production manifest is:
-
-```text
-public/assets/pixel-art-production/asset-manifest.production.json
-```
-
-The generated fallback manifest is:
-
-```text
-public/assets/pixel-art/asset-manifest.visual-migration.json
+public/assets/
 ```
 
 TypeScript import mirrors are generated at:
 
 ```text
 src/game-data/generated/asset-manifest.production.json
-src/game-data/generated/asset-manifest.visual-migration.json
 ```
 
-The fallback scaffold generator command is:
-
-```bash
-node scripts/generate-visual-migration-assets.mjs
-```
-
-Use `--clean` when intentionally regenerating the complete scaffold:
-
-```bash
-node scripts/generate-visual-migration-assets.mjs --clean
-```
-
-The Pixi production manifest can be rebuilt from production assets and fallback
-metadata with:
-
-```bash
-node scripts/build-pixi-production-manifest.mjs
-```
-
-Validate production manifest coverage with:
-
-```bash
-node scripts/validate-pixi-production-assets.mjs
-```
-
-The public manifests are useful for inspection, while the generated
-`src/game-data/generated` mirrors are exposed to TypeScript through
+The generated `src/game-data/generated` manifest mirrors are exposed to TypeScript through
 `src/game-data/visual-assets.ts` and `src/rendering/pixi/assets`.
 React components and Pixi scenes should not import the JSON manifests directly
 or hardcode individual asset paths.

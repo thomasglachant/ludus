@@ -1,16 +1,22 @@
 import { BUILDING_IDS } from '../../game-data/buildings';
 import { createGladiatorClassId } from '../../game-data/gladiator-classes';
+import {
+  createInitialLudusMapState,
+  LUDUS_MAP_STATE_SCHEMA_VERSION,
+} from '../../game-data/map-layout';
 import { DAYS_OF_WEEK, SUPPORTED_GAME_SPEEDS } from '../../game-data/time';
 import type { BuildingId } from '../buildings/types';
 import type { Gladiator, GladiatorLocationId } from '../gladiators/types';
+import type { LudusMapPlacement, LudusMapState, LudusMapTileOverride } from '../map/types';
 import type { GameSave } from './types';
 import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
 const dayOfWeeks = [...DAYS_OF_WEEK];
 const gameSpeeds = [...SUPPORTED_GAME_SPEEDS];
-const supportedSchemaVersions = [1, CURRENT_SCHEMA_VERSION];
+const legacySupportedSchemaVersions = [1, 2, CURRENT_SCHEMA_VERSION];
 const locationIds = [...requiredBuildingIds, 'arena'];
+const mapPlacementKinds = ['building', 'prop', 'road', 'wall'];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -46,6 +52,46 @@ function hasNumberFrom(value: Record<string, unknown>, key: string, allowedValue
 
 function isLocationId(value: unknown): value is GladiatorLocationId {
   return typeof value === 'string' && locationIds.includes(value);
+}
+
+function isGridCoord(value: unknown) {
+  return isRecord(value) && hasNumber(value, 'column') && hasNumber(value, 'row');
+}
+
+function isMapTileOverride(value: unknown): value is LudusMapTileOverride {
+  return (
+    isRecord(value) &&
+    isGridCoord(value.coord) &&
+    (value.terrainId === undefined || typeof value.terrainId === 'string') &&
+    (value.groundId === undefined || typeof value.groundId === 'string')
+  );
+}
+
+function isMapPlacement(value: unknown): value is LudusMapPlacement {
+  return (
+    isRecord(value) &&
+    hasString(value, 'id') &&
+    hasStringFrom(value, 'kind', mapPlacementKinds) &&
+    hasString(value, 'definitionId') &&
+    isGridCoord(value.origin) &&
+    (value.rotation === undefined ||
+      value.rotation === 0 ||
+      value.rotation === 90 ||
+      value.rotation === 180 ||
+      value.rotation === 270)
+  );
+}
+
+function isMapState(value: unknown): value is LudusMapState {
+  return (
+    isRecord(value) &&
+    value.schemaVersion === LUDUS_MAP_STATE_SCHEMA_VERSION &&
+    hasString(value, 'gridId') &&
+    Array.isArray(value.placements) &&
+    Array.isArray(value.editedTiles) &&
+    value.placements.every(isMapPlacement) &&
+    value.editedTiles.every(isMapTileOverride)
+  );
 }
 
 function isBuildingState(value: unknown, buildingId: BuildingId) {
@@ -124,7 +170,7 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     return false;
   }
 
-  if (!hasNumberFrom(value, 'schemaVersion', supportedSchemaVersions)) {
+  if (!hasNumberFrom(value, 'schemaVersion', legacySupportedSchemaVersions)) {
     return false;
   }
 
@@ -157,6 +203,10 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     return false;
   }
 
+  if (value.schemaVersion === CURRENT_SCHEMA_VERSION && !isMapState(value.map)) {
+    return false;
+  }
+
   const buildings = value.buildings;
 
   if (!isRecord(buildings)) {
@@ -176,6 +226,10 @@ function isSupportedGameSave(value: unknown): value is GameSave {
 
 export function isGameSave(value: unknown): value is GameSave {
   return isSupportedGameSave(value) && value.schemaVersion === CURRENT_SCHEMA_VERSION;
+}
+
+function normalizeMapState(mapState: unknown): LudusMapState {
+  return isMapState(mapState) ? mapState : createInitialLudusMapState();
 }
 
 function normalizeGladiator(gladiator: Gladiator): Gladiator {
@@ -225,9 +279,11 @@ function normalizeCombatState<TCombat extends GameSave['arena']['pendingCombats'
 }
 
 export function normalizeGameSave(save: GameSave): GameSave {
+  const saveWithOptionalMap = save as GameSave & { map?: unknown };
   const normalizedSave: GameSave & { settings?: unknown } = {
     ...save,
     schemaVersion: CURRENT_SCHEMA_VERSION,
+    map: normalizeMapState(saveWithOptionalMap.map),
     gladiators: save.gladiators.map(normalizeGladiator),
     market: {
       ...save.market,

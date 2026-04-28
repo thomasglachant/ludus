@@ -1,6 +1,7 @@
 import { createWeeklyContracts } from '../../domain/contracts/contract-actions';
 import { synchronizePlanning } from '../../domain/planning/planning-actions';
 import { CURRENT_SCHEMA_VERSION } from '../../domain/saves/create-initial-save';
+import { createInitialLudusMapState } from '../map-layout';
 import { createGladiatorClassId } from '../gladiator-classes';
 import { getGladiatorVisualIdentity } from '../gladiator-visuals';
 import type {
@@ -97,6 +98,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     },
     ludus: input.ludus,
     time: input.time,
+    map: createInitialLudusMapState(),
     buildings: input.buildings,
     gladiators,
     market: {

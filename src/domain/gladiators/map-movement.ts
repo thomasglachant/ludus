@@ -3,9 +3,12 @@ import type { Gladiator, GladiatorLocationId, GladiatorMapMovement } from './typ
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { DAYS_OF_WEEK, TIME_CONFIG } from '../../game-data/time';
 import {
+  GLADIATOR_MAP_MOVEMENT_MINUTES_PER_TILE,
+  getGladiatorMapRoute,
   getGladiatorMapMovementDuration,
   isGladiatorBuildingLocation,
 } from '../../game-data/gladiator-map-movement';
+import type { LudusMapState } from '../map/types';
 
 export function getGameMinuteStamp(time: GameTimeState) {
   const dayIndex = DAYS_OF_WEEK.indexOf(time.dayOfWeek);
@@ -25,6 +28,7 @@ export function createGladiatorMapMovement(
   targetLocation: GladiatorLocationId,
   time: GameTimeState,
   activity: string,
+  mapState?: LudusMapState,
 ): GladiatorMapMovement | undefined {
   const currentLocation =
     gladiator.currentLocationId ??
@@ -36,12 +40,16 @@ export function createGladiatorMapMovement(
     return undefined;
   }
 
+  const route = getGladiatorMapRoute(currentLocation, targetLocation, mapState);
+
   return {
     currentLocation,
     targetLocation,
     activity,
+    route,
     movementStartedAt: getGameMinuteStamp(time),
-    movementDuration: getGladiatorMapMovementDuration(currentLocation, targetLocation),
+    movementDuration: getGladiatorMapMovementDuration(currentLocation, targetLocation, mapState),
+    minutesPerTile: GLADIATOR_MAP_MOVEMENT_MINUTES_PER_TILE,
   };
 }
 
@@ -81,6 +89,7 @@ export function assignGladiatorMapLocation(
   targetLocation: GladiatorLocationId | undefined,
   time: GameTimeState,
   activity = 'idle',
+  mapState?: LudusMapState,
 ): Gladiator {
   const activeMovement = gladiator.mapMovement;
 
@@ -116,7 +125,7 @@ export function assignGladiatorMapLocation(
     };
   }
 
-  const movement = createGladiatorMapMovement(gladiator, targetLocation, time, activity);
+  const movement = createGladiatorMapMovement(gladiator, targetLocation, time, activity, mapState);
 
   if (!movement) {
     const isBuilding = isGladiatorBuildingLocation(targetLocation);

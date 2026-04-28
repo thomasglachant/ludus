@@ -1,8 +1,6 @@
 export const PIXI_ASSET_BUNDLE_IDS = [
   'core-ui',
   'main-menu',
-  'map-base',
-  'map-ambient',
   'buildings',
   'gladiators-map',
   'gladiators-combat',
@@ -11,19 +9,14 @@ export const PIXI_ASSET_BUNDLE_IDS = [
 
 export type PixiAssetBundleId = (typeof PIXI_ASSET_BUNDLE_IDS)[number];
 
-export const PIXI_SOURCE_QUALITIES = ['placeholder', 'production'] as const;
+export const PIXI_SOURCE_QUALITIES = ['production'] as const;
 
 export type PixiSourceQuality = (typeof PIXI_SOURCE_QUALITIES)[number];
 
 export const PIXI_RENDER_LAYERS = {
   uiBase: 'ui.base',
   homepageBackground: 'homepage.background',
-  mapBackground: 'map.background',
-  mapTerrain: 'map.terrain',
-  mapPaths: 'map.paths',
   mapBuildings: 'map.buildings',
-  mapAmbientBack: 'map.ambient.back',
-  mapAmbientFront: 'map.ambient.front',
   mapCharacters: 'map.characters',
   combatBackground: 'combat.background',
   combatCrowd: 'combat.crowd',
@@ -32,9 +25,6 @@ export const PIXI_RENDER_LAYERS = {
 } as const;
 
 export type PixiRenderLayerId = (typeof PIXI_RENDER_LAYERS)[keyof typeof PIXI_RENDER_LAYERS];
-
-export const PIXI_MAP_PHASES = ['dawn', 'day', 'dusk', 'night'] as const;
-export type PixiMapPhase = (typeof PIXI_MAP_PHASES)[number];
 
 export const PIXI_HOMEPAGE_PHASES = ['day', 'dusk'] as const;
 export type PixiHomepagePhase = (typeof PIXI_HOMEPAGE_PHASES)[number];
@@ -55,9 +45,6 @@ export type PixiBuildingLevel = (typeof PIXI_BUILDING_LEVELS)[number];
 
 export const PIXI_BUILDING_PARTS = ['exterior', 'roof', 'interior', 'props'] as const;
 export type PixiBuildingPart = (typeof PIXI_BUILDING_PARTS)[number];
-
-export const PIXI_LOCATION_IDS = ['market', 'arena'] as const;
-export type PixiLocationId = (typeof PIXI_LOCATION_IDS)[number];
 
 export const PIXI_MAP_ANIMATION_KEYS = [
   'map-idle',
@@ -89,11 +76,8 @@ export const pixiTextureAliases = {
   coreUi: (assetId: string) => `ui:${assetId}`,
   homepageBackground: (phase: PixiHomepagePhase) => `homepage:background:${phase}`,
   homepageLastSaveThumbnail: 'homepage:last-save-thumbnail',
-  mapBackground: (phase: PixiMapPhase) => `map:background:${phase}`,
-  mapAmbient: (assetId: string) => `map:ambient:${assetId}`,
   building: (buildingId: PixiBuildingId, level: PixiBuildingLevel, part: PixiBuildingPart) =>
     `building:${buildingId}:level-${level}:${part}`,
-  location: (locationId: PixiLocationId, part: string) => `location:${locationId}:${part}`,
   gladiatorPortrait: (variantId: string) => `gladiator:${variantId}:portrait`,
   gladiatorMapFrame: (variantId: string, animationKey: PixiMapAnimationKey, frameIndex: number) =>
     `gladiator:${variantId}:${animationKey}:${frameIndex}`,

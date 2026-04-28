@@ -590,7 +590,7 @@
   width: 26px;
   height: 26px;
   flex: 0 0 auto;
-  background-image: url('/assets/pixel-art-production/ui/resource-icons.png');
+  background-image: url('/assets/ui/resource-icons.png');
   background-repeat: no-repeat;
   background-size: 156px 26px;
   image-rendering: pixelated;

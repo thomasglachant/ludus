@@ -112,7 +112,7 @@ function sendGladiatorsToArena(save: GameSave): GameSave {
     gladiators: save.gladiators.map((gladiator) =>
       isAtArena(gladiator) || isMovingToArena(gladiator)
         ? gladiator
-        : assignGladiatorMapLocation(gladiator, 'arena', save.time, 'arenaTravel'),
+        : assignGladiatorMapLocation(gladiator, 'arena', save.time, 'arenaTravel', save.map),
     ),
   };
 }
@@ -876,6 +876,18 @@ export function synchronizeArena(save: GameSave, random: RandomSource = Math.ran
     return save;
   }
 
+  if (save.gladiators.length === 0) {
+    return {
+      ...save,
+      arena: {
+        ...save.arena,
+        arenaDay: undefined,
+        pendingCombats: [],
+        isArenaDayActive: false,
+      },
+    };
+  }
+
   if (save.time.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek) {
     return {
       ...save,
@@ -902,7 +914,7 @@ export function synchronizeArena(save: GameSave, random: RandomSource = Math.ran
     return save;
   }
 
-  if (save.gladiators.length === 0 || areAllGladiatorsAtArena(save)) {
+  if (areAllGladiatorsAtArena(save)) {
     return startArenaDay(save, random);
   }
 

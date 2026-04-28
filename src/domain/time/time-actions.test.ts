@@ -207,6 +207,36 @@ describe('time actions', () => {
     expect(result.save.arena.resolvedCombats).toHaveLength(0);
   });
 
+  it('treats Sunday like a regular day without gladiators', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      time: {
+        year: 1,
+        week: 1,
+        dayOfWeek: 'sunday',
+        hour: 7,
+        minute: 59,
+        speed: 1,
+        isPaused: false,
+      },
+    };
+    const result = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 5_000,
+      speed: save.time.speed,
+      random: () => 0,
+    });
+
+    expect(result.save.time).toMatchObject({
+      dayOfWeek: 'sunday',
+      hour: 8,
+      minute: 59,
+    });
+    expect(result.save.arena.isArenaDayActive).toBe(false);
+    expect(result.save.arena.arenaDay).toBeUndefined();
+    expect(result.save.arena.resolvedCombats).toHaveLength(0);
+  });
+
   it('sends gladiators to the arena at 8:00 and starts combats after arrival', () => {
     const save: GameSave = {
       ...createTestSave(),

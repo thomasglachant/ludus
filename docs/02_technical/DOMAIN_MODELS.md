@@ -41,6 +41,7 @@ export interface GameSave {
   player: PlayerProfile;
   ludus: LudusState;
   time: GameTimeState;
+  map: LudusMapState;
   buildings: Record<BuildingId, BuildingState>;
   gladiators: Gladiator[];
   market: MarketState;
@@ -122,6 +123,27 @@ export interface GameTickContext {
   random?: () => number;
 }
 ```
+
+## Map
+
+```ts
+export interface GridCoord {
+  column: number;
+  row: number;
+}
+
+export interface LudusMapState {
+  schemaVersion: number;
+  gridId: string;
+  placements: LudusMapPlacement[];
+  editedTiles: LudusMapTileOverride[];
+}
+```
+
+`map` stores the player-visible ludus grid state. The initial implementation uses
+fixed building placements, road tiles and wall tiles. Future construction should
+mutate `placements` and `editedTiles` through domain actions instead of changing
+renderer-only coordinates.
 
 ## Buildings
 
@@ -302,12 +324,29 @@ export interface Gladiator {
   wins: number;
   losses: number;
   traits: GladiatorTrait[];
+  currentLocationId?: GladiatorLocationId;
   currentBuildingId?: BuildingId;
   currentActivityId?: string;
+  mapMovement?: GladiatorMapMovement;
   trainingPlan?: GladiatorTrainingPlan;
   visualIdentity?: GladiatorVisualIdentity;
 }
 ```
+
+```ts
+export interface GladiatorMapMovement {
+  currentLocation: GladiatorLocationId;
+  targetLocation: GladiatorLocationId;
+  activity: string;
+  route?: GridCoord[];
+  movementStartedAt: number;
+  movementDuration: number;
+  minutesPerTile?: number;
+}
+```
+
+`route` is a cardinal grid-cell path. Domain/game-data helpers compute it from
+the current map occupancy; Pixi only interpolates along the prepared route.
 
 ```ts
 export type GladiatorTrait =

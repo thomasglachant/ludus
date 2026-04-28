@@ -44,6 +44,13 @@ function duringEventWindow(save: GameSave): GameSave {
 }
 
 describe('event actions', () => {
+  it('does not generate daily events without gladiators', () => {
+    const synchronized = synchronizeEvents(duringEventWindow(createTestSave()), () => 0);
+
+    expect(synchronized.events.pendingEvents).toHaveLength(0);
+    expect(synchronized.events.resolvedEvents).toHaveLength(0);
+  });
+
   it('generates one daily event and resolves a choice', () => {
     const save: GameSave = {
       ...duringEventWindow(createTestSave()),
@@ -67,7 +74,11 @@ describe('event actions', () => {
   });
 
   it('expires unresolved events when the day changes', () => {
-    const synchronized = synchronizeEvents(duringEventWindow(createTestSave()), () => 0);
+    const save: GameSave = {
+      ...duringEventWindow(createTestSave()),
+      gladiators: [createGladiator()],
+    };
+    const synchronized = synchronizeEvents(save, () => 0);
     const nextDaySave: GameSave = {
       ...synchronized,
       time: {

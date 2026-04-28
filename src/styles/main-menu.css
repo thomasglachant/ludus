@@ -1,5 +1,5 @@
 .main-menu-screen {
-  --main-menu-background: url('/assets/pixel-art/homepage/homepage-background-day.svg');
+  --main-menu-background: url('/assets/main-menu/main-menu-background-day.webp');
   position: relative;
   display: grid;
   grid-template-columns: minmax(280px, 430px) minmax(0, 1fr);

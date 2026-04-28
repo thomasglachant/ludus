@@ -1,4 +1,5 @@
 import type { BuildingId } from '../buildings/types';
+import type { GridCoord } from '../map/types';
 
 export type GladiatorLocationId = BuildingId | 'arena';
 
@@ -6,8 +7,10 @@ export interface GladiatorMapMovement {
   currentLocation: GladiatorLocationId;
   targetLocation: GladiatorLocationId;
   activity: string;
+  route?: GridCoord[];
   movementStartedAt: number;
   movementDuration: number;
+  minutesPerTile?: number;
 }
 
 export interface GladiatorVisualIdentity {

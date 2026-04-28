@@ -415,7 +415,13 @@ export function setManualBuildingOverride(
     gladiators: save.gladiators.map((gladiator) =>
       gladiator.id === gladiatorId
         ? {
-            ...assignGladiatorMapLocation(gladiator, buildingId, save.time, 'manualOverride'),
+            ...assignGladiatorMapLocation(
+              gladiator,
+              buildingId,
+              save.time,
+              'manualOverride',
+              save.map,
+            ),
           }
         : gladiator,
     ),
@@ -435,7 +441,13 @@ export function applyPlanningRecommendations(save: GameSave): GameSave {
       }
 
       if (isSleepTime(synchronizedSave.time.hour)) {
-        return assignGladiatorMapLocation(gladiator, 'dormitory', synchronizedSave.time, 'sleep');
+        return assignGladiatorMapLocation(
+          gladiator,
+          'dormitory',
+          synchronizedSave.time,
+          'sleep',
+          synchronizedSave.map,
+        );
       }
 
       if (!routine.allowAutomaticAssignment) {
@@ -458,6 +470,7 @@ export function applyPlanningRecommendations(save: GameSave): GameSave {
           recommendation.buildingId,
           synchronizedSave.time,
           routine.objective,
+          synchronizedSave.map,
         ),
       };
     }),

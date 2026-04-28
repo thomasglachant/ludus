@@ -27,9 +27,9 @@ import type {
   LudusMapSceneDecorationViewModel,
   LudusMapSceneGladiatorViewModel,
   LudusMapSceneLocationViewModel,
-  LudusMapScenePathViewModel,
-  LudusMapSceneTerrainZoneViewModel,
+  LudusMapSceneTileViewModel,
   LudusMapSceneViewModel,
+  LudusMapSceneWallViewModel,
 } from './LudusMapSceneViewModel';
 import { ParticleEffectSystem } from './ParticleEffectSystem';
 import { TimeOfDayLightingSystem } from './TimeOfDayLightingSystem';
@@ -112,6 +112,26 @@ function interpolate(start: number, end: number, progress: number): number {
   return start + (end - start) * progress;
 }
 
+function getPointAlongRoute(
+  routePoints: { x: number; y: number }[],
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  progress: number,
+): { x: number; y: number } {
+  const points = routePoints.length >= 2 ? routePoints : [from, to];
+  const segmentCount = Math.max(points.length - 1, 1);
+  const scaledProgress = clamp(progress, 0, 1) * segmentCount;
+  const segmentIndex = Math.min(Math.floor(scaledProgress), segmentCount - 1);
+  const segmentProgress = scaledProgress - segmentIndex;
+  const segmentStart = points[segmentIndex] ?? from;
+  const segmentEnd = points[segmentIndex + 1] ?? to;
+
+  return {
+    x: interpolate(segmentStart.x, segmentEnd.x, segmentProgress),
+    y: interpolate(segmentStart.y, segmentEnd.y, segmentProgress),
+  };
+}
+
 function isAssetPath(assetPath: string | undefined): assetPath is string {
   return Boolean(assetPath);
 }
@@ -156,72 +176,127 @@ function drawFallbackBackground(graphics: Graphics, viewModel: LudusMapSceneView
   graphics.fill();
 }
 
-function drawTerrainOverlay(
+function drawViewportTerrainFill(
   graphics: Graphics,
   viewModel: LudusMapSceneViewModel,
-  hasRasterBackground: boolean,
+  width: number,
+  height: number,
 ): void {
+  const tileSize = Math.max(32, Math.round(viewModel.grid.cellSize * 0.85));
+
   graphics.clear();
-
-  if (hasRasterBackground) {
-    graphics.setFillStyle({ color: viewModel.theme.terrainHighlightColor, alpha: 0.025 });
-    graphics.rect(0, 0, viewModel.width, viewModel.height);
-    graphics.fill();
-    return;
-  }
-
-  for (const zone of viewModel.terrainZones) {
-    drawTerrainZone(graphics, zone, viewModel);
-  }
-}
-
-function drawTerrainZone(
-  graphics: Graphics,
-  zone: LudusMapSceneTerrainZoneViewModel,
-  viewModel: LudusMapSceneViewModel,
-): void {
-  const fillByKind = {
-    cliff: 0x8b7356,
-    compoundGround: 0xb88a52,
-    sea: 0x4c96b3,
-  } satisfies Record<LudusMapSceneTerrainZoneViewModel['kind'], number>;
-  const highlightByKind = {
-    cliff: 0xd3b17a,
-    compoundGround: viewModel.theme.terrainHighlightColor,
-    sea: 0x9ed8de,
-  } satisfies Record<LudusMapSceneTerrainZoneViewModel['kind'], number>;
-
-  graphics.setFillStyle({ color: fillByKind[zone.kind], alpha: zone.kind === 'sea' ? 0.9 : 0.82 });
-  graphics.rect(zone.x, zone.y, zone.width, zone.height);
+  graphics.setFillStyle({ color: 0x7d8e56, alpha: 1 });
+  graphics.rect(0, 0, width, height);
   graphics.fill();
 
-  if (zone.kind === 'compoundGround') {
-    graphics.setFillStyle({ color: 0xd7b56b, alpha: 0.08 });
-    for (let y = zone.y + 18; y < zone.y + zone.height; y += 52) {
-      for (let x = zone.x + ((y / 52) % 2) * 18; x < zone.x + zone.width; x += 68) {
-        graphics.rect(x, y, 22, 6);
-        graphics.fill();
-      }
-    }
-  }
+  for (let row = 0; row < Math.ceil(height / tileSize) + 1; row += 1) {
+    for (let column = 0; column < Math.ceil(width / tileSize) + 1; column += 1) {
+      const x = column * tileSize;
+      const y = row * tileSize;
+      const warmPatch = (column * 7 + row * 11) % 5 === 0;
+      const coolPatch = (column * 5 + row * 3) % 7 === 0;
 
-  if (zone.kind === 'cliff') {
-    graphics.setFillStyle({ color: 0x5b4635, alpha: 0.36 });
-    for (let x = zone.x; x < zone.x + zone.width; x += 95) {
-      const y = zone.y + 40 + ((x / 95) % 3) * 22;
-      graphics.poly([x, y, x + 44, y - 24, x + 92, y + 10, x + 64, y + 50, x + 12, y + 44]);
+      graphics.setFillStyle({
+        color: warmPatch ? viewModel.theme.terrainColor : coolPatch ? 0x6f8150 : 0x87985d,
+        alpha: warmPatch ? 0.3 : 0.18,
+      });
+      graphics.rect(x, y, tileSize, tileSize);
+      graphics.fill();
+      graphics.setFillStyle({ color: 0xe3c477, alpha: 0.08 });
+      graphics.rect(x + 7, y + 9, tileSize - 14, 3);
       graphics.fill();
     }
   }
 
-  graphics.setStrokeStyle({ color: highlightByKind[zone.kind], width: 2, alpha: 0.16 });
-  graphics.rect(zone.x, zone.y, zone.width, zone.height);
+  graphics.setFillStyle({ color: viewModel.theme.lightColor, alpha: 0.06 });
+  graphics.ellipse(width * 0.5, height * 0.42, width * 0.34, height * 0.28);
+  graphics.fill();
+}
+
+function drawViewportLightingOverlay(
+  graphics: Graphics,
+  viewModel: LudusMapSceneViewModel,
+  width: number,
+  height: number,
+): void {
+  graphics.clear();
+  graphics.setFillStyle({
+    color: viewModel.theme.overlayColor,
+    alpha: viewModel.theme.overlayOpacity,
+  });
+  graphics.rect(0, 0, width, height);
+  graphics.fill();
+}
+
+function drawTerrainOverlay(graphics: Graphics, viewModel: LudusMapSceneViewModel): void {
+  graphics.clear();
+
+  for (const tile of viewModel.tiles) {
+    drawTerrainTile(graphics, tile, viewModel);
+  }
+}
+
+function drawTerrainTile(
+  graphics: Graphics,
+  tile: LudusMapSceneTileViewModel,
+  viewModel: LudusMapSceneViewModel,
+): void {
+  const terrainColorById = {
+    compoundDirt: viewModel.theme.terrainColor,
+    grass: 0x7c8d55,
+    rock: 0x8b7356,
+  } satisfies Record<LudusMapSceneTileViewModel['terrainId'], number>;
+  const groundColorById = {
+    courtyard: 0xb98a52,
+    packedRoad: 0x8e6d47,
+  } satisfies Record<NonNullable<LudusMapSceneTileViewModel['groundId']>, number>;
+  const variationAlpha = (tile.column + tile.row) % 2 === 0 ? 0.04 : 0.08;
+
+  graphics.setFillStyle({ color: terrainColorById[tile.terrainId], alpha: 1 });
+  graphics.rect(tile.x, tile.y, tile.width, tile.height);
+  graphics.fill();
+
+  graphics.setFillStyle({ color: 0xf1d083, alpha: variationAlpha });
+  graphics.rect(tile.x + 6, tile.y + 8, tile.width - 12, 4);
+  graphics.fill();
+
+  if (tile.groundId) {
+    const inset = tile.groundId === 'packedRoad' ? 5 : 2;
+    const alpha = tile.groundId === 'packedRoad' ? 0.9 : 0.18;
+
+    graphics.setFillStyle({ color: groundColorById[tile.groundId], alpha });
+    graphics.roundRect(
+      tile.x + inset,
+      tile.y + inset,
+      tile.width - inset * 2,
+      tile.height - inset * 2,
+      tile.groundId === 'packedRoad' ? 4 : 1,
+    );
+    graphics.fill();
+  }
+
+  graphics.setStrokeStyle({ color: 0x4b3925, width: 1, alpha: 0.08 });
+  graphics.rect(tile.x, tile.y, tile.width, tile.height);
   graphics.stroke();
 }
 
-function drawPaths(graphics: Graphics, _paths: LudusMapScenePathViewModel[]): void {
-  void _paths;
+function drawMapWalls(graphics: Graphics, walls: LudusMapSceneWallViewModel[]): void {
   graphics.clear();
+
+  for (const wall of walls) {
+    graphics.setFillStyle({ color: 0x1b130e, alpha: 0.24 });
+    graphics.rect(wall.x + 5, wall.y + 12, wall.width - 10, wall.height - 8);
+    graphics.fill();
+    graphics.setFillStyle({ color: 0x7e6b57, alpha: 0.98 });
+    graphics.roundRect(wall.x + 6, wall.y + 5, wall.width - 12, wall.height - 14, 3);
+    graphics.fill();
+    graphics.setFillStyle({ color: 0xbfa06a, alpha: 0.62 });
+    graphics.rect(wall.x + 10, wall.y + 9, wall.width - 20, 5);
+    graphics.fill();
+    graphics.setStrokeStyle({ color: 0x453425, width: 3, alpha: 0.64 });
+    graphics.roundRect(wall.x + 6, wall.y + 5, wall.width - 12, wall.height - 14, 3);
+    graphics.stroke();
+  }
 }
 
 function drawGladiatorFallback(graphics: Graphics): void {
@@ -335,6 +410,29 @@ function drawLocationDetails(graphics: Graphics, location: LudusMapSceneLocation
     graphics.roundRect(x - 20, y - 15, 40, 30, 4);
     graphics.stroke();
   }
+
+  const entranceX = location.entrancePosition.x - location.x;
+  const entranceY = location.entrancePosition.y - location.y;
+
+  graphics.setFillStyle({ color: 0x22160f, alpha: 0.36 });
+  graphics.ellipse(entranceX, entranceY + 12, 32, 11);
+  graphics.fill();
+  graphics.setFillStyle({ color: 0x352114, alpha: 0.95 });
+  graphics.roundRect(entranceX - 25, entranceY - 20, 50, 36, 5);
+  graphics.fill();
+  graphics.setStrokeStyle({ color: 0xf0c46d, width: 4, alpha: 0.95 });
+  graphics.roundRect(entranceX - 25, entranceY - 20, 50, 36, 5);
+  graphics.stroke();
+  graphics.setFillStyle({ color: 0xf0c46d, alpha: 0.9 });
+  graphics.poly([
+    entranceX,
+    entranceY + 18,
+    entranceX - 10,
+    entranceY + 2,
+    entranceX + 10,
+    entranceY + 2,
+  ]);
+  graphics.fill();
 
   graphics.setStrokeStyle({ color: 0xe2bd67, width: 3, alpha: 0.64 });
   graphics.roundRect(18, 24, location.width - 36, location.height - 44, isArena ? 84 : 8);
@@ -499,6 +597,8 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
   private readonly particleEffectSystem: ParticleEffectSystem;
   private readonly pathGraphics = new Graphics({ roundPixels: true });
   private readonly terrainOverlay = new Graphics({ roundPixels: true });
+  private readonly viewportLightingOverlay = new Graphics({ roundPixels: true });
+  private readonly viewportTerrainFill = new Graphics({ roundPixels: true });
   private assetLoadId = 0;
   private assetPathKey = '';
   private cameraController: CameraController | null = null;
@@ -516,7 +616,10 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     this.debugOverlay = context.debugMode ? new PixiVisualDebugOverlay() : null;
     this.options = options;
     this.root.label = 'ludus-map-scene';
-    this.root.addChild(this.layers.root);
+    this.viewportLightingOverlay.eventMode = 'none';
+    this.viewportLightingOverlay.label = 'viewport-time-of-day-overlay';
+    this.viewportTerrainFill.label = 'viewport-terrain-fill';
+    this.root.addChild(this.viewportTerrainFill, this.viewportLightingOverlay, this.layers.root);
     this.backgroundSprite.label = 'map-background-raster';
     this.backgroundFallback.label = 'map-background-fallback';
     this.pathGraphics.label = 'map-paths';
@@ -566,6 +669,11 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
 
   resize(): void {
     this.cameraController?.resize();
+
+    if (this.viewModel) {
+      this.drawViewportTerrainFill(this.viewModel);
+      this.drawViewportLightingOverlay(this.viewModel);
+    }
   }
 
   tick(): void {
@@ -785,12 +893,14 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       : undefined;
 
     drawFallbackBackground(this.backgroundFallback, viewModel);
+    this.drawViewportTerrainFill(viewModel);
+    this.drawViewportLightingOverlay(viewModel);
     this.backgroundFallback.visible = !backgroundTexture;
     this.backgroundSprite.visible = Boolean(backgroundTexture);
     this.backgroundSprite.texture = backgroundTexture ?? Texture.EMPTY;
     setPixelArtSpriteSize(this.backgroundSprite, viewModel.width, viewModel.height);
-    drawTerrainOverlay(this.terrainOverlay, viewModel, Boolean(backgroundTexture));
-    drawPaths(this.pathGraphics, viewModel.paths);
+    drawTerrainOverlay(this.terrainOverlay, viewModel);
+    drawMapWalls(this.pathGraphics, viewModel.walls);
     this.reconcileDecorations(viewModel.decorations);
     this.reconcileLocations(viewModel.locations);
     this.reconcileGladiators(viewModel.gladiators);
@@ -922,8 +1032,15 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
             1,
           );
 
-    display.container.x = interpolate(gladiator.from.x, gladiator.to.x, progress);
-    display.container.y = interpolate(gladiator.from.y, gladiator.to.y, progress);
+    const routePoint = getPointAlongRoute(
+      gladiator.routePoints,
+      gladiator.from,
+      gladiator.to,
+      progress,
+    );
+
+    display.container.x = routePoint.x;
+    display.container.y = routePoint.y;
     display.container.zIndex = display.container.y + gladiator.animation.ySortOffset;
 
     if (!viewModel.reducedMotion && display.sprite.visible) {
@@ -1034,6 +1151,24 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
         this.createGladiatorDebugMetric(display),
       ),
     ]);
+  }
+
+  private drawViewportTerrainFill(viewModel: LudusMapSceneViewModel): void {
+    drawViewportTerrainFill(
+      this.viewportTerrainFill,
+      viewModel,
+      this.app.screen.width,
+      this.app.screen.height,
+    );
+  }
+
+  private drawViewportLightingOverlay(viewModel: LudusMapSceneViewModel): void {
+    drawViewportLightingOverlay(
+      this.viewportLightingOverlay,
+      viewModel,
+      this.app.screen.width,
+      this.app.screen.height,
+    );
   }
 
   private createLocationDebugMetric(display: LocationDisplay): PixiVisualDebugMetric {

@@ -79,6 +79,11 @@ export const GAME_BALANCE = {
     minimumTaskMinutes: 144,
   },
 
+  map: {
+    // In-game minutes spent by gladiators when walking from one grid cell to the next.
+    movementMinutesPerTile: 4,
+  },
+
   gladiators: {
     gauges: {
       // Minimum value for health, energy, morale and satiety gauges.

@@ -1,6 +1,4 @@
-import { featureFlags } from '../../../config/features';
 import productionManifestData from '../../../game-data/generated/asset-manifest.production.json';
-import visualMigrationManifestData from '../../../game-data/generated/asset-manifest.visual-migration.json';
 import {
   PIXI_ASSET_BUNDLE_IDS,
   PIXI_BUILDING_IDS,
@@ -10,7 +8,6 @@ import {
   PIXI_GLADIATOR_FRAME_COUNT,
   PIXI_HOMEPAGE_PHASES,
   PIXI_MAP_ANIMATION_KEYS,
-  PIXI_MAP_PHASES,
   PIXI_RENDER_LAYERS,
   pixiSpritesheetAliases,
   pixiTextureAliases,
@@ -19,7 +16,6 @@ import {
   type PixiBuildingId,
   type PixiCombatAnimationKey,
   type PixiHomepagePhase,
-  type PixiMapPhase,
   type PixiRenderLayerId,
   type PixiSourceQuality,
 } from './texture-aliases';
@@ -38,8 +34,7 @@ export interface PixiTextureAsset {
   alias: string;
   bundleId: PixiAssetBundleId;
   sourceQuality: PixiSourceQuality;
-  productionSrc?: string;
-  fallbackSrc: string;
+  src: string;
   anchor: PixiPoint;
   hitbox?: PixiRect;
   renderLayer: PixiRenderLayerId;
@@ -61,9 +56,9 @@ export interface PixiSpritesheetAsset {
   alias: string;
   bundleId: PixiAssetBundleId;
   sourceQuality: PixiSourceQuality;
-  productionSrc?: string;
-  productionAtlasSrc?: string;
-  fallbackTextureAliases: string[];
+  src?: string;
+  atlasSrc?: string;
+  textureAliases: string[];
   animations: Record<string, PixiAnimationDefinition>;
   tags: string[];
 }
@@ -77,17 +72,12 @@ export interface PixiAssetBundleDefinition {
 export interface PixiProductionAssetManifest {
   version: 1;
   generatedAt: string;
-  fallbackManifest: {
-    id: 'visual-migration-svg';
-    generatedAt: string;
-  };
   bundles: Record<PixiAssetBundleId, PixiAssetBundleDefinition>;
   textures: Record<string, PixiTextureAsset>;
   spritesheets: Record<string, PixiSpritesheetAsset>;
 }
 
-interface VisualMigrationBuildingAssetSet {
-  sourceQuality?: string;
+interface ProductionBuildingAssetSet {
   exterior: string;
   roof?: string;
   interior?: string;
@@ -96,8 +86,7 @@ interface VisualMigrationBuildingAssetSet {
   height: number;
 }
 
-interface VisualMigrationGladiatorAssetSet {
-  sourceQuality?: string;
+interface ProductionGladiatorAssetSet {
   portrait: string;
   mapSpritesheet?: string;
   mapAtlas?: string;
@@ -106,31 +95,24 @@ interface VisualMigrationGladiatorAssetSet {
   frames: Partial<Record<PixiAnimationKey, string[]>>;
 }
 
-interface VisualMigrationManifest {
-  sourceQuality?: string;
+interface ProductionManifest {
   generatedAt: string;
   homepage: {
-    sourceQuality?: string;
     backgrounds: Partial<Record<PixiHomepagePhase, string>>;
     lastSaveThumbnail: string;
   };
-  map: {
-    sourceQuality?: string;
-    backgrounds: Record<PixiMapPhase, string>;
-    ambient: Record<string, string>;
-  };
-  buildings: Record<PixiBuildingId, Record<string, VisualMigrationBuildingAssetSet>>;
+  buildings: Record<PixiBuildingId, Record<string, ProductionBuildingAssetSet>>;
   locations: {
-    market: Record<string, string>;
-    arena: Record<string, string>;
+    arena: {
+      combatBackground: string;
+      crowd: string;
+    };
   };
-  gladiators: Record<string, VisualMigrationGladiatorAssetSet>;
+  gladiators: Record<string, ProductionGladiatorAssetSet>;
   ui: Record<string, string>;
 }
 
-const fallbackManifest = visualMigrationManifestData as VisualMigrationManifest;
-const productionManifest = productionManifestData as VisualMigrationManifest;
-const placeholderQuality = 'placeholder' satisfies PixiSourceQuality;
+const productionManifest = productionManifestData as ProductionManifest;
 const productionQuality = 'production' satisfies PixiSourceQuality;
 const combatAnimationSourceKeyByAnimationKey: Record<
   PixiCombatAnimationKey,
@@ -152,26 +134,18 @@ function rect(width: number, height: number, x = 0, y = 0): PixiRect {
   return { x, y, width, height };
 }
 
-function createFallbackTextureAsset(
+function createTextureAsset(
   alias: string,
   bundleId: PixiAssetBundleId,
-  fallbackSrc: string,
+  src: string,
   renderLayer: PixiRenderLayerId,
-  options: {
-    anchor?: PixiPoint;
-    hitbox?: PixiRect;
-    productionSrc?: string;
-    tags?: string[];
-  } = {},
+  options: { anchor?: PixiPoint; hitbox?: PixiRect; tags?: string[] } = {},
 ): PixiTextureAsset {
-  const sourceQuality = options.productionSrc ? productionQuality : placeholderQuality;
-
   return {
     alias,
     bundleId,
-    sourceQuality,
-    productionSrc: options.productionSrc,
-    fallbackSrc,
+    sourceQuality: productionQuality,
+    src,
     anchor: options.anchor ?? point(0, 0),
     hitbox: options.hitbox,
     renderLayer,
@@ -231,17 +205,17 @@ function addCoreUiAssets(
   textures: Record<string, PixiTextureAsset>,
   bundles: Record<PixiAssetBundleId, PixiAssetBundleDefinition>,
 ) {
-  for (const [assetId, fallbackSrc] of Object.entries(fallbackManifest.ui)) {
-    const productionSrc = productionManifest.ui[assetId];
-
+  for (const [assetId, src] of Object.entries(productionManifest.ui)) {
     addTexture(
       textures,
-      createFallbackTextureAsset(
+      createTextureAsset(
         pixiTextureAliases.coreUi(assetId),
         'core-ui',
-        fallbackSrc,
+        src,
         PIXI_RENDER_LAYERS.uiBase,
-        { productionSrc, tags: ['ui'] },
+        {
+          tags: ['ui'],
+        },
       ),
       bundles,
     );
@@ -253,81 +227,20 @@ function addMainMenuAssets(
   bundles: Record<PixiAssetBundleId, PixiAssetBundleDefinition>,
 ) {
   for (const phase of PIXI_HOMEPAGE_PHASES) {
-    const fallbackSrc = fallbackManifest.homepage.backgrounds[phase];
-    const productionSrc = productionManifest.homepage.backgrounds[phase];
+    const src = productionManifest.homepage.backgrounds[phase];
 
-    if (fallbackSrc) {
-      addTexture(
-        textures,
-        createFallbackTextureAsset(
-          pixiTextureAliases.homepageBackground(phase),
-          'main-menu',
-          fallbackSrc,
-          PIXI_RENDER_LAYERS.homepageBackground,
-          { hitbox: rect(1440, 980), productionSrc, tags: ['homepage', phase] },
-        ),
-        bundles,
-      );
-    }
-  }
-
-  addTexture(
-    textures,
-    createFallbackTextureAsset(
-      pixiTextureAliases.homepageLastSaveThumbnail,
-      'main-menu',
-      fallbackManifest.homepage.lastSaveThumbnail,
-      PIXI_RENDER_LAYERS.homepageBackground,
-      {
-        hitbox: rect(320, 180),
-        productionSrc: productionManifest.homepage.lastSaveThumbnail,
-        tags: ['homepage', 'thumbnail'],
-      },
-    ),
-    bundles,
-  );
-}
-
-function addMapBaseAssets(
-  textures: Record<string, PixiTextureAsset>,
-  bundles: Record<PixiAssetBundleId, PixiAssetBundleDefinition>,
-) {
-  for (const phase of PIXI_MAP_PHASES) {
-    const productionSrc = productionManifest.map.backgrounds[phase];
-
-    addTexture(
-      textures,
-      createFallbackTextureAsset(
-        pixiTextureAliases.mapBackground(phase),
-        'map-base',
-        fallbackManifest.map.backgrounds[phase],
-        PIXI_RENDER_LAYERS.mapBackground,
-        { hitbox: rect(2400, 1500), productionSrc, tags: ['map', 'background', phase] },
-      ),
-      bundles,
-    );
-  }
-
-  for (const [part, fallbackSrc] of Object.entries(fallbackManifest.locations.market)) {
-    const productionSrc = productionManifest.locations.market[part];
-
-    if (!productionSrc) {
+    if (!src) {
       continue;
     }
 
     addTexture(
       textures,
-      createFallbackTextureAsset(
-        pixiTextureAliases.location('market', part),
-        'map-base',
-        fallbackSrc,
-        PIXI_RENDER_LAYERS.mapBuildings,
-        {
-          anchor: point(0.5, 1),
-          hitbox: rect(260, 180, -130, -180),
-          productionSrc,
-          tags: ['map', 'market'],
-        },
+      createTextureAsset(
+        pixiTextureAliases.homepageBackground(phase),
+        'main-menu',
+        src,
+        PIXI_RENDER_LAYERS.homepageBackground,
+        { hitbox: rect(1440, 980), tags: ['homepage', phase] },
       ),
       bundles,
     );
@@ -335,41 +248,15 @@ function addMapBaseAssets(
 
   addTexture(
     textures,
-    createFallbackTextureAsset(
-      pixiTextureAliases.location('arena', 'exterior'),
-      'map-base',
-      fallbackManifest.locations.arena.exterior,
-      PIXI_RENDER_LAYERS.mapBuildings,
-      {
-        anchor: point(0.5, 1),
-        hitbox: rect(310, 240, -155, -240),
-        productionSrc: productionManifest.locations.arena.exterior,
-        tags: ['map', 'arena'],
-      },
+    createTextureAsset(
+      pixiTextureAliases.homepageLastSaveThumbnail,
+      'main-menu',
+      productionManifest.homepage.lastSaveThumbnail,
+      PIXI_RENDER_LAYERS.homepageBackground,
+      { hitbox: rect(320, 180), tags: ['homepage', 'thumbnail'] },
     ),
     bundles,
   );
-}
-
-function addMapAmbientAssets(
-  textures: Record<string, PixiTextureAsset>,
-  bundles: Record<PixiAssetBundleId, PixiAssetBundleDefinition>,
-) {
-  for (const [assetId, fallbackSrc] of Object.entries(fallbackManifest.map.ambient)) {
-    const productionSrc = productionManifest.map.ambient[assetId];
-
-    addTexture(
-      textures,
-      createFallbackTextureAsset(
-        pixiTextureAliases.mapAmbient(assetId),
-        'map-ambient',
-        fallbackSrc,
-        PIXI_RENDER_LAYERS.mapAmbientFront,
-        { anchor: point(0.5, 0.5), productionSrc, tags: ['map', 'ambient'] },
-      ),
-      bundles,
-    );
-  }
 }
 
 function addBuildingAssets(
@@ -378,36 +265,34 @@ function addBuildingAssets(
 ) {
   for (const buildingId of PIXI_BUILDING_IDS) {
     for (const level of PIXI_BUILDING_LEVELS) {
-      const assetSet = fallbackManifest.buildings[buildingId][`level-${level}`];
-      const productionAssetSet = productionManifest.buildings[buildingId]?.[`level-${level}`];
+      const assetSet = productionManifest.buildings[buildingId]?.[`level-${level}`];
+
+      if (!assetSet) {
+        continue;
+      }
 
       for (const part of PIXI_BUILDING_PARTS) {
-        const fallbackSrc = assetSet[part];
-        const productionSrc = productionAssetSet?.[part];
+        const src = assetSet[part];
 
-        if (fallbackSrc && productionSrc) {
-          addTexture(
-            textures,
-            createFallbackTextureAsset(
-              pixiTextureAliases.building(buildingId, level, part),
-              'buildings',
-              fallbackSrc,
-              PIXI_RENDER_LAYERS.mapBuildings,
-              {
-                anchor: point(0.5, 1),
-                hitbox: rect(
-                  assetSet.width,
-                  assetSet.height,
-                  -assetSet.width / 2,
-                  -assetSet.height,
-                ),
-                productionSrc,
-                tags: ['map', 'building', buildingId, `level-${level}`, part],
-              },
-            ),
-            bundles,
-          );
+        if (!src) {
+          continue;
         }
+
+        addTexture(
+          textures,
+          createTextureAsset(
+            pixiTextureAliases.building(buildingId, level, part),
+            'buildings',
+            src,
+            PIXI_RENDER_LAYERS.mapBuildings,
+            {
+              anchor: point(0.5, 1),
+              hitbox: rect(assetSet.width, assetSet.height, -assetSet.width / 2, -assetSet.height),
+              tags: ['building', buildingId, `level-${level}`, part],
+            },
+          ),
+          bundles,
+        );
       }
     }
   }
@@ -419,19 +304,16 @@ function addGladiatorAssets(
   bundles: Record<PixiAssetBundleId, PixiAssetBundleDefinition>,
 ) {
   for (const [variantId, assetSet] of Object.entries(productionManifest.gladiators)) {
-    const fallbackAssetSet = fallbackManifest.gladiators[variantId] ?? assetSet;
-
     addTexture(
       textures,
-      createFallbackTextureAsset(
+      createTextureAsset(
         pixiTextureAliases.gladiatorPortrait(variantId),
         'core-ui',
-        fallbackAssetSet.portrait,
+        assetSet.portrait,
         PIXI_RENDER_LAYERS.uiBase,
         {
           anchor: point(0.5, 0.5),
           hitbox: rect(128, 128, -64, -64),
-          productionSrc: assetSet.portrait,
           tags: ['gladiator', 'portrait'],
         },
       ),
@@ -442,27 +324,17 @@ function addGladiatorAssets(
     const mapFrameAliases: string[] = [];
 
     for (const animationKey of PIXI_MAP_ANIMATION_KEYS) {
-      const productionFrames = assetSet.frames[animationKey] ?? [];
-      const fallbackFrames = fallbackAssetSet.frames[animationKey] ?? productionFrames;
-      const frameAliases = productionFrames
+      const frameAliases = (assetSet.frames[animationKey] ?? [])
         .slice(0, PIXI_GLADIATOR_FRAME_COUNT)
-        .map((productionSrc, index) => {
-          const fallbackSrc = fallbackFrames[index] ?? productionSrc;
+        .map((src, index) => {
           const alias = pixiTextureAliases.gladiatorMapFrame(variantId, animationKey, index);
           addTexture(
             textures,
-            createFallbackTextureAsset(
-              alias,
-              'gladiators-map',
-              fallbackSrc,
-              PIXI_RENDER_LAYERS.mapCharacters,
-              {
-                anchor: point(0.5, 1),
-                hitbox: rect(64, 96, -32, -96),
-                productionSrc,
-                tags: ['gladiator', 'map', variantId, animationKey],
-              },
-            ),
+            createTextureAsset(alias, 'gladiators-map', src, PIXI_RENDER_LAYERS.mapCharacters, {
+              anchor: point(0.5, 1),
+              hitbox: rect(64, 96, -32, -96),
+              tags: ['gladiator', 'map', variantId, animationKey],
+            }),
             bundles,
           );
           return alias;
@@ -483,10 +355,10 @@ function addGladiatorAssets(
       {
         alias: pixiSpritesheetAliases.gladiatorMap(variantId),
         bundleId: 'gladiators-map',
-        sourceQuality: assetSet.mapSpritesheet ? productionQuality : placeholderQuality,
-        productionSrc: assetSet.mapSpritesheet,
-        productionAtlasSrc: assetSet.mapAtlas,
-        fallbackTextureAliases: mapFrameAliases,
+        sourceQuality: productionQuality,
+        src: assetSet.mapSpritesheet,
+        atlasSrc: assetSet.mapAtlas,
+        textureAliases: mapFrameAliases,
         animations: mapAnimations,
         tags: ['gladiator', 'map', variantId],
       },
@@ -498,27 +370,17 @@ function addGladiatorAssets(
 
     for (const animationKey of PIXI_COMBAT_ANIMATION_KEYS) {
       const sourceAnimationKey = combatAnimationSourceKeyByAnimationKey[animationKey];
-      const productionFrames = assetSet.frames[sourceAnimationKey] ?? [];
-      const fallbackFrames = fallbackAssetSet.frames[sourceAnimationKey] ?? productionFrames;
-      const frameAliases = productionFrames
+      const frameAliases = (assetSet.frames[sourceAnimationKey] ?? [])
         .slice(0, PIXI_GLADIATOR_FRAME_COUNT)
-        .map((productionSrc, index) => {
-          const fallbackSrc = fallbackFrames[index] ?? productionSrc;
+        .map((src, index) => {
           const alias = pixiTextureAliases.gladiatorCombatFrame(variantId, animationKey, index);
           addTexture(
             textures,
-            createFallbackTextureAsset(
-              alias,
-              'gladiators-combat',
-              fallbackSrc,
-              PIXI_RENDER_LAYERS.combatFighters,
-              {
-                anchor: point(0.5, 1),
-                hitbox: rect(120, 180, -60, -180),
-                productionSrc,
-                tags: ['gladiator', 'combat', variantId, animationKey],
-              },
-            ),
+            createTextureAsset(alias, 'gladiators-combat', src, PIXI_RENDER_LAYERS.combatFighters, {
+              anchor: point(0.5, 1),
+              hitbox: rect(120, 180, -60, -180),
+              tags: ['gladiator', 'combat', variantId, animationKey],
+            }),
             bundles,
           );
           return alias;
@@ -540,10 +402,10 @@ function addGladiatorAssets(
       {
         alias: pixiSpritesheetAliases.gladiatorCombat(variantId),
         bundleId: 'gladiators-combat',
-        sourceQuality: assetSet.combatSpritesheet ? productionQuality : placeholderQuality,
-        productionSrc: assetSet.combatSpritesheet,
-        productionAtlasSrc: assetSet.combatAtlas,
-        fallbackTextureAliases: combatFrameAliases,
+        sourceQuality: productionQuality,
+        src: assetSet.combatSpritesheet,
+        atlasSrc: assetSet.combatAtlas,
+        textureAliases: combatFrameAliases,
         animations: combatAnimations,
         tags: ['gladiator', 'combat', variantId],
       },
@@ -558,32 +420,24 @@ function addCombatAssets(
 ) {
   addTexture(
     textures,
-    createFallbackTextureAsset(
+    createTextureAsset(
       pixiTextureAliases.combatBackground,
       'combat',
-      fallbackManifest.locations.arena.combatBackground,
+      productionManifest.locations.arena.combatBackground,
       PIXI_RENDER_LAYERS.combatBackground,
-      {
-        hitbox: rect(960, 480),
-        productionSrc: productionManifest.locations.arena.combatBackground,
-        tags: ['combat', 'arena'],
-      },
+      { hitbox: rect(960, 480), tags: ['combat', 'arena'] },
     ),
     bundles,
   );
 
   addTexture(
     textures,
-    createFallbackTextureAsset(
+    createTextureAsset(
       pixiTextureAliases.combatCrowd,
       'combat',
-      fallbackManifest.locations.arena.crowd,
+      productionManifest.locations.arena.crowd,
       PIXI_RENDER_LAYERS.combatCrowd,
-      {
-        hitbox: rect(960, 160),
-        productionSrc: productionManifest.locations.arena.crowd,
-        tags: ['combat', 'crowd'],
-      },
+      { hitbox: rect(960, 160), tags: ['combat', 'crowd'] },
     ),
     bundles,
   );
@@ -596,19 +450,13 @@ export function createPixiProductionAssetManifest(): PixiProductionAssetManifest
 
   addCoreUiAssets(textures, bundles);
   addMainMenuAssets(textures, bundles);
-  addMapBaseAssets(textures, bundles);
-  addMapAmbientAssets(textures, bundles);
   addBuildingAssets(textures, bundles);
   addGladiatorAssets(textures, spritesheets, bundles);
   addCombatAssets(textures, bundles);
 
   return {
     version: 1,
-    generatedAt: fallbackManifest.generatedAt,
-    fallbackManifest: {
-      id: 'visual-migration-svg',
-      generatedAt: fallbackManifest.generatedAt,
-    },
+    generatedAt: productionManifest.generatedAt,
     bundles,
     textures,
     spritesheets,
@@ -617,21 +465,6 @@ export function createPixiProductionAssetManifest(): PixiProductionAssetManifest
 
 export const PIXI_PRODUCTION_ASSET_MANIFEST = createPixiProductionAssetManifest();
 
-export function getPixiTextureSource(
-  asset: PixiTextureAsset,
-  options: { allowPlaceholderFallback?: boolean } = {},
-) {
-  if (featureFlags.usePlaceholderArt) {
-    return (options.allowPlaceholderFallback ?? true) ? asset.fallbackSrc : undefined;
-  }
-
-  if (asset.sourceQuality === 'production' && asset.productionSrc) {
-    return asset.productionSrc;
-  }
-
-  if (options.allowPlaceholderFallback ?? true) {
-    return asset.fallbackSrc;
-  }
-
-  return undefined;
+export function getPixiTextureSource(asset: PixiTextureAsset) {
+  return asset.src;
 }

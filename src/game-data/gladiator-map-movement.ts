@@ -1,7 +1,18 @@
 import type { BuildingId } from '../domain/buildings/types';
 import type { GladiatorLocationId } from '../domain/gladiators/types';
+import type { GridCoord, LudusMapState } from '../domain/map/types';
+import { findMapPath } from '../domain/map/pathfinding';
 import type { GladiatorAnimationState } from './gladiator-animations';
-import { LUDUS_MAP_DEFINITION, type MapPoint } from './map-layout';
+import { GAME_BALANCE } from './balance';
+import {
+  cellToWorldCenter,
+  createInitialLudusMapState,
+  getMapLocation,
+  getMapLocationEntrance,
+  getMapObjectDefinitions,
+  LUDUS_MAP_DEFINITION,
+  type MapPoint,
+} from './map-layout';
 
 export interface GladiatorMapActivityDestination {
   buildingId: BuildingId;
@@ -10,7 +21,7 @@ export interface GladiatorMapActivityDestination {
 
 export const GLADIATOR_MAP_STARTING_LOCATION: BuildingId = 'domus';
 
-export const GLADIATOR_MAP_MOVEMENT_SPEED = 8.2;
+export const GLADIATOR_MAP_MOVEMENT_MINUTES_PER_TILE = GAME_BALANCE.map.movementMinutesPerTile;
 
 export const GLADIATOR_MAP_ACTIVITY_DESTINATIONS: Record<string, GladiatorMapActivityDestination> =
   {
@@ -60,8 +71,8 @@ export const GLADIATOR_MAP_ACTIVITY_DESTINATIONS: Record<string, GladiatorMapAct
     },
   };
 
-export function getGladiatorMapSlots(buildingId: BuildingId) {
-  return LUDUS_MAP_DEFINITION.gladiatorSlots.filter((slot) => slot.locationId === buildingId);
+export function getGladiatorMapSlots(locationId: GladiatorLocationId) {
+  return LUDUS_MAP_DEFINITION.gladiatorSlots.filter((slot) => slot.locationId === locationId);
 }
 
 export function isGladiatorBuildingLocation(
@@ -73,9 +84,9 @@ export function isGladiatorBuildingLocation(
 }
 
 export function getGladiatorMapPoint(locationId: GladiatorLocationId, slotIndex = 0): MapPoint {
-  const slots = isGladiatorBuildingLocation(locationId) ? getGladiatorMapSlots(locationId) : [];
+  const slots = getGladiatorMapSlots(locationId);
   const slot = slots[slotIndex % Math.max(slots.length, 1)];
-  const location = LUDUS_MAP_DEFINITION.locations.find((candidate) => candidate.id === locationId);
+  const location = getMapLocation(locationId);
 
   return {
     x: slot?.x ?? (location ? location.x + location.width / 2 : 1120),
@@ -83,13 +94,42 @@ export function getGladiatorMapPoint(locationId: GladiatorLocationId, slotIndex 
   };
 }
 
+export function getGladiatorMapEntrancePoint(locationId: GladiatorLocationId): MapPoint {
+  return cellToWorldCenter(getMapLocationEntrance(locationId));
+}
+
+export function getGladiatorMapRoute(
+  currentLocation: GladiatorLocationId,
+  targetLocation: GladiatorLocationId,
+  mapState: LudusMapState = createInitialLudusMapState(),
+): GridCoord[] {
+  const start = getMapLocationEntrance(currentLocation);
+  const target = getMapLocationEntrance(targetLocation);
+  const route = findMapPath({
+    definitions: getMapObjectDefinitions(),
+    grid: LUDUS_MAP_DEFINITION.grid,
+    mapState,
+    start,
+    target,
+  });
+
+  return route.length > 0 ? route : [start, target];
+}
+
+export function getGladiatorMapRoutePoints(route: GridCoord[] | undefined): MapPoint[] {
+  return route?.map(cellToWorldCenter) ?? [];
+}
+
 export function getGladiatorMapMovementDuration(
   currentLocation: GladiatorLocationId,
   targetLocation: GladiatorLocationId,
+  mapState: LudusMapState = createInitialLudusMapState(),
 ) {
-  const currentPoint = getGladiatorMapPoint(currentLocation);
-  const targetPoint = getGladiatorMapPoint(targetLocation);
-  const distance = Math.hypot(targetPoint.x - currentPoint.x, targetPoint.y - currentPoint.y);
+  const route = getGladiatorMapRoute(currentLocation, targetLocation, mapState);
+  const traversedTiles = Math.max(route.length - 1, 1);
 
-  return Math.max(8, Math.round(distance / GLADIATOR_MAP_MOVEMENT_SPEED));
+  return Math.max(
+    GLADIATOR_MAP_MOVEMENT_MINUTES_PER_TILE,
+    traversedTiles * GLADIATOR_MAP_MOVEMENT_MINUTES_PER_TILE,
+  );
 }

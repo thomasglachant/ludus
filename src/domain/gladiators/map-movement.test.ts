@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Gladiator } from './types';
+import { getMapLocationEntrance } from '../../game-data/map-layout';
 import {
   assignGladiatorMapLocation,
   createGladiatorMapMovement,
@@ -50,6 +51,10 @@ describe('gladiator map movement', () => {
       activity: 'trainAgility',
       movementStartedAt: getGameMinuteStamp(time),
     });
+    const route = movement?.route ?? [];
+
+    expect(route[0]).toEqual(getMapLocationEntrance('dormitory'));
+    expect(route[route.length - 1]).toEqual(getMapLocationEntrance('trainingGround'));
     expect(movement?.movementDuration).toBeGreaterThan(0);
   });
 

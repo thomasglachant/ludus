@@ -1,8 +1,4 @@
-import type {
-  Gladiator,
-  GladiatorClassId,
-  GladiatorVisualIdentity,
-} from '../domain/gladiators/types';
+import type { GladiatorClassId, GladiatorVisualIdentity } from '../domain/gladiators/types';
 import { createGladiatorVisualVariantSet } from './gladiator-visual-variants';
 import {
   getGladiatorCombatAnimationDefinitionById,
@@ -33,42 +29,6 @@ export interface GladiatorAnimationAsset<
   spritesheetPath?: string;
 }
 
-const LEGACY_GLADIATOR_PORTRAIT_ASSET_IDS = [
-  'portrait-bronze-crop',
-  'portrait-red-crest',
-  'portrait-olive-scarf',
-  'portrait-blue-tunic',
-  'portrait-gold-helm',
-  'portrait-ash-beard',
-  'portrait-sand-wrap',
-  'portrait-iron-mask',
-] as const;
-
-const LEGACY_GLADIATOR_SPRITE_ASSET_IDS = [
-  'sprite-bronze-crop',
-  'sprite-red-crest',
-  'sprite-olive-scarf',
-  'sprite-blue-tunic',
-  'sprite-gold-helm',
-  'sprite-ash-beard',
-  'sprite-sand-wrap',
-  'sprite-iron-mask',
-] as const;
-
-export const GLADIATOR_PORTRAIT_ASSET_IDS = GLADIATOR_VISUAL_ASSET_IDS;
-export const GLADIATOR_SPRITE_ASSET_IDS = GLADIATOR_VISUAL_ASSET_IDS;
-
-const LEGACY_GLADIATOR_PORTRAIT_ASSET_PATHS: Record<string, string> = Object.fromEntries(
-  LEGACY_GLADIATOR_PORTRAIT_ASSET_IDS.map((assetId) => [
-    assetId,
-    `/assets/portraits/${assetId}.svg`,
-  ]),
-);
-
-const LEGACY_GLADIATOR_SPRITE_ASSET_PATHS: Record<string, string> = Object.fromEntries(
-  LEGACY_GLADIATOR_SPRITE_ASSET_IDS.map((assetId) => [assetId, `/assets/sprites/${assetId}.svg`]),
-);
-
 function getStableIndex(seed: string, length: number) {
   const total = Array.from(seed).reduce((value, character) => value + character.charCodeAt(0), 0);
 
@@ -77,10 +37,6 @@ function getStableIndex(seed: string, length: number) {
 
 function getFrameNames(frameKey: GladiatorFrameKey, count: number) {
   return Array.from({ length: count }, (_, index) => `${frameKey}-${index}.png`);
-}
-
-function getUsableSpriteAssetSet(visualIdentity: GladiatorVisualIdentity) {
-  return getGeneratedSpriteAssetSet(visualIdentity) ?? getFallbackGladiatorAssetSet();
 }
 
 function getAnimationFrameKey<TFrameKey extends GladiatorFrameKey>(
@@ -195,54 +151,7 @@ function getProductionSpriteAssetSet(visualIdentity: GladiatorVisualIdentity) {
 export function getGladiatorPortraitAssetPath(visualIdentity: GladiatorVisualIdentity) {
   return (
     getGeneratedPortraitAssetSet(visualIdentity)?.portrait ??
-    LEGACY_GLADIATOR_PORTRAIT_ASSET_PATHS[visualIdentity.portraitAssetId] ??
     getFallbackGladiatorAssetSet().portrait
-  );
-}
-
-export function getGladiatorSpriteAssetPath(visualIdentity: GladiatorVisualIdentity) {
-  return getGladiatorSpriteFrames(visualIdentity, 'idle')[0];
-}
-
-export function getGladiatorSpriteFrames(
-  visualIdentity: GladiatorVisualIdentity,
-  animation: GladiatorMapAnimationId,
-) {
-  const frameKey = getGladiatorMapAnimationDefinitionById(animation).frameKey;
-  const frames = getGeneratedSpriteAssetSet(visualIdentity)?.frames[frameKey];
-
-  if (frames?.length) {
-    return frames;
-  }
-
-  const legacySprite = LEGACY_GLADIATOR_SPRITE_ASSET_PATHS[visualIdentity.spriteAssetId];
-
-  return legacySprite ? [legacySprite] : (getFallbackGladiatorAssetSet().frames[frameKey] ?? []);
-}
-
-export function getCombatSpriteFrames(
-  visualIdentity: GladiatorVisualIdentity,
-  animation: CombatSpriteAnimationState,
-) {
-  const definition = getGladiatorCombatAnimationDefinitionById(animation);
-  const assetSet = getUsableSpriteAssetSet(visualIdentity);
-  const frameKey = getAnimationFrameKey(assetSet, definition);
-  const frames = assetSet.frames[frameKey];
-
-  if (frames?.length) {
-    return frames;
-  }
-
-  return getFallbackGladiatorAssetSet().frames[frameKey] ?? [];
-}
-
-export function getGladiatorCombatSpriteFrames(
-  gladiator: Pick<Gladiator, 'id' | 'classId' | 'visualIdentity'>,
-  animation: CombatSpriteAnimationState,
-) {
-  return getCombatSpriteFrames(
-    getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, gladiator.classId),
-    animation,
   );
 }
 
@@ -252,33 +161,12 @@ export function getGladiatorMapAnimationAsset(
 ): GladiatorAnimationAsset<GladiatorMapAnimationDefinition> {
   const generatedAssetSet = getGeneratedSpriteAssetSet(visualIdentity);
   const definition = getGladiatorMapAnimationDefinitionById(animation);
-  const legacySprite = LEGACY_GLADIATOR_SPRITE_ASSET_PATHS[visualIdentity.spriteAssetId];
-
-  if (!generatedAssetSet && legacySprite) {
-    return {
-      definition,
-      fallbackFramePaths: [legacySprite],
-      frameNames: [],
-    };
-  }
 
   const assetSet = generatedAssetSet ?? getFallbackGladiatorAssetSet();
 
   return createAnimationAsset(assetSet, definition, {
     atlasPath: assetSet.mapAtlas,
     spritesheetPath: assetSet.mapSpritesheet,
-  });
-}
-
-export function getGladiatorCombatAnimationAsset(
-  visualIdentity: GladiatorVisualIdentity,
-  animation: GladiatorCombatAnimationId,
-): GladiatorAnimationAsset<GladiatorCombatAnimationDefinition> {
-  const assetSet = getUsableSpriteAssetSet(visualIdentity);
-
-  return createAnimationAsset(assetSet, getGladiatorCombatAnimationDefinitionById(animation), {
-    atlasPath: assetSet.combatAtlas,
-    spritesheetPath: assetSet.combatSpritesheet,
   });
 }
 
