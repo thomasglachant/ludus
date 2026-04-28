@@ -6,6 +6,7 @@ import { BUILDING_DEFINITIONS, BUILDING_IDS } from '../../game-data/buildings';
 import { COMBAT_STRATEGIES } from '../../game-data/combat';
 import { TRAINING_INTENSITIES, WEEKLY_OBJECTIVES } from '../../game-data/planning';
 import { useUiStore } from '../../state/ui-store-context';
+import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface WeeklyPlanningPanelProps {
@@ -81,6 +82,7 @@ export function WeeklyPlanningPanel({
                 <GladiatorPortrait gladiator={status.gladiator} size="small" />
                 <div>
                   <h3>{status.gladiator.name}</h3>
+                  <GladiatorClassLine compact gladiator={status.gladiator} />
                   <p>
                     {status.recommendation
                       ? t(status.recommendation.reasonKey)

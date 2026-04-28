@@ -1735,6 +1735,10 @@ h3 {
   font-size: 0.82rem;
 }
 
+.combat-selector .gladiator-class-line__name {
+  color: var(--primary-strong);
+}
+
 .combat-panel {
   display: grid;
   gap: 14px;
@@ -6693,6 +6697,12 @@ body {
   color: #d7bd84;
   font-size: 0.78rem;
   font-weight: 850;
+}
+
+.combatant-panel__identity .combatant-panel__class {
+  color: #f6d486;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .combatant-panel__meters,

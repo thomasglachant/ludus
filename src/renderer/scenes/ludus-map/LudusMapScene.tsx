@@ -28,7 +28,9 @@ import type {
   LudusMapSceneGladiatorViewModel,
   LudusMapSceneLocationViewModel,
   LudusMapScenePathViewModel,
+  LudusMapSceneTerrainZoneViewModel,
   LudusMapSceneViewModel,
+  LudusMapSceneWallSegmentViewModel,
 } from './LudusMapSceneViewModel';
 import { ParticleEffectSystem } from './ParticleEffectSystem';
 import { TimeOfDayLightingSystem } from './TimeOfDayLightingSystem';
@@ -67,6 +69,13 @@ interface GladiatorDisplay {
   sprite: AnimatedSprite;
 }
 
+interface LabelDisplay {
+  container: Container;
+  plaque: Graphics;
+  title: Text;
+  subtitle: Text;
+}
+
 interface LocationDisplay {
   backContainer: Container;
   exteriorSprite: Sprite;
@@ -74,7 +83,8 @@ interface LocationDisplay {
   frontContainer: Container;
   highlight: Graphics;
   interaction: Container;
-  label: Text;
+  labelDisplay: LabelDisplay;
+  locationDetails: Graphics;
   location: LudusMapSceneLocationViewModel;
   propsContainer: Container;
   propsSprite: Sprite;
@@ -97,9 +107,6 @@ const LUDUS_MAP_LAYER_IDS = [
   'light-sprites',
   'labels',
 ] as const satisfies readonly LudusMapLayerId[];
-const LOCATION_LABEL_ZOOM_THRESHOLD = 1.05;
-const EXTERNAL_LABEL_ZOOM_THRESHOLD = 0.72;
-
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
 }
@@ -152,90 +159,93 @@ function drawFallbackBackground(graphics: Graphics, viewModel: LudusMapSceneView
   graphics.fill();
 }
 
-function drawTerrainOverlay(graphics: Graphics, viewModel: LudusMapSceneViewModel): void {
-  graphics.clear();
-  graphics.setFillStyle({ color: viewModel.theme.terrainHighlightColor, alpha: 0.08 });
-  graphics.rect(0, 0, viewModel.width, viewModel.height);
-  graphics.fill();
-}
-
-function drawOceanWaves(graphics: Graphics, viewModel: LudusMapSceneViewModel, now: number): void {
-  const water = viewModel.waterAnimation;
-
+function drawTerrainOverlay(
+  graphics: Graphics,
+  viewModel: LudusMapSceneViewModel,
+  hasRasterBackground: boolean,
+): void {
   graphics.clear();
 
-  if (water.opacity <= 0) {
+  if (hasRasterBackground) {
+    graphics.setFillStyle({ color: viewModel.theme.terrainHighlightColor, alpha: 0.025 });
+    graphics.rect(0, 0, viewModel.width, viewModel.height);
+    graphics.fill();
     return;
   }
 
-  const elapsedSeconds = viewModel.reducedMotion ? 0 : now / 1000;
-  const segmentCount = 12;
-  const rowGap = water.height / Math.max(water.lineCount, 1);
-
-  for (let row = 0; row < water.lineCount; row += 1) {
-    const rowProgress = row / Math.max(water.lineCount - 1, 1);
-    const y = water.y + row * rowGap;
-    const waveOffset = elapsedSeconds * water.speed * 120 + row * 19;
-    const alpha = water.opacity * (0.38 + rowProgress * 0.62);
-
-    graphics.setStrokeStyle({
-      color: water.color,
-      width: water.lineWidth,
-      alpha,
-      cap: 'round',
-      join: 'round',
-    });
-    graphics.moveTo(water.x, y);
-
-    for (let segment = 1; segment <= segmentCount; segment += 1) {
-      const segmentProgress = segment / segmentCount;
-      const x = water.x + segmentProgress * water.width;
-      const wave = Math.sin(segmentProgress * Math.PI * 4 + waveOffset * 0.04);
-
-      graphics.lineTo(x, y + wave * (3 + rowProgress * 5));
-    }
-
-    graphics.stroke();
+  for (const zone of viewModel.terrainZones) {
+    drawTerrainZone(graphics, zone, viewModel);
   }
 }
 
-function drawPaths(graphics: Graphics, paths: LudusMapScenePathViewModel[]): void {
-  graphics.clear();
+function drawTerrainZone(
+  graphics: Graphics,
+  zone: LudusMapSceneTerrainZoneViewModel,
+  viewModel: LudusMapSceneViewModel,
+): void {
+  const fillByKind = {
+    cliff: 0x8b7356,
+    compoundGround: 0xb88a52,
+    forestEdge: 0x315038,
+    sea: 0x4c96b3,
+  } satisfies Record<LudusMapSceneTerrainZoneViewModel['kind'], number>;
+  const highlightByKind = {
+    cliff: 0xd3b17a,
+    compoundGround: viewModel.theme.terrainHighlightColor,
+    forestEdge: 0x577145,
+    sea: 0x9ed8de,
+  } satisfies Record<LudusMapSceneTerrainZoneViewModel['kind'], number>;
 
-  for (const path of paths) {
-    if (path.points.length < 2) {
-      continue;
+  graphics.setFillStyle({ color: fillByKind[zone.kind], alpha: zone.kind === 'sea' ? 0.9 : 0.82 });
+  graphics.rect(zone.x, zone.y, zone.width, zone.height);
+  graphics.fill();
+
+  if (zone.kind === 'compoundGround') {
+    graphics.setFillStyle({ color: 0xd7b56b, alpha: 0.08 });
+    for (let y = zone.y + 18; y < zone.y + zone.height; y += 52) {
+      for (let x = zone.x + ((y / 52) % 2) * 18; x < zone.x + zone.width; x += 68) {
+        graphics.rect(x, y, 22, 6);
+        graphics.fill();
+      }
     }
-
-    graphics.setStrokeStyle({
-      color: path.kind === 'external' ? 0x7b5a35 : 0x8a693f,
-      width: path.kind === 'external' ? 30 : 22,
-      alpha: 0.52,
-      cap: 'round',
-      join: 'round',
-    });
-    graphics.moveTo(path.points[0].x, path.points[0].y);
-
-    for (const point of path.points.slice(1)) {
-      graphics.lineTo(point.x, point.y);
-    }
-
-    graphics.stroke();
-    graphics.setStrokeStyle({
-      color: path.kind === 'external' ? 0xd7b56b : 0xe1c27d,
-      width: path.kind === 'external' ? 14 : 10,
-      alpha: 0.54,
-      cap: 'round',
-      join: 'round',
-    });
-    graphics.moveTo(path.points[0].x, path.points[0].y);
-
-    for (const point of path.points.slice(1)) {
-      graphics.lineTo(point.x, point.y);
-    }
-
-    graphics.stroke();
   }
+
+  if (zone.kind === 'cliff') {
+    graphics.setFillStyle({ color: 0x5b4635, alpha: 0.36 });
+    for (let x = zone.x; x < zone.x + zone.width; x += 95) {
+      const y = zone.y + 40 + ((x / 95) % 3) * 22;
+      graphics.poly([x, y, x + 44, y - 24, x + 92, y + 10, x + 64, y + 50, x + 12, y + 44]);
+      graphics.fill();
+    }
+  }
+
+  if (zone.kind === 'forestEdge') {
+    graphics.setFillStyle({ color: 0x1f3328, alpha: 0.44 });
+    for (let y = zone.y + 12; y < zone.y + zone.height; y += 44) {
+      for (let x = zone.x + 8; x < zone.x + zone.width; x += 46) {
+        const radius = 16 + ((x + y) % 17);
+        graphics.circle(x, y, radius);
+        graphics.fill();
+      }
+    }
+  }
+
+  graphics.setStrokeStyle({ color: highlightByKind[zone.kind], width: 2, alpha: 0.16 });
+  graphics.rect(zone.x, zone.y, zone.width, zone.height);
+  graphics.stroke();
+}
+
+function drawPaths(graphics: Graphics, _paths: LudusMapScenePathViewModel[]): void {
+  void _paths;
+  graphics.clear();
+}
+
+function drawWallSegments(
+  graphics: Graphics,
+  _wallSegments: LudusMapSceneWallSegmentViewModel[],
+): void {
+  void _wallSegments;
+  graphics.clear();
 }
 
 function drawGladiatorFallback(graphics: Graphics): void {
@@ -272,6 +282,136 @@ function drawLocationFallbackFrame(
   graphics.stroke();
 }
 
+function drawLocationDetails(graphics: Graphics, location: LudusMapSceneLocationViewModel): void {
+  graphics.clear();
+
+  const isArena = location.id === 'arena';
+  const wallColor = isArena ? 0x9c6a3d : 0x7b5a3b;
+  const floorColor = isArena ? 0xc09352 : 0xbe8c55;
+  const roomColor = location.id === 'infirmary' ? 0xd6c28f : 0xe0b879;
+  const roofColor = location.id === 'pleasureHall' ? 0x9f4438 : 0x8c5130;
+  const inset = isArena ? 42 : 34;
+
+  graphics.setFillStyle({ color: 0x2b2118, alpha: 0.2 });
+  graphics.roundRect(10, 18, location.width - 20, location.height - 16, 8);
+  graphics.fill();
+
+  graphics.setFillStyle({ color: wallColor, alpha: 0.92 });
+  graphics.roundRect(18, 24, location.width - 36, location.height - 44, isArena ? 84 : 8);
+  graphics.fill();
+
+  graphics.setFillStyle({ color: floorColor, alpha: 0.96 });
+  graphics.roundRect(
+    inset,
+    inset,
+    location.width - inset * 2,
+    location.height - inset * 1.55,
+    isArena ? 62 : 5,
+  );
+  graphics.fill();
+
+  if (!isArena) {
+    graphics.setFillStyle({ color: roofColor, alpha: 0.82 });
+    graphics.rect(26, 18, location.width - 52, 42);
+    graphics.fill();
+    graphics.setFillStyle({ color: roomColor, alpha: 0.78 });
+    graphics.rect(48, 78, location.width - 96, location.height - 120);
+    graphics.fill();
+
+    const dividerY = location.height * 0.52;
+    graphics.setStrokeStyle({ color: 0x6d4a31, width: 5, alpha: 0.68 });
+    graphics.moveTo(56, dividerY);
+    graphics.lineTo(location.width - 56, dividerY);
+    graphics.stroke();
+    graphics.moveTo(location.width / 2, 76);
+    graphics.lineTo(location.width / 2, location.height - 60);
+    graphics.stroke();
+  } else {
+    graphics.setFillStyle({ color: 0x8c5435, alpha: 0.78 });
+    graphics.ellipse(
+      location.width / 2,
+      location.height / 2 + 5,
+      location.width * 0.29,
+      location.height * 0.24,
+    );
+    graphics.fill();
+    graphics.setStrokeStyle({ color: 0xe3c06e, width: 6, alpha: 0.48 });
+    graphics.ellipse(
+      location.width / 2,
+      location.height / 2 + 5,
+      location.width * 0.38,
+      location.height * 0.32,
+    );
+    graphics.stroke();
+  }
+
+  for (const slot of location.activitySlots) {
+    const x = slot.x - location.x;
+    const y = slot.y - location.y;
+
+    graphics.setFillStyle({ color: 0x1f1711, alpha: 0.28 });
+    graphics.ellipse(x, y + 9, 24, 9);
+    graphics.fill();
+    graphics.setFillStyle({ color: 0xe0bd72, alpha: 0.86 });
+    graphics.roundRect(x - 20, y - 15, 40, 30, 4);
+    graphics.fill();
+    graphics.setStrokeStyle({ color: 0x6e3f25, width: 4, alpha: 0.72 });
+    graphics.roundRect(x - 20, y - 15, 40, 30, 4);
+    graphics.stroke();
+  }
+
+  graphics.setStrokeStyle({ color: 0xe2bd67, width: 3, alpha: 0.64 });
+  graphics.roundRect(18, 24, location.width - 36, location.height - 44, isArena ? 84 : 8);
+  graphics.stroke();
+}
+
+function drawLabelPlaque(labelDisplay: LabelDisplay, isActive: boolean): void {
+  const { plaque, title, subtitle } = labelDisplay;
+  const paddingX = 18;
+  const paddingTop = 8;
+  const paddingBottom = subtitle.text ? 10 : 8;
+  const titleWidth = Math.ceil(title.width);
+  const subtitleWidth = subtitle.visible ? Math.ceil(subtitle.width) : 0;
+  const width = Math.max(118, titleWidth, subtitleWidth) + paddingX * 2;
+  const height =
+    paddingTop +
+    Math.ceil(title.height) +
+    (subtitle.visible ? Math.ceil(subtitle.height) + 1 : 0) +
+    paddingBottom;
+  const x = -width / 2;
+  const y = 0;
+  const borderColor = isActive ? 0xf1c46b : 0xc18a3e;
+
+  plaque.clear();
+  plaque.setFillStyle({ color: 0x15110f, alpha: isActive ? 0.98 : 0.9 });
+  plaque.roundRect(x, y, width, height, 5);
+  plaque.fill();
+  plaque.setFillStyle({ color: 0x3b2a1c, alpha: isActive ? 0.5 : 0.34 });
+  plaque.roundRect(x + 5, y + 5, width - 10, height - 10, 3);
+  plaque.fill();
+  plaque.setStrokeStyle({ color: borderColor, width: isActive ? 4 : 3, alpha: isActive ? 1 : 0.9 });
+  plaque.roundRect(x, y, width, height, 5);
+  plaque.stroke();
+  plaque.setStrokeStyle({ color: 0x6d4826, width: 1, alpha: 0.72 });
+  plaque.roundRect(x + 5, y + 5, width - 10, height - 10, 3);
+  plaque.stroke();
+  plaque.setFillStyle({ color: borderColor, alpha: 0.95 });
+  plaque.circle(x + 9, y + 9, 2.5);
+  plaque.circle(x + width - 9, y + 9, 2.5);
+  plaque.circle(x + 9, y + height - 9, 2.5);
+  plaque.circle(x + width - 9, y + height - 9, 2.5);
+  plaque.fill();
+  plaque.setFillStyle({ color: 0x8f5f2f, alpha: 0.9 });
+  plaque.rect(x + 16, y + 7, 22, 3);
+  plaque.rect(x + width - 38, y + 7, 22, 3);
+  plaque.fill();
+
+  title.x = 0;
+  title.y = y + paddingTop;
+  subtitle.x = 0;
+  subtitle.y = title.y + title.height + 1;
+}
+
 function drawLocationHighlight(
   graphics: Graphics,
   location: LudusMapSceneLocationViewModel,
@@ -305,7 +445,13 @@ function shouldRenderDecoration(decoration: LudusMapSceneDecorationViewModel): b
 }
 
 function getDecorationLayerId(decoration: LudusMapSceneDecorationViewModel): LudusMapLayerId {
+  if (isPathDecoration(decoration)) {
+    return 'paths';
+  }
+
   if (
+    isStoneWallDecoration(decoration) ||
+    isVegetationDecoration(decoration) ||
     decoration.style === 'oliveTree' ||
     decoration.style === 'cypressTree' ||
     decoration.style === 'well' ||
@@ -318,8 +464,79 @@ function getDecorationLayerId(decoration: LudusMapSceneDecorationViewModel): Lud
   return 'static-props';
 }
 
+function isPathDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
+  return (
+    decoration.style === 'pathStraightHorizontal' ||
+    decoration.style === 'pathStraightVertical' ||
+    decoration.style === 'pathCornerNe' ||
+    decoration.style === 'pathCornerNw' ||
+    decoration.style === 'pathCornerSe' ||
+    decoration.style === 'pathCornerSw' ||
+    decoration.style === 'pathCrossroad' ||
+    decoration.style === 'pathSmallStones01' ||
+    decoration.style === 'pathDirtEdge01'
+  );
+}
+
+function isStoneWallDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
+  return (
+    decoration.style === 'stoneWallHorizontal01' ||
+    decoration.style === 'stoneWallHorizontalBroken01' ||
+    decoration.style === 'stoneWallVertical01' ||
+    decoration.style === 'stoneWallCornerNe' ||
+    decoration.style === 'stoneWallCornerNw' ||
+    decoration.style === 'stoneWallCornerSe' ||
+    decoration.style === 'stoneWallCornerSw' ||
+    decoration.style === 'gateWest' ||
+    decoration.style === 'gateEast' ||
+    decoration.style === 'gateSouth' ||
+    decoration.style === 'smallRedBannerPost'
+  );
+}
+
+function isVegetationDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
+  return (
+    decoration.style === 'treeBroadleaf01' ||
+    decoration.style === 'treeBroadleaf02' ||
+    decoration.style === 'treeBroadleaf03' ||
+    decoration.style === 'oliveTree01' ||
+    decoration.style === 'oliveTree02' ||
+    decoration.style === 'cypressTree01' ||
+    decoration.style === 'cypressTree02' ||
+    decoration.style === 'shrub01' ||
+    decoration.style === 'shrub02' ||
+    decoration.style === 'hedge01' ||
+    decoration.style === 'forestEdgeCluster01' ||
+    decoration.style === 'forestEdgeCluster02' ||
+    decoration.style === 'groveCluster01' ||
+    decoration.style === 'groveCluster02'
+  );
+}
+
+function isTreeCanopyDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
+  return (
+    decoration.style === 'treeBroadleaf01' ||
+    decoration.style === 'treeBroadleaf02' ||
+    decoration.style === 'treeBroadleaf03' ||
+    decoration.style === 'oliveTree01' ||
+    decoration.style === 'oliveTree02' ||
+    decoration.style === 'cypressTree01' ||
+    decoration.style === 'cypressTree02' ||
+    decoration.style === 'oliveTree' ||
+    decoration.style === 'cypressTree'
+  );
+}
+
+function isCypressDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
+  return (
+    decoration.style === 'cypressTree01' ||
+    decoration.style === 'cypressTree02' ||
+    decoration.style === 'cypressTree'
+  );
+}
+
 function shouldSwayDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
-  return decoration.style === 'oliveTree' || decoration.style === 'cypressTree';
+  return decoration.isAnimated && isTreeCanopyDecoration(decoration);
 }
 
 function getDecorationPivot(decoration: LudusMapSceneDecorationViewModel): {
@@ -339,10 +556,32 @@ function getDecorationPivot(decoration: LudusMapSceneDecorationViewModel): {
   };
 }
 
-function getLocationLabelZoomThreshold(location: LudusMapSceneLocationViewModel): number {
-  return location.kind === 'external'
-    ? EXTERNAL_LABEL_ZOOM_THRESHOLD
-    : LOCATION_LABEL_ZOOM_THRESHOLD;
+function createPlaqueText(text: string, fontSize: number, fill: string): Text {
+  const label = new Text({
+    text,
+    style: {
+      align: 'center',
+      dropShadow: {
+        alpha: 0.76,
+        angle: Math.PI / 2,
+        blur: 1,
+        color: '#1c130c',
+        distance: 2,
+      },
+      fill,
+      fontFamily: 'serif',
+      fontSize,
+      fontWeight: '700',
+      stroke: { color: '#2f2117', width: 3 },
+    },
+  });
+
+  label.anchor.set(0.5, 0);
+  label.eventMode = 'none';
+  label.resolution = 2;
+  label.roundPixels = true;
+
+  return label;
 }
 
 export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
@@ -367,10 +606,10 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
   private readonly lightingSystem: TimeOfDayLightingSystem;
   private readonly locations = new Map<string, LocationDisplay>();
   private readonly options: LudusMapSceneOptions;
-  private readonly oceanWaveGraphics = new Graphics({ roundPixels: true });
   private readonly particleEffectSystem: ParticleEffectSystem;
   private readonly pathGraphics = new Graphics({ roundPixels: true });
   private readonly terrainOverlay = new Graphics({ roundPixels: true });
+  private readonly wallGraphics = new Graphics({ roundPixels: true });
   private assetLoadId = 0;
   private assetPathKey = '';
   private cameraController: CameraController | null = null;
@@ -391,12 +630,13 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     this.root.addChild(this.layers.root);
     this.backgroundSprite.label = 'map-background-raster';
     this.backgroundFallback.label = 'map-background-fallback';
-    this.oceanWaveGraphics.label = 'map-ocean-waves';
     this.pathGraphics.label = 'map-paths';
     this.terrainOverlay.label = 'terrain-overlay';
+    this.wallGraphics.label = 'map-walls';
     this.layers.layers.background.addChild(this.backgroundFallback, this.backgroundSprite);
-    this.layers.layers['terrain-overlays'].addChild(this.terrainOverlay, this.oceanWaveGraphics);
+    this.layers.layers['terrain-overlays'].addChild(this.terrainOverlay);
     this.layers.layers.paths.addChild(this.pathGraphics);
+    this.layers.layers['static-props'].addChild(this.wallGraphics);
     this.ambientAnimationSystem = new AmbientAnimationSystem({
       ambientLayer: this.layers.layers['ambient-effects'],
       cloudLayer: this.layers.layers.clouds,
@@ -449,8 +689,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     }
 
     const now = performance.now();
-
-    drawOceanWaves(this.oceanWaveGraphics, this.viewModel, now);
 
     for (const decorationDisplay of this.decorations.values()) {
       this.updateDecorationAnimation(decorationDisplay, now);
@@ -514,27 +752,20 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     const interaction = new Container();
     const highlight = new Graphics({ roundPixels: true });
     const fallbackFrame = new Graphics({ roundPixels: true });
+    const locationDetails = new Graphics({ roundPixels: true });
+    const labelPlaque = new Graphics({ roundPixels: true });
+    const labelContainer = new Container();
     const exteriorSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
     const propsSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
     const roofSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
-    const label = new Text({
-      text: location.label,
-      style: {
-        align: 'center',
-        dropShadow: {
-          alpha: 0.72,
-          angle: Math.PI / 2,
-          blur: 1,
-          color: '#1c130c',
-          distance: 2,
-        },
-        fill: '#f5deb0',
-        fontFamily: 'serif',
-        fontSize: 22,
-        fontWeight: '700',
-        stroke: { color: '#2f2117', width: 4 },
-      },
-    });
+    const titleLabel = createPlaqueText(location.labelTitle, 20, '#f6ddb0');
+    const subtitleLabel = createPlaqueText(location.labelSubtitle, 16, '#d9a94f');
+    const labelDisplay: LabelDisplay = {
+      container: labelContainer,
+      plaque: labelPlaque,
+      title: titleLabel,
+      subtitle: subtitleLabel,
+    };
     const display: LocationDisplay = {
       backContainer,
       exteriorSprite,
@@ -542,7 +773,8 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       frontContainer,
       highlight,
       interaction,
-      label,
+      labelDisplay,
+      locationDetails,
       location,
       propsContainer,
       propsSprite,
@@ -557,15 +789,17 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     interaction.label = `${location.id}:hit-area`;
     highlight.label = `${location.id}:highlight`;
     highlight.eventMode = 'none';
-    label.anchor.set(0.5, 0);
-    label.eventMode = 'none';
-    label.label = `${location.id}:label`;
-    label.resolution = 2;
-    label.roundPixels = true;
+    labelContainer.eventMode = 'none';
+    labelContainer.label = `${location.id}:label`;
+    titleLabel.label = `${location.id}:label-title`;
+    subtitleLabel.label = `${location.id}:label-subtitle`;
     exteriorSprite.eventMode = 'none';
     propsSprite.eventMode = 'none';
     roofSprite.eventMode = 'none';
-    backContainer.addChild(fallbackFrame, exteriorSprite);
+    labelPlaque.eventMode = 'none';
+    labelPlaque.label = `${location.id}:label-plaque`;
+    labelContainer.addChild(labelPlaque, titleLabel, subtitleLabel);
+    backContainer.addChild(fallbackFrame, exteriorSprite, locationDetails);
     propsContainer.addChild(propsSprite);
     frontContainer.addChild(roofSprite);
     interaction.on('pointertap', (event: FederatedPointerEvent) => {
@@ -591,7 +825,7 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     this.layers.layers['characters-y-sorted'].addChild(propsContainer);
     this.layers.layers['buildings-front'].addChild(frontContainer);
     this.layers.layers['selection-highlight'].addChild(highlight, interaction);
-    this.layers.layers.labels.addChild(label);
+    this.layers.layers.labels.addChild(labelContainer);
 
     return display;
   }
@@ -681,9 +915,9 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     this.backgroundSprite.visible = Boolean(backgroundTexture);
     this.backgroundSprite.texture = backgroundTexture ?? Texture.EMPTY;
     setPixelArtSpriteSize(this.backgroundSprite, viewModel.width, viewModel.height);
-    drawTerrainOverlay(this.terrainOverlay, viewModel);
-    drawOceanWaves(this.oceanWaveGraphics, viewModel, performance.now());
+    drawTerrainOverlay(this.terrainOverlay, viewModel, Boolean(backgroundTexture));
     drawPaths(this.pathGraphics, viewModel.paths);
+    drawWallSegments(this.wallGraphics, viewModel.wallSegments);
     this.reconcileDecorations(viewModel.decorations);
     this.reconcileLocations(viewModel.locations);
     this.reconcileGladiators(viewModel.gladiators);
@@ -741,9 +975,10 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       return;
     }
 
-    const elapsedSeconds = now / 1000 + decoration.sortY * 0.003;
-    const amplitudeDegrees = decoration.style === 'cypressTree' ? 1.6 : 2.4;
-    const wave = Math.sin(elapsedSeconds * 1.25);
+    const elapsedSeconds = now / 1000 + decoration.animationDelaySeconds;
+    const amplitudeDegrees = isCypressDecoration(decoration) ? 0.85 : 1.8;
+    const durationSeconds = Math.max(decoration.animationDurationSeconds, 1);
+    const wave = Math.sin((elapsedSeconds / durationSeconds) * Math.PI * 2);
 
     display.container.rotation = baseRotation + (wave * amplitudeDegrees * Math.PI) / 180;
   }
@@ -778,7 +1013,7 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
         destroyDisplayObject(display.frontContainer);
         destroyDisplayObject(display.highlight);
         destroyDisplayObject(display.interaction);
-        destroyDisplayObject(display.label);
+        destroyDisplayObject(display.labelDisplay.container);
         this.locations.delete(locationId);
       }
     }
@@ -788,7 +1023,8 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
 
       this.locations.set(location.id, display);
       display.location = location;
-      display.label.text = location.label;
+      display.labelDisplay.title.text = location.labelTitle;
+      display.labelDisplay.subtitle.text = location.labelSubtitle;
       this.updateLocationDisplay(display);
     }
   }
@@ -895,17 +1131,17 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       return;
     }
 
-    const zoom = this.cameraController?.getState().scale ?? viewModel.defaultZoom;
-
     for (const display of this.locations.values()) {
       const { location } = display;
       const isHovered = this.hoveredLocationId === location.id;
       const isSelected = viewModel.selectedLocationId === location.mapLocationId;
-      const isStrategicZoom = zoom >= getLocationLabelZoomThreshold(location);
-      const shouldShowLabel = isHovered || isSelected || isStrategicZoom;
+      const isActive = isSelected || isHovered;
 
-      display.label.visible = shouldShowLabel;
-      display.label.alpha = isSelected ? 1 : isHovered ? 0.96 : 0.74;
+      display.labelDisplay.container.visible = true;
+      display.labelDisplay.container.alpha = isActive ? 1 : 0.88;
+      display.labelDisplay.title.alpha = isActive ? 1 : 0.92;
+      display.labelDisplay.subtitle.alpha = isActive ? 1 : 0.9;
+      drawLabelPlaque(display.labelDisplay, isActive);
       drawLocationHighlight(display.highlight, location, isSelected);
     }
   }
@@ -1048,8 +1284,9 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       location.hitArea.width,
       location.hitArea.height,
     );
-    display.label.x = location.labelPosition.x;
-    display.label.y = location.labelPosition.y;
+    display.labelDisplay.container.x = location.labelPosition.x;
+    display.labelDisplay.container.y = location.labelPosition.y;
+    display.labelDisplay.subtitle.visible = Boolean(location.labelSubtitle);
     display.exteriorSprite.texture = exteriorTexture ?? Texture.EMPTY;
     display.exteriorSprite.visible = Boolean(exteriorTexture);
     setPixelArtSpriteSize(display.exteriorSprite, location.width, location.height);
@@ -1061,8 +1298,12 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     display.roofSprite.texture = roofTexture ?? Texture.EMPTY;
     display.roofSprite.visible = Boolean(roofTexture);
     setPixelArtSpriteSize(display.roofSprite, location.width, location.height);
-    display.roofSprite.alpha = visualAlpha;
-    display.fallbackFrame.visible = !exteriorTexture;
+    display.roofSprite.alpha = visualAlpha * 0.32;
+    display.fallbackFrame.visible = false;
     drawLocationFallbackFrame(display.fallbackFrame, location);
+    drawLocationDetails(display.locationDetails, location);
+    display.locationDetails.visible = !exteriorTexture;
+    display.locationDetails.alpha = visualAlpha;
+    drawLabelPlaque(display.labelDisplay, false);
   }
 }

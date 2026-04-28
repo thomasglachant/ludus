@@ -10,7 +10,7 @@ export interface GladiatorMapActivityDestination {
 
 export const GLADIATOR_MAP_STARTING_LOCATION: BuildingId = 'domus';
 
-export const GLADIATOR_MAP_MOVEMENT_SPEED = 4.2;
+export const GLADIATOR_MAP_MOVEMENT_SPEED = 8.2;
 
 export const GLADIATOR_MAP_ACTIVITY_DESTINATIONS: Record<string, GladiatorMapActivityDestination> =
   {
@@ -61,7 +61,7 @@ export const GLADIATOR_MAP_ACTIVITY_DESTINATIONS: Record<string, GladiatorMapAct
   };
 
 export function getGladiatorMapSlots(buildingId: BuildingId) {
-  return LUDUS_MAP_DEFINITION.gladiatorSlots.filter((slot) => slot.buildingId === buildingId);
+  return LUDUS_MAP_DEFINITION.gladiatorSlots.filter((slot) => slot.locationId === buildingId);
 }
 
 export function isGladiatorBuildingLocation(

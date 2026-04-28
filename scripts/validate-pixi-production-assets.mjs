@@ -46,6 +46,22 @@ function resolveManifestPath(manifestPath) {
   return manifestPath.startsWith('/') ? manifestPath : join(root, manifestPath);
 }
 
+function resolvePublicAssetPath(src) {
+  if (!src?.startsWith('/assets/')) {
+    return undefined;
+  }
+
+  return join(root, 'public', src.slice(1));
+}
+
+function validatePublicAssetExists(src, path, errors) {
+  const assetPath = resolvePublicAssetPath(src);
+
+  if (assetPath && !existsSync(assetPath)) {
+    errors.push(`${path} references a missing public asset: ${src}`);
+  }
+}
+
 function hasNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
 }
@@ -101,6 +117,16 @@ export function validatePixiProductionAssetManifest(manifest, options = {}) {
     if (asset.sourceQuality === 'production' && !asset.productionSrc) {
       errors.push(`Production texture "${asset.alias}" must define productionSrc.`);
     }
+
+    if (asset.productionSrc) {
+      validatePublicAssetExists(
+        asset.productionSrc,
+        `Texture "${asset.alias}" productionSrc`,
+        errors,
+      );
+    }
+
+    validatePublicAssetExists(asset.fallbackSrc, `Texture "${asset.alias}" fallbackSrc`, errors);
 
     if (!asset.fallbackSrc) {
       errors.push(`Texture "${asset.alias}" must define fallbackSrc.`);
@@ -160,6 +186,22 @@ export function validatePixiProductionAssetManifest(manifest, options = {}) {
 
     if (spritesheet.sourceQuality === 'production' && !spritesheet.productionSrc) {
       errors.push(`Production spritesheet "${spritesheet.alias}" must define productionSrc.`);
+    }
+
+    if (spritesheet.productionSrc) {
+      validatePublicAssetExists(
+        spritesheet.productionSrc,
+        `Spritesheet "${spritesheet.alias}" productionSrc`,
+        errors,
+      );
+    }
+
+    if (spritesheet.productionAtlasSrc) {
+      validatePublicAssetExists(
+        spritesheet.productionAtlasSrc,
+        `Spritesheet "${spritesheet.alias}" productionAtlasSrc`,
+        errors,
+      );
     }
 
     if (options.useProductionArt && productionRequiredBundleIds.has(spritesheet.bundleId)) {

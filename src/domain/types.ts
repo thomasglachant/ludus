@@ -24,6 +24,7 @@ export type {
 } from './buildings/building-actions';
 export type {
   Gladiator,
+  GladiatorClassId,
   GladiatorLocationId,
   GladiatorMapMovement,
   GladiatorTrait,

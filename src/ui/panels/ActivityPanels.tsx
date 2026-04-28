@@ -13,6 +13,7 @@ import {
   SectionCard,
 } from '../components/shared';
 import { formatMoneyAmount } from '../formatters/money';
+import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 import { getArenaPanelViewModel } from '../view-models/arena-panel-view-model';
 import { formatOdds, getWinChancePercent } from './panel-helpers';
@@ -309,6 +310,7 @@ export function ArenaPanel({
                       >
                         <span>{t(`arena.ranks.${combat.rank}`)}</span>
                         <strong>{combat.gladiator.name}</strong>
+                        <GladiatorClassLine compact gladiator={combat.gladiator} />
                         <Badge
                           label={t(isPresented ? 'arenaDay.combatSeen' : 'arenaDay.combatReady')}
                           tone={isPresented ? 'success' : 'warning'}
@@ -327,6 +329,7 @@ export function ArenaPanel({
                   <GladiatorPortrait gladiator={selectedCombat.gladiator} size="small" />
                   <div>
                     <strong>{t('arena.combatTitle', getCombatTitleParams(selectedCombat))}</strong>
+                    <GladiatorClassLine compact gladiator={selectedCombat.gladiator} />
                     <span>{t('arenaDay.presentationHint')}</span>
                   </div>
                   <Swords aria-hidden="true" size={20} />
@@ -479,6 +482,7 @@ export function ArenaPanel({
                 >
                   <span>{t(`arena.ranks.${combat.rank}`)}</span>
                   <strong>{combat.gladiator.name}</strong>
+                  <GladiatorClassLine compact gladiator={combat.gladiator} />
                 </button>
               ))}
             </div>
@@ -501,6 +505,7 @@ export function ArenaPanel({
                 >
                   <span>{t(`arena.ranks.${combat.rank}`)}</span>
                   <strong>{combat.gladiator.name}</strong>
+                  <GladiatorClassLine compact gladiator={combat.gladiator} />
                   <Badge label={t(getCombatResultKey(combat))} tone={getCombatResultTone(combat)} />
                 </button>
               ))}
@@ -515,6 +520,7 @@ export function ArenaPanel({
               <GladiatorPortrait gladiator={selectedCombat.gladiator} size="small" />
               <div>
                 <strong>{t('arena.combatTitle', getCombatTitleParams(selectedCombat))}</strong>
+                <GladiatorClassLine compact gladiator={selectedCombat.gladiator} />
                 <span>
                   {t('arena.winnerLine', {
                     winner:
@@ -645,6 +651,7 @@ export function ArenaPanel({
                           })
                         : odds.opponent.name}
                     </strong>
+                    {gladiator ? <GladiatorClassLine compact gladiator={gladiator} /> : null}
                     <span>
                       {t('betting.winChanceValue', {
                         chance: getWinChancePercent(odds.playerWinChance),

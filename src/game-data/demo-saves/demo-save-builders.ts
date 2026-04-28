@@ -1,6 +1,7 @@
 import { createWeeklyContracts } from '../../domain/contracts/contract-actions';
 import { synchronizePlanning } from '../../domain/planning/planning-actions';
 import { CURRENT_SCHEMA_VERSION } from '../../domain/saves/create-initial-save';
+import { createGladiatorClassId } from '../gladiator-classes';
 import { getGladiatorVisualIdentity } from '../gladiator-visuals';
 import type {
   ArenaRank,
@@ -49,28 +50,33 @@ export function createPurchasedBuilding(
 }
 
 export function createDemoSave(input: DemoSaveInput): GameSave {
-  const gladiators = input.gladiators.map<Gladiator>((gladiator) => ({
-    id: gladiator.id,
-    name: gladiator.name,
-    age: gladiator.age,
-    strength: gladiator.strength,
-    agility: gladiator.agility,
-    defense: gladiator.defense,
-    energy: gladiator.energy,
-    health: gladiator.health,
-    morale: gladiator.morale,
-    satiety: gladiator.satiety,
-    reputation: gladiator.reputation,
-    wins: gladiator.wins,
-    losses: gladiator.losses,
-    traits: gladiator.traits,
-    currentLocationId: gladiator.currentLocationId ?? gladiator.currentBuildingId,
-    currentBuildingId: gladiator.currentBuildingId,
-    currentActivityId: gladiator.currentActivityId,
-    currentTaskStartedAt: gladiator.currentTaskStartedAt,
-    trainingPlan: gladiator.trainingPlan,
-    visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity),
-  }));
+  const gladiators = input.gladiators.map<Gladiator>((gladiator) => {
+    const classId = gladiator.classId ?? createGladiatorClassId(gladiator.id);
+
+    return {
+      id: gladiator.id,
+      name: gladiator.name,
+      classId,
+      age: gladiator.age,
+      strength: gladiator.strength,
+      agility: gladiator.agility,
+      defense: gladiator.defense,
+      energy: gladiator.energy,
+      health: gladiator.health,
+      morale: gladiator.morale,
+      satiety: gladiator.satiety,
+      reputation: gladiator.reputation,
+      wins: gladiator.wins,
+      losses: gladiator.losses,
+      traits: gladiator.traits,
+      currentLocationId: gladiator.currentLocationId ?? gladiator.currentBuildingId,
+      currentBuildingId: gladiator.currentBuildingId,
+      currentActivityId: gladiator.currentActivityId,
+      currentTaskStartedAt: gladiator.currentTaskStartedAt,
+      trainingPlan: gladiator.trainingPlan,
+      visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, classId),
+    };
+  });
   const routines = input.gladiators.map<GladiatorRoutine>((gladiator) => ({
     gladiatorId: gladiator.id,
     objective: gladiator.weeklyObjective,
@@ -133,12 +139,15 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
 }
 
 export function createMarketGladiator(gladiator: Gladiator & { price: number }): MarketGladiator {
+  const classId = gladiator.classId ?? createGladiatorClassId(gladiator.id);
+
   return {
     ...gladiator,
+    classId,
     health: 100,
     energy: 100,
     morale: 100,
-    visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity),
+    visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, classId),
   };
 }
 
@@ -153,12 +162,19 @@ export function createBettingOdds(input: {
   opponentDecimalOdds: number;
   createdAtDay: BettingOdds['createdAtDay'];
 }): BettingOdds {
+  const opponentClassId = input.opponent.classId ?? createGladiatorClassId(input.opponent.id);
+
   return {
     id: `odds-${input.year}-${input.week}-${input.gladiatorId}`,
     gladiatorId: input.gladiatorId,
     opponent: {
       ...input.opponent,
-      visualIdentity: getGladiatorVisualIdentity(input.opponent.id, input.opponent.visualIdentity),
+      classId: opponentClassId,
+      visualIdentity: getGladiatorVisualIdentity(
+        input.opponent.id,
+        input.opponent.visualIdentity,
+        opponentClassId,
+      ),
     },
     rank: input.rank,
     playerWinChance: input.playerWinChance,

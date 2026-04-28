@@ -46,6 +46,14 @@ export interface GladiatorAssetSet {
   bodyType: string;
   hairStyle: string;
   armorStyle: string;
+  clothingStyle?: string;
+  clothingColor?: string;
+  hairAndBeardStyle?: string;
+  headwearStyle?: string;
+  accessoryStyle?: string;
+  bodyBuildStyle?: string;
+  skinTone?: string;
+  markingStyle?: string;
 }
 
 export interface VisualAssetManifest {

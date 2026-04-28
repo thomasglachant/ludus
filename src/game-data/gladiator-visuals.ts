@@ -1,4 +1,9 @@
-import type { Gladiator, GladiatorVisualIdentity } from '../domain/gladiators/types';
+import type {
+  Gladiator,
+  GladiatorClassId,
+  GladiatorVisualIdentity,
+} from '../domain/gladiators/types';
+import { createGladiatorVisualVariantSet } from './gladiator-visual-variants';
 import {
   getGladiatorCombatAnimationDefinitionById,
   getGladiatorMapAnimationDefinitionById,
@@ -128,10 +133,14 @@ function createAnimationAsset<
   };
 }
 
-export function createGladiatorVisualIdentity(seed: string): GladiatorVisualIdentity {
+export function createGladiatorVisualIdentity(
+  seed: string,
+  classId?: GladiatorClassId,
+): GladiatorVisualIdentity {
   const assetId =
     GLADIATOR_VISUAL_ASSET_IDS[getStableIndex(seed, GLADIATOR_VISUAL_ASSET_IDS.length)];
   const assetSet = getGladiatorAssetSet(assetId) ?? getFallbackGladiatorAssetSet();
+  const variants = createGladiatorVisualVariantSet(seed, classId);
 
   return {
     portraitAssetId: assetId,
@@ -140,14 +149,23 @@ export function createGladiatorVisualIdentity(seed: string): GladiatorVisualIden
     bodyType: assetSet.bodyType,
     hairStyle: assetSet.hairStyle,
     armorStyle: assetSet.armorStyle,
+    clothingStyle: assetSet.clothingStyle ?? variants.clothingStyle,
+    clothingColor: assetSet.clothingColor ?? variants.clothingColor,
+    hairAndBeardStyle: assetSet.hairAndBeardStyle ?? variants.hairAndBeardStyle,
+    headwearStyle: assetSet.headwearStyle ?? variants.headwearStyle,
+    accessoryStyle: assetSet.accessoryStyle ?? variants.accessoryStyle,
+    bodyBuildStyle: assetSet.bodyBuildStyle ?? variants.bodyBuildStyle,
+    skinTone: assetSet.skinTone ?? variants.skinTone,
+    markingStyle: assetSet.markingStyle ?? variants.markingStyle,
   };
 }
 
 export function getGladiatorVisualIdentity(
   seed: string,
   visualIdentity?: GladiatorVisualIdentity,
+  classId?: GladiatorClassId,
 ): GladiatorVisualIdentity {
-  return visualIdentity ?? createGladiatorVisualIdentity(seed);
+  return visualIdentity ?? createGladiatorVisualIdentity(seed, classId);
 }
 
 function getGeneratedPortraitAssetSet(visualIdentity: GladiatorVisualIdentity) {
@@ -219,11 +237,11 @@ export function getCombatSpriteFrames(
 }
 
 export function getGladiatorCombatSpriteFrames(
-  gladiator: Pick<Gladiator, 'id' | 'visualIdentity'>,
+  gladiator: Pick<Gladiator, 'id' | 'classId' | 'visualIdentity'>,
   animation: CombatSpriteAnimationState,
 ) {
   return getCombatSpriteFrames(
-    getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity),
+    getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, gladiator.classId),
     animation,
   );
 }

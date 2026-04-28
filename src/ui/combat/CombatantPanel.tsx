@@ -51,6 +51,9 @@ export function CombatantPanel({ combatant }: CombatantPanelProps) {
         <div>
           <p className="eyebrow">{t(`combatScreen.combatant.${combatant.side}`)}</p>
           <h2>{combatant.name}</h2>
+          <span className="combatant-panel__class" title={t(combatant.classDescriptionKey)}>
+            {t(combatant.classNameKey)}
+          </span>
           <span>{t(combatant.armorKey)}</span>
         </div>
       </div>
@@ -63,7 +66,7 @@ export function CombatantPanel({ combatant }: CombatantPanelProps) {
         <strong>{t('combatScreen.activeEffects')}</strong>
         <span>
           <Shield aria-hidden="true" size={16} />
-          {t('combatScreen.noActiveEffects')}
+          {t(combatant.classEffectSummaryKey)}
         </span>
       </div>
     </aside>

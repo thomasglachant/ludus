@@ -28,6 +28,7 @@ import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { getMapLocation } from '../../game-data/map-layout';
 import { useUiStore } from '../../state/ui-store-context';
 import { PanelShell } from '../components/shared';
+import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface GladiatorDetailPanelProps {
@@ -212,6 +213,11 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
         </div>
 
         <div className="gladiator-profile-card__main">
+          <div className="gladiator-profile-card__identity">
+            <h2>{gladiator.name}</h2>
+            <GladiatorClassLine gladiator={gladiator} showDescription showEffect />
+          </div>
+
           <div className="gladiator-profile-card__summary">
             <StatChip
               Icon={Gauge}

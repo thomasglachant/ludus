@@ -14,6 +14,7 @@ import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { EmptyState, MetricList, NoticeBox } from '../components/shared';
 import { formatMoneyAmount } from '../formatters/money';
+import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface MarketContentProps {
@@ -104,11 +105,13 @@ function MarketCandidateCard({
         <GladiatorPortrait gladiator={candidate} size="small" />
         <div>
           <h3>{candidate.name}</h3>
+          <GladiatorClassLine gladiator={candidate} />
           <p>{t('market.age', { age: candidate.age })}</p>
         </div>
         <strong>{t('market.price', { price: formatMoneyAmount(candidate.price) })}</strong>
       </div>
       <StatBlock gladiator={candidate} />
+      <GladiatorClassLine gladiator={candidate} showDescription showEffect />
       <TraitList gladiator={candidate} />
       {validationMessageKey ? (
         <p className="gladiator-card__warning">{t(validationMessageKey)}</p>
@@ -143,6 +146,7 @@ function OwnedGladiatorCard({
         <GladiatorPortrait gladiator={gladiator} size="small" />
         <div>
           <h3>{gladiator.name}</h3>
+          <GladiatorClassLine gladiator={gladiator} />
           <p>{t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}</p>
         </div>
         <strong>{t('market.saleValue', { price: formatMoneyAmount(saleValue) })}</strong>

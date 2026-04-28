@@ -79,14 +79,174 @@
         "w": 120,
         "h": 180
       }
+    },
+    "combat-hit-0.png": {
+      "frame": {
+        "x": 488,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
+    },
+    "combat-hit-1.png": {
+      "frame": {
+        "x": 610,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
+    },
+    "combat-block-0.png": {
+      "frame": {
+        "x": 732,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
+    },
+    "combat-block-1.png": {
+      "frame": {
+        "x": 854,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
+    },
+    "combat-defeat-0.png": {
+      "frame": {
+        "x": 976,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
+    },
+    "combat-defeat-1.png": {
+      "frame": {
+        "x": 1098,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
+    },
+    "combat-victory-0.png": {
+      "frame": {
+        "x": 1220,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
+    },
+    "combat-victory-1.png": {
+      "frame": {
+        "x": 1342,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 120,
+        "h": 180
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 180
+      }
     }
   },
   "meta": {
-    "app": "ludus-production-asset-pipeline",
+    "app": "ludus-gladiator-production-asset-pipeline",
     "image": "combat-spritesheet.png",
     "format": "RGBA8888",
     "size": {
-      "w": 486,
+      "w": 1462,
       "h": 180
     },
     "scale": "1"

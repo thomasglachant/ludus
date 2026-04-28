@@ -5,12 +5,16 @@ import {
 } from '../../game-data/gladiator-visuals';
 
 interface GladiatorPortraitProps {
-  gladiator: Pick<Gladiator, 'id' | 'name' | 'visualIdentity'>;
+  gladiator: Pick<Gladiator, 'id' | 'name' | 'classId' | 'visualIdentity'>;
   size?: 'small' | 'medium' | 'large';
 }
 
 export function GladiatorPortrait({ gladiator, size = 'medium' }: GladiatorPortraitProps) {
-  const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity);
+  const visualIdentity = getGladiatorVisualIdentity(
+    gladiator.id,
+    gladiator.visualIdentity,
+    gladiator.classId,
+  );
   const portraitAssetPath = getGladiatorPortraitAssetPath(visualIdentity);
 
   return (
@@ -23,8 +27,16 @@ export function GladiatorPortrait({ gladiator, size = 'medium' }: GladiatorPortr
       ].join(' ')}
       data-armor={visualIdentity.armorStyle}
       data-body={visualIdentity.bodyType}
+      data-body-build={visualIdentity.bodyBuildStyle}
+      data-clothing={visualIdentity.clothingStyle}
+      data-clothing-color={visualIdentity.clothingColor}
       data-hair={visualIdentity.hairStyle}
+      data-hair-beard={visualIdentity.hairAndBeardStyle}
+      data-headwear={visualIdentity.headwearStyle}
+      data-accessory={visualIdentity.accessoryStyle}
+      data-marking={visualIdentity.markingStyle}
       data-portrait-asset={visualIdentity.portraitAssetId}
+      data-skin-tone={visualIdentity.skinTone}
       role="img"
     >
       {portraitAssetPath ? (

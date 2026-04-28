@@ -4,6 +4,7 @@ import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import type { GameSave, Gladiator } from '../../domain/types';
 import { getGladiatorPlanningStatuses } from '../../domain/planning/planning-actions';
 import { useUiStore } from '../../state/ui-store-context';
+import { GladiatorClassLine } from './GladiatorClassLine';
 import { GladiatorPortrait } from './GladiatorPortrait';
 
 interface BottomGladiatorRosterProps {
@@ -78,6 +79,7 @@ export function BottomGladiatorRoster({
                     <strong>{gladiator.name}</strong>
                     <span>{t('roster.reputation', { reputation: gladiator.reputation })}</span>
                   </span>
+                  <GladiatorClassLine compact gladiator={gladiator} />
                   <span className="roster-card__objective">
                     {status
                       ? t(`weeklyPlan.objectives.${status.routine.objective}`)

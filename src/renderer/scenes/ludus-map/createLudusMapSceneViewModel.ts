@@ -23,7 +23,7 @@ import type { LudusMapSceneViewModel } from './LudusMapSceneViewModel';
 interface CreateLudusMapSceneViewModelOptions {
   reducedMotion?: boolean;
   selectedLocationId?: MapLocationId;
-  translateLabel?: (key: string) => string;
+  translateLabel?: (key: string, params?: Record<string, string | number>) => string;
 }
 
 function parseHexColor(hexColor: string) {
@@ -32,13 +32,59 @@ function parseHexColor(hexColor: string) {
 
 function getDecorationAssetPath(style: string): string | undefined {
   const ambientAssets = VISUAL_ASSET_MANIFEST.map.ambient;
+  const vegetationAssets: Record<string, string | undefined> = {
+    treeBroadleaf01: ambientAssets['tree-broadleaf-01'],
+    treeBroadleaf02: ambientAssets['tree-broadleaf-02'],
+    treeBroadleaf03: ambientAssets['tree-broadleaf-03'],
+    oliveTree01: ambientAssets['olive-tree-01'],
+    oliveTree02: ambientAssets['olive-tree-02'],
+    cypressTree01: ambientAssets['cypress-tree-01'],
+    cypressTree02: ambientAssets['cypress-tree-02'],
+    shrub01: ambientAssets['shrub-01'],
+    shrub02: ambientAssets['shrub-02'],
+    hedge01: ambientAssets['hedge-01'],
+    forestEdgeCluster01: ambientAssets['forest-edge-cluster-01'],
+    forestEdgeCluster02: ambientAssets['forest-edge-cluster-02'],
+    groveCluster01: ambientAssets['grove-cluster-01'],
+    groveCluster02: ambientAssets['grove-cluster-02'],
+  };
+  const terrainAssets: Record<string, string | undefined> = {
+    pathStraightHorizontal: ambientAssets['path-straight-horizontal'],
+    pathStraightVertical: ambientAssets['path-straight-vertical'],
+    pathCornerNe: ambientAssets['path-corner-ne'],
+    pathCornerNw: ambientAssets['path-corner-nw'],
+    pathCornerSe: ambientAssets['path-corner-se'],
+    pathCornerSw: ambientAssets['path-corner-sw'],
+    pathCrossroad: ambientAssets['path-crossroad'],
+    pathSmallStones01: ambientAssets['path-small-stones-01'],
+    pathDirtEdge01: ambientAssets['path-dirt-edge-01'],
+    stoneWallHorizontal01: ambientAssets['stone-wall-horizontal-01'],
+    stoneWallHorizontalBroken01: ambientAssets['stone-wall-horizontal-broken-01'],
+    stoneWallVertical01: ambientAssets['stone-wall-vertical-01'],
+    stoneWallCornerNe: ambientAssets['stone-wall-corner-ne'],
+    stoneWallCornerNw: ambientAssets['stone-wall-corner-nw'],
+    stoneWallCornerSe: ambientAssets['stone-wall-corner-se'],
+    stoneWallCornerSw: ambientAssets['stone-wall-corner-sw'],
+    gateWest: ambientAssets['gate-west'],
+    gateEast: ambientAssets['gate-east'],
+    gateSouth: ambientAssets['gate-south'],
+    smallRedBannerPost: ambientAssets['small-red-banner-post'],
+  };
+
+  if (vegetationAssets[style]) {
+    return vegetationAssets[style];
+  }
+
+  if (terrainAssets[style]) {
+    return terrainAssets[style];
+  }
 
   if (style === 'oliveTree') {
-    return ambientAssets['olive-tree'];
+    return ambientAssets['olive-tree-01'] ?? ambientAssets['olive-tree'];
   }
 
   if (style === 'cypressTree') {
-    return ambientAssets['cypress-tree'];
+    return ambientAssets['cypress-tree-01'] ?? ambientAssets['cypress-tree'];
   }
 
   return undefined;
@@ -46,6 +92,21 @@ function getDecorationAssetPath(style: string): string | undefined {
 
 function shouldOffsetAmbientElement(kind: string): boolean {
   return kind !== 'cloud';
+}
+
+function createLocationLabelParts(
+  name: string,
+  level: number,
+  translateLabel: (key: string, params?: Record<string, string | number>) => string,
+): { label: string; labelTitle: string; labelSubtitle: string } {
+  const uppercaseName = name.toLocaleUpperCase();
+  const subtitle = level > 0 ? translateLabel('common.level', { level }) : '';
+
+  return {
+    label: subtitle ? `${uppercaseName} ${subtitle}` : uppercaseName,
+    labelTitle: uppercaseName,
+    labelSubtitle: subtitle,
+  };
 }
 
 export function createLudusMapSceneViewModel(
@@ -88,9 +149,24 @@ export function createLudusMapSceneViewModel(
       buildingLightOpacity: timeOfDay.visualTheme.buildingLightOpacity,
       backgroundAssetPath: timeOfDay.visualTheme.mapBackgroundAssetPath,
     },
+    terrainZones: LUDUS_MAP_DEFINITION.terrainZones.map((zone) => ({
+      id: zone.id,
+      kind: zone.kind,
+      x: zone.x,
+      y: zone.y,
+      width: zone.width,
+      height: zone.height,
+    })),
+    wallSegments: LUDUS_MAP_DEFINITION.wallSegments.map((segment) => ({
+      id: segment.id,
+      kind: segment.kind,
+      width: segment.width,
+      points: segment.points,
+    })),
     paths: LUDUS_MAP_DEFINITION.paths.map((path) => ({
       id: path.id,
       kind: path.kind,
+      width: path.width,
       points: path.points,
     })),
     decorations: LUDUS_MAP_DEFINITION.decorations.map((decoration) => ({
@@ -101,6 +177,9 @@ export function createLudusMapSceneViewModel(
       width: decoration.width,
       height: decoration.height,
       rotation: decoration.rotation ?? 0,
+      isAnimated: decoration.isAnimated ?? false,
+      animationDelaySeconds: decoration.animationDelaySeconds ?? 0,
+      animationDurationSeconds: decoration.animationDurationSeconds ?? 7,
       assetPath: getDecorationAssetPath(decoration.style),
       sortY: decoration.y + decoration.height,
     })),
@@ -121,7 +200,7 @@ export function createLudusMapSceneViewModel(
         width: element.width,
         height: element.height,
         opacity:
-          element.kind === 'torch'
+          element.kind === 'torch' || element.kind === 'glow'
             ? (element.opacity ?? 1) * timeOfDay.visualTheme.torchOpacity
             : element.kind === 'cloud'
               ? (element.opacity ?? 1) * (timeOfDay.visualTheme.cloudOpacity ?? 1)
@@ -156,21 +235,32 @@ export function createLudusMapSceneViewModel(
       const exteriorAssetPath = visual?.exteriorAssetPath ?? location.assetPath;
       const propsAssetPath = visual?.propsAssetPath ?? externalVisual?.props;
       const roofAssetPath = visual?.roofAssetPath;
-      const width = visual?.width ?? location.width;
-      const height = visual?.height ?? location.height;
+      const width = location.width;
+      const height = location.height;
+      const level = building?.level ?? (location.id === 'arena' ? 1 : 0);
+      const name = translateLabel(location.nameKey);
+      const labelParts = createLocationLabelParts(name, level, translateLabel);
 
       return {
         id: location.id,
         mapLocationId: location.id,
         kind: location.kind,
         labelKey: location.nameKey,
-        label: translateLabel(location.nameKey),
+        label: labelParts.label,
+        labelTitle: labelParts.labelTitle,
+        labelSubtitle: labelParts.labelSubtitle,
+        labelLevel: level,
         x: location.x,
         y: location.y,
         width,
         height,
         isOwned: location.kind === 'external' || Boolean(building?.isPurchased),
-        level: building?.level ?? 0,
+        level,
+        activitySlots: location.activitySlots.map((slot) => ({
+          id: slot.id,
+          x: slot.x,
+          y: slot.y,
+        })),
         exteriorAssetPath,
         propsAssetPath,
         roofAssetPath,
@@ -199,7 +289,11 @@ export function createLudusMapSceneViewModel(
       const animation = movement
         ? getGladiatorMapAnimationDefinitionById('walk')
         : getGladiatorMapAnimationDefinition(gladiator);
-      const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity);
+      const visualIdentity = getGladiatorVisualIdentity(
+        gladiator.id,
+        gladiator.visualIdentity,
+        gladiator.classId,
+      );
       const animationAsset = getGladiatorMapAnimationAsset(visualIdentity, animation.id);
 
       usedSlotsByBuilding.set(targetLocationId, slotIndex + 1);

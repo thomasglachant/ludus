@@ -8,6 +8,10 @@ import {
   COMBAT_STRATEGY_MODIFIERS,
 } from '../../game-data/combat';
 import { GAME_BALANCE } from '../../game-data/balance';
+import {
+  createGladiatorClassId,
+  getGladiatorClassCombatModifiers,
+} from '../../game-data/gladiator-classes';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
 import { DAYS_OF_WEEK } from '../../game-data/time';
@@ -208,12 +212,14 @@ function getNextParticipant(
   return current.gladiator.id === player.gladiator.id ? opponent : player;
 }
 
-function calculateEnergyChange(turnCount: number, strategy: CombatStrategy) {
+function calculateEnergyChange(turnCount: number, strategy: CombatStrategy, gladiator: Gladiator) {
   const modifier = COMBAT_STRATEGY_MODIFIERS[strategy];
+  const classModifier = getGladiatorClassCombatModifiers(gladiator);
   const energyCost = clamp(
     roundStat(
       (COMBAT_CONFIG.baseEnergyCost + turnCount * COMBAT_CONFIG.energyCostPerTurn) *
-        modifier.energyCostMultiplier,
+        modifier.energyCostMultiplier *
+        classModifier.energyCostMultiplier,
     ),
     COMBAT_CONFIG.minEnergyCost,
     COMBAT_CONFIG.maxEnergyCost,
@@ -224,14 +230,18 @@ function calculateEnergyChange(turnCount: number, strategy: CombatStrategy) {
 
 function getParticipantRating(gladiator: Gladiator, strategy: CombatStrategy) {
   const modifier = COMBAT_STRATEGY_MODIFIERS[strategy];
+  const classModifier = getGladiatorClassCombatModifiers(gladiator);
   const strength = getGladiatorEffectiveSkill(gladiator, 'strength');
   const agility = getGladiatorEffectiveSkill(gladiator, 'agility');
   const defense = getGladiatorEffectiveSkill(gladiator, 'defense');
 
   return (
-    strength * modifier.damageMultiplier * GAME_BALANCE.combat.participantRating.strengthWeight +
-    agility * (1 + modifier.hitChanceBonus) +
-    defense * modifier.defenseMultiplier +
+    strength *
+      modifier.damageMultiplier *
+      classModifier.damageMultiplier *
+      GAME_BALANCE.combat.participantRating.strengthWeight +
+    agility * (1 + modifier.hitChanceBonus + classModifier.hitChanceBonus) +
+    defense * modifier.defenseMultiplier * classModifier.defenseMultiplier +
     gladiator.health * GAME_BALANCE.combat.participantRating.healthWeight +
     gladiator.energy * GAME_BALANCE.combat.participantRating.energyWeight +
     gladiator.morale * GAME_BALANCE.combat.participantRating.moraleWeight
@@ -339,12 +349,14 @@ export function calculateHitChance(
   attackerStrategy: CombatStrategy = DEFAULT_STRATEGY,
 ) {
   const modifier = COMBAT_STRATEGY_MODIFIERS[attackerStrategy];
+  const classModifier = getGladiatorClassCombatModifiers(attacker);
   const attackerAgility = getGladiatorEffectiveSkill(attacker, 'agility');
   const defenderAgility = getGladiatorEffectiveSkill(defender, 'agility');
 
   return clamp(
     COMBAT_CONFIG.baseHitChance +
       modifier.hitChanceBonus +
+      classModifier.hitChanceBonus +
       attackerAgility * COMBAT_CONFIG.attackerAgilityHitMultiplier -
       defenderAgility * COMBAT_CONFIG.defenderAgilityDodgeMultiplier,
     COMBAT_CONFIG.minHitChance,
@@ -360,14 +372,20 @@ export function calculateDamage(
 ) {
   const attackerModifier = COMBAT_STRATEGY_MODIFIERS[attackerStrategy];
   const defenderModifier = COMBAT_STRATEGY_MODIFIERS[defenderStrategy];
+  const attackerClassModifier = getGladiatorClassCombatModifiers(attacker);
+  const defenderClassModifier = getGladiatorClassCombatModifiers(defender);
   const attackerStrength = getGladiatorEffectiveSkill(attacker, 'strength');
   const defenderDefense = getGladiatorEffectiveSkill(defender, 'defense');
   const rawDamage =
     (COMBAT_CONFIG.baseDamage + attackerStrength * COMBAT_CONFIG.strengthDamageMultiplier) *
-    attackerModifier.damageMultiplier;
+    attackerModifier.damageMultiplier *
+    attackerClassModifier.damageMultiplier;
   const reducedDamage =
     rawDamage -
-    defenderDefense * COMBAT_CONFIG.defenseReductionMultiplier * defenderModifier.defenseMultiplier;
+    defenderDefense *
+      COMBAT_CONFIG.defenseReductionMultiplier *
+      defenderModifier.defenseMultiplier *
+      defenderClassModifier.defenseMultiplier;
 
   return clamp(roundStat(reducedDamage), COMBAT_CONFIG.minDamage, COMBAT_CONFIG.maxDamage);
 }
@@ -399,10 +417,12 @@ export function generateOpponent(
   const rank = getArenaRank(gladiator.reputation);
   const nameOffset = pickIndex(GLADIATOR_NAMES.length, random);
   const opponentId = getOpponentId(save, gladiator.id);
+  const classId = createGladiatorClassId(opponentId);
 
   return {
     id: opponentId,
     name: GLADIATOR_NAMES[nameOffset],
+    classId,
     age:
       GAME_BALANCE.combat.opponentGeneration.minAge +
       pickIndex(
@@ -422,7 +442,7 @@ export function generateOpponent(
     wins: GAME_BALANCE.gladiators.opponentDefaults.wins,
     losses: GAME_BALANCE.gladiators.opponentDefaults.losses,
     traits: [],
-    visualIdentity: createGladiatorVisualIdentity(opponentId),
+    visualIdentity: createGladiatorVisualIdentity(opponentId, classId),
   };
 }
 
@@ -509,7 +529,7 @@ export function resolveCombat(
         COMBAT_CONFIG.loserMinimumHealth,
         GAME_BALANCE.gladiators.gauges.maximum,
       );
-  const energyChange = calculateEnergyChange(turns.length, strategy);
+  const energyChange = calculateEnergyChange(turns.length, strategy, gladiator);
   const moraleChange = didPlayerWin
     ? COMBAT_CONFIG.winnerMoraleChange
     : COMBAT_CONFIG.loserMoraleChange;

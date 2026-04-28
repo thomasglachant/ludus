@@ -1,6 +1,6 @@
 import type { BuildingId } from '../domain/buildings/types';
 import type { ArenaRank, CombatStrategy } from '../domain/combat/types';
-import type { GladiatorTrait } from '../domain/gladiators/types';
+import type { GladiatorClassId, GladiatorTrait } from '../domain/gladiators/types';
 import type { GladiatorWeeklyObjective, TrainingIntensity } from '../domain/planning/types';
 import type { DayOfWeek, GameSpeed } from '../domain/time/types';
 
@@ -129,6 +129,61 @@ export const GAME_BALANCE = {
       wins: 0,
       // Losses assigned to generated arena opponents.
       losses: 0,
+    },
+    classes: {
+      // Historical arena specializations assigned to generated gladiators.
+      ids: [
+        'murmillo',
+        'retiarius',
+        'secutor',
+        'thraex',
+        'hoplomachus',
+      ] as const satisfies readonly GladiatorClassId[],
+      combatModifiers: {
+        murmillo: {
+          // Heavy shield improves survival but makes attacks less decisive.
+          hitChanceBonus: 0,
+          damageMultiplier: 0.97,
+          defenseMultiplier: 1.06,
+          energyCostMultiplier: 1.03,
+        },
+        retiarius: {
+          // Net and trident help accuracy and stamina, at the cost of protection.
+          hitChanceBonus: 0.02,
+          damageMultiplier: 1,
+          defenseMultiplier: 0.94,
+          energyCostMultiplier: 0.95,
+        },
+        secutor: {
+          // Pursuer kit rewards pressure but is demanding and slightly less precise.
+          hitChanceBonus: -0.02,
+          damageMultiplier: 1.03,
+          defenseMultiplier: 1.03,
+          energyCostMultiplier: 1.04,
+        },
+        thraex: {
+          // Curved blade creates dangerous angles while exposing the fighter.
+          hitChanceBonus: 0,
+          damageMultiplier: 1.05,
+          defenseMultiplier: 0.96,
+          energyCostMultiplier: 1.02,
+        },
+        hoplomachus: {
+          // Spear control steadies guard and accuracy, but limits heavy blows.
+          hitChanceBonus: 0.01,
+          damageMultiplier: 0.96,
+          defenseMultiplier: 1.03,
+          energyCostMultiplier: 1,
+        },
+      } as const satisfies Record<
+        GladiatorClassId,
+        {
+          hitChanceBonus: number;
+          damageMultiplier: number;
+          defenseMultiplier: number;
+          energyCostMultiplier: number;
+        }
+      >,
     },
   },
 

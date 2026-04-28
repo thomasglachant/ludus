@@ -1,5 +1,6 @@
 import type { CombatState, CombatTurn, GameSave, Gladiator } from '../../domain/types';
 import type { GladiatorVisualIdentity } from '../../domain/gladiators/types';
+import { getGladiatorClassDefinition } from '../../game-data/gladiator-classes';
 import {
   getGladiatorPortraitAssetPath,
   getGladiatorVisualIdentity,
@@ -10,6 +11,9 @@ export type CombatantSide = 'player' | 'opponent';
 
 export interface CombatantViewModel {
   armorKey: string;
+  classDescriptionKey: string;
+  classEffectSummaryKey: string;
+  classNameKey: string;
   energy: number;
   health: number;
   id: string;
@@ -86,23 +90,35 @@ function getTurnHealthState(combat: CombatState, visibleTurns: CombatTurn[]): Co
   };
 }
 
-function getArmorKey(gladiator: Pick<Gladiator, 'id' | 'visualIdentity'>) {
-  const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity);
+function getArmorKey(gladiator: Pick<Gladiator, 'id' | 'classId' | 'visualIdentity'>) {
+  const visualIdentity = getGladiatorVisualIdentity(
+    gladiator.id,
+    gladiator.visualIdentity,
+    gladiator.classId,
+  );
 
   return `combatScreen.armor.${visualIdentity.armorStyle ?? 'unknown'}`;
 }
 
 function createCombatantViewModel(
-  gladiator: Pick<Gladiator, 'id' | 'name' | 'visualIdentity'>,
+  gladiator: Pick<Gladiator, 'id' | 'name' | 'classId' | 'visualIdentity'>,
   side: CombatantSide,
   health: number,
   energy: number,
   morale: number,
 ): CombatantViewModel {
-  const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity);
+  const classDefinition = getGladiatorClassDefinition(gladiator);
+  const visualIdentity = getGladiatorVisualIdentity(
+    gladiator.id,
+    gladiator.visualIdentity,
+    gladiator.classId,
+  );
 
   return {
     armorKey: getArmorKey(gladiator),
+    classDescriptionKey: classDefinition.descriptionKey,
+    classEffectSummaryKey: classDefinition.effectSummaryKey,
+    classNameKey: classDefinition.nameKey,
     energy: clampPercent(energy),
     health: clampPercent(health),
     id: gladiator.id,

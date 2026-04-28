@@ -302,7 +302,7 @@ function addMapBaseAssets(
         'map-base',
         fallbackManifest.map.backgrounds[phase],
         PIXI_RENDER_LAYERS.mapBackground,
-        { hitbox: rect(3200, 2000), productionSrc, tags: ['map', 'background', phase] },
+        { hitbox: rect(2400, 1500), productionSrc, tags: ['map', 'background', phase] },
       ),
       bundles,
     );

@@ -41,7 +41,13 @@ function radians(degrees: number): number {
 }
 
 function usesBottomAnchor(element: LudusMapSceneAmbientElementViewModel): boolean {
-  return element.kind === 'banner' || element.kind === 'grass';
+  return (
+    element.kind === 'banner' ||
+    element.kind === 'grass' ||
+    element.kind === 'awning' ||
+    element.kind === 'sway' ||
+    element.kind === 'dummy'
+  );
 }
 
 export class AmbientAnimationSystem {
@@ -233,23 +239,64 @@ export class AmbientAnimationSystem {
     const cycle = getCycle(elapsedSeconds, element.animationDurationSeconds);
     const wave = Math.sin(cycle * Math.PI * 2);
 
-    if (element.kind === 'smoke') {
-      sprite.y = element.y - cycle * 26;
+    if (element.kind === 'smoke' || element.kind === 'dust' || element.kind === 'steam') {
+      const rise = element.kind === 'steam' ? 18 : 26;
+
+      sprite.y = element.y - cycle * rise;
       sprite.alpha = element.opacity * (1 - cycle * 0.55);
       return;
     }
 
-    if (element.kind === 'torch') {
+    if (element.kind === 'torch' || element.kind === 'glow') {
+      const scalePulse = element.kind === 'glow' ? 0.025 : 0.045;
+
       sprite.alpha = element.opacity * (0.72 + Math.abs(wave) * 0.28);
       sprite.scale.set(
-        display.baseScaleX * (1 + Math.abs(wave) * 0.045),
-        display.baseScaleY * (1 + Math.abs(wave) * 0.02),
+        display.baseScaleX * (1 + Math.abs(wave) * scalePulse),
+        display.baseScaleY * (1 + Math.abs(wave) * scalePulse * 0.5),
       );
       return;
     }
 
-    if (element.kind === 'banner' || element.kind === 'grass') {
-      sprite.rotation = radians(element.rotation + wave * 2.5);
+    if (element.kind === 'waterShimmer' || element.kind === 'seaShimmer') {
+      sprite.alpha = element.opacity * (0.48 + Math.abs(wave) * 0.52);
+      sprite.x = element.x + wave * (element.kind === 'seaShimmer' ? 5 : 2);
+      sprite.scale.set(display.baseScaleX * (1 + Math.abs(wave) * 0.06), display.baseScaleY);
+      return;
+    }
+
+    if (element.kind === 'bird') {
+      sprite.x = element.x + cycle * 190;
+      sprite.y = element.y + wave * 6;
+      sprite.alpha = element.opacity * (0.62 + Math.abs(wave) * 0.38);
+      return;
+    }
+
+    if (element.kind === 'boat') {
+      sprite.y = element.y + wave * 3;
+      sprite.rotation = radians(element.rotation + wave * 1.2);
+      return;
+    }
+
+    if (element.kind === 'sparkle') {
+      sprite.alpha = element.opacity * Math.max(0, Math.sin(cycle * Math.PI * 2)) ** 2;
+      sprite.scale.set(
+        display.baseScaleX * (1 + Math.abs(wave) * 0.12),
+        display.baseScaleY * (1 + Math.abs(wave) * 0.12),
+      );
+      return;
+    }
+
+    if (
+      element.kind === 'banner' ||
+      element.kind === 'grass' ||
+      element.kind === 'awning' ||
+      element.kind === 'sway' ||
+      element.kind === 'dummy'
+    ) {
+      const amplitude = element.kind === 'dummy' ? 3.8 : element.kind === 'awning' ? 2 : 2.5;
+
+      sprite.rotation = radians(element.rotation + wave * amplitude);
       sprite.y = element.y + element.height + wave * 1.5;
     }
   }
@@ -258,7 +305,10 @@ export class AmbientAnimationSystem {
     const { element, sprite } = display;
 
     sprite.scale.set(display.baseScaleX, display.baseScaleY);
-    sprite.alpha = element.kind === 'smoke' ? element.opacity * 0.45 : element.opacity;
+    sprite.alpha =
+      element.kind === 'smoke' || element.kind === 'dust' || element.kind === 'steam'
+        ? element.opacity * 0.45
+        : element.opacity;
     sprite.rotation = radians(element.rotation);
     this.positionSprite(display);
   }

@@ -1,4 +1,5 @@
 import { BUILDING_IDS } from '../../game-data/buildings';
+import { createGladiatorClassId } from '../../game-data/gladiator-classes';
 import { DAYS_OF_WEEK, SUPPORTED_GAME_SPEEDS } from '../../game-data/time';
 import type { BuildingId } from '../buildings/types';
 import type { Gladiator, GladiatorLocationId } from '../gladiators/types';
@@ -183,6 +184,7 @@ function normalizeGladiator(gladiator: Gladiator): Gladiator {
   if (movement) {
     return {
       ...gladiator,
+      classId: gladiator.classId ?? createGladiatorClassId(gladiator.id),
       currentLocationId: undefined,
       currentBuildingId: undefined,
       mapMovement: {
@@ -203,6 +205,7 @@ function normalizeGladiator(gladiator: Gladiator): Gladiator {
 
   return {
     ...gladiator,
+    classId: gladiator.classId ?? createGladiatorClassId(gladiator.id),
     currentLocationId,
     currentBuildingId:
       currentLocationId && requiredBuildingIds.includes(currentLocationId as BuildingId)
@@ -211,11 +214,42 @@ function normalizeGladiator(gladiator: Gladiator): Gladiator {
   };
 }
 
+function normalizeCombatState<TCombat extends GameSave['arena']['pendingCombats'][number]>(
+  combat: TCombat,
+): TCombat {
+  return {
+    ...combat,
+    gladiator: normalizeGladiator(combat.gladiator),
+    opponent: normalizeGladiator(combat.opponent),
+  };
+}
+
 export function normalizeGameSave(save: GameSave): GameSave {
   const normalizedSave: GameSave & { settings?: unknown } = {
     ...save,
     schemaVersion: CURRENT_SCHEMA_VERSION,
     gladiators: save.gladiators.map(normalizeGladiator),
+    market: {
+      ...save.market,
+      availableGladiators: save.market.availableGladiators.map((gladiator) => ({
+        ...normalizeGladiator(gladiator),
+        price: gladiator.price,
+      })),
+    },
+    arena: {
+      ...save.arena,
+      pendingCombats: save.arena.pendingCombats.map(normalizeCombatState),
+      resolvedCombats: save.arena.resolvedCombats.map(normalizeCombatState),
+      betting: save.arena.betting
+        ? {
+            ...save.arena.betting,
+            odds: save.arena.betting.odds.map((odds) => ({
+              ...odds,
+              opponent: normalizeGladiator(odds.opponent),
+            })),
+          }
+        : undefined,
+    },
   };
 
   delete normalizedSave.settings;

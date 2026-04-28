@@ -59,9 +59,7 @@ const combatAnimationKeys = [
   'combat-defeat',
   'combat-victory',
 ];
-const combatAnimationSourceKeyByAnimationKey = {
-  'combat-idle': 'combat-idle',
-  'combat-attack': 'combat-attack',
+const combatAnimationFallbackKeyByAnimationKey = {
   'combat-hit': 'combat-idle',
   'combat-block': 'combat-idle',
   'combat-defeat': 'combat-idle',
@@ -210,7 +208,7 @@ export function buildPixiProductionAssetManifest(options = {}) {
         fallbackManifest.map.backgrounds[phase],
         renderLayers.mapBackground,
         {
-          hitbox: rect(3200, 2000),
+          hitbox: rect(2400, 1500),
           productionSrc: productionManifest.map.backgrounds[phase],
           tags: ['map', 'background', phase],
         },
@@ -258,7 +256,19 @@ export function buildPixiProductionAssetManifest(options = {}) {
     ),
   );
 
-  for (const [assetId, fallbackSrc] of Object.entries(fallbackManifest.map.ambient)) {
+  const ambientAssetIds = new Set([
+    ...Object.keys(fallbackManifest.map.ambient),
+    ...Object.keys(productionManifest.map.ambient),
+  ]);
+
+  for (const assetId of ambientAssetIds) {
+    const productionSrc = productionManifest.map.ambient[assetId];
+    const fallbackSrc = fallbackManifest.map.ambient[assetId] ?? productionSrc;
+
+    if (!fallbackSrc || !productionSrc) {
+      continue;
+    }
+
     addTexture(
       manifest,
       createTexture(
@@ -268,7 +278,7 @@ export function buildPixiProductionAssetManifest(options = {}) {
         renderLayers.mapAmbientFront,
         {
           anchor: point(0.5, 0.5),
-          productionSrc: productionManifest.map.ambient[assetId],
+          productionSrc,
           tags: ['map', 'ambient'],
         },
       ),
@@ -375,7 +385,11 @@ export function buildPixiProductionAssetManifest(options = {}) {
     const combatFrameAliases = [];
 
     for (const animationKey of combatAnimationKeys) {
-      const sourceAnimationKey = combatAnimationSourceKeyByAnimationKey[animationKey];
+      const sourceAnimationKey =
+        assetSet.frames[animationKey]?.length ||
+        !combatAnimationFallbackKeyByAnimationKey[animationKey]
+          ? animationKey
+          : combatAnimationFallbackKeyByAnimationKey[animationKey];
       const productionFrames = assetSet.frames[sourceAnimationKey] ?? [];
       const fallbackFrames = fallbackAssetSet.frames[sourceAnimationKey] ?? productionFrames;
       const frameAliases = productionFrames.slice(0, 2).map((productionSrc, index) => {

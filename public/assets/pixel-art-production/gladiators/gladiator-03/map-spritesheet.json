@@ -282,7 +282,7 @@
     }
   },
   "meta": {
-    "app": "ludus-production-asset-pipeline",
+    "app": "ludus-gladiator-production-asset-pipeline",
     "image": "map-spritesheet.png",
     "format": "RGBA8888",
     "size": {

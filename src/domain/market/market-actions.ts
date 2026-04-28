@@ -1,4 +1,5 @@
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
+import { createGladiatorClassId } from '../../game-data/gladiator-classes';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { GAME_BALANCE } from '../../game-data/balance';
 import { MARKET_CONFIG } from '../../game-data/market';
@@ -89,11 +90,14 @@ export function generateMarketGladiators(
   const nameOffset = pickIndex(GLADIATOR_NAMES.length, random);
 
   return Array.from({ length: MARKET_CONFIG.availableGladiatorCount }, (_, index) => {
+    const id = `market-${year}-${week}-${index + 1}`;
+    const classId = createGladiatorClassId(id);
     const stats = createGeneratedStats(random);
     const reputation = GAME_BALANCE.gladiators.marketDefaults.reputation;
     const gladiator: Gladiator = {
-      id: `market-${year}-${week}-${index + 1}`,
+      id,
       name: GLADIATOR_NAMES[(nameOffset + index) % GLADIATOR_NAMES.length],
+      classId,
       age: createGeneratedAge(random),
       strength: stats.strength,
       agility: stats.agility,
@@ -110,7 +114,7 @@ export function generateMarketGladiators(
           pickIndex(GAME_BALANCE.market.generatedTraitPool.length, random)
         ],
       ],
-      visualIdentity: createGladiatorVisualIdentity(`market-${year}-${week}-${index + 1}`),
+      visualIdentity: createGladiatorVisualIdentity(id, classId),
     };
 
     return {
@@ -200,6 +204,7 @@ export function buyMarketGladiator(save: GameSave, candidateId: string): MarketA
   const gladiator: Gladiator = {
     id: candidate.id,
     name: candidate.name,
+    classId: candidate.classId ?? createGladiatorClassId(candidate.id),
     age: candidate.age,
     strength: candidate.strength,
     agility: candidate.agility,
