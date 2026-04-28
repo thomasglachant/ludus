@@ -34,6 +34,10 @@ function createBuildingVisualDefinition(
   const assetSet = getBuildingAssetSet(buildingId, visualLevel);
   const fallbackSize = buildingVisualSizes[buildingId];
 
+  if (!assetSet) {
+    throw new Error(`Missing visual asset set for building ${buildingId}`);
+  }
+
   return {
     buildingId,
     level,

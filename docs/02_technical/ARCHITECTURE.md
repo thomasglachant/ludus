@@ -308,13 +308,19 @@ The player UI uses generated or authored pixel-art assets from:
 public/assets/
 ```
 
-TypeScript import mirrors are generated at:
+The production asset manifest is generated at:
+
+```text
+public/assets/asset-manifest.production.json
+```
+
+TypeScript import mirrors are generated before dev, build, lint and test at:
 
 ```text
 src/game-data/generated/asset-manifest.production.json
 ```
 
-The generated `src/game-data/generated` manifest mirrors are exposed to TypeScript through
+The generated manifests are exposed to TypeScript through
 `src/game-data/visual-assets.ts` and `src/rendering/pixi/assets`.
 React components and Pixi scenes should not import the JSON manifests directly
 or hardcode individual asset paths.

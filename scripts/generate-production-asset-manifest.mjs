@@ -1,0 +1,313 @@
+#!/usr/bin/env node
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, extname, join, relative, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = dirname(dirname(fileURLToPath(import.meta.url)));
+const publicAssetsRoot = join(root, 'public', 'assets');
+const publicManifestPath = join(publicAssetsRoot, 'asset-manifest.production.json');
+const typescriptManifestPath = join(
+  root,
+  'src',
+  'game-data',
+  'generated',
+  'asset-manifest.production.json',
+);
+const variantsPath = join(root, 'src', 'game-data', 'gladiator-visual-variants.ts');
+const generatedAt = '2026-04-28T00:00:00.000Z';
+
+const mapFrameKeys = [
+  'map-idle',
+  'map-walk',
+  'map-train',
+  'map-eat',
+  'map-rest',
+  'map-celebrate',
+  'map-healing',
+];
+const combatFrameKeys = [
+  'combat-idle',
+  'combat-attack',
+  'combat-hit',
+  'combat-block',
+  'combat-defeat',
+  'combat-victory',
+];
+const classOrder = ['murmillo', 'retiarius', 'secutor', 'thraex', 'hoplomachus'];
+const classAccessoryFallback = {
+  murmillo: 'gladiusScutum',
+  retiarius: 'tridentNet',
+  secutor: 'gladiusScutum',
+  thraex: 'sicaParmula',
+  hoplomachus: 'spearRoundShield',
+};
+
+function toWebPath(path) {
+  return `/assets/${relative(publicAssetsRoot, path).split(sep).join('/')}`;
+}
+
+function ensureDir(path) {
+  mkdirSync(path, { recursive: true });
+}
+
+function listFiles(path) {
+  if (!existsSync(path)) {
+    return [];
+  }
+
+  return readdirSync(path, { withFileTypes: true }).flatMap((entry) => {
+    const entryPath = join(path, entry.name);
+
+    return entry.isDirectory() ? listFiles(entryPath) : [entryPath];
+  });
+}
+
+function sortObjectEntries(object) {
+  return Object.fromEntries(Object.entries(object).sort(([left], [right]) => left.localeCompare(right)));
+}
+
+function readPngSize(path) {
+  const buffer = readFileSync(path);
+
+  if (buffer.toString('ascii', 1, 4) !== 'PNG') {
+    throw new Error(`Expected PNG asset: ${path}`);
+  }
+
+  return {
+    width: buffer.readUInt32BE(16),
+    height: buffer.readUInt32BE(20),
+  };
+}
+
+function parseArrayConstant(source, name) {
+  const match = source.match(new RegExp(`export const ${name} = \\[([\\s\\S]*?)\\] as const;`));
+  if (!match) {
+    throw new Error(`Missing variant constant: ${name}`);
+  }
+
+  return Array.from(match[1].matchAll(/'([^']+)'/g), ([, value]) => value);
+}
+
+function parseNumberConstant(source, name) {
+  const match = source.match(new RegExp(`export const ${name} = (\\d+);`));
+  if (!match) {
+    throw new Error(`Missing variant constant: ${name}`);
+  }
+
+  return Number(match[1]);
+}
+
+function readVariantConfig() {
+  const source = readFileSync(variantsPath, 'utf8');
+  return {
+    maxVariantCount: parseNumberConstant(source, 'GLADIATOR_VISUAL_VARIANT_LIMIT'),
+    clothingStyles: parseArrayConstant(source, 'GLADIATOR_CLOTHING_STYLES'),
+    clothingColors: parseArrayConstant(source, 'GLADIATOR_CLOTHING_COLORS'),
+    hairAndBeardStyles: parseArrayConstant(source, 'GLADIATOR_HAIR_AND_BEARD_STYLES'),
+    headwearStyles: parseArrayConstant(source, 'GLADIATOR_HEADWEAR_STYLES'),
+    accessoryStyles: parseArrayConstant(source, 'GLADIATOR_ACCESSORY_STYLES'),
+    bodyBuildStyles: parseArrayConstant(source, 'GLADIATOR_BODY_BUILD_STYLES'),
+    skinTones: parseArrayConstant(source, 'GLADIATOR_SKIN_TONES'),
+    markingStyles: parseArrayConstant(source, 'GLADIATOR_MARKING_STYLES'),
+  };
+}
+
+function variantId(index) {
+  return `gladiator-${String(index + 1).padStart(2, '0')}`;
+}
+
+function buildVariants(config, limit) {
+  const variants = [];
+  for (const clothingStyle of config.clothingStyles) {
+    for (const clothingColor of config.clothingColors) {
+      for (const hairAndBeardStyle of config.hairAndBeardStyles) {
+        for (const headwearStyle of config.headwearStyles) {
+          for (const classId of classOrder) {
+            const index = variants.length;
+            variants.push({
+              classId,
+              clothingStyle,
+              clothingColor,
+              hairAndBeardStyle,
+              headwearStyle,
+              accessoryStyle: classAccessoryFallback[classId],
+              bodyBuildStyle: config.bodyBuildStyles[index % config.bodyBuildStyles.length],
+              skinTone: config.skinTones[(Math.floor(index / 5) + index) % config.skinTones.length],
+              markingStyle:
+                config.markingStyles[
+                  (Math.floor(index / 25) + index) % config.markingStyles.length
+                ],
+            });
+            if (variants.length >= limit) {
+              return variants;
+            }
+          }
+        }
+      }
+    }
+  }
+  return variants;
+}
+
+function buildMeta(variant) {
+  return {
+    paletteId: `${variant.clothingColor}-${variant.skinTone}`,
+    bodyType: variant.bodyBuildStyle,
+    hairStyle: variant.headwearStyle === 'none' ? variant.hairAndBeardStyle : variant.headwearStyle,
+    armorStyle:
+      variant.clothingStyle === 'bronzeCuirass'
+        ? 'bronze'
+        : variant.clothingStyle === 'leatherHarness'
+          ? 'leather'
+          : variant.clothingStyle,
+  };
+}
+
+function buildHomepageManifest() {
+  return {
+    sourceQuality: 'production',
+    backgrounds: {
+      day: '/assets/main-menu/main-menu-background-day.webp',
+      dusk: '/assets/main-menu/main-menu-background-dusk.webp',
+    },
+    lastSaveThumbnail: '/assets/main-menu/last-save-thumbnail.webp',
+  };
+}
+
+function buildBuildingManifest() {
+  const buildingFiles = listFiles(join(publicAssetsRoot, 'buildings')).filter(
+    (path) => extname(path) === '.png',
+  );
+  const buildings = {};
+
+  for (const path of buildingFiles) {
+    const [, buildingId, levelId, partName] = relative(join(publicAssetsRoot, 'buildings'), path)
+      .split(sep)
+      .join('/')
+      .match(/^([^/]+)\/(level-\d+)\/([^/]+)\.png$/) ?? [];
+
+    if (!buildingId || !levelId || !partName) {
+      continue;
+    }
+
+    const size = readPngSize(path);
+    buildings[buildingId] ??= {};
+    buildings[buildingId][levelId] ??= {
+      sourceQuality: 'production',
+      width: size.width,
+      height: size.height,
+    };
+    buildings[buildingId][levelId][partName] = toWebPath(path);
+  }
+
+  return sortObjectEntries(
+    Object.fromEntries(
+      Object.entries(buildings).map(([buildingId, levels]) => [buildingId, sortObjectEntries(levels)]),
+    ),
+  );
+}
+
+function buildLocationsManifest() {
+  return {
+    arena: {
+      sourceQuality: 'production',
+      combatBackground: '/assets/combat/arena-background.webp',
+      crowd: '/assets/combat/arena-crowd.webp',
+    },
+  };
+}
+
+function buildGladiatorManifest() {
+  const config = readVariantConfig();
+  const variants = buildVariants(config, config.maxVariantCount);
+
+  return Object.fromEntries(
+    variants.flatMap((variant, index) => {
+      const id = variantId(index);
+      const basePath = join(publicAssetsRoot, 'gladiators', id);
+
+      if (!existsSync(basePath)) {
+        return [];
+      }
+
+      const frames = {};
+      for (const frameKey of mapFrameKeys) {
+        frames[frameKey] = [0, 1]
+          .map((frameIndex) => join(basePath, 'map', `${frameKey}-${frameIndex}.png`))
+          .filter(existsSync)
+          .map(toWebPath);
+      }
+      for (const frameKey of combatFrameKeys) {
+        frames[frameKey] = [0, 1]
+          .map((frameIndex) => join(basePath, 'combat', `${frameKey}-${frameIndex}.png`))
+          .filter(existsSync)
+          .map(toWebPath);
+      }
+
+      return [
+        [
+          id,
+          {
+            sourceQuality: 'production',
+            portrait: `/assets/gladiators/${id}/portrait.png`,
+            mapSpritesheet: `/assets/gladiators/${id}/map-spritesheet.png`,
+            mapAtlas: `/assets/gladiators/${id}/map-spritesheet.json`,
+            combatSpritesheet: `/assets/gladiators/${id}/combat-spritesheet.png`,
+            combatAtlas: `/assets/gladiators/${id}/combat-spritesheet.json`,
+            frames,
+            ...buildMeta(variant),
+            clothingStyle: variant.clothingStyle,
+            clothingColor: variant.clothingColor,
+            hairAndBeardStyle: variant.hairAndBeardStyle,
+            headwearStyle: variant.headwearStyle,
+            accessoryStyle: variant.accessoryStyle,
+            bodyBuildStyle: variant.bodyBuildStyle,
+            skinTone: variant.skinTone,
+            markingStyle: variant.markingStyle,
+          },
+        ],
+      ];
+    }),
+  );
+}
+
+function buildUiManifest() {
+  const uiFiles = listFiles(join(publicAssetsRoot, 'ui')).filter((path) => extname(path) === '.png');
+
+  return Object.fromEntries(
+    uiFiles
+      .map((path) => {
+        const id = relative(join(publicAssetsRoot, 'ui'), path)
+          .split(sep)
+          .join('/')
+          .replace(/\.png$/, '');
+        return [id, toWebPath(path)];
+      })
+      .sort(([left], [right]) => left.localeCompare(right)),
+  );
+}
+
+function writeJson(path, data) {
+  ensureDir(dirname(path));
+  writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
+}
+
+function run() {
+  const manifest = {
+    version: 1,
+    sourceQuality: 'production',
+    generatedAt,
+    homepage: buildHomepageManifest(),
+    buildings: buildBuildingManifest(),
+    locations: buildLocationsManifest(),
+    gladiators: buildGladiatorManifest(),
+    ui: buildUiManifest(),
+  };
+
+  writeJson(publicManifestPath, manifest);
+  writeJson(typescriptManifestPath, manifest);
+
+  console.log(`Generated production asset manifest with ${Object.keys(manifest.gladiators).length} gladiators.`);
+}
+
+run();

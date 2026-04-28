@@ -1,21 +1,14 @@
 #!/usr/bin/env node
 import { deflateSync } from 'node:zlib';
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const variantsPath = join(root, 'src', 'game-data', 'gladiator-visual-variants.ts');
-const productionManifestPath = join(
-  root,
-  'src',
-  'game-data',
-  'generated',
-  'asset-manifest.production.json',
-);
 const outputRoot = join(root, 'public', 'assets', 'gladiators');
 const webRoot = '/assets/gladiators';
-const generatedAt = '2026-04-28T00:00:00.000Z';
 
 const mapFrameKeys = [
   'map-idle',
@@ -920,15 +913,19 @@ function generateAssets(variant, id, dryRun) {
   };
 }
 
-function readManifest(path) {
-  return JSON.parse(readFileSync(path, 'utf8'));
-}
-
-function writeManifest(path, manifest, dryRun) {
+function generateProductionAssetManifest(dryRun) {
   if (dryRun) {
     return;
   }
-  writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`);
+
+  const result = spawnSync(process.execPath, [join(root, 'scripts', 'generate-production-asset-manifest.mjs')], {
+    cwd: root,
+    stdio: 'inherit',
+  });
+
+  if (result.status !== 0) {
+    throw new Error('Failed to regenerate production asset manifest.');
+  }
 }
 
 function run() {
@@ -944,8 +941,6 @@ function run() {
   }
 
   const variants = buildVariants(config, limit);
-  const productionManifest = readManifest(productionManifestPath);
-  const gladiators = {};
 
   if (options.clean && !options.dryRun) {
     rmSync(outputRoot, { recursive: true, force: true });
@@ -955,17 +950,10 @@ function run() {
   }
 
   variants.forEach((variant, index) => {
-    gladiators[variantId(index)] = generateAssets(variant, variantId(index), options.dryRun);
+    generateAssets(variant, variantId(index), options.dryRun);
   });
 
-  const nextManifest = {
-    ...productionManifest,
-    sourceQuality: 'production',
-    generatedAt,
-    gladiators,
-  };
-
-  writeManifest(productionManifestPath, nextManifest, options.dryRun);
+  generateProductionAssetManifest(options.dryRun);
 
   console.log(
     `Generated ${variants.length} gladiator production asset sets${options.dryRun ? ' (dry run)' : ''}.`,

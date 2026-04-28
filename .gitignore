@@ -8,3 +8,5 @@ coverage/
 .idea/
 .vscode/
 *.log
+public/assets/asset-manifest.production.json
+src/game-data/generated/asset-manifest.production.json

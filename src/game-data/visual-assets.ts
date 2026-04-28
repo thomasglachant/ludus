@@ -99,8 +99,22 @@ export function getPixelArtBuildingLevel(level: number): PixelArtBuildingLevel {
 
 export function getBuildingAssetSet(buildingId: BuildingId, level: number) {
   const visualLevel = getPixelArtBuildingLevel(level);
+  const buildingAssets = VISUAL_ASSET_MANIFEST.buildings[buildingId];
+  const requestedAssetSet = buildingAssets?.[`level-${visualLevel}`];
 
-  return VISUAL_ASSET_MANIFEST.buildings[buildingId]?.[`level-${visualLevel}`];
+  if (requestedAssetSet) {
+    return requestedAssetSet;
+  }
+
+  return Object.entries(buildingAssets ?? {})
+    .map(([levelKey, assetSet]) => ({
+      assetSet,
+      level: Number(levelKey.replace('level-', '')),
+    }))
+    .filter(({ level }) => Number.isFinite(level))
+    .sort(
+      (left, right) => Math.abs(left.level - visualLevel) - Math.abs(right.level - visualLevel),
+    )[0]?.assetSet;
 }
 
 export function getGladiatorAssetSet(assetId: string) {

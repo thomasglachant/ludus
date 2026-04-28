@@ -285,7 +285,13 @@ Production pixel-art assets live under:
 public/assets/
 ```
 
-TypeScript import mirrors are:
+The production asset manifest is generated next to the assets:
+
+```text
+public/assets/asset-manifest.production.json
+```
+
+TypeScript import mirrors are generated before dev, build, lint and test at:
 
 ```text
 src/game-data/generated/asset-manifest.production.json
