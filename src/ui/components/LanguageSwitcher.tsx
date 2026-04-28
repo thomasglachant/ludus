@@ -21,7 +21,9 @@ export function LanguageSwitcher() {
           type="button"
           onClick={() => handleChange('en')}
         >
-          <span aria-hidden="true">{t('options.englishCode')}</span>
+          <span aria-hidden="true" className="language-switcher__flag">
+            🇬🇧
+          </span>
           <strong>{t('options.english')}</strong>
         </button>
         <button
@@ -31,7 +33,9 @@ export function LanguageSwitcher() {
           type="button"
           onClick={() => handleChange('fr')}
         >
-          <span aria-hidden="true">{t('options.frenchCode')}</span>
+          <span aria-hidden="true" className="language-switcher__flag">
+            🇫🇷
+          </span>
           <strong>{t('options.french')}</strong>
         </button>
       </div>

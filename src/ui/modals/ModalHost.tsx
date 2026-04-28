@@ -158,7 +158,7 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
     updateGladiatorRoutine,
     upgradeBuilding,
   } = useGameStore();
-  const { closeAllModals, navigate, openConfirmModal, pushModal } = useUiStore();
+  const { closeAllModals, navigate, pushModal } = useUiStore();
   const isDailyEventBlocking = currentSave ? currentSave.events.pendingEvents.length > 0 : false;
   const isArenaDayBlocking = Boolean(currentSave?.arena.arenaDay);
 
@@ -189,32 +189,14 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
     navigate('mainMenu');
   };
 
-  const requestQuit = () => {
-    if (!hasUnsavedChanges) {
-      quitToMainMenu();
-      return;
-    }
-
-    closeAllModals();
-    openConfirmModal({
-      confirmLabelKey: 'gameMenu.quit',
-      kind: 'confirm',
-      messageKey: 'gameMenu.quitUnsavedMessage',
-      onConfirm: quitToMainMenu,
-      testId: 'quit-unsaved-confirmation',
-      titleKey: 'gameMenu.quitUnsavedTitle',
-      tone: 'danger',
-    });
-  };
-
   if (modal.kind === 'gameMenu') {
     return (
       <GameMenuModal
+        hasUnsavedChanges={hasUnsavedChanges}
         isSaving={isSaving || isLoading}
         onBack={onBack}
-        onClose={closeAllModals}
-        onOpenLoadGame={() => pushModal({ kind: 'loadGame' })}
-        onQuit={requestQuit}
+        onClose={onBack ?? closeAllModals}
+        onQuit={quitToMainMenu}
         onSave={() => void saveCurrentGame().then(closeAllModals)}
         onSaveAs={openSaveAsDialog}
       />

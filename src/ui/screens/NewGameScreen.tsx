@@ -6,7 +6,12 @@ import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { ScreenShell } from '../layout/ScreenShell';
 
-export function NewGameScreen() {
+interface NewGameFormProps {
+  onBack?(): void;
+  showBackAction?: boolean;
+}
+
+export function NewGameForm({ onBack, showBackAction = true }: NewGameFormProps) {
   const { createNewGame, isLoading } = useGameStore();
   const { navigate, t } = useUiStore();
   const [ownerName, setOwnerName] = useState(() => generateLudusOwnerName(''));
@@ -34,68 +39,78 @@ export function NewGameScreen() {
     void createNewGame({ ownerName, ludusName });
   };
 
+  const goBack = onBack ?? (() => navigate('mainMenu'));
+
   return (
-    <ScreenShell titleKey="newGame.title">
-      <form className="form-panel" data-testid="new-game-screen" onSubmit={submitNewGame}>
-        <label>
-          <span>{t('newGame.ownerName')}</span>
-          <div className="form-field-with-action">
-            <input
-              autoComplete="name"
-              data-testid="new-game-owner-name"
-              placeholder={t('newGame.ownerNamePlaceholder')}
-              value={ownerName}
-              onChange={(event) => updateOwnerName(event.target.value)}
-            />
-            <button
-              aria-label={t('newGame.randomOwnerName')}
-              className="form-random-button"
-              data-testid="new-game-random-owner-name"
-              type="button"
-              onClick={() => updateOwnerName(generateLudusOwnerName(ownerName))}
-            >
-              <Dices aria-hidden="true" size={18} />
-            </button>
-          </div>
-        </label>
-        <label>
-          <span>{t('newGame.ludusName')}</span>
-          <div className="form-field-with-action">
-            <input
-              autoComplete="organization"
-              data-testid="new-game-ludus-name"
-              placeholder={t('newGame.ludusNamePlaceholder')}
-              value={ludusName}
-              onChange={(event) => updateLudusName(event.target.value)}
-            />
-            <button
-              aria-label={t('newGame.randomLudusName')}
-              className="form-random-button"
-              data-testid="new-game-random-ludus-name"
-              type="button"
-              onClick={() => updateLudusName(generateLudusName(ludusName))}
-            >
-              <Dices aria-hidden="true" size={18} />
-            </button>
-          </div>
-        </label>
-        {showValidation ? <p className="form-error">{t('newGame.validation')}</p> : null}
-        <div className="form-actions">
+    <form className="form-panel" data-testid="new-game-screen" onSubmit={submitNewGame}>
+      <label>
+        <span>{t('newGame.ownerName')}</span>
+        <div className="form-field-with-action">
+          <input
+            autoComplete="name"
+            data-testid="new-game-owner-name"
+            placeholder={t('newGame.ownerNamePlaceholder')}
+            value={ownerName}
+            onChange={(event) => updateOwnerName(event.target.value)}
+          />
+          <button
+            aria-label={t('newGame.randomOwnerName')}
+            className="form-random-button"
+            data-testid="new-game-random-owner-name"
+            type="button"
+            onClick={() => updateOwnerName(generateLudusOwnerName(ownerName))}
+          >
+            <Dices aria-hidden="true" size={18} />
+          </button>
+        </div>
+      </label>
+      <label>
+        <span>{t('newGame.ludusName')}</span>
+        <div className="form-field-with-action">
+          <input
+            autoComplete="organization"
+            data-testid="new-game-ludus-name"
+            placeholder={t('newGame.ludusNamePlaceholder')}
+            value={ludusName}
+            onChange={(event) => updateLudusName(event.target.value)}
+          />
+          <button
+            aria-label={t('newGame.randomLudusName')}
+            className="form-random-button"
+            data-testid="new-game-random-ludus-name"
+            type="button"
+            onClick={() => updateLudusName(generateLudusName(ludusName))}
+          >
+            <Dices aria-hidden="true" size={18} />
+          </button>
+        </div>
+      </label>
+      {showValidation ? <p className="form-error">{t('newGame.validation')}</p> : null}
+      <div className="form-actions">
+        {showBackAction ? (
           <ActionButton
             icon={<ArrowLeft aria-hidden="true" size={18} />}
             label={t('common.back')}
-            onClick={() => navigate('mainMenu')}
+            onClick={goBack}
           />
-          <ActionButton
-            disabled={isLoading}
-            icon={<Landmark aria-hidden="true" size={18} />}
-            label={isLoading ? t('common.loading') : t('newGame.submit')}
-            testId="new-game-submit"
-            type="submit"
-            variant="primary"
-          />
-        </div>
-      </form>
+        ) : null}
+        <ActionButton
+          disabled={isLoading}
+          icon={<Landmark aria-hidden="true" size={18} />}
+          label={isLoading ? t('common.loading') : t('newGame.submit')}
+          testId="new-game-submit"
+          type="submit"
+          variant="primary"
+        />
+      </div>
+    </form>
+  );
+}
+
+export function NewGameScreen() {
+  return (
+    <ScreenShell titleKey="newGame.title">
+      <NewGameForm />
     </ScreenShell>
   );
 }

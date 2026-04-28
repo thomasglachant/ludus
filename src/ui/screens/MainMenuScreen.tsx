@@ -2,49 +2,87 @@ import { FolderOpen, Play, Settings } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { ReversibleMenuCard } from '../components/ReversibleMenuCard';
+import { LoadGameContent } from '../modals/LoadGameModal';
+import { NewGameForm } from './NewGameScreen';
+
+type MainMenuPanel = 'newGame' | 'loadGame' | 'options';
 
 export function MainMenuScreen() {
-  const { openModal, t } = useUiStore();
+  const { t } = useUiStore();
   const backgroundPath = VISUAL_ASSET_MANIFEST.homepage.backgrounds.day;
   const mainMenuStyle = {
     '--main-menu-background': `url("${backgroundPath}")`,
   } as CSSProperties;
 
-  const openLoadGame = () => {
-    openModal({ kind: 'loadGame' });
-  };
-
   return (
     <section className="main-menu-screen" style={mainMenuStyle}>
-      <div className="main-menu-screen__content">
-        <div className="main-menu-screen__brand">
-          <div className="main-menu-screen__title-row">
-            <img src={VISUAL_ASSET_MANIFEST.ui['laurel-left']} alt="" aria-hidden="true" />
-            <h1>{t('app.title')}</h1>
-            <img src={VISUAL_ASSET_MANIFEST.ui['laurel-right']} alt="" aria-hidden="true" />
+      <ReversibleMenuCard<MainMenuPanel>
+        actions={[
+          {
+            icon: <Play aria-hidden="true" size={20} />,
+            key: 'newGame',
+            label: t('mainMenu.newGame'),
+            panelId: 'newGame',
+            primary: true,
+            testId: 'main-menu-new-game',
+          },
+          {
+            icon: <FolderOpen aria-hidden="true" size={20} />,
+            key: 'loadGame',
+            label: t('mainMenu.loadGame'),
+            panelId: 'loadGame',
+            testId: 'main-menu-load-game',
+          },
+          {
+            icon: <Settings aria-hidden="true" size={20} />,
+            key: 'options',
+            label: t('mainMenu.options'),
+            panelId: 'options',
+          },
+        ]}
+        panels={{
+          newGame: {
+            content: <NewGameForm showBackAction={false} />,
+            size: 'md',
+            title: t('newGame.title'),
+          },
+          loadGame: {
+            content: <LoadGameContent />,
+            size: 'lg',
+            title: t('loadGame.title'),
+          },
+          options: {
+            content: (
+              <div className="settings-panel">
+                <LanguageSwitcher />
+              </div>
+            ),
+            size: 'sm',
+            title: t('options.title'),
+          },
+        }}
+        title={
+          <div className="main-menu-screen__brand">
+            <div className="main-menu-screen__title-row">
+              <img
+                className="main-menu-screen__title-laurel"
+                src={VISUAL_ASSET_MANIFEST.ui['laurel-left']}
+                alt=""
+                aria-hidden="true"
+              />
+              <h1>{t('app.title')}</h1>
+              <img
+                className="main-menu-screen__title-laurel main-menu-screen__title-laurel--right"
+                src={VISUAL_ASSET_MANIFEST.ui['laurel-left']}
+                alt=""
+                aria-hidden="true"
+              />
+            </div>
           </div>
-        </div>
-
-        <nav className="main-menu-screen__buttons" aria-label={t('navigation.title')}>
-          <button
-            className="main-menu-screen__button--primary"
-            data-testid="main-menu-new-game"
-            type="button"
-            onClick={() => openModal({ kind: 'newGame' })}
-          >
-            <Play aria-hidden="true" size={20} />
-            <span>{t('mainMenu.newGame')}</span>
-          </button>
-          <button data-testid="main-menu-load-game" type="button" onClick={openLoadGame}>
-            <FolderOpen aria-hidden="true" size={20} />
-            <span>{t('mainMenu.loadGame')}</span>
-          </button>
-          <button type="button" onClick={() => openModal({ kind: 'options' })}>
-            <Settings aria-hidden="true" size={20} />
-            <span>{t('mainMenu.options')}</span>
-          </button>
-        </nav>
-      </div>
+        }
+      />
     </section>
   );
 }

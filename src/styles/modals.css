@@ -167,6 +167,12 @@
   backdrop-filter: blur(3px) saturate(0.84);
 }
 
+.game-menu-modal-backdrop {
+  align-items: center;
+  justify-items: center;
+  padding: 18px;
+}
+
 .app-modal {
   position: relative;
   isolation: isolate;

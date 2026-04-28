@@ -1,7 +1,7 @@
 import { CloudOff, FolderOpen } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { featureFlags } from '../../config/features';
-import type { GameSave } from '../../domain/types';
+import type { GameSave, GameSaveMetadata } from '../../domain/types';
 import { BUILDING_IDS } from '../../game-data/buildings';
 import { DEMO_SAVE_DEFINITIONS } from '../../game-data/demo-saves';
 import { getTimeOfDayDefinition } from '../../game-data/time-of-day';
@@ -15,7 +15,17 @@ interface LoadGameModalProps {
   onClose(): void;
 }
 
+interface LoadGameContentProps {
+  onLoaded?(): void;
+}
+
 type LoadMode = 'normal' | 'demo';
+
+interface LocalSaveGroup {
+  groupKey: string;
+  latestSave: GameSaveMetadata;
+  otherSaves: GameSaveMetadata[];
+}
 
 function getPurchasedBuildingLevelRange(save: GameSave) {
   const levels = BUILDING_IDS.map((buildingId) => save.buildings[buildingId])
@@ -28,7 +38,42 @@ function getPurchasedBuildingLevelRange(save: GameSave) {
   };
 }
 
-export function LoadGameModal({ onBack, onClose }: LoadGameModalProps) {
+function getSaveTimeValue(save: GameSaveMetadata) {
+  return new Date(save.updatedAt).getTime();
+}
+
+function getLocalSaveGroupKey(save: GameSaveMetadata) {
+  return [save.ludusName, save.ownerName]
+    .map((value) => value.trim().toLocaleLowerCase())
+    .join('\u0000');
+}
+
+function groupLocalSavesByLudusAndOwner(localSaves: GameSaveMetadata[]): LocalSaveGroup[] {
+  const groupedSaves = new Map<string, GameSaveMetadata[]>();
+
+  localSaves.forEach((save) => {
+    const key = getLocalSaveGroupKey(save);
+    groupedSaves.set(key, [...(groupedSaves.get(key) ?? []), save]);
+  });
+
+  return Array.from(groupedSaves.entries())
+    .map(([groupKey, groupSaves]) => {
+      const sortedSaves = [...groupSaves].sort((firstSave, secondSave) => {
+        return getSaveTimeValue(secondSave) - getSaveTimeValue(firstSave);
+      });
+
+      return {
+        groupKey,
+        latestSave: sortedSaves[0],
+        otherSaves: sortedSaves.slice(1),
+      };
+    })
+    .sort((firstGroup, secondGroup) => {
+      return getSaveTimeValue(secondGroup.latestSave) - getSaveTimeValue(firstGroup.latestSave);
+    });
+}
+
+export function LoadGameContent({ onLoaded }: LoadGameContentProps) {
   const {
     demoSaves,
     errorKey,
@@ -41,15 +86,64 @@ export function LoadGameModal({ onBack, onClose }: LoadGameModalProps) {
   } = useGameStore();
   const { language, t } = useUiStore();
   const [loadMode, setLoadMode] = useState<LoadMode>('normal');
+  const [expandedSaveGroupKeys, setExpandedSaveGroupKeys] = useState<Set<string>>(new Set());
   const availableDemoSaveIds = new Set(demoSaves.map((save) => save.saveId));
   const demoDefinitions = DEMO_SAVE_DEFINITIONS.filter((definition) =>
     availableDemoSaveIds.has(definition.id),
+  );
+  const localSaveGroups = groupLocalSavesByLudusAndOwner(localSaves);
+
+  const formatSaveDate = (updatedAt: string) => {
+    return new Intl.DateTimeFormat(language, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(updatedAt));
+  };
+
+  const toggleExpandedSaveGroup = (groupKey: string) => {
+    setExpandedSaveGroupKeys((currentGroupKeys) => {
+      const nextGroupKeys = new Set(currentGroupKeys);
+
+      if (nextGroupKeys.has(groupKey)) {
+        nextGroupKeys.delete(groupKey);
+      } else {
+        nextGroupKeys.add(groupKey);
+      }
+
+      return nextGroupKeys;
+    });
+  };
+
+  const renderLocalSaveCard = (
+    save: GameSaveMetadata,
+    className = 'save-card',
+    secondaryAction?: ReactNode,
+  ) => (
+    <article className={className} data-testid={`local-save-card-${save.saveId}`} key={save.saveId}>
+      <div>
+        <h2>{save.ludusName}</h2>
+        <p>{t('loadGame.ownerLine', { owner: save.ownerName })}</p>
+        <p className="save-card__date">
+          <time dateTime={save.updatedAt}>{formatSaveDate(save.updatedAt)}</time>
+        </p>
+      </div>
+      <div className="save-card__actions">
+        <ActionButton
+          disabled={isLoading}
+          icon={<FolderOpen aria-hidden="true" size={18} />}
+          label={t('common.open')}
+          testId={`local-load-button-${save.saveId}`}
+          onClick={() => closeAfterSuccessfulLoad(loadLocalSave(save.saveId))}
+        />
+        {secondaryAction}
+      </div>
+    </article>
   );
 
   const closeAfterSuccessfulLoad = (loadPromise: Promise<boolean>) => {
     void loadPromise.then((didLoad) => {
       if (didLoad) {
-        onClose();
+        onLoaded?.();
       }
     });
   };
@@ -60,13 +154,7 @@ export function LoadGameModal({ onBack, onClose }: LoadGameModalProps) {
   }, [refreshDemoSaves, refreshLocalSaves]);
 
   return (
-    <AppModal
-      size="lg"
-      testId="load-game-modal"
-      titleKey="loadGame.title"
-      onBack={onBack}
-      onClose={onClose}
-    >
+    <>
       <div data-testid="load-game-screen" className="load-game-content">
         {featureFlags.enableDemoMode ? (
           <div className="segmented-control load-game-tabs">
@@ -108,26 +196,37 @@ export function LoadGameModal({ onBack, onClose }: LoadGameModalProps) {
               {t('loadGame.empty')}
             </p>
           ) : null}
-          {localSaves.map((save) => (
-            <article
-              className="save-card"
-              data-testid={`local-save-card-${save.saveId}`}
-              key={save.saveId}
-            >
-              <div>
-                <h2>{save.ludusName}</h2>
-                <p>{t('loadGame.ownerLine', { owner: save.ownerName })}</p>
-                <p>{new Date(save.updatedAt).toLocaleString(language)}</p>
-              </div>
-              <ActionButton
-                disabled={isLoading}
-                icon={<FolderOpen aria-hidden="true" size={18} />}
-                label={t('loadGame.open')}
-                testId={`local-load-button-${save.saveId}`}
-                onClick={() => closeAfterSuccessfulLoad(loadLocalSave(save.saveId))}
-              />
-            </article>
-          ))}
+          {localSaveGroups.map((saveGroup) => {
+            const isExpanded = expandedSaveGroupKeys.has(saveGroup.groupKey);
+
+            return (
+              <section className="local-save-group" key={saveGroup.groupKey}>
+                {renderLocalSaveCard(
+                  saveGroup.latestSave,
+                  'save-card',
+                  saveGroup.otherSaves.length > 0 ? (
+                    <ActionButton
+                      label={
+                        isExpanded
+                          ? t('loadGame.hideOtherSaves')
+                          : t('loadGame.showOtherSaves', { count: saveGroup.otherSaves.length })
+                      }
+                      testId={`local-other-saves-button-${saveGroup.latestSave.saveId}`}
+                      variant="ghost"
+                      onClick={() => toggleExpandedSaveGroup(saveGroup.groupKey)}
+                    />
+                  ) : null,
+                )}
+                {isExpanded ? (
+                  <div className="local-save-group__other-saves">
+                    {saveGroup.otherSaves.map((save) =>
+                      renderLocalSaveCard(save, 'save-card save-card--secondary'),
+                    )}
+                  </div>
+                ) : null}
+              </section>
+            );
+          })}
         </div>
       ) : (
         <div className="save-list">
@@ -185,6 +284,20 @@ export function LoadGameModal({ onBack, onClose }: LoadGameModalProps) {
           })}
         </div>
       )}
+    </>
+  );
+}
+
+export function LoadGameModal({ onBack, onClose }: LoadGameModalProps) {
+  return (
+    <AppModal
+      size="lg"
+      testId="load-game-modal"
+      titleKey="loadGame.title"
+      onBack={onBack}
+      onClose={onClose}
+    >
+      <LoadGameContent onLoaded={onClose} />
     </AppModal>
   );
 }
