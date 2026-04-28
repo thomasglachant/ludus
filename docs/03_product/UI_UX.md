@@ -56,7 +56,7 @@ The top HUD must expose save state without forcing the player into a modal:
 - an in-progress saving state while the save provider write is pending;
 - save success and save failure feedback through the shared toast or notice layer.
 
-Demo saves are templates exposed from the load flow. Loading one creates a normal local save that keeps a restart-from-template action visible while allowing the player to save and continue normally.
+Demo templates are exposed from the load flow. Loading one creates a normal local save that keeps a restart-from-template action visible while allowing the player to save and continue normally.
 
 ## 4. Hidden By Default
 

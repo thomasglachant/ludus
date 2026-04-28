@@ -28,7 +28,6 @@ export type DayOfWeek =
 export type DemoSaveId = 'demo-early-ludus' | 'demo-mid-ludus' | 'demo-advanced-ludus';
 
 export interface SaveMetadata {
-  isDemo?: boolean;
   demoSaveId?: DemoSaveId;
 }
 ```
@@ -84,9 +83,14 @@ The store owns transient save UI fields such as:
 - `hasUnsavedChanges`: whether the active save has player-driven changes that have not been written;
 - `lastSavedAt`: the latest successful save timestamp shown in the HUD for the current session;
 - `isSaving`: whether a save write is currently in progress;
-- `saveNoticeKey`: the i18n key for the latest save success, error or read-only notice.
+- `saveNoticeKey`: the i18n key for the latest save success, error or related save notice.
 
-Loading an existing local or demo save sets `hasUnsavedChanges` to `false`. Creating a new local save also starts clean because the save is written during creation. Demo saves remain read-only templates; save attempts against them do not add persisted fields or write provider data.
+Loading an existing local save sets `hasUnsavedChanges` to `false`. Creating a
+new local save also starts clean because the save is written during creation.
+Loading a demo template first creates a normal local save copy; that copy keeps
+`metadata.demoSaveId` so the HUD can label it and reset it from the source
+template. The demo provider templates remain read-only and are not mutated by
+manual saves.
 
 ## Ludus and Time
 

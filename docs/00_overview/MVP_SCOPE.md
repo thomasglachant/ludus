@@ -43,8 +43,9 @@ The MVP is not expected to implement every future system. It should deliver a pl
 - Active-session restore on app startup when valid session data exists and the browser path is the dedicated play URL.
 - Basic corrupted save handling.
 - Cloud save provider abstraction with an initial mock implementation.
-- Demo saves kept separate from normal local and cloud saves.
-- Demo saves are read-only during the MVP and cannot be overwritten by the manual save action.
+- Demo templates kept separate from normal local and cloud saves.
+- Loading a demo template creates a normal local save copy that can be saved and reset from the source template.
+- Demo templates are read-only and cannot be overwritten by manual save actions.
 
 ### Internationalization
 
@@ -72,13 +73,14 @@ Building rules:
 - Building purchase remains a domain/UI capability for future optional buildings, but it is not used by the current base building set because every MVP base building is owned from a new game.
 - The removed building budget slider system is excluded.
 
-### Dormitory Capacity
+### Ludus Capacity
 
-- Dormitory controls gladiator capacity.
-- New saves start with the Dormitory purchased at level 1.
-- Dormitory level 1 gives one free bed.
+- Domus level controls gladiator capacity.
+- New saves start with Domus and Dormitory purchased at level 1.
+- Domus level 1 gives one roster place.
 - Additional roster capacity comes from Domus upgrades.
-- Buying a gladiator requires an available bed and is blocked when capacity is full.
+- Dormitory upgrades improve recovery but do not increase roster capacity.
+- Buying a gladiator requires an available roster place and is blocked when capacity is full.
 
 ### Gladiators
 
@@ -150,7 +152,6 @@ Simple MVP effects:
 - Full asset production pipeline.
 - Audio.
 - Modular portrait or sprite generation.
-- Advanced renderer migration to Canvas or PixiJS.
 
 ## Should-Have MVP Extensions
 
@@ -184,13 +185,15 @@ The MVP is valid if:
 - refreshing the browser on the dedicated play URL resumes the current game state;
 - opening the root URL shows the homepage/main menu instead of auto-resuming the active session;
 - the ludus screen exposes manual snapshot save, unsaved-changes status and latest successful manual save time;
-- attempting to save a demo save leaves the demo template untouched and explains that demo saves are read-only;
+- loading a demo template creates a normal local save copy;
+- saving a demo-derived local save leaves the source demo template untouched;
+- the active demo indicator can reset the local copy from its source template;
 - a new game starts with all base buildings purchased at level 1;
 - base buildings can be upgraded and configured through improvements or policies where their data provides them;
 - building purchase remains valid for future optional buildings that start unpurchased, but no current MVP base building requires purchase;
 - no building has a numeric budget slider;
 - the market offers 5 gladiators;
-- the player can buy a gladiator if a bed is available;
+- the player can buy a gladiator if a roster place is available;
 - market buying is blocked with a clear warning when ludus capacity is full;
 - gladiators can receive weekly objectives;
 - readiness score is visible;
@@ -204,4 +207,4 @@ The MVP is valid if:
 - roster, market, contracts, events and arena states have clear empty states;
 - the default player screen is map-first rather than dashboard-first;
 - the debug dashboard is not reachable as the normal player experience when its feature flag is disabled;
-- demo saves are deterministic, read-only and aligned with the base-building level 1 starting rule.
+- demo templates are deterministic, read-only and aligned with the base-building level 1 starting rule.

@@ -41,22 +41,32 @@ Feature flag parsing is centralized in `src/config/features.ts`.
 
 ## Behavior
 
-When demo mode is enabled, the load game flow may show demo saves separately from normal local or cloud saves.
+When demo mode is enabled, the load game flow may show demo templates separately
+from normal local or cloud saves.
 
-Demo saves:
+Demo templates:
 
-- are read-only templates;
-- load as cloned playable snapshots;
+- are read-only source states;
+- load through the read-only demo provider as deep clones;
 - never mutate the source template;
-- do not autosave;
-- do not save through the manual save action;
 - do not upload to cloud saves;
-- do not overwrite local saves;
 - use the current save schema;
 - include a `schemaVersion` field;
 - remain deterministic.
 
-If the player changes a loaded demo snapshot, those changes exist only in memory for the current session. The save UI must clearly label the active demo as read-only and show a notice when a save attempt is ignored.
+Starting a demo creates a normal local save copy from the selected template. The
+local copy:
+
+- receives a new local `saveId`;
+- keeps `metadata.demoSaveId` so the source template can be identified;
+- can autosave to the active browser session;
+- can be saved through the manual local save action;
+- can be copied with "save as";
+- never writes back to the demo provider or mutates the source template.
+
+The HUD labels demo-derived saves and exposes a restart-from-template action.
+Restarting reloads the original demo template into the same local save slot while
+keeping the source template unchanged.
 
 All player-facing demo UI text must use i18n keys and support French and English.
 
@@ -222,7 +232,10 @@ The demo provider should:
 - reject unknown demo save ids;
 - reject create, update and delete operations with read-only errors.
 
-The save service treats active demo saves as read-only templates. Autosave stays disabled for demo saves unless a future explicit "save as local copy" action is added.
+The save service loads demo templates through the read-only demo provider, then
+creates a normal local save copy from the template before it becomes the active
+browser session. Manual saves and active-session writes target that local copy,
+not the demo provider.
 
 ## Test Expectations
 
@@ -251,17 +264,17 @@ Future browser smoke tests may cover:
 Demo mode is valid when:
 
 - `VITE_ENABLE_DEMO_MODE=false` hides demo mode completely;
-- `VITE_ENABLE_DEMO_MODE=true` shows demo saves in the load game flow;
-- three demo saves are available: `demo-early-ludus`, `demo-mid-ludus` and `demo-advanced-ludus`;
-- demo saves load with stable game state;
+- `VITE_ENABLE_DEMO_MODE=true` shows demo templates in the load game flow;
+- three demo templates are available: `demo-early-ludus`, `demo-mid-ludus` and `demo-advanced-ludus`;
+- demo templates start local saves with stable game state;
 - demo gladiators have portraits;
 - demo gladiators have map sprite references;
 - demo buildings appear on the map;
 - Playwright can open each demo directly;
 - the advanced demo can test UI density with 6 gladiators;
-- demo saves are static and deterministic;
-- loading a demo save does not mutate the template;
-- demo saves are not autosaved;
-- demo saves are not uploaded to cloud saves;
-- demo saves do not include building budget fields;
+- demo templates are static and deterministic;
+- loading a demo template creates a normal local save copy;
+- saving a demo-derived local save does not mutate the template;
+- demo templates are not uploaded to cloud saves;
+- demo templates do not include building budget fields;
 - all player-facing demo UI strings use i18n.

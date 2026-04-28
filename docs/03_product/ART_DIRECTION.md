@@ -283,26 +283,39 @@ Combat formulas, rewards and consequences remain in domain modules.
 
 ## Asset Source Of Truth
 
-Generated pixel-art baseline assets live under:
+Production pixel-art assets live under:
+
+```text
+public/assets/pixel-art-production/
+```
+
+Generated fallback assets live under:
 
 ```text
 public/assets/pixel-art/
 ```
 
-The generated manifest is:
+The production manifest is:
+
+```text
+public/assets/pixel-art-production/asset-manifest.production.json
+```
+
+The fallback manifest is:
 
 ```text
 public/assets/pixel-art/asset-manifest.visual-migration.json
 ```
 
-The TypeScript import mirror is:
+TypeScript import mirrors are:
 
 ```text
+src/game-data/generated/asset-manifest.production.json
 src/game-data/generated/asset-manifest.visual-migration.json
 ```
 
-Typed access to the manifest belongs in `src/game-data/visual-assets.ts` and
-adjacent visual modules such as:
+Typed access to manifests belongs in `src/game-data/visual-assets.ts`,
+`src/rendering/pixi/assets` and adjacent visual modules such as:
 
 - `src/game-data/building-visuals.ts`;
 - `src/game-data/gladiator-visuals.ts`;
@@ -312,6 +325,55 @@ adjacent visual modules such as:
 
 Do not duplicate the full manifest in documentation. Document concepts and
 boundaries here; keep asset paths in data.
+
+## Production Asset Priorities
+
+Final visual quality depends on authored pixel-art assets that enter through the
+manifest and game-data boundaries.
+
+Map asset priorities:
+
+- replace weak generated SVG map placeholders with authored pixel-art tiles;
+- normalize tile size and map scale;
+- create terrain tile sets for countryside, paths, sand, stone and building
+  foundations;
+- create time-of-day background variants for dawn, day, dusk and night;
+- create ambient sprite variants for flags, banners and crowd hints;
+- create authored building and external-location detail inside the core scene
+  assets instead of standalone map clutter.
+
+Building asset priorities:
+
+- create building sprites for Domus, Canteen, Dormitory, Training Ground,
+  Pleasure Hall and Infirmary;
+- create level variants for every building;
+- define consistent anchor points, hit zones and label offsets;
+- add optional activity stations for future visual feedback.
+
+Gladiator sprite priorities:
+
+- define a sprite charter for proportions, palette, shadow and outline;
+- normalize directions and frame dimensions;
+- create map spritesheets by class or visual identity;
+- create frames for idle, walk, train, rest, eat, injured and healing states;
+- keep deterministic visual identity resolution for saves that lack explicit
+  identity metadata.
+
+Combat asset priorities:
+
+- create a complete arena background with crowd, sand, gates and lighting;
+- create combat spritesheets for idle, attack, dodge, parry, impact, victory and
+  defeat;
+- create class or equipment variants that remain readable at combat scale;
+- define animation timing and impact readability guidelines.
+
+Integration rules:
+
+- asset paths belong in the visual manifests and `src/game-data`;
+- React and Pixi components must not hardcode individual asset paths;
+- renderer work must not duplicate combat, movement or building rules;
+- any future renderer fallback must be debug-only and use the same renderer
+  view-models.
 
 ## Constraints
 
@@ -327,11 +389,11 @@ boundaries here; keep asset paths in data.
 
 ## Still Open
 
-The following remain product or production decisions, not migration blockers:
+The following remain product or production decisions:
 
-- exact long-term renderer if DOM/CSS becomes insufficient;
-- final hand-authored art pipeline beyond generated SVG scaffolding;
+- final hand-authored art pipeline beyond current generated fallback scaffolding;
 - exact tile size and final map dimensions;
 - depth of building interiors and roof hiding;
 - modular portrait/sprite generation versus curated variants;
+- exact scope for future debug-only renderer inspection tools;
 - future weather, season and crowd systems.

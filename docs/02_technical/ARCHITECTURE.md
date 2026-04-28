@@ -112,8 +112,8 @@ Shared UI primitives live under `src/ui/components` and should be reused before 
 
 Contains real-time scene renderers that are mounted from React.
 
-The first renderer target is PixiJS through a small scene host in
-`src/renderer/pixi`. PixiJS is used for living scenes that need continuous
+PixiJS is the current scene renderer through a small scene host in
+`src/renderer/pixi`. It is used for living scenes that need continuous
 rendering, layered sprites, animation and scene hit zones.
 
 Examples:
@@ -166,7 +166,8 @@ Contains feature flag parsing and other runtime configuration.
 Current flags:
 
 - `VITE_ENABLE_DEMO_MODE`;
-- `VITE_ENABLE_DEBUG_UI`.
+- `VITE_ENABLE_DEBUG_UI`;
+- `VITE_USE_PLACEHOLDER_ART`.
 
 ## Scene Renderer
 
@@ -192,6 +193,56 @@ PixiJS must never become a second game engine for business logic. If a scene
 needs to know what to draw, React/state prepares a view-model. If the player
 clicks a scene element, Pixi calls back with an id or intent and React/state
 performs the action.
+
+### Scene View-Model Contract
+
+Every Pixi scene receives a serializable view-model. Scenes must not receive the
+complete store, store hooks, mutable save objects, domain service instances or
+business rule helpers.
+
+Allowed scene inputs:
+
+- ids;
+- numbers;
+- strings;
+- booleans;
+- arrays and records of serializable values;
+- asset paths resolved through game-data;
+- callbacks for user intent.
+
+Disallowed scene inputs:
+
+- direct store access;
+- domain decision functions;
+- business rule helpers;
+- save mutation functions;
+- non-serializable application objects.
+
+This keeps scenes testable, replaceable and limited to rendering.
+
+### Map Movement And Ambience
+
+Gladiator movement is represented as game state, not as Pixi business logic.
+Domain/state decides the target location and may store a movement intent such as
+current location, target location, activity, start time and duration.
+Game-data defines map points, activity destinations and movement speed. Pixi
+interpolates between prepared points for presentation only.
+
+When a save has no movement intent, the scene renders the gladiator at the
+current assigned building or location. This keeps existing saves compatible and
+allows the Pixi map to remain a visual layer.
+
+Ambient map elements are renderer data. Definitions live in `src/game-data`
+alongside map visuals and time-of-day themes. The Pixi scene receives prepared
+ambient view-model entries with asset paths, opacity, animation duration and
+layering.
+
+Ambient animation runs inside Pixi tick callbacks. React must not update state
+per frame for banners, crowd hints or future ambient variants.
+`prefers-reduced-motion` is read by the React adapter and passed as a boolean to
+the scene view-model. When reduced motion is active, non-essential ambient
+animation and sprite frame cycling stop while the scene keeps static visual
+state.
 
 ### Pixi Pixel-Perfect Rendering
 
@@ -222,22 +273,30 @@ Pixi scenes must preserve authored pixel-art edges:
 The player UI uses generated or authored pixel-art assets from:
 
 ```text
+public/assets/pixel-art-production/
 public/assets/pixel-art/
 ```
 
-The generated baseline manifest is:
+The production manifest is:
+
+```text
+public/assets/pixel-art-production/asset-manifest.production.json
+```
+
+The generated fallback manifest is:
 
 ```text
 public/assets/pixel-art/asset-manifest.visual-migration.json
 ```
 
-The TypeScript import mirror is generated at:
+TypeScript import mirrors are generated at:
 
 ```text
+src/game-data/generated/asset-manifest.production.json
 src/game-data/generated/asset-manifest.visual-migration.json
 ```
 
-The generator command is:
+The fallback scaffold generator command is:
 
 ```bash
 node scripts/generate-visual-migration-assets.mjs
@@ -249,11 +308,24 @@ Use `--clean` when intentionally regenerating the complete scaffold:
 node scripts/generate-visual-migration-assets.mjs --clean
 ```
 
-The generated public manifest is useful for inspection, while the generated
-`src/game-data/generated` mirror is exposed to TypeScript through
-`src/game-data/visual-assets.ts`.
-React components should not import the JSON manifest directly and should not
-hardcode individual generated asset paths.
+The Pixi production manifest can be rebuilt from production assets and fallback
+metadata with:
+
+```bash
+node scripts/build-pixi-production-manifest.mjs
+```
+
+Validate production manifest coverage with:
+
+```bash
+node scripts/validate-pixi-production-assets.mjs
+```
+
+The public manifests are useful for inspection, while the generated
+`src/game-data/generated` mirrors are exposed to TypeScript through
+`src/game-data/visual-assets.ts` and `src/rendering/pixi/assets`.
+React components and Pixi scenes should not import the JSON manifests directly
+or hardcode individual asset paths.
 
 Current visual data boundaries:
 
@@ -270,9 +342,9 @@ Current visual data boundaries:
 - `src/game-data/time-of-day.ts` defines phase timing, background assets,
   lighting variables and ambient multipliers.
 
-Generated SVG scaffolding is a durable development baseline, not a license to
-place visual paths directly in React. Future hand-authored art should enter the
-same manifest/data boundary.
+Generated SVG scaffolding is a durable fallback baseline, not a license to place
+visual paths directly in React. Production art should enter the same
+manifest/data boundary.
 
 ## Modal Management
 
@@ -335,7 +407,9 @@ Provider responsibilities:
 - create new local saves from domain initial-save helpers;
 - update `updatedAt` for successful local or cloud writes;
 - orchestrate local, mock cloud and demo providers;
-- treat demo saves as read-only and return them unchanged for local or cloud update requests;
+- load demo templates through the read-only demo provider;
+- create normal local saves from demo templates while preserving
+  `metadata.demoSaveId` for restart-from-template behavior;
 - avoid introducing a real backend until a future cloud-save decision is made.
 
 Store responsibilities:
@@ -348,7 +422,8 @@ Store responsibilities:
 - mark player-driven save mutations dirty unless the action writes immediately by design;
 - clear dirty state and set `lastSavedAt` after a successful save;
 - keep dirty state after a failed save and expose a save error key;
-- handle demo save attempts as explicit no-ops with a read-only notice.
+- reset an active demo-derived local save from its original demo template when
+  requested.
 
 ## Save Data
 
@@ -356,7 +431,10 @@ Save data is a JSON snapshot of the full game state and includes `schemaVersion`
 
 Local save is always available. Cloud save requires authentication in the long-term product direction, but the initial implementation can remain mocked behind the provider abstraction.
 
-Demo saves are read-only templates and must not upload to cloud saves. Starting a demo creates a normal local save copy before it can become the active browser session.
+Demo templates are read-only and must not upload to cloud saves. Starting a demo
+creates a normal local save copy before it becomes the active browser session.
+The copy can be saved like any other local save, while
+`metadata.demoSaveId` keeps the original template available for a reset action.
 
 The MVP save model has two layers:
 
