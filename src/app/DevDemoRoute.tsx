@@ -26,10 +26,8 @@ export function DevDemoRoute({ demoSaveId }: DevDemoRouteProps) {
       return;
     }
 
-    void loadDemoSave(demoSaveId).then(() => {
-      window.history.replaceState(null, '', '/');
-    });
-  }, [demoSaveId, loadDemoSave, navigate]);
+    void loadDemoSave(demoSaveId);
+  }, [demoSaveId, loadDemoSave]);
 
   if (!featureFlags.enableDemoMode) {
     return (

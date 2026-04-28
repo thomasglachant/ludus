@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BUILDING_IDS } from '../../game-data/buildings';
 import { INITIAL_TREASURY } from '../../game-data/economy';
 import { getLudusGladiatorCapacity } from '../ludus/capacity';
-import { createInitialSave } from './create-initial-save';
+import { CURRENT_SCHEMA_VERSION, createInitialSave } from './create-initial-save';
 
 describe('createInitialSave', () => {
   it('creates the first playable save foundation', () => {
@@ -13,7 +13,8 @@ describe('createInitialSave', () => {
       createdAt: '2026-04-25T12:00:00.000Z',
     });
 
-    expect(save.schemaVersion).toBe(3);
+    expect(save.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    expect(save.gameId).toBe('save-test');
     expect(save.ludus.treasury).toBe(INITIAL_TREASURY);
     expect(save.time).toMatchObject({
       year: 1,

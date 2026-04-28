@@ -37,10 +37,21 @@ export class SaveService {
     return this.withDefaultResumeSpeed(await this.localSaveProvider.loadSave(saveId));
   }
 
+  async loadLatestLocalSaveForGame(gameId: string): Promise<GameSave> {
+    const latestSave = (await this.listLocalSaves()).find((save) => save.gameId === gameId);
+
+    if (!latestSave) {
+      throw new SaveNotFoundError(gameId);
+    }
+
+    return this.loadLocalSave(latestSave.saveId);
+  }
+
   async createLocalSave(input: CreateSaveInput): Promise<GameSave> {
     const save = createInitialSave({
       ownerName: input.ownerName,
       ludusName: input.ludusName,
+      gameId: createId('game'),
       saveId: createId('save'),
       createdAt: new Date().toISOString(),
     });
@@ -83,6 +94,7 @@ export class SaveService {
     const now = new Date().toISOString();
     const localSave: GameSave = {
       ...save,
+      gameId: createId('game'),
       saveId: createId('save'),
       createdAt: now,
       updatedAt: now,

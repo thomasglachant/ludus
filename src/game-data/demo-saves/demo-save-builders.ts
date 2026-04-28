@@ -88,6 +88,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
   const marketGladiators = input.market.map(createMarketGladiator);
   const baseSave: GameSave = {
     schemaVersion: CURRENT_SCHEMA_VERSION,
+    gameId: input.id,
     saveId: input.id,
     createdAt: DEMO_CREATED_AT,
     updatedAt: DEMO_UPDATED_AT,

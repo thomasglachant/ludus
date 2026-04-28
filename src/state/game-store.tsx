@@ -11,7 +11,7 @@ import {
   synchronizeBetting,
 } from '../domain/combat/combat-actions';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { isGameSessionPath } from '../app/routes';
+import { getGameIdFromGameSessionPath } from '../app/routes';
 import { featureFlags } from '../config/features';
 import {
   purchaseBuilding,
@@ -47,11 +47,9 @@ import { CloudSaveProvider } from '../persistence/cloud-save-provider';
 import { DemoSaveProvider } from '../persistence/demo-save-provider';
 import { LocalSaveProvider } from '../persistence/local-save-provider';
 import { SaveService } from '../persistence/save-service';
-import { ActiveSessionProvider } from '../persistence/active-session-provider';
 import { GameStoreContext, type GameStoreValue, type NewGameInput } from './game-store-context';
 import { useUiStore } from './ui-store-context';
-const ACTIVE_SESSION_WRITE_DELAY_MS = 750;
-const ACTIVE_SESSION_SYNC_INTERVAL_MS = 10_000;
+
 const AUTO_SAVE_INTERVAL_MS = 30_000;
 
 function createSaveService() {
@@ -62,10 +60,6 @@ function createSaveService() {
   );
 }
 
-function createActiveSessionProvider() {
-  return new ActiveSessionProvider();
-}
-
 function synchronizeLoadedSave(save: GameSave): GameSave {
   return synchronizePlanning(synchronizeContracts(synchronizeBetting(save)));
 }
@@ -73,44 +67,26 @@ function synchronizeLoadedSave(save: GameSave): GameSave {
 export function GameStoreProvider({ children }: { children: ReactNode }) {
   const { activeModal, screen, setLanguage, navigate, openModal, replaceModal } = useUiStore();
   const [saveService] = useState(createSaveService);
-  const [activeSessionProvider] = useState(createActiveSessionProvider);
-  const [initialActiveSession] = useState(() => {
-    if (!isGameSessionPath(window.location.pathname)) {
-      return null;
-    }
-
-    const session = activeSessionProvider.loadSession();
-
-    if (!session) {
-      window.history.replaceState(null, '', '/');
-    }
-
-    return session;
-  });
-  const [initialSave] = useState(() =>
-    initialActiveSession ? synchronizeLoadedSave(initialActiveSession.save) : null,
+  const [initialRouteGameId] = useState(() =>
+    getGameIdFromGameSessionPath(window.location.pathname),
   );
-  const [currentSave, setCurrentSave] = useState<GameSave | null>(initialSave);
+  const [currentSave, setCurrentSave] = useState<GameSave | null>(null);
   const [localSaves, setLocalSaves] = useState<GameSaveMetadata[]>([]);
   const [demoSaves, setDemoSaves] = useState<GameSaveMetadata[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(
-    initialActiveSession?.hasUnsavedChanges ?? false,
-  );
-  const [lastSavedAt, setLastSavedAt] = useState<string | null>(initialSave?.updatedAt ?? null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [saveNoticeKey, setSaveNoticeKey] = useState<string | null>(null);
   const effectAccumulatorMinutes = useRef(0);
   const lastTickAt = useRef<number | null>(null);
-  const activeSessionSaveTimeoutId = useRef<number | null>(null);
-  const hasRestoredInitialActiveSession = useRef(false);
-  const currentSaveRef = useRef<GameSave | null>(initialSave);
-  const hasUnsavedChangesRef = useRef(initialActiveSession?.hasUnsavedChanges ?? false);
+  const hasLoadedInitialRouteGame = useRef(false);
+  const currentSaveRef = useRef<GameSave | null>(null);
+  const hasUnsavedChangesRef = useRef(false);
   const isSavingRef = useRef(false);
   const isAutoSavingRef = useRef(false);
   const dirtyRevisionRef = useRef(0);
-  const screenRef = useRef(screen);
   const activeSaveId = currentSave?.saveId;
   const activeSpeed = currentSave?.time.speed;
   const isPaused = currentSave?.time.isPaused;
@@ -166,7 +142,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         setSaveNoticeKey(null);
         setCurrentSave(save);
         setLocalSaves(await saveService.listLocalSaves());
-        navigate('ludus');
+        navigate('ludus', { gameId: save.gameId });
       } catch {
         setErrorKey('ludus.saveError');
       } finally {
@@ -191,7 +167,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         setLastSavedAt(save.updatedAt);
         setSaveNoticeKey(null);
         setCurrentSave(save);
-        navigate('ludus');
+        navigate('ludus', { gameId: save.gameId });
         return true;
       } catch {
         setErrorKey('loadGame.error');
@@ -225,7 +201,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         setSaveNoticeKey(null);
         setCurrentSave(save);
         setLocalSaves(await saveService.listLocalSaves());
-        navigate('ludus');
+        navigate('ludus', { gameId: save.gameId });
         return true;
       } catch {
         setErrorKey('demoMode.loadError');
@@ -251,6 +227,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       const demoTemplate = synchronizeLoadedSave(await saveService.loadDemoSave(demoSaveId));
       const resetSave = await saveService.updateLocalSave({
         ...demoTemplate,
+        gameId: currentSave.gameId,
         saveId: currentSave.saveId,
         createdAt: currentSave.createdAt,
         metadata: {
@@ -486,29 +463,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
   const clearError = useCallback(() => setErrorKey(null), []);
 
-  const writeActiveSession = useCallback(
-    (input: { showError: boolean }) => {
-      const save = currentSaveRef.current;
-
-      if (!save) {
-        return;
-      }
-
-      try {
-        activeSessionProvider.writeSession({
-          hasUnsavedChanges: hasUnsavedChangesRef.current,
-          save,
-          screen: screenRef.current,
-        });
-      } catch {
-        if (input.showError) {
-          setErrorKey('ludus.saveError');
-        }
-      }
-    },
-    [activeSessionProvider],
-  );
-
   useEffect(() => {
     currentSaveRef.current = currentSave;
   }, [currentSave]);
@@ -522,59 +476,60 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   }, [isSaving]);
 
   useEffect(() => {
-    screenRef.current = screen;
-  }, [screen]);
-
-  useEffect(() => {
-    if (!initialActiveSession || hasRestoredInitialActiveSession.current) {
+    if (!initialRouteGameId || hasLoadedInitialRouteGame.current) {
       return undefined;
     }
 
-    hasRestoredInitialActiveSession.current = true;
-    const timeoutId = window.setTimeout(() => navigate(initialActiveSession.screen), 0);
+    hasLoadedInitialRouteGame.current = true;
+    setIsLoading(true);
+    setErrorKey(null);
 
-    return () => window.clearTimeout(timeoutId);
-  }, [initialActiveSession, navigate]);
+    void saveService
+      .loadLatestLocalSaveForGame(initialRouteGameId)
+      .then(async (routeSave) => {
+        const save = synchronizeLoadedSave(routeSave);
+
+        effectAccumulatorMinutes.current = 0;
+        lastTickAt.current = null;
+        dirtyRevisionRef.current = 0;
+        setHasUnsavedChanges(false);
+        setLastSavedAt(save.updatedAt);
+        setSaveNoticeKey(null);
+        setCurrentSave(save);
+        setLocalSaves(await saveService.listLocalSaves());
+        navigate('ludus', { gameId: save.gameId });
+      })
+      .catch(() => {
+        setErrorKey('loadGame.error');
+        window.history.replaceState(null, '', '/');
+        navigate('mainMenu');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
+    return undefined;
+  }, [initialRouteGameId, navigate, saveService]);
 
   useEffect(() => {
-    if (!activeSaveId) {
-      return undefined;
-    }
+    const flushLocalAutoSave = () => {
+      const save = currentSaveRef.current;
 
-    if (activeSessionSaveTimeoutId.current !== null) {
-      window.clearTimeout(activeSessionSaveTimeoutId.current);
-    }
+      if (!save || !hasUnsavedChangesRef.current) {
+        return;
+      }
 
-    activeSessionSaveTimeoutId.current = window.setTimeout(() => {
-      writeActiveSession({ showError: true });
-      activeSessionSaveTimeoutId.current = null;
-    }, ACTIVE_SESSION_WRITE_DELAY_MS);
-
-    return () => {
-      if (activeSessionSaveTimeoutId.current !== null) {
-        window.clearTimeout(activeSessionSaveTimeoutId.current);
-        activeSessionSaveTimeoutId.current = null;
+      try {
+        void saveService.updateLocalSave(save);
+      } catch {
+        // The page is unloading; the regular auto-save loop will surface errors while playing.
       }
     };
-  }, [activeSaveId, hasUnsavedChanges, lastSavedAt, screen, writeActiveSession]);
 
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      writeActiveSession({ showError: true });
-    }, ACTIVE_SESSION_SYNC_INTERVAL_MS);
+    window.addEventListener('pagehide', flushLocalAutoSave);
 
-    return () => window.clearInterval(intervalId);
-  }, [writeActiveSession]);
-
-  useEffect(() => {
-    const flushActiveSession = () => {
-      writeActiveSession({ showError: false });
-    };
-
-    window.addEventListener('pagehide', flushActiveSession);
-
-    return () => window.removeEventListener('pagehide', flushActiveSession);
-  }, [writeActiveSession]);
+    return () => window.removeEventListener('pagehide', flushLocalAutoSave);
+  }, [saveService]);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {

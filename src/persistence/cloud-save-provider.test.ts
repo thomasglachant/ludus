@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createInitialSave } from '../domain/saves/create-initial-save';
+import { CURRENT_SCHEMA_VERSION, createInitialSave } from '../domain/saves/create-initial-save';
 import { CloudSaveProvider } from './cloud-save-provider';
 import { SaveNotFoundError } from './save-provider';
 
@@ -22,11 +22,13 @@ describe('CloudSaveProvider', () => {
 
     await expect(provider.listSaves()).resolves.toEqual([
       {
+        gameId: 'save-cloud',
         saveId: 'save-cloud',
         ownerName: 'Flavia',
         ludusName: 'Aquila',
+        createdAt: '2026-04-25T12:00:00.000Z',
         updatedAt: '2026-04-25T12:00:00.000Z',
-        schemaVersion: 3,
+        schemaVersion: CURRENT_SCHEMA_VERSION,
       },
     ]);
     await expect(provider.loadSave('save-cloud')).resolves.toEqual(save);

@@ -17,6 +17,7 @@ export interface SaveMetadata {
 
 export interface GameSave {
   schemaVersion: number;
+  gameId: string;
   saveId: string;
   createdAt: string;
   updatedAt: string;
@@ -35,6 +36,7 @@ export interface GameSave {
 }
 
 export interface GameSaveMetadata {
+  gameId: string;
   saveId: string;
   ownerName: string;
   ludusName: string;

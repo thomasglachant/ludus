@@ -1,5 +1,10 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import { GAME_SESSION_PATH, type ScreenName } from '../app/routes';
+import {
+  GAME_SESSION_PATH,
+  getGameIdFromGameSessionPath,
+  getGameSessionPath,
+  type ScreenName,
+} from '../app/routes';
 import type { LanguageCode } from '../domain/types';
 import { translate } from '../i18n';
 import {
@@ -30,12 +35,20 @@ function getInitialLanguage(): LanguageCode {
   return navigator.language.startsWith('fr') ? 'fr' : 'en';
 }
 
-function getPathForScreen(screen: ScreenName) {
-  return screen === 'ludus' ? GAME_SESSION_PATH : '/';
+function getInitialScreen(): ScreenName {
+  return getGameIdFromGameSessionPath(window.location.pathname) ? 'ludus' : 'mainMenu';
 }
 
-function writeScreenPath(screen: ScreenName) {
-  const nextPath = getPathForScreen(screen);
+function getPathForScreen(screen: ScreenName, options: { gameId?: string } = {}) {
+  if (screen !== 'ludus') {
+    return '/';
+  }
+
+  return options.gameId ? getGameSessionPath(options.gameId) : GAME_SESSION_PATH;
+}
+
+function writeScreenPath(screen: ScreenName, options?: { gameId?: string }) {
+  const nextPath = getPathForScreen(screen, options);
 
   if (window.location.pathname !== nextPath) {
     window.history.pushState(null, '', nextPath);
@@ -51,7 +64,7 @@ function createModalState(request: UiModalRequest): UiModalState {
 
 export function UiStoreProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<LanguageCode>(getInitialLanguage);
-  const [screen, setScreen] = useState<ScreenName>('mainMenu');
+  const [screen, setScreen] = useState<ScreenName>(getInitialScreen);
   const [modalStack, setModalStack] = useState<UiModalState[]>([]);
   const activeModal = modalStack.at(-1) ?? null;
   const backModal = useCallback(
@@ -82,8 +95,8 @@ export function UiStoreProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('ludus:language', nextLanguage);
     setLanguageState(nextLanguage);
   }, []);
-  const navigate = useCallback((nextScreen: ScreenName) => {
-    writeScreenPath(nextScreen);
+  const navigate = useCallback((nextScreen: ScreenName, options?: { gameId?: string }) => {
+    writeScreenPath(nextScreen, options);
     setScreen(nextScreen);
     setModalStack([]);
   }, []);

@@ -14,7 +14,7 @@ import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
 const dayOfWeeks = [...DAYS_OF_WEEK];
 const gameSpeeds = [...SUPPORTED_GAME_SPEEDS];
-const legacySupportedSchemaVersions = [1, 2, CURRENT_SCHEMA_VERSION];
+const legacySupportedSchemaVersions = [1, 2, 3, CURRENT_SCHEMA_VERSION];
 const locationIds = [...requiredBuildingIds, 'arena'];
 const mapPlacementKinds = ['building', 'prop', 'road', 'wall'];
 
@@ -174,6 +174,10 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     return false;
   }
 
+  if (value.schemaVersion === CURRENT_SCHEMA_VERSION && !hasString(value, 'gameId')) {
+    return false;
+  }
+
   if (
     !hasString(value, 'saveId') ||
     !hasString(value, 'createdAt') ||
@@ -279,10 +283,12 @@ function normalizeCombatState<TCombat extends GameSave['arena']['pendingCombats'
 }
 
 export function normalizeGameSave(save: GameSave): GameSave {
-  const saveWithOptionalMap = save as GameSave & { map?: unknown };
+  const saveWithOptionalMap = save as GameSave & { gameId?: unknown; map?: unknown };
   const normalizedSave: GameSave & { settings?: unknown } = {
     ...save,
     schemaVersion: CURRENT_SCHEMA_VERSION,
+    gameId:
+      typeof saveWithOptionalMap.gameId === 'string' ? saveWithOptionalMap.gameId : save.saveId,
     map: normalizeMapState(saveWithOptionalMap.map),
     gladiators: save.gladiators.map(normalizeGladiator),
     market: {

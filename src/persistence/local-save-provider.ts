@@ -31,8 +31,15 @@ export class LocalSaveProvider implements SaveProvider {
     }
 
     return saves
-      .map(createGameSaveMetadata)
-      .sort((first, second) => second.updatedAt.localeCompare(first.updatedAt));
+      .map((save, index) => ({ index, metadata: createGameSaveMetadata(save) }))
+      .sort((first, second) => {
+        const updatedAtComparison = second.metadata.updatedAt.localeCompare(
+          first.metadata.updatedAt,
+        );
+
+        return updatedAtComparison || second.index - first.index;
+      })
+      .map((save) => save.metadata);
   }
 
   async loadSave(saveId: string): Promise<GameSave> {

@@ -1,10 +1,8 @@
 import { CloudOff, FolderOpen } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { featureFlags } from '../../config/features';
-import type { GameSave, GameSaveMetadata } from '../../domain/types';
-import { BUILDING_IDS } from '../../game-data/buildings';
+import type { GameSaveMetadata } from '../../domain/types';
 import { DEMO_SAVE_DEFINITIONS } from '../../game-data/demo-saves';
-import { getTimeOfDayDefinition } from '../../game-data/time-of-day';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
@@ -20,6 +18,7 @@ interface LoadGameContentProps {
 }
 
 type LoadMode = 'normal' | 'demo';
+type SaveCardOpenAction = () => Promise<boolean>;
 
 interface LocalSaveGroup {
   groupKey: string;
@@ -27,28 +26,15 @@ interface LocalSaveGroup {
   otherSaves: GameSaveMetadata[];
 }
 
-function getPurchasedBuildingLevelRange(save: GameSave) {
-  const levels = BUILDING_IDS.map((buildingId) => save.buildings[buildingId])
-    .filter((building) => building.isPurchased)
-    .map((building) => building.level);
-
-  return {
-    minimum: Math.min(...levels),
-    maximum: Math.max(...levels),
-  };
-}
-
 function getSaveTimeValue(save: GameSaveMetadata) {
   return new Date(save.updatedAt).getTime();
 }
 
 function getLocalSaveGroupKey(save: GameSaveMetadata) {
-  return [save.ludusName, save.ownerName]
-    .map((value) => value.trim().toLocaleLowerCase())
-    .join('\u0000');
+  return save.gameId;
 }
 
-function groupLocalSavesByLudusAndOwner(localSaves: GameSaveMetadata[]): LocalSaveGroup[] {
+function groupLocalSavesByGame(localSaves: GameSaveMetadata[]): LocalSaveGroup[] {
   const groupedSaves = new Map<string, GameSaveMetadata[]>();
 
   localSaves.forEach((save) => {
@@ -84,21 +70,14 @@ export function LoadGameContent({ onLoaded }: LoadGameContentProps) {
     refreshDemoSaves,
     refreshLocalSaves,
   } = useGameStore();
-  const { language, t } = useUiStore();
+  const { t } = useUiStore();
   const [loadMode, setLoadMode] = useState<LoadMode>('normal');
   const [expandedSaveGroupKeys, setExpandedSaveGroupKeys] = useState<Set<string>>(new Set());
   const availableDemoSaveIds = new Set(demoSaves.map((save) => save.saveId));
   const demoDefinitions = DEMO_SAVE_DEFINITIONS.filter((definition) =>
     availableDemoSaveIds.has(definition.id),
   );
-  const localSaveGroups = groupLocalSavesByLudusAndOwner(localSaves);
-
-  const formatSaveDate = (updatedAt: string) => {
-    return new Intl.DateTimeFormat(language, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(updatedAt));
-  };
+  const localSaveGroups = groupLocalSavesByGame(localSaves);
 
   const toggleExpandedSaveGroup = (groupKey: string) => {
     setExpandedSaveGroupKeys((currentGroupKeys) => {
@@ -114,26 +93,25 @@ export function LoadGameContent({ onLoaded }: LoadGameContentProps) {
     });
   };
 
-  const renderLocalSaveCard = (
-    save: GameSaveMetadata,
+  const renderSaveCard = (
+    saveId: GameSaveMetadata['saveId'],
+    displayName: string,
+    testIdPrefix: 'local' | 'demo',
+    openSave: SaveCardOpenAction,
     className = 'save-card',
     secondaryAction?: ReactNode,
   ) => (
-    <article className={className} data-testid={`local-save-card-${save.saveId}`} key={save.saveId}>
+    <article className={className} data-testid={`${testIdPrefix}-save-card-${saveId}`} key={saveId}>
       <div>
-        <h2>{save.ludusName}</h2>
-        <p>{t('loadGame.ownerLine', { owner: save.ownerName })}</p>
-        <p className="save-card__date">
-          <time dateTime={save.updatedAt}>{formatSaveDate(save.updatedAt)}</time>
-        </p>
+        <h2>{displayName}</h2>
       </div>
       <div className="save-card__actions">
         <ActionButton
           disabled={isLoading}
           icon={<FolderOpen aria-hidden="true" size={18} />}
           label={t('common.open')}
-          testId={`local-load-button-${save.saveId}`}
-          onClick={() => closeAfterSuccessfulLoad(loadLocalSave(save.saveId))}
+          testId={`${testIdPrefix}-load-button-${saveId}`}
+          onClick={() => closeAfterSuccessfulLoad(openSave())}
         />
         {secondaryAction}
       </div>
@@ -201,8 +179,11 @@ export function LoadGameContent({ onLoaded }: LoadGameContentProps) {
 
             return (
               <section className="local-save-group" key={saveGroup.groupKey}>
-                {renderLocalSaveCard(
-                  saveGroup.latestSave,
+                {renderSaveCard(
+                  saveGroup.latestSave.saveId,
+                  saveGroup.latestSave.ludusName,
+                  'local',
+                  () => loadLocalSave(saveGroup.latestSave.saveId),
                   'save-card',
                   saveGroup.otherSaves.length > 0 ? (
                     <ActionButton
@@ -220,7 +201,13 @@ export function LoadGameContent({ onLoaded }: LoadGameContentProps) {
                 {isExpanded ? (
                   <div className="local-save-group__other-saves">
                     {saveGroup.otherSaves.map((save) =>
-                      renderLocalSaveCard(save, 'save-card save-card--secondary'),
+                      renderSaveCard(
+                        save.saveId,
+                        save.ludusName,
+                        'local',
+                        () => loadLocalSave(save.saveId),
+                        'save-card save-card--secondary',
+                      ),
                     )}
                   </div>
                 ) : null}
@@ -230,58 +217,11 @@ export function LoadGameContent({ onLoaded }: LoadGameContentProps) {
         </div>
       ) : (
         <div className="save-list">
-          {demoDefinitions.map((definition) => {
-            const levelRange = getPurchasedBuildingLevelRange(definition.save);
-            const levelText =
-              levelRange.minimum === levelRange.maximum
-                ? t('loadGame.demoBuildingLevel', { level: levelRange.minimum })
-                : t('loadGame.demoBuildingLevelRange', {
-                    minimum: levelRange.minimum,
-                    maximum: levelRange.maximum,
-                  });
-
-            return (
-              <article
-                className="save-card save-card--demo"
-                data-testid={`demo-save-card-${definition.id}`}
-                key={definition.id}
-              >
-                <div>
-                  <p className="eyebrow">{t(definition.stageKey)}</p>
-                  <h2>{t(definition.nameKey)}</h2>
-                  <p>
-                    {t('loadGame.demoTimeLine', {
-                      day: t(`days.${definition.save.time.dayOfWeek}`),
-                      week: definition.save.time.week,
-                      year: definition.save.time.year,
-                      phase: t(
-                        `timeOfDay.${getTimeOfDayDefinition(definition.save.time.hour).phase}`,
-                      ),
-                    })}
-                  </p>
-                  <p>
-                    {t('loadGame.demoRosterLine', {
-                      buildings: levelText,
-                      count: definition.save.gladiators.length,
-                    })}
-                  </p>
-                  <p>{t(definition.descriptionKey)}</p>
-                  <ul className="tag-list">
-                    {definition.tags.map((tagKey) => (
-                      <li key={tagKey}>{t(tagKey)}</li>
-                    ))}
-                  </ul>
-                </div>
-                <ActionButton
-                  disabled={isLoading}
-                  icon={<FolderOpen aria-hidden="true" size={18} />}
-                  label={t('loadGame.loadDemoSave')}
-                  testId={`demo-load-button-${definition.id}`}
-                  onClick={() => closeAfterSuccessfulLoad(loadDemoSave(definition.id))}
-                />
-              </article>
-            );
-          })}
+          {demoDefinitions.map((definition) =>
+            renderSaveCard(definition.id, t(definition.nameKey), 'demo', () =>
+              loadDemoSave(definition.id),
+            ),
+          )}
         </div>
       )}
     </>

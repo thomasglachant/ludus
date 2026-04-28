@@ -10,9 +10,11 @@ export interface SaveProvider {
 
 export function createGameSaveMetadata(save: GameSave): GameSaveMetadata {
   return {
+    gameId: save.gameId,
     saveId: save.saveId,
     ownerName: save.player.ownerName,
     ludusName: save.player.ludusName,
+    createdAt: save.createdAt,
     updatedAt: save.updatedAt,
     schemaVersion: save.schemaVersion,
   };

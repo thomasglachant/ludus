@@ -6,6 +6,7 @@ import { SaveNotFoundError, type SaveProvider } from './save-provider';
 export class DemoSaveProvider implements SaveProvider {
   async listSaves(): Promise<GameSaveMetadata[]> {
     return DEMO_SAVE_DEFINITIONS.map((definition) => ({
+      gameId: definition.save.gameId,
       saveId: definition.id,
       ownerName: definition.save.player.ownerName,
       ludusName: definition.save.player.ludusName,

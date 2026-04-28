@@ -15,7 +15,7 @@ const PixiLudusMap = lazy(() =>
 );
 
 export function GameShell() {
-  const { currentSave, errorKey, saveNoticeKey, setGameSpeed } = useGameStore();
+  const { currentSave, errorKey, isLoading, saveNoticeKey, setGameSpeed } = useGameStore();
   const { activeModal, openModal, t } = useUiStore();
   const [selectedGladiatorId, setSelectedGladiatorId] = useState<string | null>(null);
 
@@ -62,7 +62,13 @@ export function GameShell() {
   );
 
   if (!currentSave) {
-    return null;
+    return (
+      <section className="game-shell">
+        <p className={errorKey ? 'form-error' : 'empty-state'}>
+          {t(errorKey ?? (isLoading ? 'common.loading' : 'loadGame.error'))}
+        </p>
+      </section>
+    );
   }
 
   return (

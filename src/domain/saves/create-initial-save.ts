@@ -10,15 +10,17 @@ import type { GameSave } from './types';
 export interface InitialSaveInput {
   ownerName: string;
   ludusName: string;
+  gameId?: string;
   saveId: string;
   createdAt: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 4;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
+    gameId: input.gameId ?? input.saveId,
     saveId: input.saveId,
     createdAt: input.createdAt,
     updatedAt: input.createdAt,

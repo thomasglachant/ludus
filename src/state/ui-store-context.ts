@@ -119,7 +119,7 @@ export interface UiStoreValue {
   pushModal(request: UiModalRequest): void;
   replaceModal(request: UiModalRequest): void;
   setLanguage(language: LanguageCode): void;
-  navigate(screen: ScreenName): void;
+  navigate(screen: ScreenName, options?: { gameId?: string }): void;
   t(key: string, params?: Record<string, string | number>): string;
 }
 

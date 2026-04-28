@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getLudusGladiatorCapacity } from '../domain/ludus/capacity';
+import { CURRENT_SCHEMA_VERSION } from '../domain/saves/create-initial-save';
 import { isGameSave } from '../domain/saves/save-validation';
 import { BUILDING_IDS } from '../game-data/buildings';
 import { DEMO_SAVE_DEFINITIONS } from '../game-data/demo-saves';
@@ -83,7 +84,7 @@ describe('demo save definitions', () => {
       const save = definition.save;
 
       expect(isGameSave(save)).toBe(true);
-      expect(save.schemaVersion).toBe(3);
+      expect(save.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(save.metadata).toEqual({
         demoSaveId: definition.id,
       });
