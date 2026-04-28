@@ -11,7 +11,6 @@ describe('LocalSaveProvider', () => {
   it('writes, lists and loads a local save', async () => {
     const provider = new LocalSaveProvider();
     const save = createInitialSave({
-      ownerName: 'Flavia',
       ludusName: 'Aquila',
       saveId: 'save-local',
       createdAt: '2026-04-25T12:00:00.000Z',
@@ -23,7 +22,6 @@ describe('LocalSaveProvider', () => {
       {
         gameId: 'save-local',
         saveId: 'save-local',
-        ownerName: 'Flavia',
         ludusName: 'Aquila',
         createdAt: '2026-04-25T12:00:00.000Z',
         updatedAt: '2026-04-25T12:00:00.000Z',
@@ -38,7 +36,6 @@ describe('LocalSaveProvider', () => {
   it('loads old saves without keeping persisted language settings', async () => {
     const provider = new LocalSaveProvider();
     const save = createInitialSave({
-      ownerName: 'Flavia',
       ludusName: 'Aquila',
       saveId: 'save-local',
       createdAt: '2026-04-25T12:00:00.000Z',
@@ -50,6 +47,10 @@ describe('LocalSaveProvider', () => {
       JSON.stringify({
         ...save,
         schemaVersion: 1,
+        player: {
+          ...save.player,
+          ownerName: 'Flavia',
+        },
         settings: {
           language: 'fr',
         },
@@ -62,7 +63,6 @@ describe('LocalSaveProvider', () => {
   it('does not persist pending or resolved events', async () => {
     const provider = new LocalSaveProvider();
     const save = createInitialSave({
-      ownerName: 'Flavia',
       ludusName: 'Aquila',
       saveId: 'save-local',
       createdAt: '2026-04-25T12:00:00.000Z',
@@ -104,7 +104,6 @@ describe('LocalSaveProvider', () => {
 
   it('rejects saves with invalid nested game state', async () => {
     const save = createInitialSave({
-      ownerName: 'Flavia',
       ludusName: 'Aquila',
       saveId: 'broken',
       createdAt: '2026-04-25T12:00:00.000Z',

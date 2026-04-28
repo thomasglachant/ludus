@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { TIME_CONFIG } from '../../game-data/time';
 import type { BuildingId, GameSave, Gladiator } from '../types';
 import { createInitialSave } from '../saves/create-initial-save';
 import { updateGladiatorRoutine } from '../planning/planning-actions';
 import { advanceToNextDay, completeSundayArenaDay, setGameSpeed, tickGame } from './time-actions';
 
+const REAL_MILLISECONDS_PER_GAME_MINUTE =
+  TIME_CONFIG.realMillisecondsPerGameHour / TIME_CONFIG.minutesPerHour;
+
 function createTestSave() {
   return createInitialSave({
-    ownerName: 'Marcus',
     ludusName: 'Ludus Magnus',
     saveId: 'save-test',
     createdAt: '2026-04-25T12:00:00.000Z',
@@ -253,7 +256,7 @@ describe('time actions', () => {
     };
     const result = tickGame({
       currentSave: save,
-      elapsedRealMilliseconds: 5_000,
+      elapsedRealMilliseconds: REAL_MILLISECONDS_PER_GAME_MINUTE,
       speed: save.time.speed,
       random: () => 0,
     });

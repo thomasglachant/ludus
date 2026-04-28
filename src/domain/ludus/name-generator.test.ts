@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { generateLudusName, generateLudusOwnerName } from './name-generator';
+import { generateLudusName } from './name-generator';
 
 describe('ludus name generator', () => {
-  it('generates themed owner names', () => {
-    expect(generateLudusOwnerName(undefined, () => 0)).toBe('Aelia Varro');
-  });
-
   it('generates themed ludus names', () => {
     expect(generateLudusName(undefined, () => 0)).toBe('Ludus Aurea');
   });
@@ -14,8 +10,6 @@ describe('ludus name generator', () => {
     const values = [0, 0.99];
     let index = 0;
 
-    expect(generateLudusOwnerName('Aelia Varro', () => values[index++] ?? 0.99)).toBe(
-      'Vibia Maxima',
-    );
+    expect(generateLudusName('Ludus Aurea', () => values[index++] ?? 0.99)).toBe('Ludus Victoriae');
   });
 });

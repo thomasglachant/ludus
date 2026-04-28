@@ -6,7 +6,6 @@ import { SaveNotFoundError } from './save-provider';
 import type { SaveProvider } from './save-provider';
 
 export interface CreateSaveInput {
-  ownerName: string;
   ludusName: string;
 }
 
@@ -49,7 +48,6 @@ export class SaveService {
 
   async createLocalSave(input: CreateSaveInput): Promise<GameSave> {
     const save = createInitialSave({
-      ownerName: input.ownerName,
       ludusName: input.ludusName,
       gameId: createId('game'),
       saveId: createId('save'),

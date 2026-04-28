@@ -33,6 +33,7 @@ import {
   setGameSpeed as setSaveGameSpeed,
   tickGame,
 } from '../domain/time/time-actions';
+import { getGameMinuteStamp } from '../domain/gladiators/map-movement';
 import { getActiveGameInterruption, isGameInterrupted } from '../domain/game-flow/interruption';
 import type {
   BuildingId,
@@ -43,6 +44,7 @@ import type {
   GladiatorRoutineUpdate,
   LanguageCode,
 } from '../domain/types';
+import { TIME_CONFIG } from '../game-data/time';
 import { CloudSaveProvider } from '../persistence/cloud-save-provider';
 import { DemoSaveProvider } from '../persistence/demo-save-provider';
 import { LocalSaveProvider } from '../persistence/local-save-provider';
@@ -51,6 +53,14 @@ import { GameStoreContext, type GameStoreValue, type NewGameInput } from './game
 import { useUiStore } from './ui-store-context';
 
 const AUTO_SAVE_INTERVAL_MS = 30_000;
+const NEXT_DAY_FAST_FORWARD_SPEED: GameSpeed = 48;
+const NEXT_DAY_FAST_FORWARD_TICK_MS = 50;
+
+interface NextDayFastForwardState {
+  targetGameMinute: number;
+  originalSpeed: GameSpeed;
+  originalIsPaused: boolean;
+}
 
 function createSaveService() {
   return new SaveService(
@@ -65,7 +75,8 @@ function synchronizeLoadedSave(save: GameSave): GameSave {
 }
 
 export function GameStoreProvider({ children }: { children: ReactNode }) {
-  const { activeModal, screen, setLanguage, navigate, openModal, replaceModal } = useUiStore();
+  const { activeModal, modalStack, screen, setLanguage, navigate, openModal, replaceModal } =
+    useUiStore();
   const [saveService] = useState(createSaveService);
   const [initialRouteGameId] = useState(() =>
     getGameIdFromGameSessionPath(window.location.pathname),
@@ -79,6 +90,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [saveNoticeKey, setSaveNoticeKey] = useState<string | null>(null);
+  const [isFastForwardingToNextDay, setIsFastForwardingToNextDay] = useState(false);
   const effectAccumulatorMinutes = useRef(0);
   const lastTickAt = useRef<number | null>(null);
   const hasLoadedInitialRouteGame = useRef(false);
@@ -87,10 +99,26 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const isSavingRef = useRef(false);
   const isAutoSavingRef = useRef(false);
   const dirtyRevisionRef = useRef(0);
+  const nextDayFastForwardRef = useRef<NextDayFastForwardState | null>(null);
   const activeSaveId = currentSave?.saveId;
   const activeSpeed = currentSave?.time.speed;
   const isPaused = currentSave?.time.isPaused;
+  const isGameMenuPauseActive =
+    screen === 'ludus' && modalStack.some((modal) => modal.kind === 'gameMenu');
   const isSimulationBlocked = currentSave ? isGameInterrupted(currentSave) : false;
+  const presentedCurrentSave = useMemo(() => {
+    if (!currentSave || !isGameMenuPauseActive || currentSave.time.isPaused) {
+      return currentSave;
+    }
+
+    return {
+      ...currentSave,
+      time: {
+        ...currentSave.time,
+        isPaused: true,
+      },
+    };
+  }, [currentSave, isGameMenuPauseActive]);
 
   const refreshLocalSaves = useCallback(async () => {
     setIsLoading(true);
@@ -130,7 +158,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
       try {
         const save = await saveService.createLocalSave({
-          ownerName: input.ownerName,
           ludusName: input.ludusName,
         });
 
@@ -276,35 +303,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     }
   }, [currentSave, saveService]);
 
-  const saveCurrentGameAs = useCallback(
-    async (input: { ludusName?: string } = {}) => {
-      if (!currentSave) {
-        return;
-      }
-
-      setIsSaving(true);
-      setErrorKey(null);
-      setSaveNoticeKey(null);
-
-      try {
-        const newSave = await saveService.createLocalSaveFromExisting(currentSave, input);
-
-        setCurrentSave(newSave);
-        setLocalSaves(await saveService.listLocalSaves());
-        dirtyRevisionRef.current = 0;
-        setHasUnsavedChanges(false);
-        setLastSavedAt(newSave.updatedAt);
-        setSaveNoticeKey('ludus.saveAsSuccess');
-      } catch {
-        setErrorKey('ludus.saveError');
-        setSaveNoticeKey(null);
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [currentSave, saveService],
-  );
-
   const changeLanguage = useCallback(
     async (nextLanguage: LanguageCode) => {
       setLanguage(nextLanguage);
@@ -339,14 +337,44 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   );
 
   const advanceToNextDayAction = useCallback(() => {
+    if (nextDayFastForwardRef.current) {
+      return;
+    }
+
     applyPlayerChange((save) => {
-      const result = advanceSaveToNextDay(save, {
-        effectAccumulatorMinutes: effectAccumulatorMinutes.current,
-      });
+      const activeInterruption = getActiveGameInterruption(save);
 
-      effectAccumulatorMinutes.current = result.effectAccumulatorMinutes;
+      if (activeInterruption) {
+        const result = advanceSaveToNextDay(save, {
+          effectAccumulatorMinutes: effectAccumulatorMinutes.current,
+        });
 
-      return result.save;
+        effectAccumulatorMinutes.current = result.effectAccumulatorMinutes;
+
+        return result.save;
+      }
+
+      const currentMinuteOfDay = save.time.hour * TIME_CONFIG.minutesPerHour + save.time.minute;
+      const targetOffsetMinutes =
+        TIME_CONFIG.hoursPerDay * TIME_CONFIG.minutesPerHour -
+        currentMinuteOfDay +
+        TIME_CONFIG.wakeUpHour * TIME_CONFIG.minutesPerHour;
+
+      nextDayFastForwardRef.current = {
+        targetGameMinute: getGameMinuteStamp(save.time) + targetOffsetMinutes,
+        originalSpeed: save.time.speed,
+        originalIsPaused: save.time.isPaused,
+      };
+      setIsFastForwardingToNextDay(true);
+
+      return {
+        ...save,
+        time: {
+          ...save.time,
+          speed: NEXT_DAY_FAST_FORWARD_SPEED,
+          isPaused: false,
+        },
+      };
     });
   }, [applyPlayerChange]);
 
@@ -588,7 +616,9 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       activeSpeed === undefined ||
       activeSpeed === 0 ||
       isPaused ||
-      isSimulationBlocked
+      isGameMenuPauseActive ||
+      isSimulationBlocked ||
+      isFastForwardingToNextDay
     ) {
       lastTickAt.current = null;
       return undefined;
@@ -627,7 +657,109 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     }, 1_000);
 
     return () => window.clearInterval(intervalId);
-  }, [activeSaveId, activeSpeed, isPaused, isSimulationBlocked]);
+  }, [
+    activeSaveId,
+    activeSpeed,
+    isPaused,
+    isGameMenuPauseActive,
+    isSimulationBlocked,
+    isFastForwardingToNextDay,
+  ]);
+
+  useEffect(() => {
+    if (
+      !activeSaveId ||
+      !isFastForwardingToNextDay ||
+      isGameMenuPauseActive ||
+      isSimulationBlocked
+    ) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      const fastForwardState = nextDayFastForwardRef.current;
+
+      if (!fastForwardState) {
+        setIsFastForwardingToNextDay(false);
+        return;
+      }
+
+      setCurrentSave((save) => {
+        if (!save) {
+          nextDayFastForwardRef.current = null;
+          setIsFastForwardingToNextDay(false);
+          return save;
+        }
+
+        if (isGameInterrupted(save)) {
+          return save;
+        }
+
+        const currentGameMinute = getGameMinuteStamp(save.time);
+        const remainingGameMinutes = fastForwardState.targetGameMinute - currentGameMinute;
+
+        if (remainingGameMinutes <= 0) {
+          nextDayFastForwardRef.current = null;
+          setIsFastForwardingToNextDay(false);
+
+          return {
+            ...save,
+            time: {
+              ...save.time,
+              speed: fastForwardState.originalSpeed,
+              isPaused: fastForwardState.originalIsPaused,
+            },
+          };
+        }
+
+        const requestedGameMinutes = Math.floor(
+          (NEXT_DAY_FAST_FORWARD_TICK_MS *
+            NEXT_DAY_FAST_FORWARD_SPEED *
+            TIME_CONFIG.minutesPerHour) /
+            TIME_CONFIG.realMillisecondsPerGameHour,
+        );
+        const elapsedRealMilliseconds =
+          (Math.min(remainingGameMinutes, requestedGameMinutes) *
+            TIME_CONFIG.realMillisecondsPerGameHour) /
+          (NEXT_DAY_FAST_FORWARD_SPEED * TIME_CONFIG.minutesPerHour);
+        const result = tickGame({
+          currentSave: save,
+          elapsedRealMilliseconds,
+          speed: NEXT_DAY_FAST_FORWARD_SPEED,
+          effectAccumulatorMinutes: effectAccumulatorMinutes.current,
+        });
+
+        effectAccumulatorMinutes.current = result.effectAccumulatorMinutes;
+
+        if (result.save !== save) {
+          dirtyRevisionRef.current += 1;
+          setHasUnsavedChanges(true);
+          setSaveNoticeKey(null);
+        }
+
+        if (
+          (result.advancedGameMinutes <= 0 && !isGameInterrupted(result.save)) ||
+          getGameMinuteStamp(result.save.time) >= fastForwardState.targetGameMinute
+        ) {
+          nextDayFastForwardRef.current = null;
+          setIsFastForwardingToNextDay(false);
+
+          return {
+            ...result.save,
+            time: {
+              ...result.save.time,
+              speed: fastForwardState.originalSpeed,
+              isPaused: fastForwardState.originalIsPaused,
+            },
+          };
+        }
+
+        return result.save;
+      });
+    }, NEXT_DAY_FAST_FORWARD_TICK_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [activeSaveId, isFastForwardingToNextDay, isGameMenuPauseActive, isSimulationBlocked]);
 
   useEffect(() => {
     if (!currentSave || screen !== 'ludus') {
@@ -651,7 +783,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<GameStoreValue>(() => {
     return {
-      currentSave,
+      currentSave: presentedCurrentSave,
       localSaves,
       demoSaves,
       isLoading,
@@ -667,7 +799,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       loadDemoSave,
       resetActiveDemo,
       saveCurrentGame,
-      saveCurrentGameAs,
       changeLanguage,
       setGameSpeed: setGameSpeedAction,
       advanceToNextDay: advanceToNextDayAction,
@@ -698,7 +829,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     changeLanguage,
     clearError,
     createNewGame,
-    currentSave,
     demoSaves,
     errorKey,
     hasUnsavedChanges,
@@ -714,12 +844,12 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     refreshDemoSaves,
     resetActiveDemo,
     saveCurrentGame,
-    saveCurrentGameAs,
     saveNoticeKey,
     resolveGameEventChoice,
     scoutOpponent,
     startArenaDayCombats,
     markArenaCombatPresented,
+    presentedCurrentSave,
     showArenaDaySummary,
     completeSundayArenaDay,
     sellGladiatorAction,

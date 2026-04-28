@@ -12,7 +12,6 @@ const createdAtDay = 'thursday';
 
 const save = createDemoSave({
   id: 'demo-mid-ludus',
-  ownerName: 'Gnaeus Valerius',
   ludusName: 'Ludus Ferrata',
   ludus: {
     treasury: 3200,

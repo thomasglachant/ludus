@@ -1,6 +1,6 @@
 import { ArrowLeft, Dices, Landmark } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
-import { generateLudusName, generateLudusOwnerName } from '../../domain/ludus/name-generator';
+import { generateLudusName } from '../../domain/ludus/name-generator';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
@@ -14,14 +14,8 @@ interface NewGameFormProps {
 export function NewGameForm({ onBack, showBackAction = true }: NewGameFormProps) {
   const { createNewGame, isLoading } = useGameStore();
   const { navigate, t } = useUiStore();
-  const [ownerName, setOwnerName] = useState(() => generateLudusOwnerName(''));
   const [ludusName, setLudusName] = useState(() => generateLudusName(''));
   const [showValidation, setShowValidation] = useState(false);
-
-  const updateOwnerName = (nextOwnerName: string) => {
-    setOwnerName(nextOwnerName);
-    setShowValidation(false);
-  };
 
   const updateLudusName = (nextLudusName: string) => {
     setLudusName(nextLudusName);
@@ -31,39 +25,18 @@ export function NewGameForm({ onBack, showBackAction = true }: NewGameFormProps)
   const submitNewGame = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!ownerName.trim() || !ludusName.trim()) {
+    if (!ludusName.trim()) {
       setShowValidation(true);
       return;
     }
 
-    void createNewGame({ ownerName, ludusName });
+    void createNewGame({ ludusName });
   };
 
   const goBack = onBack ?? (() => navigate('mainMenu'));
 
   return (
     <form className="form-panel" data-testid="new-game-screen" onSubmit={submitNewGame}>
-      <label>
-        <span>{t('newGame.ownerName')}</span>
-        <div className="form-field-with-action">
-          <input
-            autoComplete="name"
-            data-testid="new-game-owner-name"
-            placeholder={t('newGame.ownerNamePlaceholder')}
-            value={ownerName}
-            onChange={(event) => updateOwnerName(event.target.value)}
-          />
-          <button
-            aria-label={t('newGame.randomOwnerName')}
-            className="form-random-button"
-            data-testid="new-game-random-owner-name"
-            type="button"
-            onClick={() => updateOwnerName(generateLudusOwnerName(ownerName))}
-          >
-            <Dices aria-hidden="true" size={18} />
-          </button>
-        </div>
-      </label>
       <label>
         <span>{t('newGame.ludusName')}</span>
         <div className="form-field-with-action">

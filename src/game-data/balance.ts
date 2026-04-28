@@ -39,7 +39,7 @@ export const GAME_BALANCE = {
     // Game speeds exposed by the player time controls.
     gameSpeeds: [0, 1, 2, 4] as const satisfies readonly GameSpeed[],
     // Game speeds accepted by save validation for older or copied saves.
-    supportedGameSpeeds: [0, 1, 2, 4, 8, 16] as const satisfies readonly GameSpeed[],
+    supportedGameSpeeds: [0, 1, 2, 4, 8, 16, 32, 48] as const satisfies readonly GameSpeed[],
     // Ordered weekdays used by time progression and weekly systems.
     daysOfWeek: [
       // First playable weekday of a new week.
@@ -81,7 +81,7 @@ export const GAME_BALANCE = {
 
   map: {
     // In-game minutes spent by gladiators when walking from one grid cell to the next.
-    movementMinutesPerTile: 4,
+    movementMinutesPerTile: 1,
   },
 
   gladiators: {
@@ -391,7 +391,7 @@ export const GAME_BALANCE = {
     // Weekday on which arena fights happen.
     dayOfWeek: 'sunday' satisfies DayOfWeek,
     // Hour at which arena day starts and interrupts normal time flow.
-    startHour: 8,
+    startHour: 6,
     // Hour set when the player completes the arena day summary.
     endHour: 20,
     // Minimum health required for a gladiator to receive a fight.

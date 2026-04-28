@@ -149,7 +149,6 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
     purchaseBuildingImprovement,
     resolveGameEventChoice,
     saveCurrentGame,
-    saveCurrentGameAs,
     scoutOpponent,
     selectBuildingPolicy,
     setGameSpeed,
@@ -161,29 +160,6 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
   const { closeAllModals, navigate, pushModal } = useUiStore();
   const isDailyEventBlocking = currentSave ? currentSave.events.pendingEvents.length > 0 : false;
   const isArenaDayBlocking = Boolean(currentSave?.arena.arenaDay);
-
-  const openSaveAsDialog = () => {
-    if (!currentSave) {
-      return;
-    }
-
-    pushModal({
-      fields: [
-        {
-          defaultValue: currentSave.player.ludusName,
-          id: 'ludusName',
-          labelKey: 'newGame.ludusName',
-          required: true,
-        },
-      ],
-      kind: 'form',
-      onSubmit: (values) => {
-        void saveCurrentGameAs({ ludusName: values.ludusName });
-      },
-      submitLabelKey: 'gameMenu.saveAs',
-      titleKey: 'gameMenu.saveAsTitle',
-    });
-  };
 
   const quitToMainMenu = () => {
     navigate('mainMenu');
@@ -198,7 +174,6 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
         onClose={onBack ?? closeAllModals}
         onQuit={quitToMainMenu}
         onSave={() => void saveCurrentGame().then(closeAllModals)}
-        onSaveAs={openSaveAsDialog}
       />
     );
   }

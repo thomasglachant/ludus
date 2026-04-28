@@ -12,7 +12,6 @@ const createdAtDay = 'saturday';
 
 const save = createDemoSave({
   id: 'demo-advanced-ludus',
-  ownerName: 'Tiberius Cassianus',
   ludusName: 'Ludus Invictus',
   ludus: {
     treasury: 12000,

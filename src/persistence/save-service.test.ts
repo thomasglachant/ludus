@@ -64,7 +64,6 @@ describe('SaveService demo saves', () => {
     );
     const originalSave = await service.createLocalSave({
       ludusName: 'Ludus Magnus',
-      ownerName: 'Marcus',
     });
 
     const copiedSave = await service.createLocalSaveFromExisting(originalSave, {
@@ -85,7 +84,6 @@ describe('SaveService demo saves', () => {
     );
     const originalSave = await service.createLocalSave({
       ludusName: 'Ludus Magnus',
-      ownerName: 'Marcus',
     });
     const copiedSave = await service.createLocalSaveFromExisting(originalSave, {
       ludusName: 'Ludus Felix',
@@ -108,7 +106,6 @@ describe('SaveService demo saves', () => {
     );
     const originalSave = await service.createLocalSave({
       ludusName: 'Ludus Magnus',
-      ownerName: 'Marcus',
     });
     const copiedSave = await service.createLocalSaveFromExisting({
       ...originalSave,

@@ -15,7 +15,8 @@ const PixiLudusMap = lazy(() =>
 );
 
 export function GameShell() {
-  const { currentSave, errorKey, isLoading, saveNoticeKey, setGameSpeed } = useGameStore();
+  const { advanceToNextDay, currentSave, errorKey, isLoading, saveNoticeKey, setGameSpeed } =
+    useGameStore();
   const { activeModal, openModal, t } = useUiStore();
   const [selectedGladiatorId, setSelectedGladiatorId] = useState<string | null>(null);
 
@@ -78,6 +79,7 @@ export function GameShell() {
         onOpenMenu={() => {
           openModal({ kind: 'gameMenu' });
         }}
+        onAdvanceToNextDay={advanceToNextDay}
         onSpeedChange={setGameSpeed}
       />
       <LeftNavigationRail activePanelKind={activePanelKind} onOpenPanel={openPanel} />

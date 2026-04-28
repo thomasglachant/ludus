@@ -279,7 +279,9 @@ function buildGladiatorManifest() {
 }
 
 function buildUiManifest() {
-  const uiFiles = listFiles(join(publicAssetsRoot, 'ui')).filter((path) => extname(path) === '.png');
+  const uiFiles = listFiles(join(publicAssetsRoot, 'ui')).filter((path) =>
+    ['.png', '.svg'].includes(extname(path)),
+  );
 
   return Object.fromEntries(
     uiFiles
@@ -287,7 +289,7 @@ function buildUiManifest() {
         const id = relative(join(publicAssetsRoot, 'ui'), path)
           .split(sep)
           .join('/')
-          .replace(/\.png$/, '');
+          .replace(/\.(png|svg)$/, '');
         return [id, toWebPath(path)];
       })
       .sort(([left], [right]) => left.localeCompare(right)),

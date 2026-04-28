@@ -38,7 +38,6 @@ export interface GameSave {
 export interface GameSaveMetadata {
   gameId: string;
   saveId: string;
-  ownerName: string;
   ludusName: string;
   createdAt?: string;
   updatedAt: string;
@@ -48,7 +47,6 @@ export interface GameSaveMetadata {
 }
 
 export interface PlayerProfile {
-  ownerName: string;
   ludusName: string;
   isCloudUser: boolean;
 }

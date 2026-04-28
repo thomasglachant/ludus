@@ -1,4 +1,4 @@
-import { Copy, FolderOpen, LogOut, Save, Settings } from 'lucide-react';
+import { FolderOpen, LogOut, Save, Settings } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
@@ -13,7 +13,6 @@ interface GameMenuModalProps {
   onClose(): void;
   onQuit(): void;
   onSave(): void;
-  onSaveAs(): void;
 }
 
 type GameMenuPanel = 'loadGame' | 'options' | 'quit';
@@ -25,7 +24,6 @@ export function GameMenuModal({
   onClose,
   onQuit,
   onSave,
-  onSaveAs,
 }: GameMenuModalProps) {
   const { t } = useUiStore();
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -66,13 +64,6 @@ export function GameMenuModal({
             label: t(isSaving ? 'ludus.saving' : 'gameMenu.save'),
             onClick: onSave,
             primary: true,
-          },
-          {
-            disabled: isSaving,
-            icon: <Copy aria-hidden="true" size={18} />,
-            key: 'saveAs',
-            label: t('gameMenu.saveAs'),
-            onClick: onSaveAs,
           },
           {
             icon: <FolderOpen aria-hidden="true" size={18} />,

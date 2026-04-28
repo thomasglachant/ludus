@@ -1,8 +1,4 @@
-import {
-  LUDUS_NAME_EPITHETS,
-  LUDUS_NAME_PREFIXES,
-  LUDUS_OWNER_NAMES,
-} from '../../game-data/ludus-names';
+import { LUDUS_NAME_EPITHETS, LUDUS_NAME_PREFIXES } from '../../game-data/ludus-names';
 
 type RandomSource = () => number;
 
@@ -27,10 +23,6 @@ function avoidCurrentName(generate: () => string, currentName?: string) {
   }
 
   return nextName;
-}
-
-export function generateLudusOwnerName(currentName?: string, random: RandomSource = Math.random) {
-  return avoidCurrentName(() => pickRandomValue(LUDUS_OWNER_NAMES, random), currentName);
 }
 
 export function generateLudusName(currentName?: string, random: RandomSource = Math.random) {

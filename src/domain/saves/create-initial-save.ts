@@ -8,14 +8,13 @@ import { createMarketState } from '../market/market-actions';
 import type { GameSave } from './types';
 
 export interface InitialSaveInput {
-  ownerName: string;
   ludusName: string;
   gameId?: string;
   saveId: string;
   createdAt: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 4;
+export const CURRENT_SCHEMA_VERSION = 5;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
   return {
@@ -25,7 +24,6 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     createdAt: input.createdAt,
     updatedAt: input.createdAt,
     player: {
-      ownerName: input.ownerName.trim(),
       ludusName: input.ludusName.trim(),
       isCloudUser: false,
     },

@@ -18,7 +18,9 @@ interface LoadGameContentProps {
 }
 
 type LoadMode = 'normal' | 'demo';
-type SaveCardOpenAction = () => Promise<boolean>;
+interface SaveCardOpenAction {
+  (): Promise<boolean>;
+}
 
 interface LocalSaveGroup {
   groupKey: string;

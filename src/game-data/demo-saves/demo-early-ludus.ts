@@ -7,7 +7,6 @@ import {
 
 const save = createDemoSave({
   id: 'demo-early-ludus',
-  ownerName: 'Lucius Aelius',
   ludusName: 'Ludus Primus',
   ludus: {
     treasury: 850,

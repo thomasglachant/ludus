@@ -8,7 +8,6 @@ export class DemoSaveProvider implements SaveProvider {
     return DEMO_SAVE_DEFINITIONS.map((definition) => ({
       gameId: definition.save.gameId,
       saveId: definition.id,
-      ownerName: definition.save.player.ownerName,
       ludusName: definition.save.player.ludusName,
       createdAt: definition.save.createdAt,
       updatedAt: definition.save.updatedAt,

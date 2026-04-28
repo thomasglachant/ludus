@@ -12,7 +12,6 @@ describe('CloudSaveProvider', () => {
 
   it('stores, lists and loads a mocked cloud save', async () => {
     const save = createInitialSave({
-      ownerName: 'Flavia',
       ludusName: 'Aquila',
       saveId: 'save-cloud',
       createdAt: '2026-04-25T12:00:00.000Z',
@@ -24,7 +23,6 @@ describe('CloudSaveProvider', () => {
       {
         gameId: 'save-cloud',
         saveId: 'save-cloud',
-        ownerName: 'Flavia',
         ludusName: 'Aquila',
         createdAt: '2026-04-25T12:00:00.000Z',
         updatedAt: '2026-04-25T12:00:00.000Z',
@@ -36,7 +34,6 @@ describe('CloudSaveProvider', () => {
 
   it('does not persist language settings in mocked cloud saves', async () => {
     const save = createInitialSave({
-      ownerName: 'Flavia',
       ludusName: 'Aquila',
       saveId: 'save-cloud',
       createdAt: '2026-04-25T12:00:00.000Z',
@@ -54,22 +51,21 @@ describe('CloudSaveProvider', () => {
 
   it('does not expose stored save references', async () => {
     const save = createInitialSave({
-      ownerName: 'Flavia',
       ludusName: 'Aquila',
       saveId: 'save-cloud',
       createdAt: '2026-04-25T12:00:00.000Z',
     });
 
     await provider.createSave(save);
-    save.player.ownerName = 'Changed';
+    save.player.ludusName = 'Changed';
 
     const loadedSave = await provider.loadSave('save-cloud');
 
-    loadedSave.player.ownerName = 'Loaded';
+    loadedSave.player.ludusName = 'Loaded';
 
     await expect(provider.loadSave('save-cloud')).resolves.toMatchObject({
       player: {
-        ownerName: 'Flavia',
+        ludusName: 'Aquila',
       },
     });
   });

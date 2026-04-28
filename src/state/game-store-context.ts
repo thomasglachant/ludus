@@ -10,7 +10,6 @@ import type {
 } from '../domain/types';
 
 export interface NewGameInput {
-  ownerName: string;
   ludusName: string;
 }
 
@@ -31,7 +30,6 @@ export interface GameStoreValue {
   loadDemoSave(saveId: DemoSaveId): Promise<boolean>;
   resetActiveDemo(): Promise<void>;
   saveCurrentGame(): Promise<void>;
-  saveCurrentGameAs(input?: { ludusName?: string }): Promise<void>;
   changeLanguage(language: LanguageCode): Promise<void>;
   setGameSpeed(speed: GameSpeed): void;
   advanceToNextDay(): void;

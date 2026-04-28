@@ -19,7 +19,7 @@ import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
 const dayOfWeeks = [...DAYS_OF_WEEK];
 const gameSpeeds = [...SUPPORTED_GAME_SPEEDS];
-const legacySupportedSchemaVersions = [1, 2, 3, CURRENT_SCHEMA_VERSION];
+const legacySupportedSchemaVersions = [1, 2, 3, 4, CURRENT_SCHEMA_VERSION];
 const locationIds = [...requiredBuildingIds, 'arena'];
 const mapPlacementKinds = ['building', 'prop', 'road', 'wall'];
 const arenaRanks = [
@@ -565,7 +565,6 @@ function isSupportedGameSave(value: unknown): value is GameSave {
 
   if (
     !isRecord(value.player) ||
-    !hasString(value.player, 'ownerName') ||
     !hasString(value.player, 'ludusName') ||
     !hasBoolean(value.player, 'isCloudUser')
   ) {
@@ -667,6 +666,10 @@ export function normalizeGameSave(save: GameSave): GameSave {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     gameId:
       typeof saveWithOptionalMap.gameId === 'string' ? saveWithOptionalMap.gameId : save.saveId,
+    player: {
+      ludusName: save.player.ludusName,
+      isCloudUser: save.player.isCloudUser,
+    },
     map: normalizeMapState(saveWithOptionalMap.map),
     gladiators: save.gladiators.map(normalizeGladiator),
     market: {

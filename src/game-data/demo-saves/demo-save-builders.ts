@@ -28,7 +28,6 @@ export type DemoGladiatorInput = Gladiator & {
 
 interface DemoSaveInput {
   id: DemoSaveId;
-  ownerName: string;
   ludusName: string;
   ludus: GameSave['ludus'];
   time: GameSave['time'];
@@ -93,7 +92,6 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     createdAt: DEMO_CREATED_AT,
     updatedAt: DEMO_UPDATED_AT,
     player: {
-      ownerName: input.ownerName,
       ludusName: input.ludusName,
       isCloudUser: false,
     },

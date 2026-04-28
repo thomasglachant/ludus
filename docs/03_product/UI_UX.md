@@ -341,7 +341,6 @@ Supporting flows should follow the game-like visual direction instead of a SaaS 
 
 New game:
 
-- ask for owner name;
 - ask for ludus name;
 - create a save with the current schema version;
 - start with all base buildings purchased at level 1 and initial game time.
