@@ -13,9 +13,9 @@ existing `src/game-data` and manifest boundaries.
 - create terrain tile sets for countryside, paths, sand, stone and building
   foundations;
 - create time-of-day background variants for dawn, day, dusk and night;
-- create ambient sprite variants for torches, smoke, banners, grass, clouds and
-  crowd hints;
-- create props for fences, wells, amphorae, trees, walls and market details.
+- create ambient sprite variants for flags/banners and crowd hints;
+- create authored building and external-location detail inside the core scene
+  assets instead of standalone map clutter.
 
 ## Building Assets
 

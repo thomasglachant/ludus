@@ -16,13 +16,7 @@
       "night": "/assets/pixel-art/map/backgrounds/ludus-map-night.png"
     },
     "ambient": {
-      "cloud-01": "/assets/pixel-art/map/ambient/cloud-01.svg",
-      "cloud-02": "/assets/pixel-art/map/ambient/cloud-02.svg",
-      "grass-tuft-01": "/assets/pixel-art/map/ambient/grass-tuft-01.svg",
-      "banner-red": "/assets/pixel-art/map/ambient/banner-red.svg",
-      "torch-on": "/assets/pixel-art/map/ambient/torch-on.svg",
-      "smoke-puff": "/assets/pixel-art/map/ambient/smoke-puff.svg",
-      "crowd-dot": "/assets/pixel-art/map/ambient/crowd-dot.svg"
+      "banner-red": "/assets/pixel-art/map/ambient/banner-red.svg"
     }
   },
   "buildings": {

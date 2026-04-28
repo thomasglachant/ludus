@@ -511,7 +511,7 @@ The player-facing HUD presents these phases as a day-night cycle gauge instead
 of an exact clock. Hour and minute values remain internal timing data for rules
 that still need precise advancement.
 
-Visual themes are defined in `src/game-data/time-of-day.ts` with sky, terrain, overlay, light, shadow, torch opacity and sprite brightness values.
+Visual themes are defined in `src/game-data/time-of-day.ts` with sky, terrain, overlay, light, shadow and sprite brightness values.
 
 ## Demo Saves
 
@@ -527,7 +527,7 @@ Demo saves must follow the current save schema, remain deterministic and include
 
 ## Visual Data
 
-Map layout, building visuals, decorations, gladiator visuals, animations and time-of-day data are game data.
+Map layout, building visuals, flag/banner ambience, gladiator visuals, animations and time-of-day data are game data.
 
 They should remain centralized in modules such as:
 

@@ -30,14 +30,12 @@ import type {
   LudusMapScenePathViewModel,
   LudusMapSceneTerrainZoneViewModel,
   LudusMapSceneViewModel,
-  LudusMapSceneWallSegmentViewModel,
 } from './LudusMapSceneViewModel';
 import { ParticleEffectSystem } from './ParticleEffectSystem';
 import { TimeOfDayLightingSystem } from './TimeOfDayLightingSystem';
 
 type LudusMapLayerId =
   | 'background'
-  | 'clouds'
   | 'terrain-overlays'
   | 'paths'
   | 'selection-highlight'
@@ -94,7 +92,6 @@ interface LocationDisplay {
 const ASSET_PATH_SEPARATOR = '\u0000';
 const LUDUS_MAP_LAYER_IDS = [
   'background',
-  'clouds',
   'terrain-overlays',
   'paths',
   'selection-highlight',
@@ -186,13 +183,11 @@ function drawTerrainZone(
   const fillByKind = {
     cliff: 0x8b7356,
     compoundGround: 0xb88a52,
-    forestEdge: 0x315038,
     sea: 0x4c96b3,
   } satisfies Record<LudusMapSceneTerrainZoneViewModel['kind'], number>;
   const highlightByKind = {
     cliff: 0xd3b17a,
     compoundGround: viewModel.theme.terrainHighlightColor,
-    forestEdge: 0x577145,
     sea: 0x9ed8de,
   } satisfies Record<LudusMapSceneTerrainZoneViewModel['kind'], number>;
 
@@ -219,17 +214,6 @@ function drawTerrainZone(
     }
   }
 
-  if (zone.kind === 'forestEdge') {
-    graphics.setFillStyle({ color: 0x1f3328, alpha: 0.44 });
-    for (let y = zone.y + 12; y < zone.y + zone.height; y += 44) {
-      for (let x = zone.x + 8; x < zone.x + zone.width; x += 46) {
-        const radius = 16 + ((x + y) % 17);
-        graphics.circle(x, y, radius);
-        graphics.fill();
-      }
-    }
-  }
-
   graphics.setStrokeStyle({ color: highlightByKind[zone.kind], width: 2, alpha: 0.16 });
   graphics.rect(zone.x, zone.y, zone.width, zone.height);
   graphics.stroke();
@@ -237,14 +221,6 @@ function drawTerrainZone(
 
 function drawPaths(graphics: Graphics, _paths: LudusMapScenePathViewModel[]): void {
   void _paths;
-  graphics.clear();
-}
-
-function drawWallSegments(
-  graphics: Graphics,
-  _wallSegments: LudusMapSceneWallSegmentViewModel[],
-): void {
-  void _wallSegments;
   graphics.clear();
 }
 
@@ -445,98 +421,13 @@ function shouldRenderDecoration(decoration: LudusMapSceneDecorationViewModel): b
 }
 
 function getDecorationLayerId(decoration: LudusMapSceneDecorationViewModel): LudusMapLayerId {
-  if (isPathDecoration(decoration)) {
-    return 'paths';
-  }
-
-  if (
-    isStoneWallDecoration(decoration) ||
-    isVegetationDecoration(decoration) ||
-    decoration.style === 'oliveTree' ||
-    decoration.style === 'cypressTree' ||
-    decoration.style === 'well' ||
-    decoration.style === 'storage' ||
-    decoration.style === 'amphora'
-  ) {
-    return 'characters-y-sorted';
-  }
-
+  void decoration;
   return 'static-props';
 }
 
-function isPathDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
-  return (
-    decoration.style === 'pathStraightHorizontal' ||
-    decoration.style === 'pathStraightVertical' ||
-    decoration.style === 'pathCornerNe' ||
-    decoration.style === 'pathCornerNw' ||
-    decoration.style === 'pathCornerSe' ||
-    decoration.style === 'pathCornerSw' ||
-    decoration.style === 'pathCrossroad' ||
-    decoration.style === 'pathSmallStones01' ||
-    decoration.style === 'pathDirtEdge01'
-  );
-}
-
-function isStoneWallDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
-  return (
-    decoration.style === 'stoneWallHorizontal01' ||
-    decoration.style === 'stoneWallHorizontalBroken01' ||
-    decoration.style === 'stoneWallVertical01' ||
-    decoration.style === 'stoneWallCornerNe' ||
-    decoration.style === 'stoneWallCornerNw' ||
-    decoration.style === 'stoneWallCornerSe' ||
-    decoration.style === 'stoneWallCornerSw' ||
-    decoration.style === 'gateWest' ||
-    decoration.style === 'gateEast' ||
-    decoration.style === 'gateSouth' ||
-    decoration.style === 'smallRedBannerPost'
-  );
-}
-
-function isVegetationDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
-  return (
-    decoration.style === 'treeBroadleaf01' ||
-    decoration.style === 'treeBroadleaf02' ||
-    decoration.style === 'treeBroadleaf03' ||
-    decoration.style === 'oliveTree01' ||
-    decoration.style === 'oliveTree02' ||
-    decoration.style === 'cypressTree01' ||
-    decoration.style === 'cypressTree02' ||
-    decoration.style === 'shrub01' ||
-    decoration.style === 'shrub02' ||
-    decoration.style === 'hedge01' ||
-    decoration.style === 'forestEdgeCluster01' ||
-    decoration.style === 'forestEdgeCluster02' ||
-    decoration.style === 'groveCluster01' ||
-    decoration.style === 'groveCluster02'
-  );
-}
-
-function isTreeCanopyDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
-  return (
-    decoration.style === 'treeBroadleaf01' ||
-    decoration.style === 'treeBroadleaf02' ||
-    decoration.style === 'treeBroadleaf03' ||
-    decoration.style === 'oliveTree01' ||
-    decoration.style === 'oliveTree02' ||
-    decoration.style === 'cypressTree01' ||
-    decoration.style === 'cypressTree02' ||
-    decoration.style === 'oliveTree' ||
-    decoration.style === 'cypressTree'
-  );
-}
-
-function isCypressDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
-  return (
-    decoration.style === 'cypressTree01' ||
-    decoration.style === 'cypressTree02' ||
-    decoration.style === 'cypressTree'
-  );
-}
-
 function shouldSwayDecoration(decoration: LudusMapSceneDecorationViewModel): boolean {
-  return decoration.isAnimated && isTreeCanopyDecoration(decoration);
+  void decoration;
+  return false;
 }
 
 function getDecorationPivot(decoration: LudusMapSceneDecorationViewModel): {
@@ -599,7 +490,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     'ambient-effects': { sortableChildren: true },
     'buildings-back': { sortableChildren: true },
     'characters-y-sorted': { sortableChildren: true },
-    clouds: { sortableChildren: true },
     'light-sprites': { sortableChildren: true },
     'static-props': { sortableChildren: true },
   });
@@ -609,7 +499,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
   private readonly particleEffectSystem: ParticleEffectSystem;
   private readonly pathGraphics = new Graphics({ roundPixels: true });
   private readonly terrainOverlay = new Graphics({ roundPixels: true });
-  private readonly wallGraphics = new Graphics({ roundPixels: true });
   private assetLoadId = 0;
   private assetPathKey = '';
   private cameraController: CameraController | null = null;
@@ -632,14 +521,11 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     this.backgroundFallback.label = 'map-background-fallback';
     this.pathGraphics.label = 'map-paths';
     this.terrainOverlay.label = 'terrain-overlay';
-    this.wallGraphics.label = 'map-walls';
     this.layers.layers.background.addChild(this.backgroundFallback, this.backgroundSprite);
     this.layers.layers['terrain-overlays'].addChild(this.terrainOverlay);
     this.layers.layers.paths.addChild(this.pathGraphics);
-    this.layers.layers['static-props'].addChild(this.wallGraphics);
     this.ambientAnimationSystem = new AmbientAnimationSystem({
       ambientLayer: this.layers.layers['ambient-effects'],
-      cloudLayer: this.layers.layers.clouds,
       ticker: this.app.ticker,
     });
     this.particleEffectSystem = new ParticleEffectSystem({
@@ -648,7 +534,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     });
     this.lightingSystem = new TimeOfDayLightingSystem({
       brightnessTargets: [
-        this.layers.layers.clouds,
         this.layers.layers['static-props'],
         this.layers.layers['buildings-back'],
         this.layers.layers['characters-y-sorted'],
@@ -848,25 +733,14 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
         limits,
         onChange: () => {
           this.updateLocationAffordances();
-          this.syncCameraParallax();
         },
         overscrollRatio: 0,
         target: this.layers.root,
       });
-      this.syncCameraParallax();
       return;
     }
 
     this.cameraController.configure(bounds, limits);
-    this.syncCameraParallax();
-  }
-
-  private syncCameraParallax(): void {
-    const camera = this.cameraController?.getState();
-
-    if (camera) {
-      this.ambientAnimationSystem.syncCamera(camera);
-    }
   }
 
   private loadAssetsWhenNeeded(viewModel: LudusMapSceneViewModel): void {
@@ -917,7 +791,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     setPixelArtSpriteSize(this.backgroundSprite, viewModel.width, viewModel.height);
     drawTerrainOverlay(this.terrainOverlay, viewModel, Boolean(backgroundTexture));
     drawPaths(this.pathGraphics, viewModel.paths);
-    drawWallSegments(this.wallGraphics, viewModel.wallSegments);
     this.reconcileDecorations(viewModel.decorations);
     this.reconcileLocations(viewModel.locations);
     this.reconcileGladiators(viewModel.gladiators);
@@ -976,11 +849,10 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     }
 
     const elapsedSeconds = now / 1000 + decoration.animationDelaySeconds;
-    const amplitudeDegrees = isCypressDecoration(decoration) ? 0.85 : 1.8;
     const durationSeconds = Math.max(decoration.animationDurationSeconds, 1);
     const wave = Math.sin((elapsedSeconds / durationSeconds) * Math.PI * 2);
 
-    display.container.rotation = baseRotation + (wave * amplitudeDegrees * Math.PI) / 180;
+    display.container.rotation = baseRotation + (wave * Math.PI) / 180;
   }
 
   private reconcileGladiators(gladiators: LudusMapSceneGladiatorViewModel[]): void {

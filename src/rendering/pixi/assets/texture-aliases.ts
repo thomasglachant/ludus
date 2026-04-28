@@ -21,7 +21,6 @@ export const PIXI_RENDER_LAYERS = {
   mapBackground: 'map.background',
   mapTerrain: 'map.terrain',
   mapPaths: 'map.paths',
-  mapDecorations: 'map.decorations',
   mapBuildings: 'map.buildings',
   mapAmbientBack: 'map.ambient.back',
   mapAmbientFront: 'map.ambient.front',

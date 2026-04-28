@@ -76,14 +76,7 @@ export interface LudusMapScenePathViewModel {
 
 export interface LudusMapSceneTerrainZoneViewModel extends LudusMapSceneRectViewModel {
   id: string;
-  kind: 'sea' | 'cliff' | 'forestEdge' | 'compoundGround';
-}
-
-export interface LudusMapSceneWallSegmentViewModel {
-  id: string;
-  kind: 'wall' | 'gate' | 'brokenWall' | 'partition';
-  width: number;
-  points: LudusMapScenePointViewModel[];
+  kind: 'sea' | 'cliff' | 'compoundGround';
 }
 
 export interface LudusMapSceneDecorationViewModel {
@@ -101,24 +94,7 @@ export interface LudusMapSceneDecorationViewModel {
   sortY: number;
 }
 
-export type LudusMapSceneAmbientKind =
-  | 'cloud'
-  | 'grass'
-  | 'banner'
-  | 'torch'
-  | 'smoke'
-  | 'steam'
-  | 'waterShimmer'
-  | 'seaShimmer'
-  | 'bird'
-  | 'boat'
-  | 'glow'
-  | 'sparkle'
-  | 'sway'
-  | 'dummy'
-  | 'crowd'
-  | 'awning'
-  | 'dust';
+export type LudusMapSceneAmbientKind = 'banner';
 
 export interface LudusMapSceneAmbientElementViewModel {
   id: string;
@@ -180,7 +156,6 @@ export interface LudusMapSceneViewModel {
   zoomPresets: number[];
   theme: LudusMapSceneThemeViewModel;
   terrainZones: LudusMapSceneTerrainZoneViewModel[];
-  wallSegments: LudusMapSceneWallSegmentViewModel[];
   paths: LudusMapScenePathViewModel[];
   decorations: LudusMapSceneDecorationViewModel[];
   ambientElements: LudusMapSceneAmbientElementViewModel[];

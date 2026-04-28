@@ -90,7 +90,7 @@ It should display:
 - Market as an external location;
 - Arena as an external location;
 - paths;
-- decorations;
+- flags/banners;
 - gladiator sprites;
 - time-of-day effects.
 
@@ -105,7 +105,7 @@ The map should support:
 - hover states;
 - selected states.
 
-Building positions, paths, decorations and visual definitions must be data-driven through `src/game-data` or adjacent game-data modules. React map components should render definitions and interaction state, not own gameplay formulas or hardcoded layout rules.
+Building positions, paths, flag/banner elements and visual definitions must be data-driven through `src/game-data` or adjacent game-data modules. React map components should render definitions and interaction state, not own gameplay formulas or hardcoded layout rules.
 
 The map viewport must expose a stable `data-testid="map-container"` and a
 `data-time-of-day` attribute for the active visual phase. Current supported
@@ -121,10 +121,10 @@ data helpers:
 - time-of-day background assets;
 - building exterior/interior/roof/prop assets;
 - external Market and Arena assets;
-- ambient cloud, grass, banner, torch, smoke and crowd assets;
+- ambient banner assets;
 - gladiator sprite frame arrays.
 
-Ambient map motion should be subtle and continuous. It should use CSS
+Ambient map motion should be subtle and continuous. It should use renderer-side
 transform/opacity animation and must respect `prefers-reduced-motion`.
 
 ## 6. Building Interaction

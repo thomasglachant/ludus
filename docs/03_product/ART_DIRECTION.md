@@ -3,10 +3,6 @@
 This document is the durable source of truth for the player-facing visual direction of
 `ludus`.
 
-The visual migration archive in `docs/visual-migration/` explains how the current
-direction was reached, but future product work should use this document and
-`docs/03_product/UI_UX.md` as the primary references.
-
 ## Visual Vision
 
 `ludus` should feel like a handcrafted Roman pixel-art management game where the
@@ -104,7 +100,7 @@ The ludus should feel active even when the player is not clicking constantly.
 
 Required motion language:
 
-- subtle clouds, grass, banners, smoke, torch flicker and arena crowd hints;
+- subtle banner flutter, time-of-day ambience and arena crowd hints;
 - two-frame or short-loop gladiator map animations;
 - two-frame or short-loop combat idle/attack motion;
 - real gladiator movement between buildings and activity locations;
@@ -143,12 +139,12 @@ The map should depict the ludus as a small Roman school complex:
 - Infirmary;
 - Market as an external location;
 - Arena as an external location;
-- paths, walls, fences, trees, torches, banners and props;
+- paths, readable terrain, flags/banners and activity areas;
 - gladiator map sprites with activity animation states.
 
-Map layout, buildings, paths, decorations, hit areas, external locations, time
-themes and asset paths belong in `src/game-data` or adjacent visual data
-modules.
+Map layout, buildings, paths, flag/banner elements, hit areas, external
+locations, time themes and asset paths belong in `src/game-data` or adjacent
+visual data modules.
 
 The map target is a living PixiJS-rendered scene: a rich 2D or isometric
 pixel-art ludus with visible buildings, readable terrain, moving gladiators,
@@ -163,8 +159,8 @@ Required map scene behavior:
   going, while the renderer interpolates how the sprite gets there;
 - scene layers use depth sorting so lower objects and characters appear in
   front of higher ones;
-- torches, smoke, banners, shadows, crowd hints and time-of-day ambience make
-  the ludus feel inhabited;
+- banners, shadows, crowd hints and time-of-day ambience make the ludus feel
+  inhabited;
 - `prefers-reduced-motion` disables non-essential animation while preserving
   readable state.
 
@@ -173,12 +169,11 @@ living map and combat presentation, while React keeps the surrounding HUD,
 panels, modals and routing. The previous DOM/CSS map renderer is no longer part
 of the normal player experience.
 
-The visual target matches the provided pixel-art references: a dense Roman
-map-first scene with a dark bronze HUD, parchment panels, visible characters,
-clear building silhouettes and theatrical arena presentation. Generated SVG
-scaffolding is placeholder-only and must not be accepted as final
-player-facing art. Final quality comes from authored pixel-art spritesheets,
-backgrounds and building assets.
+The visual target is a dense Roman map-first scene with a dark bronze HUD,
+parchment panels, visible characters, clear building silhouettes and theatrical
+arena presentation. Generated SVG scaffolding is placeholder-only and must not
+be accepted as final player-facing art. Final quality comes from authored
+pixel-art spritesheets, backgrounds and building assets.
 
 ## Visual Acceptance Checklist
 
@@ -189,9 +184,8 @@ Before accepting player-facing visual work, verify:
 - [ ] no geometric placeholder gladiators are visible in the normal player
       experience;
 - [ ] final building art is not made mainly from SVG primitives;
-- [ ] the map, combat screen and homepage resemble the reference images in
-      composition, mood, materials, density and game feel, without copying them
-      pixel-for-pixel.
+- [ ] the map, combat screen and homepage preserve the intended composition,
+      mood, materials, density and game feel.
 
 ## Time Of Day
 
@@ -206,13 +200,12 @@ Each phase should define:
 
 - map background asset;
 - terrain, sky, overlay and lighting values;
-- torch visibility;
-- cloud opacity;
 - sprite brightness;
+- ambient element visibility;
 - ambient animation speed.
 
 Dawn and dusk should feel warm. Day should maximize readability. Night should be
-darker with torch and window-light emphasis.
+darker while preserving readable building and character silhouettes.
 
 ## Building Visuals
 

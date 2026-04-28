@@ -87,9 +87,7 @@ export class TimeOfDayLightingSystem {
     this.reducedMotion = viewModel.reducedMotion;
     this.drawOverlay(viewModel);
     this.applySpriteBrightness(viewModel.theme);
-    this.reconcileTorchLights(
-      viewModel.ambientElements.filter((element) => element.kind === 'torch'),
-    );
+    this.reconcileTorchLights([]);
     this.reconcileBuildingLights(viewModel.locations);
     this.updateLights(performance.now());
   }

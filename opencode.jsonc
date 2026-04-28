@@ -13,11 +13,7 @@
       ".git/**",
       ".vite/**",
       "playwright-report/**",
-      "test-results/**",
       "public/assets/pixel-art/**",
-      "docs/visual-migration/**",
-      "ludus_visual_migration_pr_ready/**",
-      "src-stubs/**",
     ],
   },
 }

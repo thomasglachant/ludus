@@ -102,7 +102,7 @@ ambient view-model entries with asset paths, opacity, animation duration and
 layering.
 
 Ambient animation runs inside Pixi tick callbacks. React must not update state
-per frame for clouds, smoke, torches, banners, grass or crowd hints.
+per frame for banners, crowd hints or future ambient variants.
 
 `prefers-reduced-motion` is read by the React adapter and passed as a boolean to
 the scene view-model. When reduced motion is active, non-essential ambient

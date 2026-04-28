@@ -13,8 +13,7 @@ export type MapLocationStyle =
   | 'infirmary'
   | 'market'
   | 'arena';
-export type MapTerrainZoneKind = 'sea' | 'cliff' | 'forestEdge' | 'compoundGround';
-export type MapWallSegmentKind = 'wall' | 'gate' | 'brokenWall' | 'partition';
+export type MapTerrainZoneKind = 'sea' | 'cliff' | 'compoundGround';
 
 export interface MapPoint {
   x: number;
@@ -73,13 +72,6 @@ export interface MapTerrainZoneDefinition extends MapRect {
   grid: MapGridRect;
 }
 
-export interface MapWallSegmentDefinition {
-  id: string;
-  kind: MapWallSegmentKind;
-  points: MapPoint[];
-  width: number;
-}
-
 export interface GladiatorMapSlotDefinition extends MapPoint {
   id: string;
   locationId: MapLocationId;
@@ -101,7 +93,6 @@ export interface LudusMapDefinition {
   maxZoom: number;
   zoomPresets: number[];
   terrainZones: MapTerrainZoneDefinition[];
-  wallSegments: MapWallSegmentDefinition[];
   locations: MapLocationDefinition[];
   paths: MapPathDefinition[];
   decorations: MapDecorationDefinition[];
@@ -250,126 +241,10 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
   terrainZones: [
     { id: 'sea-sky', kind: 'sea', ...gridRect(0, 0, 32, 2) },
     { id: 'rocky-cliff', kind: 'cliff', ...gridRect(0, 2, 32, 2) },
-    { id: 'west-forest-edge', kind: 'forestEdge', ...gridRect(0, 3, 2, 17) },
-    { id: 'east-forest-edge', kind: 'forestEdge', ...gridRect(30, 3, 2, 17) },
-    { id: 'bottom-forest-edge', kind: 'forestEdge', ...gridRect(0, 19, 32, 1) },
+    { id: 'west-compound-edge', kind: 'compoundGround', ...gridRect(0, 3, 2, 17) },
+    { id: 'east-compound-edge', kind: 'compoundGround', ...gridRect(30, 3, 2, 17) },
+    { id: 'bottom-compound-edge', kind: 'compoundGround', ...gridRect(0, 19, 32, 1) },
     { id: 'main-ludus-compound', kind: 'compoundGround', ...gridRect(2, 3, 28, 16) },
-  ],
-  wallSegments: [
-    {
-      id: 'north-west-wall',
-      kind: 'brokenWall',
-      width: 18,
-      points: [
-        { x: 210, y: 270 },
-        { x: 570, y: 252 },
-        { x: 820, y: 276 },
-      ],
-    },
-    {
-      id: 'north-center-overlook',
-      kind: 'gate',
-      width: 22,
-      points: [
-        { x: 940, y: 258 },
-        { x: 1125, y: 245 },
-      ],
-    },
-    {
-      id: 'north-east-wall',
-      kind: 'brokenWall',
-      width: 18,
-      points: [
-        { x: 1280, y: 268 },
-        { x: 1620, y: 246 },
-        { x: 2145, y: 284 },
-      ],
-    },
-    {
-      id: 'west-market-gate',
-      kind: 'gate',
-      width: 22,
-      points: [
-        { x: 150, y: 690 },
-        { x: 150, y: 830 },
-      ],
-    },
-    {
-      id: 'west-lower-wall',
-      kind: 'wall',
-      width: 18,
-      points: [
-        { x: 172, y: 900 },
-        { x: 190, y: 1270 },
-      ],
-    },
-    {
-      id: 'east-arena-gate',
-      kind: 'gate',
-      width: 22,
-      points: [
-        { x: 2240, y: 670 },
-        { x: 2248, y: 815 },
-      ],
-    },
-    {
-      id: 'east-training-wall',
-      kind: 'wall',
-      width: 18,
-      points: [
-        { x: 2235, y: 910 },
-        { x: 2205, y: 1210 },
-      ],
-    },
-    {
-      id: 'south-service-gate',
-      kind: 'gate',
-      width: 22,
-      points: [
-        { x: 900, y: 1402 },
-        { x: 1190, y: 1406 },
-      ],
-    },
-    {
-      id: 'south-east-wall',
-      kind: 'brokenWall',
-      width: 18,
-      points: [
-        { x: 1390, y: 1390 },
-        { x: 1900, y: 1415 },
-        { x: 2210, y: 1360 },
-      ],
-    },
-    {
-      id: 'market-domus-partition',
-      kind: 'partition',
-      width: 12,
-      points: [
-        { x: 705, y: 640 },
-        { x: 795, y: 805 },
-        { x: 780, y: 960 },
-      ],
-    },
-    {
-      id: 'domus-training-partition',
-      kind: 'partition',
-      width: 12,
-      points: [
-        { x: 1550, y: 690 },
-        { x: 1598, y: 870 },
-        { x: 1565, y: 1110 },
-      ],
-    },
-    {
-      id: 'south-quarters-partition',
-      kind: 'partition',
-      width: 12,
-      points: [
-        { x: 820, y: 1045 },
-        { x: 960, y: 1125 },
-        { x: 1035, y: 1320 },
-      ],
-    },
   ],
   locations: [
     {
@@ -378,7 +253,7 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       nameKey: 'buildings.canteen.name',
       descriptionKey: 'buildings.canteen.description',
       style: 'canteen',
-      ...gridRect(5, 4, 6, 4),
+      ...gridRect(5.9, 3.5, 6, 4),
       activitySlots: actionSlots('canteen'),
     },
     {
@@ -387,7 +262,7 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       nameKey: 'buildings.pleasureHall.name',
       descriptionKey: 'buildings.pleasureHall.description',
       style: 'pleasureHall',
-      ...gridRect(14, 4, 6, 4),
+      ...gridRect(12.3, 3.6, 6, 4),
       activitySlots: actionSlots('pleasureHall'),
     },
     {
@@ -397,7 +272,7 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       descriptionKey: 'map.locations.arena.description',
       style: 'arena',
       assetPath: VISUAL_ASSET_MANIFEST.locations.arena.exterior,
-      ...gridRect(23, 3, 7, 6),
+      ...gridRect(19.4, 2.7, 7, 6),
       activitySlots: actionSlots('arena'),
     },
     {
@@ -407,7 +282,7 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       descriptionKey: 'map.locations.market.description',
       style: 'market',
       assetPath: VISUAL_ASSET_MANIFEST.locations.market.exterior,
-      ...gridRect(2, 8, 6, 4),
+      ...gridRect(4.2, 7.8, 6, 4),
       activitySlots: actionSlots('market'),
     },
     {
@@ -416,7 +291,7 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       nameKey: 'buildings.domus.name',
       descriptionKey: 'buildings.domus.description',
       style: 'domus',
-      ...gridRect(12, 8, 7, 5),
+      ...gridRect(11.8, 7.8, 7, 5),
       activitySlots: actionSlots('domus'),
     },
     {
@@ -425,7 +300,7 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       nameKey: 'buildings.trainingGround.name',
       descriptionKey: 'buildings.trainingGround.description',
       style: 'trainingGround',
-      ...gridRect(22, 10, 8, 6),
+      ...gridRect(19.5, 8.5, 8, 6),
       activitySlots: actionSlots('trainingGround'),
     },
     {
@@ -434,7 +309,7 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       nameKey: 'buildings.dormitory.name',
       descriptionKey: 'buildings.dormitory.description',
       style: 'dormitory',
-      ...gridRect(5, 14, 6, 4),
+      ...gridRect(5.4, 13, 6, 4),
       activitySlots: actionSlots('dormitory'),
     },
     {
@@ -443,7 +318,7 @@ export const LUDUS_MAP_DEFINITION: LudusMapDefinition = {
       nameKey: 'buildings.infirmary.name',
       descriptionKey: 'buildings.infirmary.description',
       style: 'infirmary',
-      ...gridRect(14, 14, 6, 4),
+      ...gridRect(12.5, 13.2, 6, 4),
       activitySlots: actionSlots('infirmary'),
     },
   ],

@@ -679,88 +679,8 @@ h3 {
   stroke-width: 44;
 }
 
-.map-decoration,
 .map-location {
   position: absolute;
-}
-
-.map-decoration {
-  z-index: 2;
-  display: block;
-  pointer-events: none;
-}
-
-.map-decoration--oliveTree::before,
-.map-decoration--oliveTree::after,
-.map-decoration--cypressTree::before,
-.map-decoration--cypressTree::after {
-  position: absolute;
-  content: '';
-}
-
-.map-decoration--oliveTree::before {
-  inset: 8% 8% 20%;
-  border: 5px solid rgba(55, 91, 52, 0.85);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, #7e9f55 0 18%, transparent 19%),
-    radial-gradient(circle at 62% 42%, #526f3f 0 22%, transparent 23%),
-    radial-gradient(circle at 48% 68%, #6b8d4b 0 24%, transparent 25%);
-}
-
-.map-decoration--oliveTree::after {
-  right: 41%;
-  bottom: 6%;
-  width: 18%;
-  height: 34%;
-  border-radius: 3px;
-  background: #76563a;
-}
-
-.map-decoration--cypressTree::before {
-  inset: 4% 22% 10%;
-  border-radius: 48% 48% 42% 42%;
-  background: linear-gradient(180deg, #435f3f, #28452e);
-}
-
-.map-decoration--cypressTree::after {
-  right: 42%;
-  bottom: 0;
-  width: 16%;
-  height: 24%;
-  background: #715439;
-}
-
-.map-decoration--well {
-  border: 5px solid #746b5f;
-  border-radius: 50%;
-  background: radial-gradient(circle, #5c7883 0 28%, #d8cfbd 29% 56%, #897765 57%);
-  box-shadow: 0 8px 0 rgba(86, 64, 45, 0.18);
-}
-
-.map-decoration--storage {
-  border: 4px solid #7f5c38;
-  border-radius: 8px;
-  background:
-    linear-gradient(90deg, transparent 0 30%, rgba(96, 63, 35, 0.28) 31% 36%, transparent 37%),
-    #b47a42;
-}
-
-.map-decoration--field {
-  border: 4px solid rgba(126, 102, 53, 0.68);
-  border-radius: 8px;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(92, 122, 63, 0.6) 0 14px,
-      rgba(196, 157, 75, 0.62) 14px 28px
-    ),
-    #bfa76e;
-}
-
-.map-decoration--wall {
-  border-radius: 4px;
-  background: repeating-linear-gradient(90deg, #8e7a63 0 28px, #6f604f 28px 32px), #8e7a63;
 }
 
 .map-location {
@@ -2749,9 +2669,7 @@ h3 {
   --map-overlay-opacity: 0.06;
   --map-light-color: #fff1bd;
   --map-shadow-color: #4f3a28;
-  --map-torch-opacity: 0.12;
   --map-sprite-brightness: 1;
-  --map-cloud-opacity: 1;
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -2916,15 +2834,8 @@ h3 {
   filter: drop-shadow(0 6px 0 rgba(72, 52, 35, 0.18));
 }
 
-.ludus-map-decoration,
 .ludus-map-location {
   position: absolute;
-}
-
-.ludus-map-decoration {
-  z-index: 3;
-  display: block;
-  pointer-events: none;
 }
 
 .ludus-map-ambient-layer {
@@ -2950,185 +2861,11 @@ h3 {
   image-rendering: pixelated;
 }
 
-.ludus-map-ambient--cloud {
-  animation: ludus-map-cloud-drift var(--ambient-duration, 90s) linear infinite;
-  animation-delay: var(--ambient-delay, 0s);
-}
-
-.ludus-map-ambient--cloud .ludus-map-ambient__asset {
-  filter: drop-shadow(0 8px 0 rgba(70, 55, 48, 0.08));
-  opacity: var(--map-cloud-opacity, 1);
-}
-
-.ludus-map-ambient--grass {
-  animation: ludus-map-grass-sway var(--ambient-duration, 4s) ease-in-out infinite;
-  animation-delay: var(--ambient-delay, 0s);
-}
-
 .ludus-map-ambient--banner .ludus-map-ambient__asset {
   animation: ludus-map-banner-flutter var(--ambient-duration, 1.8s) steps(2, end) infinite;
   animation-delay: var(--ambient-delay, 0s);
   filter: drop-shadow(0 5px 0 rgba(55, 35, 24, 0.22));
   transform-origin: 50% 10%;
-}
-
-.ludus-map-ambient--torch::after {
-  position: absolute;
-  top: -9px;
-  left: 50%;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--map-light-color), transparent 18%),
-    transparent 68%
-  );
-  content: '';
-  opacity: var(--map-torch-opacity, 1);
-  transform: translateX(-50%);
-}
-
-.ludus-map-ambient--torch .ludus-map-ambient__asset {
-  position: relative;
-  z-index: 1;
-  animation: ludus-map-torch-flicker var(--ambient-duration, 1s) steps(2, end) infinite;
-  animation-delay: var(--ambient-delay, 0s);
-  opacity: var(--map-torch-opacity, 1);
-}
-
-.ludus-map-ambient--smoke {
-  animation: ludus-map-smoke-rise var(--ambient-duration, 7s) ease-in-out infinite;
-  animation-delay: var(--ambient-delay, 0s);
-}
-
-.ludus-map-ambient--crowd .ludus-map-ambient__asset {
-  animation: ludus-map-crowd-shimmer var(--ambient-duration, 2.8s) steps(2, end) infinite;
-  animation-delay: var(--ambient-delay, 0s);
-}
-
-.ludus-map-decoration--oliveTree::before,
-.ludus-map-decoration--oliveTree::after,
-.ludus-map-decoration--cypressTree::before,
-.ludus-map-decoration--cypressTree::after,
-.ludus-map-decoration--torch::before,
-.ludus-map-decoration--torch::after,
-.ludus-map-decoration--amphora::before,
-.ludus-map-decoration--amphora::after {
-  position: absolute;
-  content: '';
-}
-
-.ludus-map-decoration--oliveTree::before {
-  inset: 8% 8% 20%;
-  border: 5px solid rgba(55, 91, 52, 0.85);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, #809c55 0 18%, transparent 19%),
-    radial-gradient(circle at 62% 42%, #526f3f 0 22%, transparent 23%),
-    radial-gradient(circle at 48% 68%, #6b8d4b 0 24%, transparent 25%);
-  transform-origin: 50% 100%;
-  animation: ludus-map-tree-sway 5.6s ease-in-out infinite;
-}
-
-.ludus-map-decoration--oliveTree::after {
-  right: 41%;
-  bottom: 6%;
-  width: 18%;
-  height: 34%;
-  border-radius: 3px;
-  background: #76563a;
-}
-
-.ludus-map-decoration--cypressTree::before {
-  inset: 4% 22% 10%;
-  border-radius: 48% 48% 42% 42%;
-  background: linear-gradient(180deg, #435f3f, #28452e);
-  transform-origin: 50% 100%;
-  animation: ludus-map-tree-sway 6.4s ease-in-out infinite reverse;
-}
-
-.ludus-map-decoration--cypressTree::after {
-  right: 42%;
-  bottom: 0;
-  width: 16%;
-  height: 24%;
-  background: #715439;
-}
-
-.ludus-map-decoration--well {
-  border: 5px solid #746b5f;
-  border-radius: 50%;
-  background: radial-gradient(circle, #5c7883 0 28%, #d8cfbd 29% 56%, #897765 57%);
-  box-shadow: 0 8px 0 rgba(86, 64, 45, 0.18);
-}
-
-.ludus-map-decoration--storage {
-  border: 4px solid #7f5c38;
-  border-radius: 8px;
-  background:
-    linear-gradient(90deg, transparent 0 30%, rgba(96, 63, 35, 0.28) 31% 36%, transparent 37%),
-    #b47a42;
-}
-
-.ludus-map-decoration--field {
-  border: 4px solid rgba(126, 102, 53, 0.68);
-  border-radius: 8px;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(92, 122, 63, 0.6) 0 14px,
-      rgba(196, 157, 75, 0.62) 14px 28px
-    ),
-    #bfa76e;
-}
-
-.ludus-map-decoration--wall,
-.ludus-map-decoration--fence {
-  border-radius: 4px;
-  background: repeating-linear-gradient(90deg, #8e7a63 0 28px, #6f604f 28px 32px), #8e7a63;
-}
-
-.ludus-map-decoration--fence {
-  background: repeating-linear-gradient(90deg, #6f5138 0 18px, transparent 18px 30px), #a77a45;
-}
-
-.ludus-map-decoration--torch::before {
-  left: 40%;
-  bottom: 0;
-  width: 18%;
-  height: 72%;
-  background: #5d3d29;
-}
-
-.ludus-map-decoration--torch::after {
-  top: 0;
-  left: 20%;
-  width: 58%;
-  height: 38%;
-  border-radius: 50% 50% 44% 44%;
-  background: radial-gradient(circle, #fff2a8 0 20%, #f2a23a 22% 58%, #b94d32 60%);
-  box-shadow:
-    0 0 14px color-mix(in srgb, var(--map-light-color), transparent 24%),
-    0 0 34px color-mix(in srgb, var(--map-light-color), transparent 36%);
-  opacity: var(--map-torch-opacity);
-  animation: ludus-torch-flicker 1.2s steps(2, end) infinite;
-}
-
-.ludus-map-decoration--amphora::before {
-  inset: 12% 18% 4%;
-  border-radius: 44% 44% 38% 38%;
-  background: linear-gradient(180deg, #c76c45, #8b4a31);
-}
-
-.ludus-map-decoration--amphora::after {
-  top: 2%;
-  left: 34%;
-  width: 32%;
-  height: 18%;
-  border: 4px solid #8b4a31;
-  border-bottom: 0;
-  border-radius: 50% 50% 0 0;
 }
 
 .ludus-map-location {
@@ -3658,30 +3395,6 @@ h3 {
     drop-shadow(0 0 7px rgba(220, 239, 234, 0.74));
 }
 
-@keyframes ludus-map-cloud-drift {
-  0% {
-    transform: translateX(0) rotate(var(--ambient-rotation, 0deg)) scale(var(--ambient-scale, 1));
-  }
-
-  100% {
-    transform: translateX(3180px) rotate(var(--ambient-rotation, 0deg))
-      scale(var(--ambient-scale, 1));
-  }
-}
-
-@keyframes ludus-map-grass-sway {
-  0%,
-  100% {
-    transform: rotate(calc(var(--ambient-rotation, 0deg) - 1deg)) scale(var(--ambient-scale, 1))
-      translateY(0);
-  }
-
-  50% {
-    transform: rotate(calc(var(--ambient-rotation, 0deg) + 2deg)) scale(var(--ambient-scale, 1))
-      translateY(-2px);
-  }
-}
-
 @keyframes ludus-map-banner-flutter {
   0%,
   100% {
@@ -3690,61 +3403,6 @@ h3 {
 
   50% {
     transform: skewX(4deg) translateY(2px);
-  }
-}
-
-@keyframes ludus-map-torch-flicker {
-  0%,
-  100% {
-    filter: brightness(1);
-    transform: scale(1);
-  }
-
-  50% {
-    filter: brightness(1.18);
-    transform: scale(0.92, 1.08);
-  }
-}
-
-@keyframes ludus-map-smoke-rise {
-  0% {
-    opacity: 0;
-    transform: translate(0, 10px) rotate(var(--ambient-rotation, 0deg))
-      scale(var(--ambient-scale, 1));
-  }
-
-  24% {
-    opacity: var(--ambient-opacity, 1);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate(18px, -44px) rotate(calc(var(--ambient-rotation, 0deg) + 8deg))
-      scale(var(--ambient-scale, 1)) scale(1.2);
-  }
-}
-
-@keyframes ludus-map-crowd-shimmer {
-  0%,
-  100% {
-    filter: brightness(0.86);
-    transform: translateY(0);
-  }
-
-  50% {
-    filter: brightness(1.16);
-    transform: translateY(-2px);
-  }
-}
-
-@keyframes ludus-map-tree-sway {
-  0%,
-  100% {
-    transform: rotate(-1deg);
-  }
-
-  50% {
-    transform: rotate(2deg) translateY(-1px);
   }
 }
 
@@ -3864,38 +3522,13 @@ h3 {
   }
 }
 
-@keyframes ludus-torch-flicker {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(0.88, 1.12);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .ludus-map-ambient,
   .ludus-map-ambient__asset,
   .ludus-map-sprite__motion,
   .ludus-map-sprite__asset,
-  .ludus-map-sprite__shadow,
-  .ludus-map-decoration--oliveTree::before,
-  .ludus-map-decoration--cypressTree::before,
-  .ludus-map-decoration--torch::after {
+  .ludus-map-sprite__shadow {
     animation: none;
-  }
-
-  .ludus-map-ambient--cloud {
-    transform: translateX(920px) rotate(var(--ambient-rotation, 0deg))
-      scale(var(--ambient-scale, 1));
-  }
-
-  .ludus-map-ambient--smoke {
-    opacity: 0.42;
-    transform: translateY(-12px) rotate(var(--ambient-rotation, 0deg))
-      scale(var(--ambient-scale, 1));
   }
 }
 

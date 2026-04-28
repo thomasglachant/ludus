@@ -26,72 +26,20 @@ interface CreateLudusMapSceneViewModelOptions {
   translateLabel?: (key: string, params?: Record<string, string | number>) => string;
 }
 
+const LOCATION_LABEL_BOTTOM_OFFSET = 40;
+
 function parseHexColor(hexColor: string) {
   return Number.parseInt(hexColor.replace('#', ''), 16);
 }
 
 function getDecorationAssetPath(style: string): string | undefined {
-  const ambientAssets = VISUAL_ASSET_MANIFEST.map.ambient;
-  const vegetationAssets: Record<string, string | undefined> = {
-    treeBroadleaf01: ambientAssets['tree-broadleaf-01'],
-    treeBroadleaf02: ambientAssets['tree-broadleaf-02'],
-    treeBroadleaf03: ambientAssets['tree-broadleaf-03'],
-    oliveTree01: ambientAssets['olive-tree-01'],
-    oliveTree02: ambientAssets['olive-tree-02'],
-    cypressTree01: ambientAssets['cypress-tree-01'],
-    cypressTree02: ambientAssets['cypress-tree-02'],
-    shrub01: ambientAssets['shrub-01'],
-    shrub02: ambientAssets['shrub-02'],
-    hedge01: ambientAssets['hedge-01'],
-    forestEdgeCluster01: ambientAssets['forest-edge-cluster-01'],
-    forestEdgeCluster02: ambientAssets['forest-edge-cluster-02'],
-    groveCluster01: ambientAssets['grove-cluster-01'],
-    groveCluster02: ambientAssets['grove-cluster-02'],
-  };
-  const terrainAssets: Record<string, string | undefined> = {
-    pathStraightHorizontal: ambientAssets['path-straight-horizontal'],
-    pathStraightVertical: ambientAssets['path-straight-vertical'],
-    pathCornerNe: ambientAssets['path-corner-ne'],
-    pathCornerNw: ambientAssets['path-corner-nw'],
-    pathCornerSe: ambientAssets['path-corner-se'],
-    pathCornerSw: ambientAssets['path-corner-sw'],
-    pathCrossroad: ambientAssets['path-crossroad'],
-    pathSmallStones01: ambientAssets['path-small-stones-01'],
-    pathDirtEdge01: ambientAssets['path-dirt-edge-01'],
-    stoneWallHorizontal01: ambientAssets['stone-wall-horizontal-01'],
-    stoneWallHorizontalBroken01: ambientAssets['stone-wall-horizontal-broken-01'],
-    stoneWallVertical01: ambientAssets['stone-wall-vertical-01'],
-    stoneWallCornerNe: ambientAssets['stone-wall-corner-ne'],
-    stoneWallCornerNw: ambientAssets['stone-wall-corner-nw'],
-    stoneWallCornerSe: ambientAssets['stone-wall-corner-se'],
-    stoneWallCornerSw: ambientAssets['stone-wall-corner-sw'],
-    gateWest: ambientAssets['gate-west'],
-    gateEast: ambientAssets['gate-east'],
-    gateSouth: ambientAssets['gate-south'],
-    smallRedBannerPost: ambientAssets['small-red-banner-post'],
-  };
-
-  if (vegetationAssets[style]) {
-    return vegetationAssets[style];
-  }
-
-  if (terrainAssets[style]) {
-    return terrainAssets[style];
-  }
-
-  if (style === 'oliveTree') {
-    return ambientAssets['olive-tree-01'] ?? ambientAssets['olive-tree'];
-  }
-
-  if (style === 'cypressTree') {
-    return ambientAssets['cypress-tree-01'] ?? ambientAssets['cypress-tree'];
-  }
-
+  void style;
   return undefined;
 }
 
 function shouldOffsetAmbientElement(kind: string): boolean {
-  return kind !== 'cloud';
+  void kind;
+  return true;
 }
 
 function createLocationLabelParts(
@@ -157,12 +105,6 @@ export function createLudusMapSceneViewModel(
       width: zone.width,
       height: zone.height,
     })),
-    wallSegments: LUDUS_MAP_DEFINITION.wallSegments.map((segment) => ({
-      id: segment.id,
-      kind: segment.kind,
-      width: segment.width,
-      points: segment.points,
-    })),
     paths: LUDUS_MAP_DEFINITION.paths.map((path) => ({
       id: path.id,
       kind: path.kind,
@@ -199,12 +141,7 @@ export function createLudusMapSceneViewModel(
         y: element.y + yOffset,
         width: element.width,
         height: element.height,
-        opacity:
-          element.kind === 'torch' || element.kind === 'glow'
-            ? (element.opacity ?? 1) * timeOfDay.visualTheme.torchOpacity
-            : element.kind === 'cloud'
-              ? (element.opacity ?? 1) * (timeOfDay.visualTheme.cloudOpacity ?? 1)
-              : (element.opacity ?? 1),
+        opacity: element.opacity ?? 1,
         rotation: element.rotation ?? 0,
         animationDelaySeconds: element.animationDelaySeconds ?? 0,
         animationDurationSeconds:
@@ -273,7 +210,7 @@ export function createLudusMapSceneViewModel(
         },
         labelPosition: {
           x: location.x + width / 2,
-          y: location.y + height + 32,
+          y: location.y + height - LOCATION_LABEL_BOTTOM_OFFSET,
         },
         sortY: location.y + height,
       };

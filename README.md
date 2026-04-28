@@ -50,7 +50,6 @@ npm run test
 - `docs/02_technical/DOMAIN_MODELS.md`
 - `docs/03_product/UI_UX.md`
 - `docs/03_product/ART_DIRECTION.md`
-- `docs/visual-migration/README.md`
 - `docs/04_roadmap/ROADMAP.md`
 
 ## Principles

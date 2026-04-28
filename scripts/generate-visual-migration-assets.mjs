@@ -24,19 +24,19 @@ const buildingLevels = [0, 1, 2, 3];
 const generatedAt = '2026-01-01T00:00:00.000Z';
 
 const phasePalettes = {
-  dawn: { sky: '#d99a79', ground: '#b9965c', grass: '#6f844b', light: '#ffd39a', shadow: '#5a3a36' },
-  day: { sky: '#83b6c8', ground: '#bfa66d', grass: '#6f8f50', light: '#ffe8a5', shadow: '#4b3828' },
-  dusk: { sky: '#7a536f', ground: '#a78355', grass: '#5f7544', light: '#ffaf62', shadow: '#38243a' },
-  night: { sky: '#17283d', ground: '#69604f', grass: '#3f5542', light: '#ff9b45', shadow: '#101624' },
+  dawn: { sky: '#d99a79', ground: '#b9965c', grass: '#6f844b', shadow: '#5a3a36' },
+  day: { sky: '#83b6c8', ground: '#bfa66d', grass: '#6f8f50', shadow: '#4b3828' },
+  dusk: { sky: '#7a536f', ground: '#a78355', grass: '#5f7544', shadow: '#38243a' },
+  night: { sky: '#17283d', ground: '#69604f', grass: '#3f5542', shadow: '#101624' },
 };
 
 const buildingThemes = {
-  domus: { wall: '#d7b179', roof: '#a84532', trim: '#60442f', accent: '#efd9a2', icon: 'columns' },
-  canteen: { wall: '#cf9b66', roof: '#bf5b35', trim: '#60432d', accent: '#9a6536', icon: 'smoke' },
-  dormitory: { wall: '#c99968', roof: '#8e3d43', trim: '#5b3f2d', accent: '#765031', icon: 'beds' },
-  trainingGround: { wall: '#c69052', roof: '#7f5b35', trim: '#59402b', accent: '#af7642', icon: 'dummies' },
-  pleasureHall: { wall: '#cfa574', roof: '#86508c', trim: '#593653', accent: '#d4a740', icon: 'curtain' },
-  infirmary: { wall: '#d4b987', roof: '#6f9b91', trim: '#49645e', accent: '#b33a4b', icon: 'cross' },
+  domus: { wall: '#d7b179', roof: '#a84532', trim: '#60442f', accent: '#efd9a2' },
+  canteen: { wall: '#cf9b66', roof: '#bf5b35', trim: '#60432d', accent: '#9a6536' },
+  dormitory: { wall: '#c99968', roof: '#8e3d43', trim: '#5b3f2d', accent: '#765031' },
+  trainingGround: { wall: '#c69052', roof: '#7f5b35', trim: '#59402b', accent: '#af7642' },
+  pleasureHall: { wall: '#cfa574', roof: '#86508c', trim: '#593653', accent: '#d4a740' },
+  infirmary: { wall: '#d4b987', roof: '#6f9b91', trim: '#49645e', accent: '#b33a4b' },
 };
 
 const gladiatorPalettes = [
@@ -84,7 +84,6 @@ function ellipse(cx, cy, rx, ry, fill, extra = '') {
 
 function makeMapBackground(phase) {
   const p = phasePalettes[phase];
-  const torchOpacity = phase === 'night' ? 1 : phase === 'dusk' ? 0.75 : phase === 'dawn' ? 0.35 : 0.15;
   const starLayer = phase === 'night'
     ? Array.from({ length: 42 }, (_, i) => rect((i * 97) % 1440, 24 + ((i * 53) % 210), 3, 3, '#f2e4b8', 'opacity="0.7"')).join('\n')
     : '';
@@ -104,10 +103,6 @@ function makeMapBackground(phase) {
     <path d="M780 940 L1200 540 L1260 570 L850 960 Z" fill="#a37145" opacity="0.75"/>
     ${rect(510, 350, 820, 550, 'none', 'stroke="#5c4634" stroke-width="10"')}
     ${rect(522, 362, 796, 526, 'none', 'stroke="#d8bd79" stroke-width="3" opacity="0.75"')}
-    <g opacity="${torchOpacity}">
-      ${Array.from({ length: 8 }, (_, i) => `<g transform="translate(${560 + i * 105},388)">${rect(0,0,8,34,'#4b2f22')}${rect(-4,-10,16,12,p.light)}</g>`).join('\n')}
-      ${Array.from({ length: 6 }, (_, i) => `<g transform="translate(${540 + i * 135},846)">${rect(0,0,8,34,'#4b2f22')}${rect(-4,-10,16,12,p.light)}</g>`).join('\n')}
-    </g>
     <rect x="0" y="0" width="1440" height="980" fill="${p.shadow}" opacity="${phase === 'night' ? 0.24 : phase === 'dusk' ? 0.12 : 0.03}"/>
   `);
 }
@@ -341,28 +336,8 @@ function crowdDots(x, y, w, h) {
   }).join('\n');
 }
 
-function makeAmbientAsset(name) {
-  if (name.startsWith('cloud')) {
-    return svg(160, 72, `
-      ${ellipse(44,42,36,18,'#f5e8c6','opacity="0.86"')}
-      ${ellipse(78,32,42,24,'#f5e8c6','opacity="0.9"')}
-      ${ellipse(114,44,34,18,'#e8d6b0','opacity="0.82"')}
-      ${rect(36,42,90,20,'#f5e8c6','opacity="0.8"')}
-    `);
-  }
-  if (name === 'grass-tuft-01') {
-    return svg(32, 32, `<path d="M4 30 L10 12 L14 30 L18 8 L22 30 L28 14 L30 30 Z" fill="#587b45"/>`);
-  }
-  if (name === 'banner-red') {
-    return svg(42, 72, `${rect(18,0,6,72,'#5c3826')}${bannerSvg(2,8,'#9e3c2f','#d4a740')}`);
-  }
-  if (name === 'torch-on') {
-    return svg(32, 64, `${rect(14,22,6,42,'#4b2f22')}${rect(10,16,14,10,'#8c4a25')}${rect(8,5,18,16,'#ff9b45')}${rect(12,0,10,12,'#ffd36a')}`);
-  }
-  if (name === 'smoke-puff') {
-    return svg(40, 40, `${ellipse(14,26,10,7,'#d8d0bf','opacity="0.45"')}${ellipse(24,18,12,8,'#d8d0bf','opacity="0.35"')}${ellipse(19,10,8,5,'#d8d0bf','opacity="0.25"')}`);
-  }
-  return svg(20, 20, `${rect(6,6,8,8,'#b98955')}`);
+function makeBannerAmbientAsset() {
+  return svg(42, 72, `${rect(18,0,6,72,'#5c3826')}${bannerSvg(2,8,'#9e3c2f','#d4a740')}`);
 }
 
 function makeUiAsset(name) {
@@ -483,9 +458,10 @@ for (const phase of timePhases) {
   manifest.map.backgrounds[phase] = writeAsset(`map/backgrounds/ludus-map-${phase}.svg`, makeMapBackground(phase));
 }
 
-for (const name of ['cloud-01', 'cloud-02', 'grass-tuft-01', 'banner-red', 'torch-on', 'smoke-puff', 'crowd-dot']) {
-  manifest.map.ambient[name] = writeAsset(`map/ambient/${name}.svg`, makeAmbientAsset(name));
-}
+manifest.map.ambient['banner-red'] = writeAsset(
+  'map/ambient/banner-red.svg',
+  makeBannerAmbientAsset(),
+);
 
 for (const buildingId of buildingIds) {
   manifest.buildings[buildingId] = {};

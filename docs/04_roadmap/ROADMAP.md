@@ -87,7 +87,7 @@ Potential additions:
 - additional policies;
 - richer combat log text;
 - more arena ranks or rank-specific flavor;
-- more map decorations and visual states;
+- richer map visual states and optional flag/banner variations;
 - more demo scenarios when needed for test coverage.
 
 Content should use i18n keys and remain data-driven wherever possible.

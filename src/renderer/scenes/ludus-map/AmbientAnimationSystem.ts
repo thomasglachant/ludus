@@ -9,7 +9,6 @@ import type {
 
 interface AmbientAnimationSystemOptions {
   ambientLayer: Container;
-  cloudLayer: Container;
   ticker: Ticker;
 }
 
@@ -20,13 +19,6 @@ interface AmbientDisplay {
   sprite: Sprite;
 }
 
-interface CameraParallaxState {
-  scale: number;
-  x: number;
-  y: number;
-}
-
-const CLOUD_PARALLAX_FACTOR = 0.58;
 const LOW_FREQUENCY_UPDATE_MILLISECONDS = 120;
 
 function getCycle(elapsedSeconds: number, durationSeconds: number): number {
@@ -41,86 +33,45 @@ function radians(degrees: number): number {
 }
 
 function usesBottomAnchor(element: LudusMapSceneAmbientElementViewModel): boolean {
-  return (
-    element.kind === 'banner' ||
-    element.kind === 'grass' ||
-    element.kind === 'awning' ||
-    element.kind === 'sway' ||
-    element.kind === 'dummy'
-  );
+  void element;
+  return true;
 }
 
 export class AmbientAnimationSystem {
   private readonly ambientDisplays = new Map<string, AmbientDisplay>();
   private readonly ambientLayer: Container;
-  private readonly cloudDisplays = new Map<string, AmbientDisplay>();
-  private readonly cloudLayer: Container;
   private readonly ticker: Ticker;
-  private height = 0;
   private lastLowFrequencyUpdateAt = 0;
   private reducedMotion = false;
-  private width = 0;
 
   constructor(options: AmbientAnimationSystemOptions) {
     this.ambientLayer = options.ambientLayer;
-    this.cloudLayer = options.cloudLayer;
     this.ticker = options.ticker;
-    this.cloudLayer.label = 'map-cloud-parallax-layer';
     this.ticker.add(this.handleTick);
   }
 
   destroy(): void {
     this.ticker.remove(this.handleTick);
 
-    for (const display of this.cloudDisplays.values()) {
-      destroyDisplayObject(display.sprite);
-    }
-
     for (const display of this.ambientDisplays.values()) {
       destroyDisplayObject(display.sprite);
     }
 
-    this.cloudDisplays.clear();
     this.ambientDisplays.clear();
   }
 
   reconcile(viewModel: LudusMapSceneViewModel, textures: PixiTextureMap): void {
-    this.width = viewModel.width;
-    this.height = viewModel.height;
     this.reducedMotion = viewModel.reducedMotion;
     this.reconcileLayerDisplays(
-      viewModel.ambientElements.filter((element) => element.kind === 'cloud'),
-      textures,
-      this.cloudLayer,
-      this.cloudDisplays,
-    );
-    this.reconcileLayerDisplays(
-      viewModel.ambientElements.filter(
-        (element) => element.kind !== 'cloud' && element.kind !== 'crowd',
-      ),
+      viewModel.ambientElements,
       textures,
       this.ambientLayer,
       this.ambientDisplays,
     );
   }
 
-  syncCamera(camera: CameraParallaxState): void {
-    if (camera.scale <= 0) {
-      return;
-    }
-
-    this.cloudLayer.position.set(
-      -(camera.x * (1 - CLOUD_PARALLAX_FACTOR)) / camera.scale,
-      -(camera.y * (1 - CLOUD_PARALLAX_FACTOR)) / camera.scale,
-    );
-  }
-
   private readonly handleTick = (): void => {
     const now = performance.now();
-
-    for (const display of this.cloudDisplays.values()) {
-      this.updateCloud(display, now);
-    }
 
     if (now - this.lastLowFrequencyUpdateAt < LOW_FREQUENCY_UPDATE_MILLISECONDS) {
       return;
@@ -210,24 +161,6 @@ export class AmbientAnimationSystem {
     sprite.position.set(element.x, element.y);
   }
 
-  private updateCloud(display: AmbientDisplay, now: number): void {
-    const { element, sprite } = display;
-
-    if (this.reducedMotion) {
-      sprite.position.set(element.x, element.y);
-      sprite.alpha = element.opacity * 0.72;
-      return;
-    }
-
-    const elapsedSeconds = now / 1000 + element.animationDelaySeconds;
-    const cycle = getCycle(elapsedSeconds, element.animationDurationSeconds);
-    const travelDistance = this.width - element.x + element.width + 420;
-
-    sprite.x = element.x + cycle * travelDistance;
-    sprite.y = element.y + Math.sin(cycle * Math.PI * 2) * Math.max(4, this.height * 0.004);
-    sprite.alpha = element.opacity;
-  }
-
   private updateLowFrequencyAmbient(display: AmbientDisplay, now: number): void {
     if (this.reducedMotion) {
       this.updateReducedMotionDisplay(display);
@@ -239,76 +172,15 @@ export class AmbientAnimationSystem {
     const cycle = getCycle(elapsedSeconds, element.animationDurationSeconds);
     const wave = Math.sin(cycle * Math.PI * 2);
 
-    if (element.kind === 'smoke' || element.kind === 'dust' || element.kind === 'steam') {
-      const rise = element.kind === 'steam' ? 18 : 26;
-
-      sprite.y = element.y - cycle * rise;
-      sprite.alpha = element.opacity * (1 - cycle * 0.55);
-      return;
-    }
-
-    if (element.kind === 'torch' || element.kind === 'glow') {
-      const scalePulse = element.kind === 'glow' ? 0.025 : 0.045;
-
-      sprite.alpha = element.opacity * (0.72 + Math.abs(wave) * 0.28);
-      sprite.scale.set(
-        display.baseScaleX * (1 + Math.abs(wave) * scalePulse),
-        display.baseScaleY * (1 + Math.abs(wave) * scalePulse * 0.5),
-      );
-      return;
-    }
-
-    if (element.kind === 'waterShimmer' || element.kind === 'seaShimmer') {
-      sprite.alpha = element.opacity * (0.48 + Math.abs(wave) * 0.52);
-      sprite.x = element.x + wave * (element.kind === 'seaShimmer' ? 5 : 2);
-      sprite.scale.set(display.baseScaleX * (1 + Math.abs(wave) * 0.06), display.baseScaleY);
-      return;
-    }
-
-    if (element.kind === 'bird') {
-      sprite.x = element.x + cycle * 190;
-      sprite.y = element.y + wave * 6;
-      sprite.alpha = element.opacity * (0.62 + Math.abs(wave) * 0.38);
-      return;
-    }
-
-    if (element.kind === 'boat') {
-      sprite.y = element.y + wave * 3;
-      sprite.rotation = radians(element.rotation + wave * 1.2);
-      return;
-    }
-
-    if (element.kind === 'sparkle') {
-      sprite.alpha = element.opacity * Math.max(0, Math.sin(cycle * Math.PI * 2)) ** 2;
-      sprite.scale.set(
-        display.baseScaleX * (1 + Math.abs(wave) * 0.12),
-        display.baseScaleY * (1 + Math.abs(wave) * 0.12),
-      );
-      return;
-    }
-
-    if (
-      element.kind === 'banner' ||
-      element.kind === 'grass' ||
-      element.kind === 'awning' ||
-      element.kind === 'sway' ||
-      element.kind === 'dummy'
-    ) {
-      const amplitude = element.kind === 'dummy' ? 3.8 : element.kind === 'awning' ? 2 : 2.5;
-
-      sprite.rotation = radians(element.rotation + wave * amplitude);
-      sprite.y = element.y + element.height + wave * 1.5;
-    }
+    sprite.rotation = radians(element.rotation + wave * 2.5);
+    sprite.y = element.y + element.height + wave * 1.5;
   }
 
   private updateReducedMotionDisplay(display: AmbientDisplay): void {
     const { element, sprite } = display;
 
     sprite.scale.set(display.baseScaleX, display.baseScaleY);
-    sprite.alpha =
-      element.kind === 'smoke' || element.kind === 'dust' || element.kind === 'steam'
-        ? element.opacity * 0.45
-        : element.opacity;
+    sprite.alpha = element.opacity;
     sprite.rotation = radians(element.rotation);
     this.positionSprite(display);
   }

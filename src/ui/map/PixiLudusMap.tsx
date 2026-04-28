@@ -97,7 +97,7 @@ export function PixiLudusMap({ save, onLocationSelect }: PixiLudusMapProps) {
           <div
             data-active-background={viewModel.theme.backgroundAssetPath}
             data-height={viewModel.height}
-            data-render-layers="background clouds terrain-overlays paths selection-highlight static-props buildings-back characters-y-sorted buildings-front ambient-effects lighting-overlay light-sprites labels"
+            data-render-layers="background terrain-overlays paths selection-highlight static-props buildings-back characters-y-sorted buildings-front ambient-effects lighting-overlay light-sprites labels"
             data-selected-location={viewModel.selectedLocationId}
             data-testid="pixi-map-test-hit-zones"
             data-width={viewModel.width}
