@@ -59,6 +59,71 @@ describe('LocalSaveProvider', () => {
     await expect(provider.loadSave('save-local')).resolves.toEqual(save);
   });
 
+  it('does not persist pending or resolved events', async () => {
+    const provider = new LocalSaveProvider();
+    const save = createInitialSave({
+      ownerName: 'Flavia',
+      ludusName: 'Aquila',
+      saveId: 'save-local',
+      createdAt: '2026-04-25T12:00:00.000Z',
+    });
+    const event = {
+      id: 'event-1',
+      titleKey: 'events.test.title',
+      descriptionKey: 'events.test.description',
+      status: 'pending' as const,
+      createdAtYear: save.time.year,
+      createdAtWeek: save.time.week,
+      createdAtDay: save.time.dayOfWeek,
+      choices: [
+        {
+          id: 'choice-1',
+          labelKey: 'events.test.choice',
+          consequenceKey: 'events.test.consequence',
+          effects: [{ type: 'changeTreasury' as const, amount: 10 }],
+        },
+      ],
+    };
+
+    await provider.createSave({
+      ...save,
+      events: {
+        pendingEvents: [event],
+        resolvedEvents: [{ ...event, status: 'resolved', selectedChoiceId: 'choice-1' }],
+      },
+    });
+
+    expect(localStorage.getItem('ludus:save:save-local')).not.toContain('event-1');
+    await expect(provider.loadSave('save-local')).resolves.toMatchObject({
+      events: {
+        pendingEvents: [],
+        resolvedEvents: [],
+      },
+    });
+  });
+
+  it('rejects saves with invalid nested game state', async () => {
+    const save = createInitialSave({
+      ownerName: 'Flavia',
+      ludusName: 'Aquila',
+      saveId: 'broken',
+      createdAt: '2026-04-25T12:00:00.000Z',
+    });
+
+    localStorage.setItem('ludus:save-index', JSON.stringify(['broken']));
+    localStorage.setItem(
+      'ludus:save:broken',
+      JSON.stringify({
+        ...save,
+        gladiators: [{ id: 'gladiator-broken' }],
+      }),
+    );
+
+    await expect(new LocalSaveProvider().loadSave('broken')).rejects.toBeInstanceOf(
+      CorruptedSaveError,
+    );
+  });
+
   it('ignores corrupted saves in the metadata list', async () => {
     localStorage.setItem('ludus:save-index', JSON.stringify(['broken']));
     localStorage.setItem('ludus:save:broken', '{');
