@@ -16,6 +16,7 @@ Useful commands: `npm run build`, `npm run lint`, `npm run test`.
 - Game rules and balance data belong in `src/game-data`; new tunable balance variables must start in `src/game-data/balance.ts`; pure business logic belongs in `src/domain`.
 - React components should render state and call store actions, selectors or domain services.
 - Reuse shared UI primitives and modal infrastructure before adding feature-specific UI.
+- CSS lives in `src/styles` by functional area; keep `src/index.css` as an import manifest and split large or mixed stylesheet files as routine maintenance.
 - Save data must include `schemaVersion`; local save is always available; cloud save remains behind an abstraction.
 
 ## Product Guardrails

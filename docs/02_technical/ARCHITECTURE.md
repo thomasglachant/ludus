@@ -37,6 +37,7 @@ ludus/
 │   ├── persistence/
 │   ├── renderer/
 │   ├── state/
+│   ├── styles/
 │   ├── test/
 │   ├── ui/
 │   └── utils/
@@ -107,6 +108,37 @@ Contains React components. Components should display data, capture user intent a
 React components must not own gameplay formulas, hardcoded balancing values or player-facing strings.
 
 Shared UI primitives live under `src/ui/components` and should be reused before adding feature-specific panel, modal, badge, empty-state, effect-list, cost-summary or tab markup.
+
+### `src/styles`
+
+Contains application CSS split by functional area. `src/index.css` is only the
+global CSS entrypoint and import manifest.
+
+Current stylesheet groups:
+
+- `foundation.css`: design tokens, resets, base elements and layout shells;
+- `controls.css`: generic buttons, forms, segmented controls, save/load cards and reusable input states;
+- `main-menu.css`: full-screen main menu composition;
+- `game-shell.css`: map-first game shell and navigation rail;
+- `hud.css`: top HUD and day-cycle gauge;
+- `map.css`: Pixi scene viewport and Ludus map container chrome;
+- `roster.css`: bottom roster and gladiator portrait styles;
+- `panels.css`: feature panel content, shared panel sections, planning, events, arena panel lists and gladiator details;
+- `modals.css`: modal shell, modal body/footer/header, game menu and building action modal content;
+- `feedback.css`: toast and alert layer;
+- `combat.css`: full-screen combat presentation UI around the Pixi combat stage.
+
+Styles should be added to the narrowest existing stylesheet that matches the
+feature area. Do not grow `index.css` with rules directly.
+
+When a stylesheet starts mixing unrelated feature areas or becomes large enough
+that routine edits require reading most of the file, split it into another
+functional stylesheet and import that file from `src/index.css`. The split
+should happen as normal maintenance, not only during major refactors.
+
+Before accepting CSS cleanup, check for stale selectors against the React code
+and remove rules for retired UI surfaces such as debug/dashboard-only screens,
+old DOM scene renderers or deleted components.
 
 ### `src/renderer`
 

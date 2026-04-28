@@ -1,0 +1,389 @@
+.gladiator-portrait--olive .gladiator-portrait__body {
+  background: #5f7b45;
+}
+
+.gladiator-portrait--bronze .gladiator-portrait__body {
+  background: #9a6b38;
+}
+
+.gladiator-portrait--indigo .gladiator-portrait__body {
+  background: #374b76;
+}
+
+.gladiator-portrait--sand .gladiator-portrait__body {
+  background: #c19b57;
+}
+
+.bottom-roster {
+  z-index: 22;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  grid-template-rows: minmax(0, 1fr);
+  height: var(--shell-bottom);
+  min-height: 0;
+  overflow: hidden;
+  padding: 14px 16px;
+  border-top: 2px solid rgba(77, 52, 34, 0.72);
+  background: linear-gradient(180deg, rgba(92, 64, 45, 0.96), rgba(62, 45, 34, 0.96)), #5c402d;
+  box-shadow: 0 -14px 28px rgba(37, 27, 20, 0.24);
+}
+
+.bottom-roster__empty {
+  color: #f2dca8;
+  font-weight: 800;
+}
+
+.bottom-roster__scroller {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--roster-card-min, 220px), 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.bottom-roster__empty {
+  display: grid;
+  min-height: 92px;
+  place-items: center;
+  border: 1px dashed rgba(240, 194, 109, 0.42);
+  border-radius: 8px;
+}
+
+.roster-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  padding: 8px;
+  border: 1px solid rgba(240, 194, 109, 0.32);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 246, 222, 0.98), rgba(232, 201, 139, 0.96)), #ead19a;
+  color: #33251b;
+  text-align: left;
+  box-shadow: 0 10px 18px rgba(34, 24, 18, 0.2);
+}
+
+.roster-card.is-selected {
+  border-color: #f0c26d;
+  box-shadow:
+    0 0 0 3px rgba(240, 194, 109, 0.24),
+    0 10px 18px rgba(34, 24, 18, 0.2);
+}
+
+.roster-card--critical {
+  border-color: #b33a2e;
+}
+
+.roster-card--warning {
+  border-color: #d39942;
+}
+
+.roster-card__body,
+.roster-card__meters,
+.roster-card__footer {
+  display: grid;
+}
+
+.roster-card__body {
+  min-width: 0;
+  gap: 4px;
+  align-content: center;
+}
+
+.roster-card__topline,
+.roster-card__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.roster-card__topline strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roster-card__topline span,
+.roster-card__objective,
+.roster-card__footer {
+  color: #6d5035;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.roster-card__meters {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.roster-meter {
+  display: grid;
+  gap: 2px;
+}
+
+.roster-meter__track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(89, 63, 42, 0.18);
+}
+
+.roster-meter__value {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2d7c70, #89a957);
+}
+
+.roster-meter__label {
+  font-size: 0.64rem;
+  font-weight: 850;
+}
+
+.roster-card__alert {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 3px;
+  color: #8c2f39;
+}
+
+.gladiator-portrait {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 3px solid #5f452f;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #e2c989 0 58%, #9d6d3d 59%), #e2c989;
+  image-rendering: pixelated;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 246, 222, 0.24),
+    0 8px 12px rgba(42, 30, 22, 0.18);
+}
+
+.gladiator-portrait--small {
+  width: 46px;
+  height: 46px;
+}
+
+.gladiator-portrait--medium {
+  width: 62px;
+  height: 76px;
+}
+
+.gladiator-portrait--large {
+  width: 112px;
+  height: 136px;
+}
+
+.gladiator-portrait__head,
+.gladiator-portrait__hair,
+.gladiator-portrait__body,
+.gladiator-portrait__shine,
+.gladiator-portrait__asset {
+  position: absolute;
+  display: block;
+}
+
+.gladiator-portrait__asset {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.gladiator-portrait__asset + .gladiator-portrait__head,
+.gladiator-portrait__asset ~ .gladiator-portrait__hair,
+.gladiator-portrait__asset ~ .gladiator-portrait__body,
+.gladiator-portrait__asset ~ .gladiator-portrait__shine {
+  display: none;
+}
+
+.gladiator-portrait__head {
+  top: 18%;
+  left: 32%;
+  width: 36%;
+  height: 28%;
+  border: 3px solid #4f3728;
+  border-radius: 40% 40% 46% 46%;
+  background: #c48a62;
+}
+
+.gladiator-portrait__hair {
+  top: 13%;
+  left: 29%;
+  width: 42%;
+  height: 17%;
+  border-radius: 50% 50% 16% 16%;
+  background: #3d2a22;
+}
+
+.gladiator-portrait__body {
+  right: 22%;
+  bottom: 0;
+  left: 22%;
+  height: 42%;
+  border: 3px solid #4f3728;
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: #b55339;
+}
+
+.gladiator-portrait__shine {
+  top: 8%;
+  right: 8%;
+  width: 18%;
+  height: 70%;
+  background: rgba(255, 247, 221, 0.2);
+}
+
+.gladiator-portrait[data-hair='shaved'] .gladiator-portrait__hair {
+  height: 9%;
+}
+
+.gladiator-portrait[data-hair='curly'] .gladiator-portrait__hair {
+  border-radius: 45%;
+  box-shadow:
+    -8px 3px 0 #3d2a22,
+    8px 3px 0 #3d2a22;
+}
+
+.gladiator-portrait[data-armor='bronze'] .gladiator-portrait__body {
+  background: linear-gradient(90deg, #8b5d2f, #c59a4a, #8b5d2f);
+}
+
+.gladiator-portrait[data-armor='leather'] .gladiator-portrait__body {
+  background: #7b4e35;
+}
+
+@media (max-width: 760px) {
+  .bottom-roster__scroller {
+    grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr));
+  }
+}
+
+.bottom-roster {
+  position: relative;
+}
+
+.bottom-roster::before {
+  position: absolute;
+  right: 18px;
+  left: 18px;
+  height: 1px;
+  content: '';
+  background: linear-gradient(90deg, transparent, rgba(214, 163, 74, 0.72), transparent);
+  pointer-events: none;
+}
+
+.bottom-roster::before {
+  top: 6px;
+}
+
+.bottom-roster {
+  border-top: 2px solid rgba(214, 163, 74, 0.58);
+  background:
+    linear-gradient(180deg, rgba(42, 33, 24, 0.98), rgba(21, 17, 13, 0.98)),
+    repeating-linear-gradient(90deg, rgba(240, 223, 184, 0.04) 0 1px, transparent 1px 5px),
+    var(--obsidian-raised);
+}
+
+.roster-card {
+  border-color: rgba(180, 122, 51, 0.56);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(255, 246, 222, 0.98), rgba(221, 190, 126, 0.98)), var(--parchment);
+}
+
+.roster-card.is-selected {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 3px rgba(214, 163, 74, 0.26),
+    0 12px 20px rgba(8, 6, 4, 0.22);
+}
+
+.roster-meter__track {
+  border: 1px solid rgba(89, 63, 42, 0.18);
+  background: rgba(32, 26, 20, 0.18);
+}
+
+.roster-meter__value {
+  background: linear-gradient(90deg, var(--green-action), var(--gold));
+}
+
+.bottom-roster {
+  image-rendering: pixelated;
+}
+
+.bottom-roster::before {
+  right: 18px;
+  left: 18px;
+  height: 20px;
+  background: var(
+      --pixi-ui-roman-divider,
+      linear-gradient(90deg, transparent, rgba(214, 163, 74, 0.72), transparent)
+    )
+    center / 240px 32px repeat-x;
+  opacity: 0.88;
+}
+
+.bottom-roster {
+  border-top: 0;
+  padding: 12px 16px;
+  background:
+    linear-gradient(180deg, rgba(42, 33, 24, 0.95), rgba(16, 13, 10, 0.97)),
+    var(--pixi-ui-bronze-frame-tile, none) center / 128px 128px repeat,
+    var(--obsidian-raised);
+  box-shadow:
+    inset 0 3px 0 rgba(214, 163, 74, 0.16),
+    0 -16px 28px rgba(8, 6, 4, 0.36);
+}
+
+.bottom-roster::before {
+  top: -10px;
+}
+
+.roster-card {
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  padding: 8px;
+  border: 2px solid rgba(135, 83, 36, 0.74);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(255, 246, 222, 0.94), rgba(221, 190, 126, 0.9)), var(--parchment);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 246, 222, 0.24),
+    0 11px 18px rgba(8, 6, 4, 0.26);
+}
+
+.roster-card.is-selected {
+  box-shadow:
+    0 0 0 3px rgba(214, 163, 74, 0.32),
+    0 12px 20px rgba(8, 6, 4, 0.28);
+}
+
+.roster-card--critical {
+  box-shadow:
+    inset 0 0 0 2px rgba(179, 58, 46, 0.78),
+    0 11px 18px rgba(8, 6, 4, 0.26);
+}
+
+.roster-card--warning {
+  box-shadow:
+    inset 0 0 0 2px rgba(211, 153, 66, 0.78),
+    0 11px 18px rgba(8, 6, 4, 0.26);
+}
+
+@media (max-width: 760px) {
+  .roster-card__meters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
