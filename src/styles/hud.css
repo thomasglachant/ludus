@@ -341,37 +341,6 @@
 }
 
 .top-hud {
-  image-rendering: pixelated;
-}
-
-.top-hud {
-  border-bottom: 0;
-  background:
-    linear-gradient(180deg, rgba(42, 33, 24, 0.94), rgba(16, 13, 10, 0.96)),
-    var(--pixi-ui-bronze-frame-tile, none) center / 128px 128px repeat,
-    var(--obsidian-raised);
-  box-shadow:
-    inset 0 -3px 0 rgba(214, 163, 74, 0.18),
-    0 16px 26px rgba(8, 6, 4, 0.4);
-}
-
-.top-hud::before {
-  right: 18px;
-  left: 18px;
-  height: 20px;
-  background: var(
-      --pixi-ui-roman-divider,
-      linear-gradient(90deg, transparent, rgba(214, 163, 74, 0.72), transparent)
-    )
-    center / 240px 32px repeat-x;
-  opacity: 0.88;
-}
-
-.top-hud::before {
-  bottom: -10px;
-}
-
-.top-hud {
   display: grid;
   grid-template-columns: minmax(230px, 330px) minmax(450px, 1fr) minmax(300px, auto);
   grid-template-areas: 'brand center actions';

@@ -4,7 +4,6 @@ import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 import { TopHud } from '../hud/TopHud';
 import { BottomGladiatorRoster } from '../roster/BottomGladiatorRoster';
-import { pixiUiChromeStyle } from '../pixi-ui-chrome';
 import type { ContextPanelKind } from './game-shell-types';
 import { LeftNavigationRail } from './LeftNavigationRail';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
@@ -67,7 +66,7 @@ export function GameShell() {
   }
 
   return (
-    <section className="game-shell" style={pixiUiChromeStyle}>
+    <section className="game-shell">
       <TopHud
         save={currentSave}
         onOpenMenu={() => {

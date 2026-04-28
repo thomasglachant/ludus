@@ -1,7 +1,6 @@
 import { ArrowLeft, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useUiStore, type ModalSize } from '../../state/ui-store-context';
-import { pixiUiChromeStyle } from '../pixi-ui-chrome';
 
 interface AppModalProps {
   children: ReactNode;
@@ -83,7 +82,6 @@ export function AppModal({
   }, [children, footer]);
 
   const modalStyle: CSSProperties & Record<string, string | number> = {
-    ...pixiUiChromeStyle,
     marginBottom: modalBottomOffset,
     marginTop: modalOffset,
   };

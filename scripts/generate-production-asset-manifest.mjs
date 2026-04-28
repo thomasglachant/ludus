@@ -296,7 +296,13 @@ function buildUiManifest() {
 
 function writeJson(path, data) {
   ensureDir(dirname(path));
-  writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
+  const content = `${JSON.stringify(data, null, 2)}\n`;
+
+  if (existsSync(path) && readFileSync(path, 'utf8') === content) {
+    return;
+  }
+
+  writeFileSync(path, content);
 }
 
 function run() {

@@ -117,9 +117,14 @@ export function GameMenuModal({
                 <p>
                   {t(hasUnsavedChanges ? 'gameMenu.quitUnsavedMessage' : 'gameMenu.quitMessage')}
                 </p>
-                <div className="form-actions">
+                <div className="form-actions game-menu-card__confirm-actions">
                   <ActionButton label={t('common.cancel')} onClick={closePanel} />
-                  <ActionButton label={t('gameMenu.quit')} variant="primary" onClick={onQuit} />
+                  <ActionButton
+                    icon={<LogOut aria-hidden="true" size={18} />}
+                    label={t('gameMenu.quit')}
+                    variant="primary"
+                    onClick={onQuit}
+                  />
                 </div>
               </div>
             ),
