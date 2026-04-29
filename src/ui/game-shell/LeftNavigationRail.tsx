@@ -1,4 +1,4 @@
-import { CalendarCheck, ScrollText, Store, Swords, TriangleAlert } from 'lucide-react';
+import { CalendarCheck, ScrollText, TriangleAlert } from 'lucide-react';
 import type { ContextPanelKind } from './game-shell-types';
 import { useUiStore } from '../../state/ui-store-context';
 
@@ -15,8 +15,6 @@ const navigationItems: Array<{
   { panelKind: 'weeklyPlanning', labelKey: 'navigation.weeklyPlanning', icon: CalendarCheck },
   { panelKind: 'contracts', labelKey: 'navigation.contracts', icon: ScrollText },
   { panelKind: 'events', labelKey: 'navigation.events', icon: TriangleAlert },
-  { panelKind: 'market', labelKey: 'navigation.market', icon: Store },
-  { panelKind: 'arena', labelKey: 'navigation.arena', icon: Swords },
 ];
 
 export function LeftNavigationRail({ activePanelKind, onOpenPanel }: LeftNavigationRailProps) {
