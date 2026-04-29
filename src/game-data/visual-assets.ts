@@ -1,6 +1,6 @@
 import type { BuildingId } from '../domain/buildings/types';
+import { PRODUCTION_VISUAL_ASSET_MANIFEST as generatedProductionVisualAssetManifest } from './generated/asset-manifest.production';
 import { GLADIATOR_VISUAL_VARIANT_LIMIT } from './gladiator-visual-variants';
-import productionVisualAssetManifestData from './generated/asset-manifest.production.json';
 
 export type VisualAssetSourceQuality = 'production';
 export type HomepageBackgroundPhase = 'day' | 'dusk';
@@ -69,10 +69,10 @@ export interface VisualAssetManifest {
   ui: Record<string, string>;
 }
 
-export const PRODUCTION_VISUAL_ASSET_MANIFEST =
-  productionVisualAssetManifestData as VisualAssetManifest;
+export const PRODUCTION_VISUAL_ASSET_MANIFEST: VisualAssetManifest =
+  generatedProductionVisualAssetManifest;
 
-export const VISUAL_ASSET_MANIFEST = PRODUCTION_VISUAL_ASSET_MANIFEST;
+export const VISUAL_ASSET_MANIFEST: VisualAssetManifest = PRODUCTION_VISUAL_ASSET_MANIFEST;
 
 export const GLADIATOR_VISUAL_ASSET_IDS = Object.keys(VISUAL_ASSET_MANIFEST.gladiators).slice(
   0,

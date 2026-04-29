@@ -1,4 +1,4 @@
-import productionManifestData from '../../../game-data/generated/asset-manifest.production.json';
+import { PRODUCTION_VISUAL_ASSET_MANIFEST } from '../../../game-data/visual-assets';
 import {
   PIXI_ASSET_BUNDLE_IDS,
   PIXI_BUILDING_IDS,
@@ -12,9 +12,7 @@ import {
   pixiTextureAliases,
   type PixiAnimationKey,
   type PixiAssetBundleId,
-  type PixiBuildingId,
   type PixiCombatAnimationKey,
-  type PixiHomepagePhase,
   type PixiRenderLayerId,
   type PixiSourceQuality,
 } from './texture-aliases';
@@ -76,42 +74,7 @@ export interface PixiProductionAssetManifest {
   spritesheets: Record<string, PixiSpritesheetAsset>;
 }
 
-interface ProductionBuildingAssetSet {
-  exterior: string;
-  roof?: string;
-  interior?: string;
-  props?: string;
-  width: number;
-  height: number;
-}
-
-interface ProductionGladiatorAssetSet {
-  portrait: string;
-  mapSpritesheet?: string;
-  mapAtlas?: string;
-  combatSpritesheet?: string;
-  combatAtlas?: string;
-  frames: Partial<Record<PixiAnimationKey, string[]>>;
-}
-
-interface ProductionManifest {
-  generatedAt: string;
-  homepage: {
-    backgrounds: Partial<Record<PixiHomepagePhase, string>>;
-    lastSaveThumbnail?: string;
-  };
-  buildings: Partial<Record<PixiBuildingId, Record<string, ProductionBuildingAssetSet>>>;
-  locations: {
-    arena: {
-      combatBackground: string;
-      crowd: string;
-    };
-  };
-  gladiators: Record<string, ProductionGladiatorAssetSet>;
-  ui: Record<string, string>;
-}
-
-const productionManifest = productionManifestData as ProductionManifest;
+const productionManifest = PRODUCTION_VISUAL_ASSET_MANIFEST;
 const productionQuality = 'production' satisfies PixiSourceQuality;
 const combatAnimationSourceKeyByAnimationKey: Record<
   PixiCombatAnimationKey,

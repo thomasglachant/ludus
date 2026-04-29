@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "generate:assets": "node scripts/generate-production-asset-manifest.mjs",
+    "check:assets": "node scripts/generate-production-asset-manifest.mjs --check",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

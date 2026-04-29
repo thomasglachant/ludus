@@ -6,12 +6,6 @@ coverage/
 .vite/
 playwright-report/
 test-results/
-public/assets/pixel-art/
-public/assets/asset-manifest.production.json
-src/game-data/generated/asset-manifest.production.json
-docs/visual-migration/
-ludus_visual_migration_pr_ready/
-src-stubs/
 .env
 .env.*
 package-lock.json

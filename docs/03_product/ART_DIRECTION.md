@@ -285,17 +285,15 @@ Production pixel-art assets live under:
 public/assets/
 ```
 
-The production asset manifest is generated next to the assets:
+The production asset manifest is committed in TypeScript form at:
 
 ```text
-public/assets/asset-manifest.production.json
+src/game-data/generated/asset-manifest.production.ts
 ```
 
-TypeScript import mirrors are generated before dev, build, lint and test at:
-
-```text
-src/game-data/generated/asset-manifest.production.json
-```
+Run `npm run generate:assets` after asset changes. CI and the pre-commit hook run
+`npm run check:assets` to verify that the committed manifest matches the generated
+output.
 
 Typed access to manifests belongs in `src/game-data/visual-assets.ts`,
 `src/rendering/pixi/assets` and adjacent visual modules such as:

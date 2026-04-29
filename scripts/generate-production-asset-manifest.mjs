@@ -5,16 +5,16 @@ import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const publicAssetsRoot = join(root, 'public', 'assets');
-const publicManifestPath = join(publicAssetsRoot, 'asset-manifest.production.json');
 const typescriptManifestPath = join(
   root,
   'src',
   'game-data',
   'generated',
-  'asset-manifest.production.json',
+  'asset-manifest.production.ts',
 );
 const variantsPath = join(root, 'src', 'game-data', 'gladiator-visual-variants.ts');
 const generatedAt = '2026-04-28T00:00:00.000Z';
+const checkOnly = process.argv.includes('--check');
 
 const mapFrameKeys = [
   'map-idle',
@@ -296,15 +296,38 @@ function buildUiManifest() {
   );
 }
 
-function writeJson(path, data) {
+function serializeManifestModule(manifest) {
+  return `import type { VisualAssetManifest } from '../visual-assets';\n\nexport const PRODUCTION_VISUAL_ASSET_MANIFEST = ${JSON.stringify(
+    manifest,
+    null,
+    2,
+  )} as const satisfies VisualAssetManifest;\n`;
+}
+
+function writeText(path, content) {
   ensureDir(dirname(path));
-  const content = `${JSON.stringify(data, null, 2)}\n`;
 
   if (existsSync(path) && readFileSync(path, 'utf8') === content) {
-    return;
+    return false;
   }
 
   writeFileSync(path, content);
+  return true;
+}
+
+function checkText(path, content) {
+  if (!existsSync(path)) {
+    console.error(`Missing asset manifest: ${relative(root, path)}`);
+    return false;
+  }
+
+  if (readFileSync(path, 'utf8') !== content) {
+    console.error(`Asset manifest is out of date: ${relative(root, path)}`);
+    console.error('Run npm run generate:assets.');
+    return false;
+  }
+
+  return true;
 }
 
 function run() {
@@ -319,8 +342,19 @@ function run() {
     ui: buildUiManifest(),
   };
 
-  writeJson(publicManifestPath, manifest);
-  writeJson(typescriptManifestPath, manifest);
+  const manifestModule = serializeManifestModule(manifest);
+
+  if (checkOnly) {
+    if (!checkText(typescriptManifestPath, manifestModule)) {
+      process.exitCode = 1;
+      return;
+    }
+
+    console.log(`Checked production asset manifest with ${Object.keys(manifest.gladiators).length} gladiators.`);
+    return;
+  }
+
+  writeText(typescriptManifestPath, manifestModule);
 
   console.log(`Generated production asset manifest with ${Object.keys(manifest.gladiators).length} gladiators.`);
 }
