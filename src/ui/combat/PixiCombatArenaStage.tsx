@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { featureFlags } from '../../config/features';
 import type { PixiSceneContext } from '../../renderer/pixi/PixiScene';
 import { PixiSceneViewport } from '../../renderer/pixi/PixiSceneViewport';
 import { CombatScene } from '../../renderer/scenes/combat/CombatScene';
@@ -12,7 +11,7 @@ interface PixiCombatArenaStageProps {
 }
 
 export function PixiCombatArenaStage({ viewModel }: PixiCombatArenaStageProps) {
-  const { t } = useUiStore();
+  const { isPixiDebugEnabled, t } = useUiStore();
   const reducedMotion = usePrefersReducedMotion();
   const createScene = useCallback(
     (context: PixiSceneContext) => new CombatScene(context, { reducedMotion }),
@@ -23,7 +22,7 @@ export function PixiCombatArenaStage({ viewModel }: PixiCombatArenaStageProps) {
     <section className="combat-stage" data-testid="combat-stage">
       <PixiSceneViewport
         createScene={createScene}
-        debugMode={featureFlags.enableDebugUi}
+        debugMode={isPixiDebugEnabled}
         sceneKey={reducedMotion ? 'combat-reduced-motion' : 'combat-motion'}
         sceneLabel={t('combatScreen.title')}
         snapshot={viewModel}

@@ -283,16 +283,18 @@ export function EventsPanel({ save, onClose, onResolveEventChoice }: EventsPanel
             return (
               <article className="events-panel__event" key={event.id}>
                 <div className="events-panel__event-header">
-                  <div className="context-panel__portrait-row">
-                    {gladiator ? <GladiatorPortrait gladiator={gladiator} size="small" /> : null}
+                  <div className="events-panel__heading-row">
+                    {gladiator ? (
+                      <div className="events-panel__gladiator" aria-label={gladiator.name}>
+                        <GladiatorPortrait gladiator={gladiator} size="medium" />
+                        <strong>{gladiator.name}</strong>
+                      </div>
+                    ) : null}
                     <div className="events-panel__summary">
                       <h3>{t(event.titleKey)}</h3>
-                      {gladiator ? (
-                        <small>{t('events.concerns', { name: gladiator.name })}</small>
-                      ) : null}
+                      <p>{t(event.descriptionKey)}</p>
                     </div>
                   </div>
-                  <p>{t(event.descriptionKey)}</p>
                 </div>
                 <div className="event-choice-grid" style={choiceGridStyle}>
                   {event.choices.map((choice) => (

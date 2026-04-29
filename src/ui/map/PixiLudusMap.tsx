@@ -1,5 +1,4 @@
 import { useCallback, useMemo, type CSSProperties } from 'react';
-import { featureFlags } from '../../config/features';
 import type { GameSave } from '../../domain/types';
 import {
   LUDUS_MAP_DEFINITION,
@@ -27,7 +26,7 @@ function formatPixiColor(color: number) {
 }
 
 export function PixiLudusMap({ save, onLocationSelect }: PixiLudusMapProps) {
-  const { activeModal, t } = useUiStore();
+  const { activeModal, isPixiDebugEnabled, t } = useUiStore();
   const reducedMotion = usePrefersReducedMotion();
   const selectedLocationId = useMemo<MapLocationId | undefined>(() => {
     if (activeModal?.kind === 'building') {
@@ -88,7 +87,7 @@ export function PixiLudusMap({ save, onLocationSelect }: PixiLudusMapProps) {
       >
         <PixiSceneViewport
           createScene={createScene}
-          debugMode={featureFlags.enableDebugUi}
+          debugMode={isPixiDebugEnabled}
           sceneKey="ludus-map"
           sceneLabel={t('map.viewportLabel')}
           snapshot={viewModel}

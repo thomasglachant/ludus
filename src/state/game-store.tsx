@@ -6,6 +6,7 @@ import {
   resolveGameEventChoice as resolveGameEventChoiceAction,
   triggerDebugDailyEvent as triggerDebugDailyEventAction,
 } from '../domain/events/event-actions';
+import { adjustDebugTreasury as adjustDebugTreasuryAction } from '../domain/debug/debug-actions';
 import {
   markArenaCombatPresented as markArenaCombatPresentedAction,
   scoutOpponent as scoutOpponentAction,
@@ -350,6 +351,19 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         }
 
         return triggerDebugDailyEventAction(save, definitionId);
+      });
+    },
+    [applyPlayerChange],
+  );
+
+  const adjustDebugTreasury = useCallback(
+    (amount: number) => {
+      applyPlayerChange((save) => {
+        if (!featureFlags.enableDebugUi) {
+          return save;
+        }
+
+        return adjustDebugTreasuryAction(save, amount);
       });
     },
     [applyPlayerChange],
@@ -834,6 +848,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       acceptWeeklyContract,
       resolveGameEventChoice,
       triggerDebugDailyEvent,
+      adjustDebugTreasury,
       scoutOpponent,
       startArenaDayCombats,
       markArenaCombatPresented,
@@ -843,6 +858,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     };
   }, [
     acceptWeeklyContract,
+    adjustDebugTreasury,
     advanceToNextDayAction,
     applyPlanningRecommendationsAction,
     buyMarketGladiatorAction,

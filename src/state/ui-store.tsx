@@ -65,6 +65,7 @@ function createModalState(request: UiModalRequest): UiModalState {
 export function UiStoreProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<LanguageCode>(getInitialLanguage);
   const [screen, setScreen] = useState<ScreenName>(getInitialScreen);
+  const [isPixiDebugEnabled, setIsPixiDebugEnabled] = useState(false);
   const [modalStack, setModalStack] = useState<UiModalState[]>([]);
   const activeModal = modalStack.at(-1) ?? null;
   const backModal = useCallback(
@@ -91,6 +92,9 @@ export function UiStoreProvider({ children }: { children: ReactNode }) {
   const replaceModal = useCallback((request: UiModalRequest) => {
     setModalStack((currentStack) => [...currentStack.slice(0, -1), createModalState(request)]);
   }, []);
+  const togglePixiDebug = useCallback(() => {
+    setIsPixiDebugEnabled((isEnabled) => !isEnabled);
+  }, []);
   const setLanguage = useCallback((nextLanguage: LanguageCode) => {
     localStorage.setItem('ludus:language', nextLanguage);
     setLanguageState(nextLanguage);
@@ -109,6 +113,7 @@ export function UiStoreProvider({ children }: { children: ReactNode }) {
     return {
       activeModal,
       modalStack,
+      isPixiDebugEnabled,
       language,
       screen,
       backModal,
@@ -119,6 +124,7 @@ export function UiStoreProvider({ children }: { children: ReactNode }) {
       openFormModal,
       pushModal,
       replaceModal,
+      togglePixiDebug,
       setLanguage,
       navigate,
       t,
@@ -128,6 +134,7 @@ export function UiStoreProvider({ children }: { children: ReactNode }) {
     backModal,
     closeAllModals,
     closeModal,
+    isPixiDebugEnabled,
     language,
     modalStack,
     navigate,
@@ -138,6 +145,7 @@ export function UiStoreProvider({ children }: { children: ReactNode }) {
     replaceModal,
     screen,
     setLanguage,
+    togglePixiDebug,
     t,
   ]);
 
