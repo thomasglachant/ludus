@@ -2,6 +2,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, extname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { format } from 'prettier';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const publicAssetsRoot = join(root, 'public', 'assets');
@@ -296,12 +297,21 @@ function buildUiManifest() {
   );
 }
 
-function serializeManifestModule(manifest) {
-  return `import type { VisualAssetManifest } from '../visual-assets';\n\nexport const PRODUCTION_VISUAL_ASSET_MANIFEST = ${JSON.stringify(
-    manifest,
-    null,
-    2,
-  )} as const satisfies VisualAssetManifest;\n`;
+async function serializeManifestModule(manifest) {
+  return format(
+    `import type { VisualAssetManifest } from '../visual-assets';\n\nexport const PRODUCTION_VISUAL_ASSET_MANIFEST = ${JSON.stringify(
+      manifest,
+      null,
+      2,
+    )} as const satisfies VisualAssetManifest;\n`,
+    {
+      parser: 'typescript',
+      printWidth: 100,
+      semi: true,
+      singleQuote: true,
+      trailingComma: 'all',
+    },
+  );
 }
 
 function writeText(path, content) {
@@ -330,7 +340,7 @@ function checkText(path, content) {
   return true;
 }
 
-function run() {
+async function run() {
   const manifest = {
     version: 1,
     sourceQuality: 'production',
@@ -342,7 +352,7 @@ function run() {
     ui: buildUiManifest(),
   };
 
-  const manifestModule = serializeManifestModule(manifest);
+  const manifestModule = await serializeManifestModule(manifest);
 
   if (checkOnly) {
     if (!checkText(typescriptManifestPath, manifestModule)) {
@@ -359,4 +369,4 @@ function run() {
   console.log(`Generated production asset manifest with ${Object.keys(manifest.gladiators).length} gladiators.`);
 }
 
-run();
+await run();
