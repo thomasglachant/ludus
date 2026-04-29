@@ -1,4 +1,3 @@
-import { ArrowLeft } from 'lucide-react';
 import { featureFlags } from '../config/features';
 import { demoEarlyLudus } from '../game-data/demo-saves/demo-early-ludus';
 import type { PixiSceneContext } from '../renderer/pixi/PixiScene';
@@ -7,6 +6,7 @@ import { LudusMapScene } from '../renderer/scenes/ludus-map/LudusMapScene';
 import { createLudusMapSceneViewModel } from '../renderer/scenes/ludus-map/createLudusMapSceneViewModel';
 import { useUiStore } from '../state/ui-store-context';
 import { ActionButton } from '../ui/components/ActionButton';
+import { GameIcon } from '../ui/icons/GameIcon';
 import { ScreenShell } from '../ui/layout/ScreenShell';
 
 function createDebugMapScene(context: PixiSceneContext) {
@@ -40,7 +40,7 @@ export function DevDebugDashboardRoute() {
       ) : null}
       <div className="form-actions">
         <ActionButton
-          icon={<ArrowLeft aria-hidden="true" size={18} />}
+          icon={<GameIcon name="back" size={18} />}
           label={t('common.back')}
           onClick={() => {
             window.history.replaceState(null, '', '/');

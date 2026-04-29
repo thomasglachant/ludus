@@ -25,6 +25,142 @@
   color: #ffffff;
 }
 
+.cta-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid color-mix(in srgb, var(--green-action), #f0dfb8 18%);
+  border-radius: 6px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--green-action), #f0dfb8 16%),
+      var(--green-action)
+    ),
+    var(--green-action);
+  color: #fff9e7;
+  font-weight: 850;
+  text-align: center;
+  box-shadow:
+    inset 0 -3px 0 rgba(7, 52, 33, 0.3),
+    0 8px 16px rgba(11, 8, 6, 0.22);
+}
+
+.cta-button:hover {
+  border-color: var(--gold);
+  filter: brightness(1.07);
+}
+
+.cta-button:focus-visible {
+  outline: 3px solid rgba(214, 163, 74, 0.44);
+  outline-offset: 2px;
+}
+
+.cta-button:disabled {
+  opacity: 0.62;
+  filter: saturate(0.52);
+}
+
+.impact-indicator {
+  position: relative;
+  display: inline-flex;
+  min-height: 30px;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px 4px 9px;
+  border: 1px solid rgba(111, 69, 35, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 248, 226, 0.92);
+  color: #4f3825;
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.impact-indicator__icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.impact-indicator__tooltip {
+  flex: 0 0 auto;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tooltip::after {
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  z-index: 2;
+  padding: 5px 8px;
+  border: 1px solid rgba(111, 69, 35, 0.52);
+  border-radius: 6px;
+  background: #2a2119;
+  color: #fff1c7;
+  content: attr(data-tooltip);
+  font-size: 0.72rem;
+  font-weight: 850;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(1px);
+  transition:
+    opacity 80ms ease,
+    transform 80ms ease;
+  white-space: nowrap;
+}
+
+.tooltip:hover::after,
+.tooltip:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.tooltip:focus-visible {
+  outline: 2px solid rgba(214, 163, 74, 0.46);
+  outline-offset: 2px;
+}
+
+.impact-indicator__amount {
+  font-size: 0.95rem;
+  font-weight: 950;
+}
+
+.impact-indicator__chance {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(111, 69, 35, 0.12);
+  color: #5d452e;
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.impact-indicator--positive {
+  color: #4f3825;
+}
+
+.impact-indicator--positive .impact-indicator__amount {
+  color: #267042;
+}
+
+.impact-indicator--negative {
+  color: #4f3825;
+}
+
+.impact-indicator--negative .impact-indicator__amount {
+  color: #9a382b;
+}
+
 .action-button--secondary:hover,
 .action-button--ghost:hover {
   border-color: var(--accent);

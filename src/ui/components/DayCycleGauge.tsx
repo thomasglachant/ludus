@@ -1,7 +1,7 @@
-import { Moon, Sun, Sunrise, Sunset, type LucideIcon } from 'lucide-react';
 import type { GameTimeState } from '../../domain/time/types';
 import type { TimeOfDayPhase } from '../../game-data/time-of-day';
 import { useUiStore } from '../../state/ui-store-context';
+import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import { getDayCycleViewModel } from '../view-models/day-cycle-view-model';
 
 interface DayCycleGaugeProps {
@@ -10,17 +10,17 @@ interface DayCycleGaugeProps {
   time: Pick<GameTimeState, 'hour' | 'minute'>;
 }
 
-const TIME_OF_DAY_ICONS: Record<TimeOfDayPhase, LucideIcon> = {
-  dawn: Sunrise,
-  day: Sun,
-  dusk: Sunset,
-  night: Moon,
+const TIME_OF_DAY_ICONS: Record<TimeOfDayPhase, GameIconName> = {
+  dawn: 'timeDawn',
+  day: 'timeDay',
+  dusk: 'timeDusk',
+  night: 'timeNight',
 };
 
 export function DayCycleGauge({ className, size = 'default', time }: DayCycleGaugeProps) {
   const { t } = useUiStore();
   const viewModel = getDayCycleViewModel(time);
-  const PhaseIcon = TIME_OF_DAY_ICONS[viewModel.phase];
+  const phaseIcon = TIME_OF_DAY_ICONS[viewModel.phase];
   const phaseLabel = t(`timeOfDay.${viewModel.phase}`);
   const classes = [
     'day-cycle-gauge',
@@ -42,7 +42,7 @@ export function DayCycleGauge({ className, size = 'default', time }: DayCycleGau
       role="meter"
     >
       <div className="day-cycle-gauge__status">
-        <PhaseIcon aria-hidden="true" size={16} />
+        <GameIcon name={phaseIcon} size={16} />
         <span>{phaseLabel}</span>
       </div>
       <div className="day-cycle-gauge__track" aria-hidden="true">
@@ -57,7 +57,7 @@ export function DayCycleGauge({ className, size = 'default', time }: DayCycleGau
           className={`day-cycle-gauge__marker day-cycle-gauge__marker--${viewModel.phase}`}
           style={{ left: `${viewModel.progressPercent}%` }}
         >
-          <PhaseIcon aria-hidden="true" size={12} strokeWidth={3} />
+          <GameIcon name={phaseIcon} size={12} />
         </span>
       </div>
     </div>

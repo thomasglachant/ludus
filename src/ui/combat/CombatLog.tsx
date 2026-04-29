@@ -1,5 +1,5 @@
-import { Swords, Trophy } from 'lucide-react';
 import { useUiStore } from '../../state/ui-store-context';
+import { GameIcon } from '../icons/GameIcon';
 import type { CombatScreenViewModel } from './combat-screen-view-model';
 
 interface CombatLogProps {
@@ -22,7 +22,7 @@ export function CombatLog({ viewModel }: CombatLogProps) {
       </header>
       <ul aria-live="polite">
         <li className={viewModel.visibleTurns.length === 0 ? 'is-latest' : ''}>
-          <Swords aria-hidden="true" size={16} />
+          <GameIcon name="combatStrike" size={16} />
           <div>
             <span>{t('combatScreen.logIntroTitle')}</span>
             <p>
@@ -38,7 +38,7 @@ export function CombatLog({ viewModel }: CombatLogProps) {
             className={turn.turnNumber === viewModel.latestTurn?.turnNumber ? 'is-latest' : ''}
             key={turn.turnNumber}
           >
-            <Swords aria-hidden="true" size={16} />
+            <GameIcon name="combatStrike" size={16} />
             <div>
               <span>{t('arena.turnNumber', { turn: turn.turnNumber })}</span>
               <p>{t(turn.logKey, turn.logParams)}</p>
@@ -47,7 +47,7 @@ export function CombatLog({ viewModel }: CombatLogProps) {
         ))}
         {viewModel.isComplete ? (
           <li className="combat-screen-log__result">
-            <Trophy aria-hidden="true" size={16} />
+            <GameIcon name="victory" size={16} />
             <div>
               <span>{t('combatScreen.finalResult')}</span>
               <p>

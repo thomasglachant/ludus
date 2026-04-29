@@ -1,9 +1,10 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import type { DayOfWeek, GameSave, GameSpeed } from '../../domain/types';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { DAYS_OF_WEEK, TIME_CONFIG } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store-context';
 import { formatMoneyAmount } from '../formatters/money';
+import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface TopHudProps {
   save: GameSave;
@@ -12,15 +13,13 @@ interface TopHudProps {
   onAdvanceToNextDay(): void;
 }
 
-const TOP_HUD_ASSET_BASE_PATH = '/assets/ui/top-hud';
-
 const TOP_HUD_SPEED_CONTROLS = [
-  { iconPath: `${TOP_HUD_ASSET_BASE_PATH}/control-pause.svg`, labelKey: 'speed.pause', speed: 0 },
-  { iconPath: `${TOP_HUD_ASSET_BASE_PATH}/control-play.svg`, labelKey: 'speed.x1', speed: 1 },
-  { iconPath: `${TOP_HUD_ASSET_BASE_PATH}/control-x2.svg`, labelKey: 'speed.x2', speed: 2 },
-  { iconPath: `${TOP_HUD_ASSET_BASE_PATH}/control-x4.svg`, labelKey: 'speed.x4', speed: 4 },
+  { iconName: 'pause', labelKey: 'speed.pause', speed: 0 },
+  { iconName: 'play', labelKey: 'speed.x1', speed: 1 },
+  { iconName: 'speed2', labelKey: 'speed.x2', speed: 2 },
+  { iconName: 'speed4', labelKey: 'speed.x4', speed: 4 },
 ] as const satisfies ReadonlyArray<{
-  iconPath: string;
+  iconName: GameIconName;
   labelKey: string;
   speed: GameSpeed;
 }>;
@@ -37,10 +36,6 @@ interface ClockBase {
   key: string;
   startedAt: number;
   time: DisplayedTime;
-}
-
-function getControlIconStyle(iconPath: string): CSSProperties {
-  return { '--control-icon': `url(${iconPath})` } as CSSProperties;
 }
 
 function formatGameClock(hour: number, minute: number) {
@@ -233,11 +228,9 @@ export function TopHud({ onAdvanceToNextDay, onOpenMenu, onSpeedChange, save }: 
               type="button"
               onClick={() => onSpeedChange(control.speed)}
             >
-              <span
-                aria-hidden="true"
-                className="top-hud__control-icon"
-                style={getControlIconStyle(control.iconPath)}
-              />
+              <span aria-hidden="true" className="top-hud__control-icon">
+                <GameIcon color="currentColor" name={control.iconName} size={24} />
+              </span>
             </button>
           ))}
           <button
@@ -246,11 +239,9 @@ export function TopHud({ onAdvanceToNextDay, onOpenMenu, onSpeedChange, save }: 
             type="button"
             onClick={onAdvanceToNextDay}
           >
-            <span
-              aria-hidden="true"
-              className="top-hud__control-icon"
-              style={getControlIconStyle(`${TOP_HUD_ASSET_BASE_PATH}/control-next-day.svg`)}
-            />
+            <span aria-hidden="true" className="top-hud__control-icon">
+              <GameIcon color="currentColor" name="nextDay" size={24} />
+            </span>
           </button>
         </div>
       </div>
@@ -258,21 +249,17 @@ export function TopHud({ onAdvanceToNextDay, onOpenMenu, onSpeedChange, save }: 
       <div className="top-hud__actions">
         <div className="top-hud__resources" aria-label={t('topBar.resources')}>
           <div className="top-hud__resource" data-testid="topbar-treasury">
-            <span
-              aria-hidden="true"
-              className="top-hud__resource-icon top-hud__resource-icon--treasury"
-              style={getControlIconStyle('/assets/ui/resource-treasury.svg')}
-            />
+            <span aria-hidden="true" className="top-hud__resource-icon">
+              <GameIcon name="treasury" size={28} />
+            </span>
             <span className="top-hud__resource-value">
               {formatMoneyAmount(save.ludus.treasury)}
             </span>
           </div>
           <div className="top-hud__resource" data-testid="topbar-reputation">
-            <span
-              aria-hidden="true"
-              className="top-hud__resource-icon top-hud__resource-icon--reputation"
-              style={getControlIconStyle('/assets/ui/resource-reputation.svg')}
-            />
+            <span aria-hidden="true" className="top-hud__resource-icon">
+              <GameIcon name="reputation" size={28} />
+            </span>
             <span className="top-hud__resource-value">{save.ludus.reputation}</span>
           </div>
         </div>
@@ -285,11 +272,9 @@ export function TopHud({ onAdvanceToNextDay, onOpenMenu, onSpeedChange, save }: 
             type="button"
             onClick={onOpenMenu}
           >
-            <span
-              aria-hidden="true"
-              className="top-hud__menu-icon"
-              style={getControlIconStyle(`${TOP_HUD_ASSET_BASE_PATH}/control-edit-menu.svg`)}
-            />
+            <span aria-hidden="true" className="top-hud__menu-icon">
+              <GameIcon color="currentColor" name="menu" size={32} />
+            </span>
           </button>
         </div>
       </div>

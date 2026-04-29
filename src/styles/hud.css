@@ -541,16 +541,18 @@
 }
 
 .top-hud__control-icon {
+  position: relative;
+  display: inline-flex;
   width: 34px;
   height: 34px;
-  background: #f7e6b3;
-  mask: var(--control-icon) center / contain no-repeat;
+  align-items: center;
+  justify-content: center;
+  color: #f7e6b3;
   pointer-events: none;
-  -webkit-mask: var(--control-icon) center / contain no-repeat;
 }
 
 .top-hud__speeds button.is-selected .top-hud__control-icon {
-  background: #17130f;
+  color: #17130f;
 }
 
 .top-hud__speeds button:hover,
@@ -610,20 +612,12 @@
 }
 
 .top-hud__resource-icon {
+  display: inline-flex;
   width: 28px;
   height: 28px;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
-  background: #f7e6b3;
-  mask: var(--control-icon) center / contain no-repeat;
-  -webkit-mask: var(--control-icon) center / contain no-repeat;
-}
-
-.top-hud__resource-icon--treasury {
-  background: #ffd76a;
-}
-
-.top-hud__resource-icon--reputation {
-  background: #78c46b;
 }
 
 .top-hud__menu-zone {
@@ -654,13 +648,12 @@
 }
 
 .top-hud__menu-icon {
+  display: grid;
   width: 36px;
   height: 36px;
-  display: block;
-  background: #f7e6b3;
-  mask: var(--control-icon) center / contain no-repeat;
+  place-items: center;
+  color: #f7e6b3;
   pointer-events: none;
-  -webkit-mask: var(--control-icon) center / contain no-repeat;
 }
 
 .top-hud__speeds button:focus-visible,

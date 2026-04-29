@@ -1,6 +1,6 @@
-import { ArrowLeft, X } from 'lucide-react';
 import { useState, type AriaRole, type ReactNode, type Ref } from 'react';
 import { useUiStore } from '../../state/ui-store-context';
+import { GameIcon } from '../icons/GameIcon';
 
 export type ReversibleMenuCardSize = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -80,7 +80,7 @@ export function ReversibleMenuCard<PanelId extends string>({
               type="button"
               onClick={onBack}
             >
-              <ArrowLeft aria-hidden="true" size={18} />
+              <GameIcon color="currentColor" name="back" size={18} />
             </button>
           ) : null}
           {onClose ? (
@@ -92,7 +92,7 @@ export function ReversibleMenuCard<PanelId extends string>({
               type="button"
               onClick={onClose}
             >
-              <X aria-hidden="true" size={18} />
+              <GameIcon color="currentColor" name="close" size={18} />
             </button>
           ) : null}
           <div className="main-menu-screen__front-title">{title}</div>
@@ -134,7 +134,7 @@ export function ReversibleMenuCard<PanelId extends string>({
                   type="button"
                   onClick={closePanel}
                 >
-                  <ArrowLeft aria-hidden="true" size={18} />
+                  <GameIcon color="currentColor" name="back" size={18} />
                 </button>
                 <h2>{activePanel.title}</h2>
                 {onClose ? (
@@ -144,7 +144,7 @@ export function ReversibleMenuCard<PanelId extends string>({
                     type="button"
                     onClick={onClose}
                   >
-                    <X aria-hidden="true" size={18} />
+                    <GameIcon color="currentColor" name="close" size={18} />
                   </button>
                 ) : null}
               </header>

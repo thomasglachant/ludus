@@ -1,4 +1,3 @@
-import { Check, Hammer } from 'lucide-react';
 import { useState } from 'react';
 import type { BuildingId, GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
@@ -13,6 +12,7 @@ import {
   Tabs,
 } from '../components/shared';
 import { BuildingActionModalContent } from '../modals/BuildingActionModalContent';
+import { GameIcon } from '../icons/GameIcon';
 import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 import { formatMoneyAmount } from '../formatters/money';
@@ -191,7 +191,7 @@ export function BuildingPanel({
               type="button"
               onClick={requestBuildingAction}
             >
-              <Hammer aria-hidden="true" size={17} />
+              <GameIcon name="hammer" size={17} />
               <span>{t(viewModel.action.labelKey)}</span>
             </button>
           </div>
@@ -240,7 +240,7 @@ export function BuildingPanel({
                     type="button"
                     onClick={() => requestImprovementPurchase(improvement)}
                   >
-                    <Hammer aria-hidden="true" size={17} />
+                    <GameIcon name="hammer" size={17} />
                     <span>{t(improvement.actionLabelKey)}</span>
                   </button>
                 </div>
@@ -295,7 +295,7 @@ export function BuildingPanel({
                     type="button"
                     onClick={() => requestPolicySelection(policy)}
                   >
-                    <Check aria-hidden="true" size={17} />
+                    <GameIcon name="check" size={17} />
                     <span>{t(policy.actionLabelKey)}</span>
                   </button>
                 </div>

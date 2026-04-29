@@ -622,13 +622,38 @@ export interface GameEventChoice {
   id: string;
   labelKey: string;
   consequenceKey: string;
-  effects: GameEventEffect[];
+  consequences: GameEventConsequence[];
 }
 ```
 
 ```ts
+export type GameEventConsequence =
+  | { kind: 'certain'; effects: GameEventEffect[] }
+  | {
+      kind: 'chance';
+      id: string;
+      chancePercent: number;
+      effects?: GameEventEffect[];
+      textKey?: string;
+    }
+  | { kind: 'oneOf'; outcomes: GameEventOutcome[] };
+```
+
+```ts
+export interface GameEventOutcome {
+  id: string;
+  chancePercent: number;
+  effects?: GameEventEffect[];
+  textKey?: string;
+}
+```
+
+`certain` consequences always apply. `chance` consequences are independent probability checks. `oneOf` consequences are exclusive outcome groups; exactly one outcome is selected from the group according to cumulative `chancePercent` values, and the percentages must total 100.
+
+```ts
 export interface GameEvent {
   id: string;
+  definitionId: string;
   titleKey: string;
   descriptionKey: string;
   status: GameEventStatus;
@@ -639,6 +664,7 @@ export interface GameEvent {
   buildingId?: BuildingId;
   choices: GameEventChoice[];
   selectedChoiceId?: string;
+  resolvedOutcomeIds?: string[];
 }
 ```
 
@@ -646,13 +672,27 @@ export interface GameEvent {
 export interface EventState {
   pendingEvents: GameEvent[];
   resolvedEvents: GameEvent[];
+  launchedEvents: LaunchedGameEventRecord[];
 }
 ```
+
+```ts
+export interface LaunchedGameEventRecord {
+  eventId: string;
+  definitionId: string;
+  launchedAtYear: number;
+  launchedAtWeek: number;
+  launchedAtDay: DayOfWeek;
+}
+```
+
+`pendingEvents` and `resolvedEvents` are transient UI/domain queues and are not persisted across local save normalization. `launchedEvents` is persisted and stores the minimum launch history needed for game-week cooldowns, daily generation limits and weekly generation limits.
 
 ```ts
 export type GameEventEffect =
   | { type: 'changeTreasury'; amount: number }
   | { type: 'changeLudusReputation'; amount: number }
+  | { type: 'removeGladiator'; gladiatorId: string }
   | { type: 'changeGladiatorHealth'; gladiatorId: string; amount: number }
   | { type: 'changeGladiatorEnergy'; gladiatorId: string; amount: number }
   | { type: 'changeGladiatorMorale'; gladiatorId: string; amount: number }

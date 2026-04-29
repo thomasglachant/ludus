@@ -1,4 +1,3 @@
-import { ShoppingCart, UserMinus, Users } from 'lucide-react';
 import {
   getAvailableLudusGladiatorPlaces,
   getLudusGladiatorCapacity,
@@ -14,6 +13,7 @@ import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { EmptyState, MetricList, NoticeBox } from '../components/shared';
 import { formatMoneyAmount } from '../formatters/money';
+import { GameIcon } from '../icons/GameIcon';
 import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
@@ -119,7 +119,7 @@ function MarketCandidateCard({
       <div className="gladiator-card__actions">
         <ActionButton
           disabled={!validation.isAllowed}
-          icon={<ShoppingCart aria-hidden="true" size={18} />}
+          icon={<GameIcon name="shoppingCart" size={18} />}
           label={t('market.buyWithPrice', { price: formatMoneyAmount(candidate.price) })}
           testId={`market-buy-${candidate.id}`}
           variant="primary"
@@ -155,7 +155,7 @@ function OwnedGladiatorCard({
       <TraitList gladiator={gladiator} />
       <div className="gladiator-card__actions">
         <ActionButton
-          icon={<UserMinus aria-hidden="true" size={18} />}
+          icon={<GameIcon name="userMinus" size={18} />}
           label={t('market.sell')}
           onClick={() => onSell(gladiator)}
         />
@@ -185,7 +185,7 @@ export function MarketContent({ save, onBuy, onSell }: MarketContentProps) {
         />
         {availablePlaces <= 0 ? (
           <NoticeBox tone="warning" testId="market-capacity-full-notice">
-            <Users aria-hidden="true" size={18} />
+            <GameIcon name="capacity" size={18} />
             <span>{t('market.noBedWarning')}</span>
           </NoticeBox>
         ) : null}

@@ -809,6 +809,12 @@ export const GAME_BALANCE = {
     maxEventsPerDay: 1,
     // Maximum generated events during a single week.
     maxEventsPerWeek: 3,
+    // Default relative weight used when selecting one event definition.
+    defaultSelectionWeightPercent: 100,
+    // Default game-week cooldown before the same event definition can reappear.
+    defaultCooldownWeeks: 4,
+    // Number of launched event records kept to enforce cooldowns across saves.
+    launchedEventHistoryLimit: 128,
     // Chance that an event appears on each weekday once other limits allow it.
     dailyEventProbabilityByDay: {
       monday: 0.1,

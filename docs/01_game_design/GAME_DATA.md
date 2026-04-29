@@ -481,6 +481,10 @@ Initial weekly contract definitions:
 export const EVENT_CONFIG = {
   dailyEventStartHour: 10,
   maxEventsPerDay: 1,
+  maxEventsPerWeek: 3,
+  defaultSelectionWeightPercent: 100,
+  defaultCooldownWeeks: 4,
+  launchedEventHistoryLimit: 128,
   injuredHealthThreshold: 80,
   resolvedEventHistoryLimit: 12,
 } as const;
@@ -488,11 +492,27 @@ export const EVENT_CONFIG = {
 
 Initial event definitions:
 
+- `departureThreat`: paying costs treasury and improves morale, refusing triggers one exclusive result between leaving the ludus and a morale loss.
 - `trainingRefusal`: rest improves morale and energy, strict drill improves strength but hurts morale and energy.
 - `patricianVisit`: hosting costs treasury and improves ludus reputation, keeping routine reduces reputation.
 - `medicusOffer`: paying improves selected injured gladiator health, declining reduces morale.
 - `rivalRumors`: public response costs treasury and improves reputation, ignoring reduces reputation.
 - `youngPromise`: extra coaching improves agility but costs energy, public praise improves morale and reputation.
+
+Daily event choices use a single `consequences` list:
+
+- `kind: 'certain'`: all listed effects always apply;
+- `kind: 'chance'`: the listed effect or text has an independent probability;
+- `kind: 'oneOf'`: exactly one listed outcome is selected, and outcome chances must total 100.
+
+Event data uses selected-target templates such as `changeSelectedGladiatorMorale` and `removeSelectedGladiator`. The domain resolves those templates into persisted `GameEventEffect` values with concrete ids when an event is created.
+
+Daily event definitions may set:
+
+- `selectionWeightPercent`: relative selection weight once the event pool is eligible. `100` means normal weight, `50` means half as likely as a normal-weight event, and `0` disables natural selection.
+- `cooldownWeeks`: number of game weeks before the same event definition can naturally reappear. Defaults to `defaultCooldownWeeks`.
+
+The save stores `events.launchedEvents` with the event definition id and game launch date. This history is persisted even though pending/resolved event queues are cleared on save normalization, allowing cooldowns to survive reloads.
 
 ## Time-of-Day Visuals
 

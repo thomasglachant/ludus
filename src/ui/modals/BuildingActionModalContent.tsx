@@ -1,20 +1,7 @@
-import {
-  Activity,
-  ArrowRight,
-  Battery,
-  Coins,
-  Dumbbell,
-  Gauge,
-  HeartPulse,
-  Shield,
-  Smile,
-  Users,
-  Utensils,
-  type LucideIcon,
-} from 'lucide-react';
 import type { BuildingEffectType, BuildingId } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { formatMoneyAmount } from '../formatters/money';
+import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import type { BuildingActionEffectPreview } from '../view-models/building-panel-view-model';
 
 interface BuildingActionModalContentProps {
@@ -28,19 +15,19 @@ interface BuildingActionModalContentProps {
   nextLevel: number;
 }
 
-const effectIcons: Record<BuildingEffectType, LucideIcon> = {
-  decreaseEnergy: Battery,
-  decreaseMorale: Smile,
-  increaseAgility: Gauge,
-  increaseCapacity: Users,
-  increaseDefense: Shield,
-  increaseEnergy: Battery,
-  increaseHealth: HeartPulse,
-  increaseMorale: Smile,
-  increaseReadiness: Activity,
-  increaseSatiety: Utensils,
-  increaseStrength: Dumbbell,
-  reduceInjuryRisk: Shield,
+const effectIcons: Record<BuildingEffectType, GameIconName> = {
+  decreaseEnergy: 'energy',
+  decreaseMorale: 'morale',
+  increaseAgility: 'agility',
+  increaseCapacity: 'capacity',
+  increaseDefense: 'defense',
+  increaseEnergy: 'energy',
+  increaseHealth: 'health',
+  increaseMorale: 'morale',
+  increaseReadiness: 'readiness',
+  increaseSatiety: 'satiety',
+  increaseStrength: 'strength',
+  reduceInjuryRisk: 'defense',
 };
 
 function getEffectValue(
@@ -80,7 +67,7 @@ export function BuildingActionModalContent({
               <small>{t('buildingActionModal.currentLevel')}</small>
               <strong>{currentLevel}</strong>
             </span>
-            <ArrowRight aria-hidden="true" size={18} />
+            <GameIcon color="currentColor" name="arrowRight" size={18} />
             <span>
               <small>{t('buildingActionModal.nextLevel')}</small>
               <strong>{nextLevel}</strong>
@@ -94,17 +81,17 @@ export function BuildingActionModalContent({
         {effects.length > 0 ? (
           <ul>
             {effects.map((effect) => {
-              const EffectIcon = effectIcons[effect.type];
+              const effectIcon = effectIcons[effect.type];
 
               return (
                 <li key={effect.id}>
-                  <EffectIcon aria-hidden="true" size={19} />
+                  <GameIcon name={effectIcon} size={19} />
                   <span className="building-action-modal__effect-label">
                     {t(`buildingEffectNames.${effect.type}`)}
                     {effect.isPerHour ? <small>{t('buildingEffects.perHour')}</small> : null}
                   </span>
                   <span>{getEffectValue(effect, effect.currentValue, t)}</span>
-                  <ArrowRight aria-hidden="true" size={16} />
+                  <GameIcon color="currentColor" name="arrowRight" size={16} />
                   <strong>{getEffectValue(effect, effect.nextValue, t)}</strong>
                 </li>
               );
@@ -119,7 +106,7 @@ export function BuildingActionModalContent({
         <h2>{t(costTitleKey)}</h2>
         <div className="building-action-modal__resources">
           <span className="building-action-modal__resource-chip">
-            <Coins aria-hidden="true" size={18} />
+            <GameIcon name="treasury" size={18} />
             <strong>{formatMoneyAmount(cost)}</strong>
           </span>
           <span className="building-action-modal__resource-slot" aria-hidden="true" />

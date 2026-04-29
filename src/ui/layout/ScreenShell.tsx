@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { Shield } from 'lucide-react';
 import { useUiStore } from '../../state/ui-store-context';
+import { GameIcon } from '../icons/GameIcon';
 
 interface ScreenShellProps {
   titleKey: string;
@@ -14,7 +14,7 @@ export function ScreenShell({ titleKey, subtitleKey, children }: ScreenShellProp
   return (
     <section className="screen-shell">
       <div className="screen-shell__heading">
-        <Shield aria-hidden="true" size={28} />
+        <GameIcon name="defense" size={28} />
         <div>
           <p className="eyebrow">{t('app.title')}</p>
           <h1>{t(titleKey)}</h1>

@@ -1,9 +1,9 @@
-import { Dices, Landmark } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { generateLudusName } from '../../domain/ludus/name-generator';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
+import { GameIcon } from '../icons/GameIcon';
 import { AppModal } from './AppModal';
 
 interface NewGameModalProps {
@@ -45,7 +45,7 @@ export function NewGameModal({ onBack, onClose }: NewGameModalProps) {
           <ActionButton label={t('common.cancel')} onClick={onClose} />
           <ActionButton
             disabled={isLoading}
-            icon={<Landmark aria-hidden="true" size={18} />}
+            icon={<GameIcon name="landmark" size={18} />}
             label={isLoading ? t('common.loading') : t('newGame.submit')}
             testId="new-game-submit"
             type="submit"
@@ -81,7 +81,7 @@ export function NewGameModal({ onBack, onClose }: NewGameModalProps) {
               type="button"
               onClick={() => updateLudusName(generateLudusName(ludusName))}
             >
-              <Dices aria-hidden="true" size={18} />
+              <GameIcon name="dice" size={18} />
             </button>
           </div>
         </label>

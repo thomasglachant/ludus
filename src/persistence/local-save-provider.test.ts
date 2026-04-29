@@ -69,6 +69,7 @@ describe('LocalSaveProvider', () => {
     });
     const event = {
       id: 'event-1',
+      definitionId: 'testEvent',
       titleKey: 'events.test.title',
       descriptionKey: 'events.test.description',
       status: 'pending' as const,
@@ -80,7 +81,12 @@ describe('LocalSaveProvider', () => {
           id: 'choice-1',
           labelKey: 'events.test.choice',
           consequenceKey: 'events.test.consequence',
-          effects: [{ type: 'changeTreasury' as const, amount: 10 }],
+          consequences: [
+            {
+              kind: 'certain' as const,
+              effects: [{ type: 'changeTreasury' as const, amount: 10 }],
+            },
+          ],
         },
       ],
     };
@@ -90,6 +96,15 @@ describe('LocalSaveProvider', () => {
       events: {
         pendingEvents: [event],
         resolvedEvents: [{ ...event, status: 'resolved', selectedChoiceId: 'choice-1' }],
+        launchedEvents: [
+          {
+            eventId: 'launch-1',
+            definitionId: 'testEvent',
+            launchedAtYear: save.time.year,
+            launchedAtWeek: save.time.week,
+            launchedAtDay: save.time.dayOfWeek,
+          },
+        ],
       },
     });
 
@@ -98,6 +113,15 @@ describe('LocalSaveProvider', () => {
       events: {
         pendingEvents: [],
         resolvedEvents: [],
+        launchedEvents: [
+          {
+            eventId: 'launch-1',
+            definitionId: 'testEvent',
+            launchedAtYear: save.time.year,
+            launchedAtWeek: save.time.week,
+            launchedAtDay: save.time.dayOfWeek,
+          },
+        ],
       },
     });
   });

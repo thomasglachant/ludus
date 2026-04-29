@@ -1,22 +1,3 @@
-import {
-  CalendarDays,
-  Dumbbell,
-  Footprints,
-  Gauge,
-  HeartPulse,
-  MapPin,
-  Medal,
-  Shield,
-  Smile,
-  Sparkles,
-  Swords,
-  Target,
-  Trophy,
-  Utensils,
-  Wind,
-  Zap,
-  type LucideIcon,
-} from 'lucide-react';
 import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import { getEffectiveSkillValue, getSkillTrainingProgress } from '../../domain/gladiators/skills';
 import {
@@ -28,6 +9,7 @@ import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { getMapLocation } from '../../game-data/map-layout';
 import { useUiStore } from '../../state/ui-store-context';
 import { PanelShell } from '../components/shared';
+import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
@@ -38,7 +20,7 @@ interface GladiatorDetailPanelProps {
 }
 
 interface StatChipProps {
-  Icon: LucideIcon;
+  iconName: GameIconName;
   label: string;
   value: number | string;
 }
@@ -48,7 +30,7 @@ interface SkillChipProps extends StatChipProps {
 }
 
 interface ResourceMeterProps {
-  Icon: LucideIcon;
+  iconName: Extract<GameIconName, 'energy' | 'health' | 'morale' | 'satiety'>;
   label: string;
   tone: 'health' | 'energy' | 'morale' | 'satiety';
   value: number;
@@ -58,22 +40,22 @@ function clampMeterValue(value: number) {
   return Math.min(Math.max(value, 0), 100);
 }
 
-function StatChip({ Icon, label, value }: StatChipProps) {
+function StatChip({ iconName, label, value }: StatChipProps) {
   return (
     <div className="gladiator-stat-chip">
-      <Icon aria-hidden="true" size={19} />
+      <GameIcon name={iconName} size={19} />
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
   );
 }
 
-function SkillChip({ Icon, label, value, progress }: SkillChipProps) {
+function SkillChip({ iconName, label, value, progress }: SkillChipProps) {
   const { t } = useUiStore();
 
   return (
     <div className="gladiator-stat-chip gladiator-stat-chip--skill">
-      <Icon aria-hidden="true" size={19} />
+      <GameIcon name={iconName} size={19} />
       <span>{label}</span>
       <strong>{value}</strong>
       <span
@@ -86,13 +68,13 @@ function SkillChip({ Icon, label, value, progress }: SkillChipProps) {
   );
 }
 
-function ResourceMeter({ Icon, label, tone, value }: ResourceMeterProps) {
+function ResourceMeter({ iconName, label, tone, value }: ResourceMeterProps) {
   const clampedValue = clampMeterValue(value);
 
   return (
     <div className={`gladiator-resource-meter gladiator-resource-meter--${tone}`}>
       <div className="gladiator-resource-meter__label">
-        <Icon aria-hidden="true" size={18} />
+        <GameIcon name={iconName} size={18} />
         <span>{label}</span>
         <strong>{value}/100</strong>
       </div>
@@ -149,19 +131,19 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
   const bettingOdds = save.arena.betting?.odds.find((odds) => odds.gladiatorId === gladiator.id);
   const skillStats = [
     {
-      Icon: Dumbbell,
+      iconName: 'strength' as const,
       label: t('market.stats.strength'),
       value: getEffectiveSkillValue(gladiator.strength),
       progress: getSkillTrainingProgress(gladiator.strength),
     },
     {
-      Icon: Wind,
+      iconName: 'agility' as const,
       label: t('market.stats.agility'),
       value: getEffectiveSkillValue(gladiator.agility),
       progress: getSkillTrainingProgress(gladiator.agility),
     },
     {
-      Icon: Shield,
+      iconName: 'defense' as const,
       label: t('market.stats.defense'),
       value: getEffectiveSkillValue(gladiator.defense),
       progress: getSkillTrainingProgress(gladiator.defense),
@@ -169,25 +151,25 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
   ];
   const resourceStats = [
     {
-      Icon: HeartPulse,
+      iconName: 'health' as const,
       label: t('market.stats.health'),
       tone: 'health' as const,
       value: gladiator.health,
     },
     {
-      Icon: Zap,
+      iconName: 'energy' as const,
       label: t('market.stats.energy'),
       tone: 'energy' as const,
       value: gladiator.energy,
     },
     {
-      Icon: Smile,
+      iconName: 'morale' as const,
       label: t('market.stats.morale'),
       tone: 'morale' as const,
       value: gladiator.morale,
     },
     {
-      Icon: Utensils,
+      iconName: 'satiety' as const,
       label: t('market.stats.satiety'),
       tone: 'satiety' as const,
       value: gladiator.satiety,
@@ -220,13 +202,13 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
 
           <div className="gladiator-profile-card__summary">
             <StatChip
-              Icon={Gauge}
+              iconName="readiness"
               label={t('weeklyPlan.readiness')}
               value={t('weeklyPlan.readinessValue', { score: readiness })}
             />
-            <StatChip Icon={CalendarDays} label={t('gladiatorPanel.age')} value={gladiator.age} />
+            <StatChip iconName="age" label={t('gladiatorPanel.age')} value={gladiator.age} />
             <StatChip
-              Icon={Medal}
+              iconName="reputation"
               label={t('gladiatorPanel.reputation')}
               value={gladiator.reputation}
             />
@@ -238,7 +220,7 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
               {skillStats.map((stat) => (
                 <SkillChip
                   key={stat.label}
-                  Icon={stat.Icon}
+                  iconName={stat.iconName}
                   label={stat.label}
                   value={stat.value}
                   progress={stat.progress}
@@ -253,7 +235,7 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
               {resourceStats.map((stat) => (
                 <ResourceMeter
                   key={stat.label}
-                  Icon={stat.Icon}
+                  iconName={stat.iconName}
                   label={stat.label}
                   tone={stat.tone}
                   value={stat.value}
@@ -267,21 +249,21 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
       <div className="gladiator-info-grid">
         <section className="gladiator-info-panel">
           <h2>
-            <Swords aria-hidden="true" size={18} />
+            <GameIcon name="record" size={18} />
             {t('gladiatorPanel.record')}
           </h2>
           <dl>
             <div>
               <dt>{t('gladiatorPanel.careerRecord')}</dt>
               <dd>
-                <Trophy aria-hidden="true" size={16} />
+                <GameIcon name="victory" size={16} />
                 {t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}
               </dd>
             </div>
             <div>
               <dt>{t('gladiatorPanel.todayRecord')}</dt>
               <dd>
-                <Trophy aria-hidden="true" size={16} />
+                <GameIcon name="victory" size={16} />
                 {t('market.record', {
                   wins: currentArenaRecord.wins,
                   losses: currentArenaRecord.losses,
@@ -293,7 +275,7 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
 
         <section className="gladiator-info-panel">
           <h2>
-            <Target aria-hidden="true" size={18} />
+            <GameIcon name="combatPressure" size={18} />
             {t('gladiatorPanel.planning')}
           </h2>
           <dl>
@@ -314,7 +296,7 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
 
         <section className="gladiator-info-panel">
           <h2>
-            <MapPin aria-hidden="true" size={18} />
+            <GameIcon name="assignment" size={18} />
             {t('gladiatorPanel.assignment')}
           </h2>
           <dl>
@@ -340,7 +322,7 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
         {bettingOdds ? (
           <section className="gladiator-info-panel">
             <h2>
-              <Sparkles aria-hidden="true" size={18} />
+              <GameIcon name="arenaIntel" size={18} />
               {t('gladiatorPanel.arenaIntel')}
             </h2>
             <dl>
@@ -363,22 +345,22 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
         {gladiator.trainingPlan ? (
           <section className="gladiator-info-panel gladiator-info-panel--wide">
             <h2>
-              <Footprints aria-hidden="true" size={18} />
+              <GameIcon name="training" size={18} />
               {t('gladiatorPanel.trainingPlan')}
             </h2>
             <div className="gladiator-skill-grid">
               <StatChip
-                Icon={Dumbbell}
+                iconName="strength"
                 label={t('market.stats.strength')}
                 value={getEffectiveSkillValue(gladiator.trainingPlan.strength)}
               />
               <StatChip
-                Icon={Wind}
+                iconName="agility"
                 label={t('market.stats.agility')}
                 value={getEffectiveSkillValue(gladiator.trainingPlan.agility)}
               />
               <StatChip
-                Icon={Shield}
+                iconName="defense"
                 label={t('market.stats.defense')}
                 value={getEffectiveSkillValue(gladiator.trainingPlan.defense)}
               />

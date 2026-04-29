@@ -1,9 +1,9 @@
-import { FolderOpen, LogOut, Save, Settings } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { ReversibleMenuCard } from '../components/ReversibleMenuCard';
+import { GameIcon } from '../icons/GameIcon';
 import { LoadGameContent } from './LoadGameModal';
 
 interface GameMenuModalProps {
@@ -59,27 +59,27 @@ export function GameMenuModal({
         actions={[
           {
             disabled: isSaving,
-            icon: <Save aria-hidden="true" size={18} />,
+            icon: <GameIcon name="save" size={18} />,
             key: 'save',
             label: t(isSaving ? 'ludus.saving' : 'gameMenu.save'),
             onClick: onSave,
             primary: true,
           },
           {
-            icon: <FolderOpen aria-hidden="true" size={18} />,
+            icon: <GameIcon name="folderOpen" size={18} />,
             key: 'loadGame',
             label: t('mainMenu.loadGame'),
             panelId: 'loadGame',
             testId: 'main-menu-load-game',
           },
           {
-            icon: <Settings aria-hidden="true" size={18} />,
+            icon: <GameIcon name="settings" size={18} />,
             key: 'options',
             label: t('mainMenu.options'),
             panelId: 'options',
           },
           {
-            icon: <LogOut aria-hidden="true" size={18} />,
+            icon: <GameIcon name="logout" size={18} />,
             key: 'quit',
             label: t('gameMenu.quit'),
             panelId: 'quit',
@@ -111,7 +111,7 @@ export function GameMenuModal({
                 <div className="form-actions game-menu-card__confirm-actions">
                   <ActionButton label={t('common.cancel')} onClick={closePanel} />
                   <ActionButton
-                    icon={<LogOut aria-hidden="true" size={18} />}
+                    icon={<GameIcon name="logout" size={18} />}
                     label={t('gameMenu.quit')}
                     variant="primary"
                     onClick={onQuit}

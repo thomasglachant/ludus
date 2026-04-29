@@ -1,6 +1,6 @@
-import { Footprints, Shield, Swords, Target, Trophy } from 'lucide-react';
 import { useUiStore } from '../../state/ui-store-context';
 import { formatMoneyAmount } from '../formatters/money';
+import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import type { CombatScreenViewModel } from './combat-screen-view-model';
 
 interface CombatSkillBarProps {
@@ -12,11 +12,11 @@ interface CombatSkillBarProps {
 }
 
 const skillItems = [
-  { icon: Swords, labelKey: 'combatScreen.skills.strike' },
-  { icon: Shield, labelKey: 'combatScreen.skills.guard' },
-  { icon: Footprints, labelKey: 'combatScreen.skills.feint' },
-  { icon: Target, labelKey: 'combatScreen.skills.pressure' },
-] as const;
+  { iconName: 'combatStrike', labelKey: 'combatScreen.skills.strike' },
+  { iconName: 'combatGuard', labelKey: 'combatScreen.skills.guard' },
+  { iconName: 'combatFeint', labelKey: 'combatScreen.skills.feint' },
+  { iconName: 'combatPressure', labelKey: 'combatScreen.skills.pressure' },
+] as const satisfies ReadonlyArray<{ iconName: GameIconName; labelKey: string }>;
 
 function formatSignedValue(value: number) {
   return value > 0 ? `+${value}` : String(value);
@@ -38,7 +38,7 @@ export function CombatSkillBar({
         <strong>{t(`combat.strategies.${viewModel.combat.strategy}`)}</strong>
       </div>
       <div className="combat-skill-bar__skills">
-        {skillItems.map(({ icon: Icon, labelKey }) => (
+        {skillItems.map(({ iconName, labelKey }) => (
           <button
             aria-label={t(labelKey)}
             disabled
@@ -46,14 +46,14 @@ export function CombatSkillBar({
             title={t(labelKey)}
             type="button"
           >
-            <Icon aria-hidden="true" size={20} />
+            <GameIcon name={iconName} size={20} />
             <span>{t(labelKey)}</span>
           </button>
         ))}
       </div>
       {viewModel.isComplete ? (
         <div className="combat-skill-bar__result" data-testid="combat-result">
-          <Trophy aria-hidden="true" size={20} />
+          <GameIcon name="victory" size={20} />
           <div>
             <strong>{t(viewModel.consequence.resultKey)}</strong>
             <span>
@@ -67,7 +67,7 @@ export function CombatSkillBar({
       ) : null}
       <div className="combat-skill-bar__actions">
         <button disabled={viewModel.isComplete} type="button" onClick={onAdvance}>
-          <Swords aria-hidden="true" size={18} />
+          <GameIcon name="combatStrike" size={18} />
           <span>
             {viewModel.isComplete ? t('arena.logComplete') : t('combatScreen.advanceTurn')}
           </span>

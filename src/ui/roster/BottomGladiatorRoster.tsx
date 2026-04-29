@@ -1,9 +1,9 @@
-import { AlertTriangle } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import type { GameSave, Gladiator } from '../../domain/types';
 import { getGladiatorPlanningStatuses } from '../../domain/planning/planning-actions';
 import { useUiStore } from '../../state/ui-store-context';
+import { GameIcon } from '../icons/GameIcon';
 import { GladiatorClassLine } from './GladiatorClassLine';
 import { GladiatorPortrait } from './GladiatorPortrait';
 
@@ -95,7 +95,7 @@ export function BottomGladiatorRoster({
                     <span>{t('weeklyPlan.readinessValue', { score: readiness })}</span>
                     {primaryAlert ? (
                       <span className="roster-card__alert">
-                        <AlertTriangle aria-hidden="true" size={13} />
+                        <GameIcon name="alert" size={13} />
                         {t(primaryAlert.titleKey)}
                       </span>
                     ) : null}

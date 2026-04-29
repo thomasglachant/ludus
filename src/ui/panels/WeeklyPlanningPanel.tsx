@@ -1,4 +1,3 @@
-import { Sparkles } from 'lucide-react';
 import { calculateReadiness } from '../../domain/planning/readiness';
 import { getGladiatorPlanningStatuses } from '../../domain/planning/planning-actions';
 import type { GameSave, GladiatorRoutineUpdate } from '../../domain/types';
@@ -6,6 +5,7 @@ import { BUILDING_DEFINITIONS, BUILDING_IDS } from '../../game-data/buildings';
 import { COMBAT_STRATEGIES } from '../../game-data/combat';
 import { TRAINING_INTENSITIES, WEEKLY_OBJECTIVES } from '../../game-data/planning';
 import { useUiStore } from '../../state/ui-store-context';
+import { GameIcon } from '../icons/GameIcon';
 import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
@@ -35,7 +35,7 @@ export function WeeklyPlanningPanel({
     <section className="modal-panel modal-panel--wide">
       <div className="context-panel__actions">
         <button type="button" onClick={onApplyRecommendations}>
-          <Sparkles aria-hidden="true" size={17} />
+          <GameIcon name="warning" size={17} />
           <span>{t('weeklyPlan.applyRecommendations')}</span>
         </button>
       </div>

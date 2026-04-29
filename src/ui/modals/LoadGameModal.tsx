@@ -1,4 +1,3 @@
-import { CloudOff, FolderOpen } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { featureFlags } from '../../config/features';
 import type { GameSaveMetadata } from '../../domain/types';
@@ -6,6 +5,7 @@ import { DEMO_SAVE_DEFINITIONS } from '../../game-data/demo-saves';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
+import { GameIcon } from '../icons/GameIcon';
 import { AppModal } from './AppModal';
 
 interface LoadGameModalProps {
@@ -110,7 +110,7 @@ export function LoadGameContent({ onLoaded }: LoadGameContentProps) {
       <div className="save-card__actions">
         <ActionButton
           disabled={isLoading}
-          icon={<FolderOpen aria-hidden="true" size={18} />}
+          icon={<GameIcon name="folderOpen" size={18} />}
           label={t('common.open')}
           testId={`${testIdPrefix}-load-button-${saveId}`}
           onClick={() => closeAfterSuccessfulLoad(openSave())}
@@ -158,12 +158,12 @@ export function LoadGameContent({ onLoaded }: LoadGameContentProps) {
         ) : null}
         {loadMode === 'normal' ? (
           <div className="notice-row notice-row--warning">
-            <CloudOff aria-hidden="true" size={18} />
+            <GameIcon name="cloudOff" size={18} />
             <span>{t('loadGame.cloudNotice')}</span>
           </div>
         ) : (
           <div className="notice-row">
-            <CloudOff aria-hidden="true" size={18} />
+            <GameIcon name="cloudOff" size={18} />
             <span>{t('loadGame.demoModeNotice')}</span>
           </div>
         )}

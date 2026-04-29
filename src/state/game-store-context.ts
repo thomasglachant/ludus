@@ -45,6 +45,7 @@ export interface GameStoreValue {
   applyPlanningRecommendations(): void;
   acceptWeeklyContract(contractId: string): void;
   resolveGameEventChoice(eventId: string, choiceId: string): void;
+  triggerDebugDailyEvent(definitionId: string): void;
   scoutOpponent(gladiatorId: string): void;
   startArenaDayCombats(): void;
   markArenaCombatPresented(combatId: string): void;

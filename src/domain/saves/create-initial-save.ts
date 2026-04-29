@@ -72,6 +72,7 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     events: {
       pendingEvents: [],
       resolvedEvents: [],
+      launchedEvents: [],
     },
   };
 }

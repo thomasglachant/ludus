@@ -1,6 +1,6 @@
-import { AlertTriangle } from 'lucide-react';
 import type { GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
+import { GameIcon } from '../icons/GameIcon';
 import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
@@ -52,7 +52,7 @@ export function ToastAndAlertLayer({
               type="button"
               onClick={() => onGladiatorSelect(gladiator.id)}
             >
-              <AlertTriangle aria-hidden="true" className="toast-alert__icon" size={16} />
+              <GameIcon className="toast-alert__icon" name="alert" size={16} />
               <span className="toast-alert__subject">
                 <GladiatorPortrait gladiator={gladiator} size="small" />
                 <span className="toast-alert__copy">
@@ -67,7 +67,7 @@ export function ToastAndAlertLayer({
 
         return (
           <div className={`toast-alert toast-alert--${alert.severity}`} key={alert.id}>
-            <AlertTriangle aria-hidden="true" className="toast-alert__icon" size={16} />
+            <GameIcon className="toast-alert__icon" name="alert" size={16} />
             <span>{t(alert.titleKey)}</span>
           </div>
         );

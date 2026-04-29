@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { EVENT_CONFIG } from '../../game-data/events';
+import { DAILY_EVENT_DEFINITIONS, EVENT_CONFIG } from '../../game-data/events';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { DayOfWeek, GameEvent, GameSave, Gladiator } from '../types';
-import { resolveGameEventChoice, synchronizeEvents } from './event-actions';
+import { resolveGameEventChoice, synchronizeEvents, triggerDebugDailyEvent } from './event-actions';
 
 function createTestSave() {
   return createInitialSave({
@@ -47,9 +47,43 @@ function duringEventWindow(save: GameSave): GameSave {
   return atTime(save, 10);
 }
 
+function withTime(save: GameSave, year: number, week: number, dayOfWeek: DayOfWeek): GameSave {
+  return {
+    ...save,
+    time: {
+      ...save.time,
+      year,
+      week,
+      dayOfWeek,
+    },
+  };
+}
+
+function createLaunchedEventRecord(
+  definitionId: string,
+  year: number,
+  week: number,
+  day: DayOfWeek,
+) {
+  return {
+    eventId: `event-${year}-${week}-${day}-${definitionId}`,
+    definitionId,
+    launchedAtYear: year,
+    launchedAtWeek: week,
+    launchedAtDay: day,
+  };
+}
+
+function createSequenceRandom(values: number[]) {
+  let index = 0;
+
+  return () => values[index++] ?? values[values.length - 1] ?? 0;
+}
+
 function createRecordedEvent(save: GameSave, day: DayOfWeek, index = 0): GameEvent {
   return {
     id: `event-${save.time.year}-${save.time.week}-${day}-recorded-${index}`,
+    definitionId: 'recordedEvent',
     titleKey: 'events.test.title',
     descriptionKey: 'events.test.description',
     status: 'resolved',
@@ -62,6 +96,34 @@ function createRecordedEvent(save: GameSave, day: DayOfWeek, index = 0): GameEve
 }
 
 describe('event actions', () => {
+  it('keeps exclusive event outcome groups complete and identifiable', () => {
+    for (const definition of DAILY_EVENT_DEFINITIONS) {
+      expect(
+        definition.selectionWeightPercent ?? EVENT_CONFIG.defaultSelectionWeightPercent,
+      ).toBeGreaterThanOrEqual(0);
+      expect(definition.cooldownWeeks ?? EVENT_CONFIG.defaultCooldownWeeks).toBeGreaterThanOrEqual(
+        0,
+      );
+
+      for (const choice of definition.choices) {
+        for (const consequence of choice.consequences) {
+          if (consequence.kind !== 'oneOf') {
+            continue;
+          }
+
+          const totalChance = consequence.outcomes.reduce(
+            (total, outcome) => total + outcome.chancePercent,
+            0,
+          );
+          const outcomeIds = consequence.outcomes.map((outcome) => outcome.id);
+
+          expect(totalChance).toBe(100);
+          expect(new Set(outcomeIds).size).toBe(outcomeIds.length);
+        }
+      }
+    }
+  });
+
   it('does not generate daily events without gladiators', () => {
     const synchronized = synchronizeEvents(duringEventWindow(createTestSave()), () => 0);
 
@@ -89,6 +151,115 @@ describe('event actions', () => {
       selectedChoiceId: event.choices[0].id,
     });
     expect(resolved.gladiators[0].morale).toBeGreaterThan(save.gladiators[0].morale);
+  });
+
+  it('can trigger a specific daily event for debug', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      gladiators: [createGladiator()],
+    };
+    const synchronized = triggerDebugDailyEvent(save, 'rivalRumors', () => 0);
+
+    expect(synchronized.events.pendingEvents).toHaveLength(1);
+    expect(synchronized.events.pendingEvents[0]).toMatchObject({
+      titleKey: 'events.rivalRumors.title',
+      status: 'pending',
+    });
+  });
+
+  it('uses event selection weight when choosing a daily event', () => {
+    const save: GameSave = {
+      ...duringEventWindow(createTestSave()),
+      gladiators: [createGladiator()],
+    };
+    const synchronized = synchronizeEvents(save, createSequenceRandom([0, 0.06, 0]));
+
+    expect(synchronized.events.pendingEvents[0].definitionId).toBe('trainingRefusal');
+  });
+
+  it('skips events that are still on cooldown', () => {
+    const save: GameSave = {
+      ...duringEventWindow(withTime(createTestSave(), 1, 2, 'monday')),
+      gladiators: [createGladiator()],
+      events: {
+        pendingEvents: [],
+        resolvedEvents: [],
+        launchedEvents: [createLaunchedEventRecord('departureThreat', 1, 1, 'monday')],
+      },
+    };
+    const synchronized = synchronizeEvents(save, createSequenceRandom([0, 0, 0]));
+
+    expect(synchronized.events.pendingEvents[0].definitionId).toBe('trainingRefusal');
+  });
+
+  it('allows events again after their cooldown has elapsed', () => {
+    const save: GameSave = {
+      ...duringEventWindow(withTime(createTestSave(), 1, 5, 'monday')),
+      gladiators: [createGladiator()],
+      events: {
+        pendingEvents: [],
+        resolvedEvents: [],
+        launchedEvents: [createLaunchedEventRecord('departureThreat', 1, 1, 'monday')],
+      },
+    };
+    const synchronized = synchronizeEvents(save, createSequenceRandom([0, 0, 0]));
+
+    expect(synchronized.events.pendingEvents[0].definitionId).toBe('departureThreat');
+  });
+
+  it('can resolve a selected outcome from an exclusive outcome group', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      gladiators: [createGladiator()],
+    };
+    const synchronized = triggerDebugDailyEvent(save, 'departureThreat', () => 0);
+    const event = synchronized.events.pendingEvents[0];
+    const resolved = resolveGameEventChoice(
+      synchronized,
+      event.id,
+      'refusePayment',
+      () => 0.49,
+    ).save;
+
+    expect(resolved.gladiators).toHaveLength(0);
+    expect(resolved.ludus.treasury).toBe(save.ludus.treasury);
+    expect(resolved.events.pendingEvents).toEqual([]);
+    expect(resolved.events.resolvedEvents[0]).toMatchObject({
+      id: event.id,
+      resolvedOutcomeIds: ['gladiatorLeaves'],
+      selectedChoiceId: 'refusePayment',
+      status: 'resolved',
+    });
+  });
+
+  it('can resolve the last outcome from an exclusive outcome group', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      gladiators: [createGladiator()],
+    };
+    const synchronized = triggerDebugDailyEvent(save, 'departureThreat', () => 0);
+    const event = synchronized.events.pendingEvents[0];
+    const resolved = resolveGameEventChoice(
+      synchronized,
+      event.id,
+      'refusePayment',
+      () => 0.7,
+    ).save;
+
+    expect(resolved.gladiators).toHaveLength(1);
+    expect(resolved.gladiators[0].morale).toBe(40);
+    expect(resolved.events.resolvedEvents[0].resolvedOutcomeIds).toEqual(['moraleLoss']);
+    expect(resolved.ludus.treasury).toBe(save.ludus.treasury);
+  });
+
+  it('does not trigger debug events when the requested type cannot be used', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      gladiators: [createGladiator({ health: 100 })],
+    };
+    const synchronized = triggerDebugDailyEvent(save, 'medicusOffer', () => 0);
+
+    expect(synchronized).toBe(save);
   });
 
   it('generates daily events from the configured start hour', () => {
@@ -125,6 +296,13 @@ describe('event actions', () => {
         resolvedEvents: Array.from({ length: EVENT_CONFIG.maxEventsPerWeek }, (_, index) =>
           createRecordedEvent(save, 'monday', index),
         ),
+        launchedEvents: Array.from({ length: EVENT_CONFIG.maxEventsPerWeek }, (_, index) => ({
+          eventId: `event-${index}`,
+          definitionId: `event-${index}`,
+          launchedAtYear: save.time.year,
+          launchedAtWeek: save.time.week,
+          launchedAtDay: 'monday' as const,
+        })),
       },
     };
     const synchronized = synchronizeEvents(saveAtWeeklyLimit, () => 0);

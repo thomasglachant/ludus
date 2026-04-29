@@ -1,10 +1,10 @@
-import { ArrowLeft } from 'lucide-react';
 import { useEffect } from 'react';
 import { featureFlags } from '../config/features';
 import { isDemoSaveId } from '../game-data/demo-saves';
 import { useGameStore } from '../state/game-store-context';
 import { useUiStore } from '../state/ui-store-context';
 import { ActionButton } from '../ui/components/ActionButton';
+import { GameIcon } from '../ui/icons/GameIcon';
 import { ScreenShell } from '../ui/layout/ScreenShell';
 
 interface DevDemoRouteProps {
@@ -37,7 +37,7 @@ export function DevDemoRoute({ demoSaveId }: DevDemoRouteProps) {
         </p>
         <div className="form-actions">
           <ActionButton
-            icon={<ArrowLeft aria-hidden="true" size={18} />}
+            icon={<GameIcon name="back" size={18} />}
             label={t('common.back')}
             onClick={() => {
               window.history.replaceState(null, '', '/');
@@ -55,7 +55,7 @@ export function DevDemoRoute({ demoSaveId }: DevDemoRouteProps) {
         <p className="form-error">{t(routeErrorKey ?? errorKey ?? 'demoMode.loadError')}</p>
         <div className="form-actions">
           <ActionButton
-            icon={<ArrowLeft aria-hidden="true" size={18} />}
+            icon={<GameIcon name="back" size={18} />}
             label={t('common.back')}
             onClick={() => {
               window.history.replaceState(null, '', '/');

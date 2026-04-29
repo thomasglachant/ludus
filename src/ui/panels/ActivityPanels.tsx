@@ -1,9 +1,19 @@
+import type { CSSProperties } from 'react';
 import { useMemo, useState } from 'react';
-import { Eye, Swords } from 'lucide-react';
 import { getArenaBettingState, validateScouting } from '../../domain/combat/combat-actions';
 import { getContractProgress } from '../../domain/contracts/contract-actions';
-import type { CombatState, GameSave, WeeklyContract } from '../../domain/types';
+import type {
+  CombatState,
+  GameEventConsequence,
+  GameEventEffect,
+  GameEventOutcome,
+  GameSave,
+  WeeklyContract,
+} from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
+import { CTAButton } from '../components/CTAButton';
+import { ImpactIndicator, type ImpactIndicatorKind } from '../components/ImpactIndicator';
+import { GameIcon } from '../icons/GameIcon';
 import {
   Badge,
   EmptyState,
@@ -37,6 +47,110 @@ interface ArenaPanelProps extends PanelProps {
   onScoutOpponent(gladiatorId: string): void;
   onShowArenaDaySummary(): void;
   onStartArenaDayCombats(): void;
+}
+
+function getEventImpactIndicator(
+  effect: GameEventEffect,
+  t: (key: string, params?: Record<string, string | number>) => string,
+  chancePercent?: number,
+) {
+  let kind: ImpactIndicatorKind;
+  let labelKey: string;
+
+  switch (effect.type) {
+    case 'changeTreasury':
+      kind = 'treasury';
+      labelKey = 'common.treasury';
+      break;
+    case 'changeLudusReputation':
+      kind = 'reputation';
+      labelKey = 'ludus.reputation';
+      break;
+    case 'removeGladiator':
+      return (
+        <ImpactIndicator chancePercent={chancePercent} text={t('events.outcome.gladiatorLeaves')} />
+      );
+    case 'changeGladiatorHealth':
+      kind = 'health';
+      labelKey = 'roster.healthShort';
+      break;
+    case 'changeGladiatorEnergy':
+      kind = 'energy';
+      labelKey = 'roster.energyShort';
+      break;
+    case 'changeGladiatorMorale':
+      kind = 'morale';
+      labelKey = 'roster.moraleShort';
+      break;
+    case 'changeGladiatorSatiety':
+      kind = 'satiety';
+      labelKey = 'roster.satietyShort';
+      break;
+    case 'changeGladiatorStat':
+      kind = effect.stat;
+      labelKey = `events.effect.stat.${effect.stat}`;
+      break;
+  }
+
+  return (
+    <ImpactIndicator
+      amount={effect.amount}
+      chancePercent={chancePercent}
+      kind={kind}
+      label={t(labelKey)}
+    />
+  );
+}
+
+function getEventOutcomeIndicators(
+  outcome: GameEventOutcome,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) {
+  if (outcome.textKey) {
+    return <ImpactIndicator chancePercent={outcome.chancePercent} text={t(outcome.textKey)} />;
+  }
+
+  return (outcome.effects ?? []).map((effect, index) => (
+    <span key={`outcome-effect-${index}`}>
+      {getEventImpactIndicator(effect, t, outcome.chancePercent)}
+    </span>
+  ));
+}
+
+function getEventOneOfConsequenceIndicators(
+  consequence: Extract<GameEventConsequence, { kind: 'oneOf' }>,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) {
+  return (
+    <div className="events-panel__outcome-group-card">
+      {consequence.outcomes.map((outcome) => (
+        <div className="events-panel__outcome-option" key={outcome.id}>
+          {getEventOutcomeIndicators(outcome, t)}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function getEventConsequenceIndicators(
+  consequence: GameEventConsequence,
+  t: (key: string, params?: Record<string, string | number>) => string,
+  keyPrefix: string,
+) {
+  switch (consequence.kind) {
+    case 'certain':
+      return consequence.effects.map((effect, index) => (
+        <li key={`${keyPrefix}-effect-${index}`}>{getEventImpactIndicator(effect, t)}</li>
+      ));
+    case 'chance':
+      return [<li key={`${keyPrefix}-chance`}>{getEventOutcomeIndicators(consequence, t)}</li>];
+    case 'oneOf':
+      return [
+        <li className="events-panel__outcome-group" key={`${keyPrefix}-one-of`}>
+          {getEventOneOfConsequenceIndicators(consequence, t)}
+        </li>,
+      ];
+  }
 }
 
 function formatSignedValue(value: number) {
@@ -157,49 +271,57 @@ export function EventsPanel({ save, onClose, onResolveEventChoice }: EventsPanel
       onClose={onClose}
     >
       {save.events.pendingEvents.length > 0 ? (
-        <SectionCard className="events-panel__section" titleKey="events.title">
-          <div className="events-panel__list">
-            {save.events.pendingEvents.map((event) => {
-              const gladiator = save.gladiators.find(
-                (candidate) => candidate.id === event.gladiatorId,
-              );
+        <div className="events-panel__list">
+          {save.events.pendingEvents.map((event) => {
+            const gladiator = save.gladiators.find(
+              (candidate) => candidate.id === event.gladiatorId,
+            );
+            const choiceGridStyle = {
+              '--event-choice-columns': event.choices.length,
+            } as CSSProperties;
 
-              return (
-                <article className="events-panel__event" key={event.id}>
-                  <div className="events-panel__event-header">
-                    <div className="context-panel__portrait-row">
-                      {gladiator ? <GladiatorPortrait gladiator={gladiator} size="small" /> : null}
-                      <div className="events-panel__summary">
-                        <Badge label={t('events.status.pending')} tone="warning" />
-                        <h3>{t(event.titleKey)}</h3>
-                        {gladiator ? (
-                          <small>{t('events.concerns', { name: gladiator.name })}</small>
-                        ) : null}
-                      </div>
+            return (
+              <article className="events-panel__event" key={event.id}>
+                <div className="events-panel__event-header">
+                  <div className="context-panel__portrait-row">
+                    {gladiator ? <GladiatorPortrait gladiator={gladiator} size="small" /> : null}
+                    <div className="events-panel__summary">
+                      <h3>{t(event.titleKey)}</h3>
+                      {gladiator ? (
+                        <small>{t('events.concerns', { name: gladiator.name })}</small>
+                      ) : null}
                     </div>
-                    <p>{t(event.descriptionKey)}</p>
                   </div>
-                  <strong className="events-panel__choice-heading">
-                    {t('events.choicesTitle')}
-                  </strong>
-                  <div className="event-choice-grid">
-                    {event.choices.map((choice) => (
-                      <button
-                        className="events-panel__choice"
-                        key={choice.id}
-                        type="button"
-                        onClick={() => onResolveEventChoice(event.id, choice.id)}
-                      >
-                        <strong>{t(choice.labelKey)}</strong>
-                        <span>{t(choice.consequenceKey)}</span>
-                      </button>
-                    ))}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </SectionCard>
+                  <p>{t(event.descriptionKey)}</p>
+                </div>
+                <div className="event-choice-grid" style={choiceGridStyle}>
+                  {event.choices.map((choice) => (
+                    <article className="events-panel__choice" key={choice.id}>
+                      <div className="events-panel__choice-copy">
+                        <h4>{t(choice.labelKey)}</h4>
+                        <p>{t(choice.consequenceKey)}</p>
+                      </div>
+                      <div className="events-panel__impact">
+                        <ul>
+                          {choice.consequences.flatMap((consequence, index) =>
+                            getEventConsequenceIndicators(
+                              consequence,
+                              t,
+                              `${choice.id}-consequence-${index}`,
+                            ),
+                          )}
+                        </ul>
+                      </div>
+                      <CTAButton onClick={() => onResolveEventChoice(event.id, choice.id)}>
+                        {t('events.choose')}
+                      </CTAButton>
+                    </article>
+                  ))}
+                </div>
+              </article>
+            );
+          })}
+        </div>
       ) : (
         <EmptyState messageKey="events.noPending" testId="events-empty-pending" />
       )}
@@ -284,7 +406,7 @@ export function ArenaPanel({
             />
             <div className="context-panel__actions">
               <button type="button" onClick={onStartArenaDayCombats}>
-                <Swords aria-hidden="true" size={17} />
+                <GameIcon name="combatStrike" size={17} />
                 <span>{t('arenaDay.startCombats')}</span>
               </button>
             </div>
@@ -332,7 +454,7 @@ export function ArenaPanel({
                     <GladiatorClassLine compact gladiator={selectedCombat.gladiator} />
                     <span>{t('arenaDay.presentationHint')}</span>
                   </div>
-                  <Swords aria-hidden="true" size={20} />
+                  <GameIcon name="combatStrike" size={20} />
                 </div>
                 <div className="context-panel__actions">
                   <button
@@ -340,7 +462,7 @@ export function ArenaPanel({
                     type="button"
                     onClick={() => onOpenCombat(selectedCombat.id)}
                   >
-                    <Swords aria-hidden="true" size={17} />
+                    <GameIcon name="combatStrike" size={17} />
                     <span>{t('arenaDay.openSelectedCombat')}</span>
                   </button>
                 </div>
@@ -530,7 +652,7 @@ export function ArenaPanel({
                   })}
                 </span>
               </div>
-              <Swords aria-hidden="true" size={20} />
+              <GameIcon name="combatStrike" size={20} />
             </div>
             <MetricList
               columns={3}
@@ -564,7 +686,7 @@ export function ArenaPanel({
                 type="button"
                 onClick={() => onOpenCombat(selectedCombat.id)}
               >
-                <Swords aria-hidden="true" size={17} />
+                <GameIcon name="combatStrike" size={17} />
                 <span>{t('arena.openCombatPresentation')}</span>
               </button>
             </div>
@@ -674,7 +796,7 @@ export function ArenaPanel({
                   type="button"
                   onClick={() => onScoutOpponent(odds.gladiatorId)}
                 >
-                  <Eye aria-hidden="true" size={17} />
+                  <GameIcon name="view" size={17} />
                   <span>
                     {odds.isScouted
                       ? t('betting.scouted')

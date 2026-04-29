@@ -90,6 +90,9 @@ export type {
   GameEvent,
   EventState,
   GameEventEffect,
+  GameEventConsequence,
+  GameEventOutcome,
+  LaunchedGameEventRecord,
 } from './events/types';
 export type {
   DemoSaveId,

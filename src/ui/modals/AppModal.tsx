@@ -1,6 +1,6 @@
-import { ArrowLeft, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useUiStore, type ModalSize } from '../../state/ui-store-context';
+import { GameIcon } from '../icons/GameIcon';
 
 interface AppModalProps {
   children: ReactNode;
@@ -113,7 +113,7 @@ export function AppModal({
               type="button"
               onClick={onBack}
             >
-              <ArrowLeft aria-hidden="true" size={18} />
+              <GameIcon color="currentColor" name="back" size={18} />
             </button>
           ) : null}
           <div className="app-modal__title">
@@ -127,7 +127,7 @@ export function AppModal({
               type="button"
               onClick={onClose}
             >
-              <X aria-hidden="true" size={18} />
+              <GameIcon color="currentColor" name="close" size={18} />
             </button>
           ) : null}
         </div>

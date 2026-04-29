@@ -49,6 +49,7 @@ function expirePendingEvents(save: GameSave): GameSave {
         })),
         ...save.events.resolvedEvents,
       ].slice(0, GAME_BALANCE.events.resolvedEventHistoryLimit),
+      launchedEvents: save.events.launchedEvents,
     },
   };
 }

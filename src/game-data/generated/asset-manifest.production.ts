@@ -762,13 +762,5 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
   },
   ui: {
     'laurel-left': '/assets/ui/laurel-left.png',
-    'resource-reputation': '/assets/ui/resource-reputation.svg',
-    'resource-treasury': '/assets/ui/resource-treasury.svg',
-    'top-hud/control-edit-menu': '/assets/ui/top-hud/control-edit-menu.svg',
-    'top-hud/control-next-day': '/assets/ui/top-hud/control-next-day.svg',
-    'top-hud/control-pause': '/assets/ui/top-hud/control-pause.svg',
-    'top-hud/control-play': '/assets/ui/top-hud/control-play.svg',
-    'top-hud/control-x2': '/assets/ui/top-hud/control-x2.svg',
-    'top-hud/control-x4': '/assets/ui/top-hud/control-x4.svg',
   },
 } as const satisfies VisualAssetManifest;

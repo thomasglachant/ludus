@@ -7,6 +7,7 @@ import { BottomGladiatorRoster } from '../roster/BottomGladiatorRoster';
 import type { ContextPanelKind } from './game-shell-types';
 import { LeftNavigationRail } from './LeftNavigationRail';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
+import { DebugOverlay } from '../debug/DebugOverlay';
 
 const PixiLudusMap = lazy(() =>
   import('../map/PixiLudusMap').then((module) => ({
@@ -100,6 +101,7 @@ export function GameShell() {
         showAlerts={false}
         onGladiatorSelect={selectGladiator}
       />
+      <DebugOverlay />
     </section>
   );
 }

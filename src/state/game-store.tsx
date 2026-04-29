@@ -2,7 +2,10 @@ import {
   acceptWeeklyContract as acceptWeeklyContractAction,
   synchronizeContracts,
 } from '../domain/contracts/contract-actions';
-import { resolveGameEventChoice as resolveGameEventChoiceAction } from '../domain/events/event-actions';
+import {
+  resolveGameEventChoice as resolveGameEventChoiceAction,
+  triggerDebugDailyEvent as triggerDebugDailyEventAction,
+} from '../domain/events/event-actions';
 import {
   markArenaCombatPresented as markArenaCombatPresentedAction,
   scoutOpponent as scoutOpponentAction,
@@ -107,7 +110,9 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     screen === 'ludus' && modalStack.some((modal) => modal.kind === 'gameMenu');
   const isSimulationBlocked = currentSave ? isGameInterrupted(currentSave) : false;
   const presentedCurrentSave = useMemo(() => {
-    if (!currentSave || !isGameMenuPauseActive || currentSave.time.isPaused) {
+    const shouldPresentPausedTime = isGameMenuPauseActive || isSimulationBlocked;
+
+    if (!currentSave || !shouldPresentPausedTime || currentSave.time.isPaused) {
       return currentSave;
     }
 
@@ -115,10 +120,11 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       ...currentSave,
       time: {
         ...currentSave.time,
+        speed: 0 as GameSpeed,
         isPaused: true,
       },
     };
-  }, [currentSave, isGameMenuPauseActive]);
+  }, [currentSave, isGameMenuPauseActive, isSimulationBlocked]);
 
   const refreshLocalSaves = useCallback(async () => {
     setIsLoading(true);
@@ -332,6 +338,19 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const setGameSpeedAction = useCallback(
     (speed: GameSpeed) => {
       applyPlayerChange((save) => setSaveGameSpeed(save, speed));
+    },
+    [applyPlayerChange],
+  );
+
+  const triggerDebugDailyEvent = useCallback(
+    (definitionId: string) => {
+      applyPlayerChange((save) => {
+        if (!featureFlags.enableDemoMode) {
+          return save;
+        }
+
+        return triggerDebugDailyEventAction(save, definitionId);
+      });
     },
     [applyPlayerChange],
   );
@@ -814,6 +833,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       applyPlanningRecommendations: applyPlanningRecommendationsAction,
       acceptWeeklyContract,
       resolveGameEventChoice,
+      triggerDebugDailyEvent,
       scoutOpponent,
       startArenaDayCombats,
       markArenaCombatPresented,
@@ -846,6 +866,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     saveCurrentGame,
     saveNoticeKey,
     resolveGameEventChoice,
+    triggerDebugDailyEvent,
     scoutOpponent,
     startArenaDayCombats,
     markArenaCombatPresented,

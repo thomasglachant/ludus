@@ -1,5 +1,6 @@
-import { Heart, Shield, Sparkles, Zap } from 'lucide-react';
 import { useUiStore } from '../../state/ui-store-context';
+import { GameIcon, type GameIconName } from '../icons/GameIcon';
+import { Tooltip } from '../components/Tooltip';
 import type { CombatantViewModel } from './combat-screen-view-model';
 
 interface CombatantPanelProps {
@@ -7,21 +8,9 @@ interface CombatantPanelProps {
 }
 
 interface MeterProps {
-  icon: 'energy' | 'health' | 'morale';
+  icon: Extract<GameIconName, 'energy' | 'health' | 'morale'>;
   labelKey: string;
   value: number;
-}
-
-function getMeterIcon(icon: MeterProps['icon']) {
-  if (icon === 'health') {
-    return <Heart aria-hidden="true" size={16} />;
-  }
-
-  if (icon === 'energy') {
-    return <Zap aria-hidden="true" size={16} />;
-  }
-
-  return <Sparkles aria-hidden="true" size={16} />;
 }
 
 function CombatantMeter({ icon, labelKey, value }: MeterProps) {
@@ -29,7 +18,9 @@ function CombatantMeter({ icon, labelKey, value }: MeterProps) {
 
   return (
     <div className={`combatant-meter combatant-meter--${icon}`}>
-      <span title={t(labelKey)}>{getMeterIcon(icon)}</span>
+      <Tooltip content={t(labelKey)}>
+        <GameIcon name={icon} size={16} />
+      </Tooltip>
       <div className="combatant-meter__track" aria-label={t(labelKey)}>
         <span style={{ width: `${value}%` }} />
       </div>
@@ -65,7 +56,7 @@ export function CombatantPanel({ combatant }: CombatantPanelProps) {
       <div className="combatant-panel__effects">
         <strong>{t('combatScreen.activeEffects')}</strong>
         <span>
-          <Shield aria-hidden="true" size={16} />
+          <GameIcon name="defense" size={16} />
           {t(combatant.classEffectSummaryKey)}
         </span>
       </div>

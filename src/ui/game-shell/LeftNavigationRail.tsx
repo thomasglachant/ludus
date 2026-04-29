@@ -1,6 +1,6 @@
-import { CalendarCheck, ScrollText, TriangleAlert } from 'lucide-react';
 import type { ContextPanelKind } from './game-shell-types';
 import { useUiStore } from '../../state/ui-store-context';
+import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface LeftNavigationRailProps {
   activePanelKind: ContextPanelKind | null;
@@ -10,11 +10,15 @@ interface LeftNavigationRailProps {
 const navigationItems: Array<{
   panelKind: ContextPanelKind;
   labelKey: string;
-  icon: typeof CalendarCheck;
+  iconName: GameIconName;
 }> = [
-  { panelKind: 'weeklyPlanning', labelKey: 'navigation.weeklyPlanning', icon: CalendarCheck },
-  { panelKind: 'contracts', labelKey: 'navigation.contracts', icon: ScrollText },
-  { panelKind: 'events', labelKey: 'navigation.events', icon: TriangleAlert },
+  {
+    panelKind: 'weeklyPlanning',
+    labelKey: 'navigation.weeklyPlanning',
+    iconName: 'weeklyPlanning',
+  },
+  { panelKind: 'contracts', labelKey: 'navigation.contracts', iconName: 'contracts' },
+  { panelKind: 'events', labelKey: 'navigation.events', iconName: 'events' },
 ];
 
 export function LeftNavigationRail({ activePanelKind, onOpenPanel }: LeftNavigationRailProps) {
@@ -23,8 +27,6 @@ export function LeftNavigationRail({ activePanelKind, onOpenPanel }: LeftNavigat
   return (
     <nav className="left-navigation-rail" aria-label={t('navigation.title')}>
       {navigationItems.map((item) => {
-        const Icon = item.icon;
-
         return (
           <button
             aria-label={t(item.labelKey)}
@@ -34,7 +36,7 @@ export function LeftNavigationRail({ activePanelKind, onOpenPanel }: LeftNavigat
             type="button"
             onClick={() => onOpenPanel(item.panelKind)}
           >
-            <Icon aria-hidden="true" size={19} />
+            <GameIcon name={item.iconName} size={19} />
             <span>{t(item.labelKey)}</span>
           </button>
         );

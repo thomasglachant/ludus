@@ -1,10 +1,10 @@
-import { ArrowLeft, Banknote, CalendarDays, Menu, Pause, Play } from 'lucide-react';
 import { lazy, Suspense, useMemo, useState } from 'react';
 import type { GameSave, GameSpeed } from '../../domain/types';
 import { GAME_SPEEDS } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store-context';
 import { DayCycleGauge } from '../components/DayCycleGauge';
 import { formatMoneyAmount } from '../formatters/money';
+import { GameIcon } from '../icons/GameIcon';
 import { CombatantPanel } from './CombatantPanel';
 import { CombatLog } from './CombatLog';
 import { CombatSkillBar } from './CombatSkillBar';
@@ -45,7 +45,7 @@ export function CombatScreen({
     return (
       <section className="combat-screen combat-screen--empty" data-testid="combat-screen">
         <button type="button" onClick={onClose}>
-          <ArrowLeft aria-hidden="true" size={18} />
+          <GameIcon color="currentColor" name="back" size={18} />
           <span>{t('common.back')}</span>
         </button>
         <p>{t('arena.noCombatLog')}</p>
@@ -73,7 +73,7 @@ export function CombatScreen({
           </span>
         </div>
         <div className="combat-screen__time">
-          <CalendarDays aria-hidden="true" size={18} />
+          <GameIcon name="age" size={18} />
           <span>{t(`days.${save.time.dayOfWeek}`)}</span>
           <span>{t('topBar.week', { week: save.time.week })}</span>
           <DayCycleGauge size="compact" time={save.time} />
@@ -97,9 +97,9 @@ export function CombatScreen({
                 onClick={() => onSpeedChange(speed)}
               >
                 {speed === 0 ? (
-                  <Pause aria-hidden="true" size={14} />
+                  <GameIcon color="currentColor" name="pause" size={14} />
                 ) : (
-                  <Play aria-hidden="true" size={14} />
+                  <GameIcon color="currentColor" name="play" size={14} />
                 )}
                 <span>{t(speed === 0 ? 'speed.pause' : `speed.x${speed}`)}</span>
               </button>
@@ -108,17 +108,17 @@ export function CombatScreen({
         ) : null}
         <div className="combat-screen__resources">
           <span>
-            <Banknote aria-hidden="true" size={18} />
+            <GameIcon name="treasury" size={18} />
             {formatMoneyAmount(save.ludus.treasury)}
           </span>
           {!isBlocking ? (
             <>
               <button type="button" onClick={onOpenMenu}>
-                <Menu aria-hidden="true" size={18} />
+                <GameIcon color="currentColor" name="menu" size={18} />
                 <span>{t('topBar.menu')}</span>
               </button>
               <button type="button" onClick={onClose}>
-                <ArrowLeft aria-hidden="true" size={18} />
+                <GameIcon color="currentColor" name="back" size={18} />
                 <span>{t('common.back')}</span>
               </button>
             </>

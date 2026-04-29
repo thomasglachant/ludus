@@ -1,9 +1,9 @@
-import { FolderOpen, Play, Settings } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { ReversibleMenuCard } from '../components/ReversibleMenuCard';
+import { GameIcon } from '../icons/GameIcon';
 import { LoadGameContent } from '../modals/LoadGameModal';
 import { NewGameForm } from './NewGameScreen';
 
@@ -21,7 +21,7 @@ export function MainMenuScreen() {
       <ReversibleMenuCard<MainMenuPanel>
         actions={[
           {
-            icon: <Play aria-hidden="true" size={20} />,
+            icon: <GameIcon name="play" size={20} />,
             key: 'newGame',
             label: t('mainMenu.newGame'),
             panelId: 'newGame',
@@ -29,14 +29,14 @@ export function MainMenuScreen() {
             testId: 'main-menu-new-game',
           },
           {
-            icon: <FolderOpen aria-hidden="true" size={20} />,
+            icon: <GameIcon name="folderOpen" size={20} />,
             key: 'loadGame',
             label: t('mainMenu.loadGame'),
             panelId: 'loadGame',
             testId: 'main-menu-load-game',
           },
           {
-            icon: <Settings aria-hidden="true" size={20} />,
+            icon: <GameIcon name="settings" size={20} />,
             key: 'options',
             label: t('mainMenu.options'),
             panelId: 'options',

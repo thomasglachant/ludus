@@ -8,7 +8,7 @@ import { DAYS_OF_WEEK, SUPPORTED_GAME_SPEEDS } from '../../game-data/time';
 import type { BuildingId } from '../buildings/types';
 import type { CombatState } from '../combat/types';
 import type { WeeklyContract } from '../contracts/types';
-import type { GameEvent } from '../events/types';
+import type { GameEvent, LaunchedGameEventRecord } from '../events/types';
 import type { Gladiator, GladiatorLocationId } from '../gladiators/types';
 import type { MarketGladiator } from '../market/types';
 import type { GameAlert, GladiatorRoutine } from '../planning/types';
@@ -74,9 +74,11 @@ const contractObjectiveTypes = [
   'sellGladiatorForAtLeast',
 ];
 const eventStatuses = ['pending', 'resolved', 'expired'];
+const eventConsequenceKinds = ['certain', 'chance', 'oneOf'];
 const eventEffectTypes = [
   'changeTreasury',
   'changeLudusReputation',
+  'removeGladiator',
   'changeGladiatorHealth',
   'changeGladiatorEnergy',
   'changeGladiatorMorale',
@@ -496,11 +498,66 @@ function isGameEventEffect(value: unknown) {
     );
   }
 
+  if (effectType === 'removeGladiator') {
+    return hasString(value, 'gladiatorId');
+  }
+
   if (effectType.startsWith('changeGladiator')) {
     return hasString(value, 'gladiatorId') && hasNumber(value, 'amount');
   }
 
   return hasNumber(value, 'amount');
+}
+
+function isGameEventOutcome(value: unknown) {
+  if (!isRecord(value) || !hasString(value, 'id') || !hasNumber(value, 'chancePercent')) {
+    return false;
+  }
+
+  const chancePercent = value.chancePercent as number;
+
+  return (
+    chancePercent >= 0 &&
+    chancePercent <= 100 &&
+    (value.textKey === undefined || typeof value.textKey === 'string') &&
+    (value.effects === undefined ||
+      (Array.isArray(value.effects) && value.effects.every(isGameEventEffect)))
+  );
+}
+
+function hasCompleteOutcomeChance(outcomes: Array<Record<string, unknown>>) {
+  const totalChance = outcomes.reduce(
+    (total, outcome) => total + (outcome.chancePercent as number),
+    0,
+  );
+
+  return Math.abs(totalChance - 100) < 0.0001;
+}
+
+function hasUniqueOutcomeIds(outcomes: Array<Record<string, unknown>>) {
+  const outcomeIds = outcomes.map((outcome) => outcome.id);
+
+  return new Set(outcomeIds).size === outcomeIds.length;
+}
+
+function isGameEventConsequence(value: unknown) {
+  if (!isRecord(value) || !hasStringFrom(value, 'kind', eventConsequenceKinds)) {
+    return false;
+  }
+
+  if (value.kind === 'certain') {
+    return Array.isArray(value.effects) && value.effects.every(isGameEventEffect);
+  }
+
+  if (value.kind === 'chance') {
+    return isGameEventOutcome(value);
+  }
+
+  if (!Array.isArray(value.outcomes) || !value.outcomes.every(isGameEventOutcome)) {
+    return false;
+  }
+
+  return hasCompleteOutcomeChance(value.outcomes) && hasUniqueOutcomeIds(value.outcomes);
 }
 
 function isGameEventChoice(value: unknown) {
@@ -509,8 +566,8 @@ function isGameEventChoice(value: unknown) {
     hasString(value, 'id') &&
     hasString(value, 'labelKey') &&
     hasString(value, 'consequenceKey') &&
-    Array.isArray(value.effects) &&
-    value.effects.every(isGameEventEffect)
+    Array.isArray(value.consequences) &&
+    value.consequences.every(isGameEventConsequence)
   );
 }
 
@@ -518,6 +575,7 @@ function isGameEvent(value: unknown): value is GameEvent {
   return (
     isRecord(value) &&
     hasString(value, 'id') &&
+    hasString(value, 'definitionId') &&
     hasString(value, 'titleKey') &&
     hasString(value, 'descriptionKey') &&
     hasStringFrom(value, 'status', eventStatuses) &&
@@ -528,7 +586,21 @@ function isGameEvent(value: unknown): value is GameEvent {
     (value.buildingId === undefined || isStringFrom(value.buildingId, requiredBuildingIds)) &&
     Array.isArray(value.choices) &&
     value.choices.every(isGameEventChoice) &&
-    hasOptionalString(value, 'selectedChoiceId')
+    hasOptionalString(value, 'selectedChoiceId') &&
+    (value.resolvedOutcomeIds === undefined ||
+      (Array.isArray(value.resolvedOutcomeIds) &&
+        value.resolvedOutcomeIds.every((outcomeId) => typeof outcomeId === 'string')))
+  );
+}
+
+function isLaunchedGameEventRecord(value: unknown): value is LaunchedGameEventRecord {
+  return (
+    isRecord(value) &&
+    hasString(value, 'eventId') &&
+    hasString(value, 'definitionId') &&
+    hasNumber(value, 'launchedAtYear') &&
+    hasNumber(value, 'launchedAtWeek') &&
+    hasStringFrom(value, 'launchedAtDay', dayOfWeeks)
   );
 }
 
@@ -538,7 +610,10 @@ function isEventState(value: unknown) {
     Array.isArray(value.pendingEvents) &&
     Array.isArray(value.resolvedEvents) &&
     value.pendingEvents.every(isGameEvent) &&
-    value.resolvedEvents.every(isGameEvent)
+    value.resolvedEvents.every(isGameEvent) &&
+    (value.launchedEvents === undefined ||
+      (Array.isArray(value.launchedEvents) &&
+        value.launchedEvents.every(isLaunchedGameEventRecord)))
   );
 }
 
@@ -661,6 +736,9 @@ function normalizeCombatState<TCombat extends GameSave['arena']['pendingCombats'
 
 export function normalizeGameSave(save: GameSave): GameSave {
   const saveWithOptionalMap = save as GameSave & { gameId?: unknown; map?: unknown };
+  const eventsWithOptionalHistory = save.events as GameSave['events'] & {
+    launchedEvents?: unknown;
+  };
   const normalizedSave: GameSave & { settings?: unknown } = {
     ...save,
     schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -696,6 +774,9 @@ export function normalizeGameSave(save: GameSave): GameSave {
     events: {
       pendingEvents: [],
       resolvedEvents: [],
+      launchedEvents: Array.isArray(eventsWithOptionalHistory.launchedEvents)
+        ? eventsWithOptionalHistory.launchedEvents.filter(isLaunchedGameEventRecord)
+        : [],
     },
   };
 
