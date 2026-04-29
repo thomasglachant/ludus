@@ -192,7 +192,7 @@ export function TopHud({ onAdvanceToNextDay, onOpenMenu, onSpeedChange, save }: 
             className="top-hud__brand-laurel"
             src="/assets/ui/laurel-left.png"
           />
-          <h1>{save.player.ludusName}</h1>
+          <h1>{t('app.title')}</h1>
           <img
             alt=""
             aria-hidden="true"
@@ -272,7 +272,7 @@ export function TopHud({ onAdvanceToNextDay, onOpenMenu, onSpeedChange, save }: 
             onClick={onOpenMenu}
           >
             <span aria-hidden="true" className="top-hud__menu-icon">
-              <GameIcon color="currentColor" name="menu" size={32} />
+              <GameIcon color="currentColor" name="menu" size={28} />
             </span>
           </button>
         </div>

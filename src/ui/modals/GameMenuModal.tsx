@@ -2,8 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { MenuCardBrandTitle } from '../components/MenuCardFront';
-import { ReversibleMenuCard } from '../components/ReversibleMenuCard';
+import { MenuCard, MenuCardBrandTitle } from '../components/MenuCard';
 import { GameIcon } from '../icons/GameIcon';
 import { LoadGameContent } from './LoadGameModal';
 
@@ -54,7 +53,7 @@ export function GameMenuModal({
         }
       }}
     >
-      <ReversibleMenuCard<GameMenuPanel>
+      <MenuCard<GameMenuPanel>
         ariaLabel={t('gameMenu.title')}
         ariaModal
         actions={[
@@ -91,7 +90,6 @@ export function GameMenuModal({
         panels={{
           loadGame: {
             content: <LoadGameContent onLoaded={onClose} />,
-            size: 'lg',
             title: t('loadGame.title'),
           },
           options: {
@@ -100,7 +98,6 @@ export function GameMenuModal({
                 <LanguageSwitcher />
               </div>
             ),
-            size: 'sm',
             title: t('options.title'),
           },
           quit: {
@@ -120,7 +117,6 @@ export function GameMenuModal({
                 </div>
               </div>
             ),
-            size: 'sm',
             title: t('gameMenu.quitPrompt'),
           },
         }}

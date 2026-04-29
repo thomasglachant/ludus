@@ -2,8 +2,7 @@ import type { CSSProperties } from 'react';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { MenuCardBrandTitle } from '../components/MenuCardFront';
-import { ReversibleMenuCard } from '../components/ReversibleMenuCard';
+import { MenuCard, MenuCardBrandTitle } from '../components/MenuCard';
 import { GameIcon } from '../icons/GameIcon';
 import { LoadGameContent } from '../modals/LoadGameModal';
 import { NewGameForm } from './NewGameScreen';
@@ -19,7 +18,7 @@ export function MainMenuScreen() {
 
   return (
     <section className="main-menu-screen" style={mainMenuStyle}>
-      <ReversibleMenuCard<MainMenuPanel>
+      <MenuCard<MainMenuPanel>
         actions={[
           {
             icon: <GameIcon color="currentColor" name="play" size={20} />,
@@ -46,12 +45,10 @@ export function MainMenuScreen() {
         panels={{
           newGame: {
             content: <NewGameForm showBackAction={false} />,
-            size: 'md',
             title: t('newGame.title'),
           },
           loadGame: {
             content: <LoadGameContent />,
-            size: 'lg',
             title: t('loadGame.title'),
           },
           options: {
@@ -60,7 +57,6 @@ export function MainMenuScreen() {
                 <LanguageSwitcher />
               </div>
             ),
-            size: 'sm',
             title: t('options.title'),
           },
         }}
