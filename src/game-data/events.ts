@@ -3,7 +3,10 @@ import { GAME_BALANCE } from './balance';
 
 export const EVENT_CONFIG = {
   dailyEventStartHour: GAME_BALANCE.events.dailyEventStartHour,
+  dailyEventEndHour: GAME_BALANCE.events.dailyEventEndHour,
   maxEventsPerDay: GAME_BALANCE.events.maxEventsPerDay,
+  maxEventsPerWeek: GAME_BALANCE.events.maxEventsPerWeek,
+  dailyEventProbabilityByDay: GAME_BALANCE.events.dailyEventProbabilityByDay,
   injuredHealthThreshold: GAME_BALANCE.events.injuredHealthThreshold,
   resolvedEventHistoryLimit: GAME_BALANCE.events.resolvedEventHistoryLimit,
 } as const;

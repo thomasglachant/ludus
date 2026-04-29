@@ -57,6 +57,20 @@ function isSameEventDay(save: GameSave, event: GameEvent) {
   );
 }
 
+function isSameEventWeek(save: GameSave, event: GameEvent) {
+  return event.createdAtYear === save.time.year && event.createdAtWeek === save.time.week;
+}
+
+function isDailyEventWindow(time: GameSave['time']) {
+  return (
+    time.hour >= EVENT_CONFIG.dailyEventStartHour && time.hour < EVENT_CONFIG.dailyEventEndHour
+  );
+}
+
+function canDailyEventOccur(save: GameSave, random: RandomSource) {
+  return random() < EVENT_CONFIG.dailyEventProbabilityByDay[save.time.dayOfWeek];
+}
+
 function canUseDefinition(save: GameSave, definition: DailyEventDefinition) {
   if (!definition.gladiatorSelector) {
     return true;
@@ -249,13 +263,19 @@ export function synchronizeEvents(save: GameSave, random: RandomSource = Math.ra
   const hasEventForCurrentDay =
     pendingEvents.length > 0 ||
     save.events.resolvedEvents.some((event) => isSameEventDay(save, event));
+  const weeklyEventCount =
+    save.events.pendingEvents.filter((event) => isSameEventWeek(save, event)).length +
+    save.events.resolvedEvents.filter((event) => isSameEventWeek(save, event)).length;
   const canCreateEvent =
     save.gladiators.length > 0 &&
     save.time.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek &&
-    save.time.hour >= EVENT_CONFIG.dailyEventStartHour &&
+    isDailyEventWindow(save.time) &&
+    weeklyEventCount < EVENT_CONFIG.maxEventsPerWeek &&
     !hasEventForCurrentDay;
   const nextPendingEvents =
-    canCreateEvent && pendingEvents.length < EVENT_CONFIG.maxEventsPerDay
+    canCreateEvent &&
+    pendingEvents.length < EVENT_CONFIG.maxEventsPerDay &&
+    canDailyEventOccur(save, random)
       ? [...pendingEvents, createDailyEvent(save, random)].filter((event): event is GameEvent =>
           Boolean(event),
         )

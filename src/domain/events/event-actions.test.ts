@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { EVENT_CONFIG } from '../../game-data/events';
 import { createInitialSave } from '../saves/create-initial-save';
-import type { GameSave, Gladiator } from '../types';
+import type { DayOfWeek, GameEvent, GameSave, Gladiator } from '../types';
 import { resolveGameEventChoice, synchronizeEvents } from './event-actions';
 
 function createTestSave() {
@@ -31,14 +32,32 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
   };
 }
 
-function duringEventWindow(save: GameSave): GameSave {
+function atTime(save: GameSave, hour: number, minute = 0): GameSave {
   return {
     ...save,
     time: {
       ...save.time,
-      hour: 10,
-      minute: 0,
+      hour,
+      minute,
     },
+  };
+}
+
+function duringEventWindow(save: GameSave): GameSave {
+  return atTime(save, 10);
+}
+
+function createRecordedEvent(save: GameSave, day: DayOfWeek, index = 0): GameEvent {
+  return {
+    id: `event-${save.time.year}-${save.time.week}-${day}-recorded-${index}`,
+    titleKey: 'events.test.title',
+    descriptionKey: 'events.test.description',
+    status: 'resolved',
+    createdAtYear: save.time.year,
+    createdAtWeek: save.time.week,
+    createdAtDay: day,
+    choices: [],
+    selectedChoiceId: 'choice-test',
   };
 }
 
@@ -70,6 +89,67 @@ describe('event actions', () => {
       selectedChoiceId: event.choices[0].id,
     });
     expect(resolved.gladiators[0].morale).toBeGreaterThan(save.gladiators[0].morale);
+  });
+
+  it('generates daily events from 8h', () => {
+    const save: GameSave = {
+      ...atTime(createTestSave(), 8),
+      gladiators: [createGladiator()],
+    };
+    const synchronized = synchronizeEvents(save, () => 0);
+
+    expect(synchronized.events.pendingEvents).toHaveLength(1);
+  });
+
+  it('uses the current day probability before generating daily events', () => {
+    const save: GameSave = {
+      ...duringEventWindow(createTestSave()),
+      gladiators: [createGladiator()],
+    };
+    const synchronized = synchronizeEvents(save, () => 0.99);
+
+    expect(synchronized.events.pendingEvents).toHaveLength(0);
+  });
+
+  it('does not generate daily events after the weekly limit is reached', () => {
+    const save = duringEventWindow(createTestSave());
+    const saveAtWeeklyLimit: GameSave = {
+      ...save,
+      time: {
+        ...save.time,
+        dayOfWeek: 'friday',
+      },
+      gladiators: [createGladiator()],
+      events: {
+        pendingEvents: [],
+        resolvedEvents: Array.from({ length: EVENT_CONFIG.maxEventsPerWeek }, (_, index) =>
+          createRecordedEvent(save, 'monday', index),
+        ),
+      },
+    };
+    const synchronized = synchronizeEvents(saveAtWeeklyLimit, () => 0);
+
+    expect(synchronized.events.pendingEvents).toHaveLength(0);
+  });
+
+  it('does not generate daily events before 8h', () => {
+    const save: GameSave = {
+      ...atTime(createTestSave(), 7, 59),
+      gladiators: [createGladiator()],
+    };
+    const synchronized = synchronizeEvents(save, () => 0);
+
+    expect(synchronized.events.pendingEvents).toHaveLength(0);
+  });
+
+  it('does not generate daily events from 20h', () => {
+    const save: GameSave = {
+      ...atTime(createTestSave(), 20),
+      gladiators: [createGladiator()],
+    };
+    const synchronized = synchronizeEvents(save, () => 0);
+
+    expect(synchronized.events.pendingEvents).toHaveLength(0);
   });
 
   it('expires unresolved events when the day changes', () => {

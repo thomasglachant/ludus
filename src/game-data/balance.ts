@@ -803,8 +803,22 @@ export const GAME_BALANCE = {
   events: {
     // First hour at which a daily event may appear.
     dailyEventStartHour: 10,
+    // Hour at which daily events stop appearing.
+    dailyEventEndHour: 19,
     // Maximum pending events generated on a single day.
     maxEventsPerDay: 1,
+    // Maximum generated events during a single week.
+    maxEventsPerWeek: 3,
+    // Chance that an event appears on each weekday once other limits allow it.
+    dailyEventProbabilityByDay: {
+      monday: 0.1,
+      tuesday: 0.25,
+      wednesday: 0.25,
+      thursday: 0.25,
+      friday: 0.25,
+      saturday: 0.1,
+      sunday: 0,
+    } satisfies Record<DayOfWeek, number>,
     // Health threshold below which a gladiator counts as injured for events.
     injuredHealthThreshold: 80,
     // Number of resolved or expired events kept in save history.
