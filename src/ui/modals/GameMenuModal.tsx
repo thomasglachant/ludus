@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { MenuCardBrandTitle } from '../components/MenuCardFront';
 import { ReversibleMenuCard } from '../components/ReversibleMenuCard';
 import { GameIcon } from '../icons/GameIcon';
 import { LoadGameContent } from './LoadGameModal';
@@ -59,27 +60,27 @@ export function GameMenuModal({
         actions={[
           {
             disabled: isSaving,
-            icon: <GameIcon name="save" size={18} />,
+            icon: <GameIcon color="currentColor" name="save" size={18} />,
             key: 'save',
             label: t(isSaving ? 'ludus.saving' : 'gameMenu.save'),
             onClick: onSave,
             primary: true,
           },
           {
-            icon: <GameIcon name="folderOpen" size={18} />,
+            icon: <GameIcon color="currentColor" name="folderOpen" size={18} />,
             key: 'loadGame',
             label: t('mainMenu.loadGame'),
             panelId: 'loadGame',
             testId: 'main-menu-load-game',
           },
           {
-            icon: <GameIcon name="settings" size={18} />,
+            icon: <GameIcon color="currentColor" name="settings" size={18} />,
             key: 'options',
             label: t('mainMenu.options'),
             panelId: 'options',
           },
           {
-            icon: <GameIcon name="logout" size={18} />,
+            icon: <GameIcon color="currentColor" name="logout" size={18} />,
             key: 'quit',
             label: t('gameMenu.quit'),
             panelId: 'quit',
@@ -111,7 +112,7 @@ export function GameMenuModal({
                 <div className="form-actions game-menu-card__confirm-actions">
                   <ActionButton label={t('common.cancel')} onClick={closePanel} />
                   <ActionButton
-                    icon={<GameIcon name="logout" size={18} />}
+                    icon={<GameIcon color="currentColor" name="logout" size={18} />}
                     label={t('gameMenu.quit')}
                     variant="primary"
                     onClick={onQuit}
@@ -124,7 +125,7 @@ export function GameMenuModal({
           },
         }}
         role="dialog"
-        title={<h1 className="game-menu-card__title">{t('gameMenu.title')}</h1>}
+        title={<MenuCardBrandTitle>{t('app.title')}</MenuCardBrandTitle>}
         onBack={onBack}
         onClose={onClose}
       />

@@ -606,45 +606,8 @@
 }
 
 .game-menu-card {
-  width: min(620px, 100%);
   height: min(620px, calc(100dvh - 40px));
   min-height: min(600px, calc(100dvh - 40px));
-}
-
-.game-menu-card.is-flipped.main-menu-screen__flip-shell--sm {
-  height: min(520px, calc(100dvh - 40px));
-  min-height: min(520px, calc(100dvh - 40px));
-}
-
-.game-menu-card .main-menu-screen__face--front {
-  gap: clamp(18px, 3vh, 30px);
-  padding-top: clamp(30px, 5vw, 54px);
-  padding-bottom: clamp(30px, 5vw, 54px);
-}
-
-.game-menu-card .main-menu-screen__front-title {
-  min-height: clamp(46px, 8vh, 68px);
-}
-
-.game-menu-card__title {
-  color: #f1c775;
-  font-family: var(--font-ui);
-  font-size: clamp(1.45rem, 4vw, 2.1rem);
-  font-weight: 950;
-  text-align: center;
-  text-shadow:
-    0 2px 0 rgba(9, 7, 5, 0.58),
-    0 0 22px rgba(210, 137, 47, 0.24);
-  text-transform: uppercase;
-}
-
-.game-menu-card .main-menu-screen__buttons {
-  width: min(430px, 100%);
-  gap: 12px;
-}
-
-.game-menu-card .main-menu-screen__buttons button {
-  min-height: 64px;
 }
 
 .game-menu-card__confirm {

@@ -1,19 +1,11 @@
 import { useState, type AriaRole, type ReactNode, type Ref } from 'react';
 import { useUiStore } from '../../state/ui-store-context';
 import { GameIcon } from '../icons/GameIcon';
+import { MenuCardFront, type MenuCardAction } from './MenuCardFront';
 
 export type ReversibleMenuCardSize = 'sm' | 'md' | 'lg' | 'xl';
 
-export interface ReversibleMenuCardAction<PanelId extends string> {
-  disabled?: boolean;
-  icon?: ReactNode;
-  key: string;
-  label: string;
-  panelId?: PanelId;
-  primary?: boolean;
-  testId?: string;
-  onClick?(): void;
-}
+export type ReversibleMenuCardAction<PanelId extends string> = MenuCardAction<PanelId>;
 
 export interface ReversibleMenuCardPanel {
   content: ReactNode | ((controls: { closePanel(): void }) => ReactNode);
@@ -51,7 +43,6 @@ export function ReversibleMenuCard<PanelId extends string>({
   const activePanel = activePanelId ? panels[activePanelId] : null;
   const hasActivePanel = Boolean(activePanel);
   const panelSize = activePanel?.size ?? 'md';
-  const frontTabIndex = hasActivePanel ? -1 : undefined;
   const closePanel = () => setActivePanelId(null);
   const panelContent =
     typeof activePanel?.content === 'function'
@@ -68,58 +59,15 @@ export function ReversibleMenuCard<PanelId extends string>({
       role={role}
     >
       <div className="main-menu-screen__flipper">
-        <div
-          aria-hidden={hasActivePanel}
-          className="main-menu-screen__content main-menu-screen__face main-menu-screen__face--front"
-        >
-          {onBack ? (
-            <button
-              aria-label={t('common.back')}
-              className="main-menu-screen__panel-back"
-              tabIndex={frontTabIndex}
-              type="button"
-              onClick={onBack}
-            >
-              <GameIcon color="currentColor" name="back" size={18} />
-            </button>
-          ) : null}
-          {onClose ? (
-            <button
-              aria-label={t('common.close')}
-              className="main-menu-screen__panel-close"
-              ref={closeButtonRef}
-              tabIndex={frontTabIndex}
-              type="button"
-              onClick={onClose}
-            >
-              <GameIcon color="currentColor" name="close" size={18} />
-            </button>
-          ) : null}
-          <div className="main-menu-screen__front-title">{title}</div>
-          <nav className="main-menu-screen__buttons" aria-label={t('navigation.title')}>
-            {actions.map((action) => (
-              <button
-                className={action.primary ? 'main-menu-screen__button--primary' : undefined}
-                data-testid={action.testId}
-                disabled={action.disabled}
-                key={action.key}
-                tabIndex={frontTabIndex}
-                type="button"
-                onClick={() => {
-                  if (action.panelId) {
-                    setActivePanelId(action.panelId);
-                    return;
-                  }
-
-                  action.onClick?.();
-                }}
-              >
-                {action.icon}
-                <span>{action.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
+        <MenuCardFront<PanelId>
+          actions={actions}
+          closeButtonRef={closeButtonRef}
+          isHidden={hasActivePanel}
+          title={title}
+          onBack={onBack}
+          onClose={onClose}
+          onOpenPanel={setActivePanelId}
+        />
 
         <div
           aria-hidden={!hasActivePanel}

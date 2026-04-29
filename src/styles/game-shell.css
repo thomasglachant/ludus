@@ -168,6 +168,11 @@
   color: #e9d39d;
 }
 
+.left-navigation-rail button svg {
+  color: #f3c977;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.44));
+}
+
 .left-navigation-rail button.is-selected {
   border-color: var(--gold);
   background:

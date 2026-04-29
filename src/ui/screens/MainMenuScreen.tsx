@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { MenuCardBrandTitle } from '../components/MenuCardFront';
 import { ReversibleMenuCard } from '../components/ReversibleMenuCard';
 import { GameIcon } from '../icons/GameIcon';
 import { LoadGameContent } from '../modals/LoadGameModal';
@@ -21,7 +22,7 @@ export function MainMenuScreen() {
       <ReversibleMenuCard<MainMenuPanel>
         actions={[
           {
-            icon: <GameIcon name="play" size={20} />,
+            icon: <GameIcon color="currentColor" name="play" size={20} />,
             key: 'newGame',
             label: t('mainMenu.newGame'),
             panelId: 'newGame',
@@ -29,14 +30,14 @@ export function MainMenuScreen() {
             testId: 'main-menu-new-game',
           },
           {
-            icon: <GameIcon name="folderOpen" size={20} />,
+            icon: <GameIcon color="currentColor" name="folderOpen" size={20} />,
             key: 'loadGame',
             label: t('mainMenu.loadGame'),
             panelId: 'loadGame',
             testId: 'main-menu-load-game',
           },
           {
-            icon: <GameIcon name="settings" size={20} />,
+            icon: <GameIcon color="currentColor" name="settings" size={20} />,
             key: 'options',
             label: t('mainMenu.options'),
             panelId: 'options',
@@ -63,25 +64,7 @@ export function MainMenuScreen() {
             title: t('options.title'),
           },
         }}
-        title={
-          <div className="main-menu-screen__brand">
-            <div className="main-menu-screen__title-row">
-              <img
-                className="main-menu-screen__title-laurel"
-                src={VISUAL_ASSET_MANIFEST.ui['laurel-left']}
-                alt=""
-                aria-hidden="true"
-              />
-              <h1>{t('app.title')}</h1>
-              <img
-                className="main-menu-screen__title-laurel main-menu-screen__title-laurel--right"
-                src={VISUAL_ASSET_MANIFEST.ui['laurel-left']}
-                alt=""
-                aria-hidden="true"
-              />
-            </div>
-          </div>
-        }
+        title={<MenuCardBrandTitle>{t('app.title')}</MenuCardBrandTitle>}
       />
     </section>
   );
