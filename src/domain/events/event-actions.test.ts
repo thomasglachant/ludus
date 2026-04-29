@@ -91,9 +91,9 @@ describe('event actions', () => {
     expect(resolved.gladiators[0].morale).toBeGreaterThan(save.gladiators[0].morale);
   });
 
-  it('generates daily events from 8h', () => {
+  it('generates daily events from the configured start hour', () => {
     const save: GameSave = {
-      ...atTime(createTestSave(), 8),
+      ...atTime(createTestSave(), EVENT_CONFIG.dailyEventStartHour),
       gladiators: [createGladiator()],
     };
     const synchronized = synchronizeEvents(save, () => 0);
@@ -132,9 +132,9 @@ describe('event actions', () => {
     expect(synchronized.events.pendingEvents).toHaveLength(0);
   });
 
-  it('does not generate daily events before 8h', () => {
+  it('does not generate daily events before the configured start hour', () => {
     const save: GameSave = {
-      ...atTime(createTestSave(), 7, 59),
+      ...atTime(createTestSave(), EVENT_CONFIG.dailyEventStartHour - 1, 59),
       gladiators: [createGladiator()],
     };
     const synchronized = synchronizeEvents(save, () => 0);

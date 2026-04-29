@@ -1,2 +1,3 @@
 npm run check:assets
+npm run test
 npx lint-staged
