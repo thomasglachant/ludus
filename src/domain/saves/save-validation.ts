@@ -611,9 +611,8 @@ function isEventState(value: unknown) {
     Array.isArray(value.resolvedEvents) &&
     value.pendingEvents.every(isGameEvent) &&
     value.resolvedEvents.every(isGameEvent) &&
-    (value.launchedEvents === undefined ||
-      (Array.isArray(value.launchedEvents) &&
-        value.launchedEvents.every(isLaunchedGameEventRecord)))
+    Array.isArray(value.launchedEvents) &&
+    value.launchedEvents.every(isLaunchedGameEventRecord)
   );
 }
 
@@ -736,9 +735,6 @@ function normalizeCombatState<TCombat extends GameSave['arena']['pendingCombats'
 
 export function normalizeGameSave(save: GameSave): GameSave {
   const saveWithOptionalMap = save as GameSave & { gameId?: unknown; map?: unknown };
-  const eventsWithOptionalHistory = save.events as GameSave['events'] & {
-    launchedEvents?: unknown;
-  };
   const normalizedSave: GameSave & { settings?: unknown } = {
     ...save,
     schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -774,9 +770,7 @@ export function normalizeGameSave(save: GameSave): GameSave {
     events: {
       pendingEvents: [],
       resolvedEvents: [],
-      launchedEvents: Array.isArray(eventsWithOptionalHistory.launchedEvents)
-        ? eventsWithOptionalHistory.launchedEvents.filter(isLaunchedGameEventRecord)
-        : [],
+      launchedEvents: save.events.launchedEvents.filter(isLaunchedGameEventRecord),
     },
   };
 

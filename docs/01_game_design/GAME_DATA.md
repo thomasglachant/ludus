@@ -38,8 +38,8 @@ export const PROGRESSION_CONFIG = {
 ```
 
 ```ts
-GAME_BALANCE.time.gameSpeeds = [0, 1, 2, 4];
-GAME_BALANCE.time.supportedGameSpeeds = [0, 1, 2, 4, 8, 16];
+GAME_BALANCE.time.gameSpeeds = [0, 1, 4];
+GAME_BALANCE.time.supportedGameSpeeds = [0, 1, 4, 8, 16, 32, 48];
 ```
 
 ```ts

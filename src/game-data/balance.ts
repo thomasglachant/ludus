@@ -37,9 +37,9 @@ export const GAME_BALANCE = {
 
   time: {
     // Game speeds exposed by the player time controls.
-    gameSpeeds: [0, 1, 2, 4] as const satisfies readonly GameSpeed[],
-    // Game speeds accepted by save validation for older or copied saves.
-    supportedGameSpeeds: [0, 1, 2, 4, 8, 16, 32, 48] as const satisfies readonly GameSpeed[],
+    gameSpeeds: [0, 1, 4] as const satisfies readonly GameSpeed[],
+    // Game speeds accepted by save validation, including internal fast-forward values.
+    supportedGameSpeeds: [0, 1, 4, 8, 16, 32, 48] as const satisfies readonly GameSpeed[],
     // Ordered weekdays used by time progression and weekly systems.
     daysOfWeek: [
       // First playable weekday of a new week.

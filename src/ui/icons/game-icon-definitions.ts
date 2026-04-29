@@ -91,7 +91,6 @@ export const GAME_ICON_DEFINITIONS = {
   save: { Icon: RiSaveFill, color: '#78c46b' },
   settings: { Icon: RiSettings3Fill, color: '#d6a34a' },
   shoppingCart: { Icon: RiShoppingCartFill, color: '#d6a34a' },
-  speed2: { Icon: RiSpeedFill, color: '#f7e6b3' },
   speed4: { Icon: RiSpeedFill, color: '#f7e6b3' },
   strength: { Icon: RiWeightFill, color: '#b56f3c' },
   timeDawn: { Icon: RiSunCloudyFill, color: '#d6a34a' },

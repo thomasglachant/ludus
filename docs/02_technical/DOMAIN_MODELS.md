@@ -8,7 +8,7 @@ Implementation source lives under `src/domain`. This document should stay aligne
 
 ```ts
 export type LanguageCode = 'fr' | 'en';
-export type GameSpeed = 0 | 1 | 2 | 4 | 8 | 16;
+export type GameSpeed = 0 | 1 | 4 | 8 | 16 | 32 | 48;
 ```
 
 ```ts

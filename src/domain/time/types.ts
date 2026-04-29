@@ -1,6 +1,6 @@
 import type { GameSave } from '../saves/types';
 
-export type GameSpeed = 0 | 1 | 2 | 4 | 8 | 16 | 32 | 48;
+export type GameSpeed = 0 | 1 | 4 | 8 | 16 | 32 | 48;
 
 export type DayOfWeek =
   | 'monday'

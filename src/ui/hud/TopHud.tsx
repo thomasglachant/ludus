@@ -16,7 +16,6 @@ interface TopHudProps {
 const TOP_HUD_SPEED_CONTROLS = [
   { iconName: 'pause', labelKey: 'speed.pause', speed: 0 },
   { iconName: 'play', labelKey: 'speed.x1', speed: 1 },
-  { iconName: 'speed2', labelKey: 'speed.x2', speed: 2 },
   { iconName: 'speed4', labelKey: 'speed.x4', speed: 4 },
 ] as const satisfies ReadonlyArray<{
   iconName: GameIconName;

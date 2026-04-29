@@ -35,7 +35,7 @@ export function DebugOverlay() {
   const { openModal, t } = useUiStore();
   const [isOpen, setIsOpen] = useState(false);
   const [menuStack, setMenuStack] = useState<DebugMenuId[]>(['root']);
-  const isDebugAvailable = Boolean(featureFlags.enableDemoMode && currentSave);
+  const isDebugAvailable = Boolean(featureFlags.enableDebugUi && currentSave);
 
   const menus = useMemo<Record<DebugMenuId, DebugMenu>>(
     () => ({

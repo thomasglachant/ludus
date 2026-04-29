@@ -345,7 +345,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const triggerDebugDailyEvent = useCallback(
     (definitionId: string) => {
       applyPlayerChange((save) => {
-        if (!featureFlags.enableDemoMode) {
+        if (!featureFlags.enableDebugUi) {
           return save;
         }
 
