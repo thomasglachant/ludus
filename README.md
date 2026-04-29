@@ -41,8 +41,7 @@ npm run test
 
 ## Documentation
 
-- `docs/00_overview/PROJECT_VISION.md`
-- `docs/00_overview/MVP_SCOPE.md`
+- `docs/00_overview/PROJECT_OVERVIEW.md`
 - `docs/01_game_design/GAMEPLAY.md`
 - `docs/01_game_design/GAME_DATA.md`
 - `docs/01_game_design/DEMO_MODE.md`

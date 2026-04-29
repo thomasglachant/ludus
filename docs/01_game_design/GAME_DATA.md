@@ -107,7 +107,7 @@ The Domus level is the source of truth for owned gladiator capacity. Each Domus 
 
 ### Purchase and Upgrade Values
 
-Current MVP building definitions include levels 1 and 2 for most buildings. Domus includes levels 1 through 6 because it drives global ludus capacity.
+Current building definitions include levels 1 and 2 for most buildings. Domus includes levels 1 through 6 because it drives global ludus capacity.
 
 Level 1 purchase costs on base buildings are not used when creating a new game because those buildings start owned. Purchase costs remain part of building data so future optional buildings can start unpurchased and be bought later.
 

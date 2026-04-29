@@ -2,15 +2,15 @@
 
 ## 1. Interface Goal
 
-The player interface must feel like a game, not a web dashboard.
+The player interface must support the core management loop without exposing every system at once.
 
-The main screen should present a living Roman countryside ludus in readable cozy pixel art. The player should be able to observe gladiators, buildings, paths, routines and time-of-day changes without opening every system at once.
+The main screen should present the ludus as the primary interaction space. The player should be able to observe gladiators, buildings, paths, routines and time-of-day changes without opening every system at once.
 
 The interface should reveal information progressively. The normal player experience should not expose weekly planning details, contracts, events, market details, arena preparation, building configuration and debug data all at the same time.
 
 All visible UI text must use i18n keys and support French and English. React components must not hardcode player-facing copy.
 
-The accepted map-first interface decision is documented in `docs/03_product/decisions/0001-player-ui-map-first.md`.
+UI work should prioritize layout and interaction hierarchy before adding more gameplay features. A feature is not ready for the normal player interface if it requires permanently exposing every detail on the main screen.
 
 ## 2. Main Game Shell
 
@@ -36,7 +36,15 @@ Elements:
 - `ModalHost`: focused confirmations, menu/options flows and centered feature modals for building, gladiator, planning, contracts, market, events and arena.
 - `ToastAndAlertLayer`: warnings, recommendations and notifications.
 
-The shell should occupy the full viewport. It should avoid the visual language of a web admin dashboard.
+The shell should occupy the full viewport.
+
+The main game screen prioritizes:
+
+- a large living ludus map;
+- focused feature modals;
+- a portrait-based gladiator roster;
+- visual building representation;
+- time-of-day state and feedback.
 
 ## 3. Always Visible
 
@@ -115,8 +123,8 @@ The normal player HUD should show time as a readable day-night cycle gauge, not
 as an exact hour clock. Internal hour and minute values may remain part of the
 domain model for ticks, building effects and synchronization rules.
 
-Map visuals should render generated or authored pixel-art assets through visual
-data helpers:
+Map visuals should render generated or authored assets through visual data
+helpers:
 
 - time-of-day background assets;
 - building exterior/interior/roof/prop assets;
@@ -164,7 +172,7 @@ Suggested building panel tabs:
 - Policy;
 - Gladiators.
 
-Buildings should be represented by generated or authored visual assets, not plain boxes or text-only cards. The removed building budget slider system must not return.
+Buildings should be represented by generated or authored visual assets. The removed building budget slider system must not return.
 
 Improvement and policy rows should compose shared primitives such as `SectionCard`, `EffectList`, `CostSummary`, badges and shared action buttons. Expensive or blocking purchases should use the global confirmation modal. Disabled actions must show i18n-backed reasons rather than silently disabling controls.
 
@@ -176,8 +184,8 @@ expected flow is:
 - inspect current level, effects, improvements, policies and assigned
   gladiators in the building modal;
 - trigger purchase or upgrade from the panel;
-- see a parchment/bronze modal with building art, current-to-next level
-  comparison, effect changes and resource cost;
+- see a confirmation with building art, current-to-next level comparison,
+  effect changes and resource cost;
 - confirm the action and return to the same map-first context.
 
 Simple confirmation modals remain acceptable for small focused actions such as
@@ -246,7 +254,7 @@ Feature modals should compose these primitives instead of recoding their own hea
 
 ## 9.1 Empty, Warning And Error States
 
-MVP screens and panels should expose clear, i18n-backed states for missing or blocked content:
+Player screens and panels should expose clear, i18n-backed states for missing or blocked content:
 
 - empty roster: the bottom roster shows that no gladiators have been recruited yet;
 - empty market: the market shows that no candidates remain this week;
@@ -262,29 +270,16 @@ These states should use shared primitives such as `EmptyState`, `NoticeBox`, mod
 
 ## 10. Main Menu
 
-The main menu should feel like a game menu, not a SaaS landing page.
+The main menu is the entry point for starting, loading and configuring play.
 
-It should use:
+It should provide:
 
-- full-screen illustrated or pixel-art-inspired background;
-- Roman countryside, ludus or arena mood;
-- stronger logo area;
-- parchment, stone or bronze styled buttons;
 - options and load game actions that open as modal overlays;
 - demo mode indicator only when enabled.
 
-The main menu should not be dominated by a plain white card or dashboard styling.
 Language selection should not be visible directly on the main menu. The interface should use the browser language by default when no stored preference exists, and language changes should happen through Options.
 
-## 11. Debug Dashboard
-
-The previous long dashboard interface may be kept only as a debug tool.
-
-It must be hidden from the normal player experience and available only through a development-only route such as `/dev/debug-dashboard` or a feature flag such as `VITE_ENABLE_DEBUG_UI=true`.
-
-The debug dashboard is useful for inspecting state, testing mechanics and debugging systems. It is not the intended player experience.
-
-## 12. Market
+## 11. Market
 
 Market should open as a centered `XL` modal and follow the same shared UI primitive direction as other feature modals where practical.
 
@@ -298,7 +293,7 @@ The market must:
 - display a clear shared empty state when there are no owned gladiators to sell;
 - keep all buy validation in domain logic rather than React.
 
-## 13. Arena
+## 12. Arena
 
 Arena should be available from the map or navigation rail as a centered `XL` modal.
 
@@ -326,8 +321,7 @@ The combat presentation should:
   and active effects;
 - render central fighter sprites with combat idle/attack frames;
 - expose the selected strategy or skill area;
-- progress the visible combat log one turn at a time for replay-based MVP
-  combat;
+- progress the visible combat log one turn at a time for replay-based combat;
 - show final reward, reputation and consequence summary from existing combat
   state;
 - return cleanly to the arena/map context.
@@ -335,9 +329,9 @@ The combat presentation should:
 Combat UI may reveal turns from an already resolved `CombatState`. It must not
 reimplement hit chance, damage, rewards or consequences in React.
 
-## 14. Supporting Flows
+## 13. Supporting Flows
 
-Supporting flows should follow the game-like visual direction instead of a SaaS dashboard style.
+Supporting flows should keep the player focused on the current decision.
 
 New game:
 
@@ -357,11 +351,10 @@ Options modal:
 - use i18n for every visible label;
 - reserve space for future audio, animation and confirmation settings.
 
-## 15. Acceptance Criteria
+## 14. Acceptance Criteria
 
 The UI is valid when:
 
-- the main screen no longer looks like a long vertical dashboard;
 - the map is the main visual focus;
 - buildings are visually represented;
 - base buildings are visible and available from the start;
@@ -371,8 +364,6 @@ The UI is valid when:
 - feature modals open contextually from the map, roster or navigation rail;
 - weekly planning is not permanently visible;
 - market and arena appear as external locations;
-- the debug dashboard is not the default game screen;
-- debug dashboard is unavailable as a normal player route unless `VITE_ENABLE_DEBUG_UI=true`;
 - repeated panel, modal, empty-state, effect-list, cost and tab structures use shared UI primitives;
 - arena logs, rewards, consequences and Sunday summary are visible through i18n-backed UI;
 - dedicated combat presentation can progress at least one visible turn when a

@@ -29,7 +29,7 @@ The week is played through:
 
 The player defines priorities and handles exceptions. The game handles routine assignments where possible.
 
-Weekly planning, building policies and readiness alerts open as centered feature modals in the player UI. They should not turn the main game screen into a permanent dashboard.
+Weekly planning, building policies and readiness alerts open as focused feature flows instead of permanently occupying the main game screen.
 
 ## Removed Mechanic: Building Budgets
 
@@ -254,7 +254,7 @@ Examples:
 
 Events make the week feel alive.
 
-Recommended frequency for MVP: at most one event per day.
+Recommended frequency: at most one event per day.
 
 Event examples:
 

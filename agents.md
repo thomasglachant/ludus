@@ -30,10 +30,10 @@ Useful commands: `npm run build`, `npm run lint`, `npm run test`.
 
 ## Context Map
 
-- Product vision and scope: `docs/00_overview/PROJECT_VISION.md`, `docs/00_overview/MVP_SCOPE.md`.
+- Project overview: `docs/00_overview/PROJECT_OVERVIEW.md`.
 - Gameplay and balance: `docs/01_game_design/GAMEPLAY.md`, `docs/01_game_design/GAME_DATA.md`, `docs/01_game_design/DEMO_MODE.md`.
 - Architecture and save/domain models: `docs/02_technical/ARCHITECTURE.md`, `docs/02_technical/DOMAIN_MODELS.md`.
-- UI and art direction: `docs/03_product/UI_UX.md`, `docs/03_product/ART_DIRECTION.md`, `docs/03_product/decisions/0001-player-ui-map-first.md`.
+- UI and art direction: `docs/03_product/UI_UX.md`, `docs/03_product/ART_DIRECTION.md`.
 - Roadmap: `docs/04_roadmap/ROADMAP.md`.
 
 ## Documentation Rules

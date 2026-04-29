@@ -219,7 +219,7 @@ export interface BuildingDefinition {
 }
 ```
 
-`startsPurchased` is the data-driven source of truth for whether a building is owned in a new save. `startsAtLevel` defines the initial level written into new saves. The six base `BuildingId` values are required at the start of the MVP experience, so their definitions use `startsPurchased: true` and `startsAtLevel: 1`.
+`startsPurchased` is the data-driven source of truth for whether a building is owned in a new save. `startsAtLevel` defines the initial level written into new saves. The six base `BuildingId` values are required at the start of the initial player experience, so their definitions use `startsPurchased: true` and `startsAtLevel: 1`.
 
 Future optional buildings can use `startsPurchased: false` and `startsAtLevel: 0` without adding a new save field. The purchase domain logic remains available for those buildings.
 

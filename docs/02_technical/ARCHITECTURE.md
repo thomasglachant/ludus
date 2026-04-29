@@ -68,7 +68,7 @@ Examples:
 - contract definitions;
 - event definitions;
 - map layout and visual definitions;
-- pixel-art asset manifest helpers;
+- asset manifest helpers;
 - time-of-day visual themes;
 - ambient map element definitions;
 - gladiator portrait and sprite frame resolution;
@@ -137,8 +137,8 @@ functional stylesheet and import that file from `src/index.css`. The split
 should happen as normal maintenance, not only during major refactors.
 
 Before accepting CSS cleanup, check for stale selectors against the React code
-and remove rules for retired UI surfaces such as debug/dashboard-only screens,
-old DOM scene renderers or deleted components.
+and remove rules for retired UI surfaces, old DOM scene renderers or deleted
+components.
 
 ### `src/renderer`
 
@@ -197,8 +197,7 @@ Contains feature flag parsing and other runtime configuration.
 
 Current flags:
 
-- `VITE_ENABLE_DEMO_MODE`;
-- `VITE_ENABLE_DEBUG_UI`.
+- `VITE_ENABLE_DEMO_MODE`.
 
 ## Scene Renderer
 
@@ -276,33 +275,18 @@ the scene view-model. When reduced motion is active, non-essential ambient
 animation and sprite frame cycling stop while the scene keeps static visual
 state.
 
-### Pixi Pixel-Perfect Rendering
+### Pixi Scene Rendering
 
-Pixi scenes must preserve authored pixel-art edges:
+Pixi scenes render player-facing map and combat view-models. Renderer code owns
+camera movement, interpolation, layering and animation playback; domain modules
+own game rules and persisted state.
 
-- load pixel-art textures with the Pixi v8 texture source API:
-  `texture.source.scaleMode = 'nearest'`;
-- when using `Assets.load`, pass `data` with `scaleMode: 'nearest'` and
-  `autoGenerateMipmaps: false` for single textures, or pass the same options
-  through `textureOptions` for spritesheets;
-- do not use deprecated `SCALE_MODES` constants for new code;
-- initialize the Pixi renderer with `roundPixels: true` and use `roundPixels`
-  on sprites, graphics and particle containers that represent pixel-art scene
-  elements;
-- do not attach blur filters, linear interpolation, anisotropic filtering or
-  generated mipmaps to pixel-art assets;
-- prefer integer sprite scales for small sprites when the requested visual size
-  is close enough to the native asset size; large backgrounds and buildings may
-  scale to layout dimensions, but their texture sampling still stays nearest;
-- map camera zoom must use readable presets from `src/game-data/map-layout.ts`
-  instead of arbitrary wheel zoom values;
-- visual debug inspection is enabled only through debug UI mode. When
-  `VITE_ENABLE_DEBUG_UI=true`, Pixi scenes may draw overlay metrics for native
-  size, rendered scale, anchor and hitbox.
+Map camera zoom must use readable presets from `src/game-data/map-layout.ts`
+instead of arbitrary wheel zoom values.
 
 ## Visual Asset Pipeline
 
-The player UI uses generated or authored pixel-art assets from:
+The player UI uses generated or authored assets from:
 
 ```text
 public/assets/
@@ -336,9 +320,9 @@ Current visual data boundaries:
 - `src/game-data/time-of-day.ts` defines phase timing, background assets,
   lighting variables and ambient multipliers.
 
-Generated SVG scaffolding is a durable fallback baseline, not a license to place
-visual paths directly in React. Production art should enter the same
-manifest/data boundary.
+Generated fallback assets are a durable baseline, not a license to place visual
+paths directly in React. Production assets should enter the same manifest/data
+boundary.
 
 ## Modal Management
 
@@ -430,7 +414,7 @@ creates a normal local save copy before it becomes the active browser session.
 The copy can be saved like any other local save, while
 `metadata.demoSaveId` keeps the original template available for a reset action.
 
-The MVP save model has two layers:
+The save model has two layers:
 
 - the active browser session is auto-persisted under a dedicated browser-storage key so refresh, tab close or accidental reload can resume the current play session;
 - manual local saves remain explicit player snapshots listed by the normal save provider.
@@ -496,18 +480,9 @@ t('weeklyPlan.objectives.fightPreparation');
 t('alerts.lowEnergy.title');
 ```
 
-## Debug UI
-
-The old dashboard-style game screen may be kept only as a developer/debug interface.
-
-It must not be the default player interface and should be available only through:
-
-- `VITE_ENABLE_DEBUG_UI=true`; or
-- a development-only route such as `/dev/debug-dashboard`.
-
 ## Testing Strategy
 
-During MVP prototyping, tests are intentionally narrow. The default suite should protect durable game rules, save behavior and i18n hygiene. It should not try to lock down volatile UI flows, component structure, visual layout or end-to-end player paths while the product shape is still changing quickly.
+During rapid prototyping, tests are intentionally narrow. The default suite should protect durable game rules, save behavior and i18n hygiene. It should not try to lock down volatile UI flows, component structure, visual layout or end-to-end player paths while the product shape is still changing quickly.
 
 Add or update tests only when a change affects durable behavior, fixes a recurring bug, protects save compatibility, or covers a rule that would be expensive to verify manually. Prefer build and lint checks for routine UI iteration.
 
@@ -529,7 +504,7 @@ Priority test areas:
 - corrupted save handling;
 - demo provider read-only behavior.
 
-Component, renderer and Playwright tests are paused until the MVP interaction model stabilizes. Reintroduce them selectively for high-value smoke flows and stable demo states once those flows become release-blocking.
+Component, renderer and Playwright tests are paused until the player interaction model stabilizes. Reintroduce them selectively for high-value smoke flows and stable demo states once those flows become release-blocking.
 
 ## Quality Gate
 

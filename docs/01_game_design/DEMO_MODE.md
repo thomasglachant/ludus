@@ -84,7 +84,7 @@ Expected state:
 
 - Year 1, Week 1, Monday, day phase, paused;
 - treasury 850 and low ludus reputation;
-- all MVP base buildings purchased, with Domus level 3 for the three-gladiator roster;
+- all base buildings purchased, with Domus level 3 for the three-gladiator roster;
 - Dormitory level 1 focused on recovery rather than purchasable beds;
 - 3 owned beginner gladiators with stable portraits, sprites, objectives and building assignments;
 - 5 predefined market candidates;
@@ -101,7 +101,7 @@ Expected state:
 
 - Year 2, Week 4, Thursday, day phase, paused;
 - 4 owned gladiators;
-- all MVP base buildings purchased, with levels around 3 or 4;
+- all base buildings purchased, with levels around 3 or 4;
 - Domus capacity large enough for the roster and market test purchases;
 - 5 predefined market candidates;
 - active weekly planning recommendations;
@@ -118,7 +118,7 @@ Expected state:
 
 - Year 5, Week 7, Saturday, dusk phase, paused;
 - 6 owned gladiators;
-- all MVP base buildings purchased at level 6 with full improvement coverage where available;
+- all base buildings purchased at level 6 with full improvement coverage where available;
 - Domus capacity at the maximum roster size;
 - 5 predefined market candidates;
 - multiple active alerts;
@@ -239,7 +239,7 @@ not the demo provider.
 
 ## Test Expectations
 
-During MVP prototyping, automated coverage for demo mode is limited to durable provider and data-shape checks. Browser smoke coverage should return only when the demo flows become stable enough to justify the maintenance cost.
+During rapid prototyping, automated coverage for demo mode is limited to durable provider and data-shape checks. Browser smoke coverage should return only when the demo flows become stable enough to justify the maintenance cost.
 
 Unit tests should cover:
 

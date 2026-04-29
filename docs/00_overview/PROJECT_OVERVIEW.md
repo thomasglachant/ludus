@@ -1,11 +1,11 @@
-# Project Vision
+# Project Overview
 
 ## Purpose
 
 `ludus` is a browser-based management game about running a Roman gladiator school.
 The player is a lanista who manages people, risk, money, reputation and long-term progression under the pressure of weekly arena combats.
 
-The game should feel like a handcrafted management game set in a living Roman countryside ludus, not like a web administration dashboard.
+The game should feel like a management game set in a living Roman countryside ludus.
 
 ## Core Fantasy
 
@@ -56,7 +56,6 @@ Money and reputation connect the whole game. The player earns rewards through ar
 - Cloud save is represented through an abstraction and can remain mocked until the backend decision is made.
 - The UI supports French and English through i18n keys.
 - The default player interface is map-first and full-screen.
-- Debug dashboard screens may exist only behind development-only access.
 
 ## Long-Term Direction
 

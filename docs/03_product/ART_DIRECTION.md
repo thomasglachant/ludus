@@ -8,8 +8,7 @@ This document is the durable source of truth for the player-facing visual direct
 `ludus` should feel like a handcrafted Roman pixel-art management game where the
 player manages a living gladiator school in the countryside.
 
-The default experience must not look like a SaaS dashboard, a debug panel, or a
-stack of generic web cards. The player should understand at first glance:
+The player should understand at first glance:
 
 - the ludus is a physical place;
 - buildings, paths, gladiators, market and arena exist in the same world;
@@ -31,8 +30,8 @@ Future features should answer where they live in the world:
 
 - a building or external location should open the feature;
 - the map should show relevant feedback;
-- new systems should not become disconnected full-page tables unless they are
-  explicitly debug-only.
+- new systems should not become disconnected full-page tables in the
+  player-facing experience.
 
 ### Roman Pixel-Art Material Language
 
@@ -44,13 +43,6 @@ The interface and assets should use:
 - bronze, gold and ochre borders/highlights;
 - red banners, laurels, shields and Roman motifs where useful;
 - readable pixel-art buildings, portraits, sprites and icons.
-
-Avoid:
-
-- plain white dashboard cards;
-- generic SaaS buttons and shadows;
-- large full-page forms in the normal player UI;
-- decorative complexity that harms readability.
 
 ### Strategic Readability
 
@@ -79,8 +71,6 @@ Player-facing Pixi scenes must render pixel art crisply:
   scale values;
 - blur, interpolation, anisotropic filtering and mipmapped smoothing are not
   acceptable for pixel-art assets;
-- debug overlays may expose native size, scale, anchor and hitbox, but only in
-  debug UI mode.
 
 ### Warm Progression
 
@@ -238,28 +228,6 @@ Each gladiator should resolve to:
 When a save lacks explicit visual identity, the game should derive one
 deterministically from the gladiator id rather than requiring a save migration.
 
-## Modal And Panel Style
-
-Focused choices and detailed feature views use the shared centered modal infrastructure.
-
-The target modal style is:
-
-- dimmed map behind the modal;
-- dark title strip;
-- parchment body;
-- bronze/stone frame;
-- building or feature artwork when useful;
-- optional back button for nested modal flows;
-- clear current/next comparison;
-- effect rows with old and new values;
-- resource cost bar;
-- strong primary and secondary actions.
-
-New feature modals should reuse `AppModal`, `ModalHost` and shared UI primitives
-before introducing custom chrome. The normal player UI should not add new local
-modal backdrops, feature-specific title bars or side-panel chrome for gameplay
-systems.
-
 ## Combat Presentation
 
 Arena combat should feel like the weekly climax.
@@ -364,7 +332,6 @@ Integration rules:
 - Game rules and balance stay in `src/domain` and `src/game-data`.
 - Map layout, visual definitions, animation definitions and asset paths stay
   data-driven.
-- The debug dashboard can exist only behind debug routing or flags.
 - Future UI must preserve the game-first, map-first direction.
 
 ## Still Open
