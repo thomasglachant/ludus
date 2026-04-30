@@ -149,8 +149,7 @@ describe('demo save definitions', () => {
       isPaused: true,
     });
     expect(mid?.save.gladiators).toHaveLength(4);
-    expect(mid?.save.arena.betting).toBeDefined();
-    expect(mid?.save.arena.betting?.odds.length).toBeGreaterThan(0);
+    expect(mid?.save.arena.resolvedCombats).toHaveLength(0);
 
     expect(advanced?.save.time).toMatchObject({
       year: 5,
@@ -162,7 +161,6 @@ describe('demo save definitions', () => {
       isPaused: true,
     });
     expect(advanced?.save.gladiators).toHaveLength(6);
-    expect(advanced?.save.arena.betting).toBeDefined();
-    expect(advanced?.save.arena.betting?.areBetsLocked).toBe(true);
+    expect(advanced?.save.arena.resolvedCombats).toHaveLength(0);
   });
 });

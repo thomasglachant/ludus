@@ -15,7 +15,6 @@ export interface ArenaDayViewModel {
   currentCombat?: CombatState;
   emptyMessageKey?: string;
   isArenaDayActive: boolean;
-  pendingCombats: CombatState[];
   resolvedCombats: CombatState[];
   statusKey: string;
   summary: ArenaSummaryViewModel;
@@ -72,10 +71,9 @@ function getCurrentCombat(save: GameSave, combats: CombatState[]) {
 }
 
 export function getArenaDayViewModel(save: GameSave): ArenaDayViewModel {
-  const pendingCombats = save.arena.pendingCombats;
   const resolvedCombats = save.arena.resolvedCombats;
-  const currentCombat = getCurrentCombat(save, [...pendingCombats, ...resolvedCombats]);
-  const hasAnyCombat = pendingCombats.length > 0 || resolvedCombats.length > 0;
+  const currentCombat = getCurrentCombat(save, resolvedCombats);
+  const hasAnyCombat = resolvedCombats.length > 0;
   const emptyMessageKey =
     hasAnyCombat || save.gladiators.length > 0
       ? save.arena.isArenaDayActive
@@ -87,7 +85,6 @@ export function getArenaDayViewModel(save: GameSave): ArenaDayViewModel {
     currentCombat,
     emptyMessageKey: hasAnyCombat ? undefined : emptyMessageKey,
     isArenaDayActive: save.arena.isArenaDayActive,
-    pendingCombats,
     resolvedCombats,
     statusKey: save.arena.isArenaDayActive ? 'arena.status.active' : 'arena.status.waiting',
     summary: summarizeCombats(resolvedCombats),

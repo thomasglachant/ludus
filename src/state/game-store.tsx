@@ -3,11 +3,7 @@ import {
   triggerDebugDailyEvent as triggerDebugDailyEventAction,
 } from '../domain/events/event-actions';
 import { adjustDebugTreasury as adjustDebugTreasuryAction } from '../domain/debug/debug-actions';
-import {
-  markArenaCombatPresented as markArenaCombatPresentedAction,
-  scoutOpponent as scoutOpponentAction,
-  synchronizeBetting,
-} from '../domain/combat/combat-actions';
+import { markArenaCombatPresented as markArenaCombatPresentedAction } from '../domain/combat/combat-actions';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { getGameSessionRoute } from '../app/routes';
 import { featureFlags } from '../config/features';
@@ -71,7 +67,7 @@ function createSaveService() {
 }
 
 function synchronizeLoadedSave(save: GameSave): GameSave {
-  return synchronizePlanning(synchronizeBetting(save));
+  return synchronizePlanning(save);
 }
 
 export function GameStoreProvider({ children }: { children: ReactNode }) {
@@ -487,13 +483,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     [applyPlayerChange],
   );
 
-  const scoutOpponent = useCallback(
-    (gladiatorId: string) => {
-      applyPlayerChange((save) => scoutOpponentAction(save, gladiatorId).save);
-    },
-    [applyPlayerChange],
-  );
-
   const markArenaCombatPresented = useCallback(
     (combatId: string) => {
       applyPlayerChange((save) => markArenaCombatPresentedAction(save, combatId));
@@ -871,7 +860,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       resolveGameEventChoice,
       triggerDebugDailyEvent,
       adjustDebugTreasury,
-      scoutOpponent,
       markArenaCombatPresented,
       completeSundayArenaDay,
       clearError,
@@ -901,7 +889,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     saveCurrentGame,
     saveNoticeKey,
     resolveGameEventChoice,
-    scoutOpponent,
     triggerDebugDailyEvent,
     markArenaCombatPresented,
     presentedCurrentSave,

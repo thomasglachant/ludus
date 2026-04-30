@@ -423,10 +423,8 @@ export type ArenaRank =
 export interface ArenaState {
   currentCombatId?: string;
   arenaDay?: ArenaDayState;
-  pendingCombats: CombatState[];
   resolvedCombats: CombatState[];
   isArenaDayActive: boolean;
-  betting?: BettingState;
 }
 ```
 
@@ -441,7 +439,7 @@ export interface ArenaDayState {
 }
 ```
 
-`currentCombatId` is a consultation pointer for the arena UI. Domain combat resolution remains deterministic for a save and week: `pendingCombats` describes the current-week queue when resolution is staged, `resolvedCombats` stores the combats whose rewards and consequences have already been applied, and `isArenaDayActive` marks that the Sunday arena panel should show the Sunday flow. Repeated synchronization for the same Sunday must not apply rewards or consequences for a combat more than once.
+`currentCombatId` is a consultation pointer for the arena UI. Domain combat resolution remains deterministic for a save and week: `resolvedCombats` stores the combats whose rewards and consequences have already been applied, and `isArenaDayActive` marks that the Sunday arena panel should show the Sunday flow. Arena state does not store prospective opponents; opponents exist only inside `CombatState` after the Sunday arena flow starts. Repeated synchronization for the same Sunday must not apply rewards or consequences for a combat more than once.
 
 ```ts
 export interface CombatState {
@@ -482,10 +480,11 @@ export interface CombatReward {
   victoryReward?: number;
   publicStakeModifier?: number;
   playerDecimalOdds?: number;
+  opponentDecimalOdds?: number;
 }
 ```
 
-Arena rewards are resolved when the combat is generated. `loserReward` is the fixed participation amount for the arena rank. `winnerReward` is the participation amount plus an odds-based victory bonus. Current saves include the explicit `participationReward`, `victoryReward`, `publicStakeModifier` and `playerDecimalOdds` fields; they remain optional so older saves with the original reward split continue to load.
+Arena rewards are resolved when the combat is generated. `loserReward` is the fixed participation amount for the arena rank. `winnerReward` is the participation amount plus an odds-based victory bonus. Current saves include the explicit `participationReward`, `victoryReward`, `publicStakeModifier`, `playerDecimalOdds` and `opponentDecimalOdds` fields; they remain optional so older saves with the original reward split continue to load.
 
 ```ts
 export interface CombatConsequence {
@@ -499,47 +498,6 @@ export interface CombatConsequence {
   finalEnergy: number;
   finalMorale: number;
   finalReputation: number;
-}
-```
-
-## Betting and Scouting
-
-```ts
-export interface BettingState {
-  year: number;
-  week: number;
-  odds: BettingOdds[];
-  scoutingReports: ScoutingReport[];
-  areBetsLocked: boolean;
-}
-```
-
-```ts
-export interface BettingOdds {
-  id: string;
-  gladiatorId: string;
-  opponent: Gladiator;
-  rank: ArenaRank;
-  playerWinChance: number;
-  playerDecimalOdds: number;
-  opponentDecimalOdds: number;
-  isScouted: boolean;
-  createdAtDay: DayOfWeek;
-}
-```
-
-```ts
-export interface ScoutingReport {
-  id: string;
-  gladiatorId: string;
-  opponentId: string;
-  opponentStrength: number;
-  opponentAgility: number;
-  opponentDefense: number;
-  summaryKey: string;
-  createdAtYear: number;
-  createdAtWeek: number;
-  createdAtDay: DayOfWeek;
 }
 ```
 

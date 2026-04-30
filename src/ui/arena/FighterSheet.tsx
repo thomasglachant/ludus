@@ -1,16 +1,14 @@
-import { calculateDecimalOdds } from '../../domain/combat/combat-actions';
 import type { Gladiator } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { CardBlured } from '../components/CardBlured';
 import { IconValueStat } from '../components/IconValueStat';
 import { PercentageStatBar } from '../components/PercentageStatBar';
-import { Tooltip } from '../components/Tooltip';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface FighterSheetProps {
-  chance: number;
   gladiator: Gladiator;
+  odds: number;
   side: 'player' | 'opponent';
   statLabelKeys?: Partial<Record<SecondaryFighterStatKey, string>>;
   statValues?: Partial<Record<SecondaryFighterStatKey, number>>;
@@ -44,32 +42,25 @@ const SECONDARY_FIGHTER_STAT_TONES = {
   morale: 'morale',
 } as const;
 
-function formatPercent(value: number) {
-  return `${Math.round(value * 100)}%`;
-}
-
 function formatOdds(value: number) {
   return value.toFixed(2);
 }
 
-function FighterOdds({ chance, fighterName }: { chance: number; fighterName: string }) {
+function FighterOdds({ fighterName, odds }: { fighterName: string; odds: number }) {
   const { t } = useUiStore();
-  const odds = formatOdds(calculateDecimalOdds(chance));
-  const percent = formatPercent(chance);
-  const label = t('arenaRoute.fighterOddsLabel', { chance: percent, fighter: fighterName, odds });
+  const formattedOdds = formatOdds(odds);
+  const label = t('arenaRoute.fighterOddsLabel', { fighter: fighterName, odds: formattedOdds });
 
   return (
     <div aria-label={label} className="arena-route-fighter-odds">
-      <Tooltip content={percent}>
-        <strong>{odds}</strong>
-      </Tooltip>
+      <strong>{formattedOdds}</strong>
     </div>
   );
 }
 
 export function FighterSheet({
-  chance,
   gladiator,
+  odds,
   side,
   statLabelKeys,
   statValues,
@@ -79,7 +70,7 @@ export function FighterSheet({
 
   return (
     <CardBlured as="article" className={`arena-route-fighter arena-route-fighter--${side}`}>
-      <FighterOdds chance={chance} fighterName={gladiator.name} />
+      <FighterOdds fighterName={gladiator.name} odds={odds} />
       <div className="arena-route-fighter__identity">
         <GladiatorPortrait gladiator={gladiator} size="large" />
         <div className="arena-route-fighter__info">

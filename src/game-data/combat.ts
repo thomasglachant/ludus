@@ -10,12 +10,9 @@ export const ARENA_VICTORY_ODDS_REWARD_MULTIPLIER = GAME_BALANCE.arena.victoryOd
 
 export const ARENA_PUBLIC_STAKE_MODIFIER_SPREAD = GAME_BALANCE.arena.publicStakeModifierSpread;
 
-export const BETTING_CONFIG = {
-  firstOddsDay: GAME_BALANCE.betting.firstOddsDay,
-  lockDay: GAME_BALANCE.betting.lockDay,
-  scoutingCost: GAME_BALANCE.betting.scoutingCost,
-  houseEdge: GAME_BALANCE.betting.houseEdge,
-  minimumDecimalOdds: GAME_BALANCE.betting.minimumDecimalOdds,
+export const ARENA_ODDS_CONFIG = {
+  houseEdge: GAME_BALANCE.arena.odds.houseEdge,
+  minimumDecimalOdds: GAME_BALANCE.arena.odds.minimumDecimalOdds,
 } as const;
 
 export const ARENA_RANK_THRESHOLDS = GAME_BALANCE.arena.rankThresholds;
@@ -47,7 +44,6 @@ export const COMBAT_CONFIG = {
 export const ARENA_OPPONENT_CONFIG: Record<
   ArenaRank,
   {
-    statMultiplier: number;
     reputation: number;
   }
 > = GAME_BALANCE.combat.opponentByRank;

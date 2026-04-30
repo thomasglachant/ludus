@@ -9,8 +9,7 @@ The game combines:
 - strategic building upgrades;
 - market decisions;
 - events;
-- Sunday arena combats;
-- betting and scouting.
+- Sunday arena combats.
 
 ## Stack
 

@@ -58,7 +58,6 @@ export const GAME_ICON_DEFINITIONS = {
   agility: { Icon: RiWindyFill, color: '#5f8fb7' },
   age: { Icon: RiCalendarFill, color: '#c19b57' },
   alert: { Icon: RiErrorWarningFill, color: '#d39942' },
-  arenaIntel: { Icon: RiSparklingFill, color: '#d39942' },
   arrowRight: { Icon: RiArrowRightFill, color: '#f7e6b3' },
   assignment: { Icon: RiMapPinFill, color: '#d6a34a' },
   back: { Icon: RiArrowLeftFill, color: '#f7e6b3' },

@@ -24,7 +24,7 @@ The week is played through:
 - building policies;
 - events;
 - market decisions;
-- betting and scouting;
+- arena preparation;
 - risk/reward decisions.
 
 The player defines priorities and handles exceptions. The game handles routine assignments where possible.
@@ -89,15 +89,16 @@ Main actions:
 - develop young gladiators;
 - keep gauges under control.
 
-### Thursday: Information and Scouting
+### Thursday: Midweek Adjustments
 
-The player starts receiving information about likely opponents and betting odds.
+The player reviews the state of the ludus and corrects problems before the weekend.
 
 Main actions:
 
-- scout opponents;
-- compare expected matchups;
-- decide how much treasury can be risked.
+- adjust weekly objectives;
+- respond to alerts;
+- preserve tired or injured gladiators;
+- decide how much risk the roster can take before Sunday.
 
 ### Friday and Saturday: Risk or Prudence
 
@@ -122,6 +123,7 @@ Sunday is the weekly climax and should be readable as a focused arena flow:
 - routine management is locked once Sunday arena resolution starts at 06:00;
 - the player first sees an arena-day introduction explaining the schedule;
 - eligible owned gladiators are placed into a combat queue for the current week;
+- each eligible gladiator receives a random same-league opponent only when the Sunday arena flow starts;
 - each combat has a visible opponent, rank and victory or defeat state;
 - the player advances through the dedicated arena route combat by combat;
 - the combat presentation reveals the existing combat log turn by turn;
@@ -207,20 +209,9 @@ Event examples:
 - a rival lanista spreads rumors;
 - two gladiators develop a rivalry;
 - a young gladiator shows promise;
-- a bookmaker offers suspicious odds.
+- a merchant offers a dubious training tonic.
 
 Each event presents a choice with clear consequences.
-
-## Betting and Scouting
-
-Betting should not only happen on Sunday. The player can review odds during the week and scout opponents before the lock day.
-
-Current flow:
-
-- Thursday: first odds appear.
-- Thursday and Friday: scouting can reveal opponent stats.
-- Saturday: odds and scouting are locked.
-- Sunday: results are resolved through the arena flow.
 
 ## Fun Target
 
@@ -229,5 +220,4 @@ The week should repeatedly ask interesting questions:
 - Should I protect my champion or push him harder?
 - Should I spend money on treatment?
 - Should I train young gladiators even if they lose Sunday?
-- Should I scout this opponent or save the treasury?
 - Should I sell a gladiator now or after one more victory?

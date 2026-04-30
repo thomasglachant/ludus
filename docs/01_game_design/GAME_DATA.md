@@ -387,31 +387,27 @@ export const COMBAT_CONFIG = {
 } as const;
 ```
 
-### Opponent Scaling
+### Opponent Generation
 
-| Rank      | Stat multiplier | Opponent reputation |
-| --------- | --------------: | ------------------: |
-| `bronze3` |             0.9 |                   0 |
-| `bronze2` |            0.96 |                  25 |
-| `bronze1` |            1.03 |                  50 |
-| `silver3` |            1.08 |                 100 |
-| `silver2` |            1.14 |                 150 |
-| `silver1` |             1.2 |                 225 |
-| `gold3`   |            1.27 |                 325 |
-| `gold2`   |            1.34 |                 450 |
-| `gold1`   |            1.42 |                 600 |
+Arena opponents are generated only when the Sunday arena flow starts. Each eligible gladiator receives a same-league opponent for that day's combat.
 
-## Betting
+Opponent combat skills are calculated from the gladiator's effective skills with a random multiplier between `0.8` and `1.2`, then clamped between `3` and `100`.
 
-```ts
-export const BETTING_CONFIG = {
-  firstOddsDay: 'thursday',
-  lockDay: 'saturday',
-  scoutingCost: 25,
-  houseEdge: 0.08,
-  minimumDecimalOdds: 1.1,
-} as const;
-```
+| Rank      | Opponent reputation |
+| --------- | ------------------: |
+| `bronze3` |                   0 |
+| `bronze2` |                  25 |
+| `bronze1` |                  50 |
+| `silver3` |                 100 |
+| `silver2` |                 150 |
+| `silver1` |                 225 |
+| `gold3`   |                 325 |
+| `gold2`   |                 450 |
+| `gold1`   |                 600 |
+
+### Arena Odds
+
+Decimal odds are calculated from the generated Sunday matchup and stored on the resolved combat reward for both fighters. The current odds config applies a `0.08` house edge and clamps displayed decimal odds to at least `1.1`.
 
 ## Events
 

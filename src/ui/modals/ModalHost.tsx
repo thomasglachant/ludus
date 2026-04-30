@@ -144,7 +144,6 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
     purchaseBuildingImprovement,
     resolveGameEventChoice,
     saveCurrentGame,
-    scoutOpponent,
     selectBuildingPolicy,
     updateGladiatorRoutine,
     upgradeBuilding,
@@ -290,7 +289,6 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
             closeAllModals();
             navigate('arena', { gameId: currentSave.gameId });
           }}
-          onScoutOpponent={scoutOpponent}
         />
       </AppModal>
     );

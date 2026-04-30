@@ -3,8 +3,6 @@ import { CURRENT_SCHEMA_VERSION } from '../../domain/saves/create-initial-save';
 import { createInitialLudusMapState } from '../map-layout';
 import { getGladiatorVisualIdentity } from '../gladiator-visuals';
 import type {
-  ArenaRank,
-  BettingOdds,
   BuildingId,
   BuildingState,
   DemoSaveId,
@@ -30,7 +28,6 @@ interface DemoSaveInput {
   buildings: Record<BuildingId, BuildingState>;
   gladiators: DemoGladiatorInput[];
   market: MarketGladiator[];
-  bettingOdds?: BettingOdds[];
 }
 
 export function createPurchasedBuilding(
@@ -98,16 +95,8 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       availableGladiators: marketGladiators,
     },
     arena: {
-      pendingCombats: [],
       resolvedCombats: [],
       isArenaDayActive: false,
-      betting: {
-        year: input.time.year,
-        week: input.time.week,
-        odds: input.bettingOdds ?? [],
-        scoutingReports: [],
-        areBetsLocked: input.time.dayOfWeek === 'saturday' || input.time.dayOfWeek === 'sunday',
-      },
     },
     planning: {
       year: input.time.year,
@@ -135,32 +124,5 @@ export function createMarketGladiator(gladiator: Gladiator & { price: number }):
     energy: 100,
     morale: 100,
     visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity),
-  };
-}
-
-export function createBettingOdds(input: {
-  year: number;
-  week: number;
-  gladiatorId: string;
-  opponent: Gladiator;
-  rank: ArenaRank;
-  playerWinChance: number;
-  playerDecimalOdds: number;
-  opponentDecimalOdds: number;
-  createdAtDay: BettingOdds['createdAtDay'];
-}): BettingOdds {
-  return {
-    id: `odds-${input.year}-${input.week}-${input.gladiatorId}`,
-    gladiatorId: input.gladiatorId,
-    opponent: {
-      ...input.opponent,
-      visualIdentity: getGladiatorVisualIdentity(input.opponent.id, input.opponent.visualIdentity),
-    },
-    rank: input.rank,
-    playerWinChance: input.playerWinChance,
-    playerDecimalOdds: input.playerDecimalOdds,
-    opponentDecimalOdds: input.opponentDecimalOdds,
-    isScouted: false,
-    createdAtDay: input.createdAtDay,
   };
 }

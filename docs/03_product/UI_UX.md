@@ -306,11 +306,10 @@ The market must:
 
 ## 12. Arena
 
-Arena should be available from the map. Before Sunday, it opens as a focused panel for odds and scouting. During Sunday arena day, it opens as a dedicated full-screen route.
+Arena should be available from the map. Before Sunday, it opens as a focused closed-state panel with the schedule. During Sunday arena day, it opens as a dedicated full-screen route.
 
 The arena panel must show:
 
-- pending combats for the active Sunday when any remain;
 - the current combat with gladiator, opponent, rank and victory or defeat state;
 - combat log progression using shared log-row or list primitives and i18n-backed log text;
 - rewards and consequences for each resolved combat;
@@ -319,7 +318,7 @@ The arena panel must show:
 
 The player should be able to advance the visible combat log when progression is used, switch to resolved combats to inspect their logs, and finish or continue the weekly flow when the Sunday summary is complete. The arena panel and route should compose shared primitives such as modal content shells, `CardBlured`, `SectionCard`, `Badge`, `ImpactList`, `EmptyState` and reusable log rows rather than duplicating feature-specific chrome.
 
-Before Sunday, the arena panel may show betting or scouting information when odds exist. If no odds exist yet, it should show an empty state explaining the next useful timing.
+Before Sunday, the arena panel should not reveal opponents or combat odds. It should explain when the arena opens next.
 
 When combat presentation is available, the arena panel should provide an entry
 point into a dedicated full-screen or overlay combat view instead of forcing the

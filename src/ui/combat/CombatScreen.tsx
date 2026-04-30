@@ -1,6 +1,9 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { calculateProjectedWinChance } from '../../domain/combat/combat-actions';
-import type { GameSave } from '../../domain/types';
+import {
+  calculateDecimalOdds,
+  calculateProjectedWinChance,
+} from '../../domain/combat/combat-actions';
+import type { CombatState, GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { FighterSheet } from '../arena/FighterSheet';
 import { CardBlured } from '../components/CardBlured';
@@ -22,6 +25,25 @@ interface CombatScreenProps {
   embedded?: boolean;
   save: GameSave;
   onClose(): void;
+}
+
+function getCombatOdds(combat: CombatState) {
+  if (
+    combat.reward.playerDecimalOdds !== undefined &&
+    combat.reward.opponentDecimalOdds !== undefined
+  ) {
+    return {
+      opponent: combat.reward.opponentDecimalOdds,
+      player: combat.reward.playerDecimalOdds,
+    };
+  }
+
+  const playerChance = calculateProjectedWinChance(combat.gladiator, combat.opponent);
+
+  return {
+    opponent: combat.reward.opponentDecimalOdds ?? calculateDecimalOdds(1 - playerChance),
+    player: combat.reward.playerDecimalOdds ?? calculateDecimalOdds(playerChance),
+  };
 }
 
 export function CombatScreen({ combatId, embedded = false, onClose, save }: CombatScreenProps) {
@@ -95,8 +117,7 @@ export function CombatScreen({ combatId, embedded = false, onClose, save }: Comb
   }
 
   const viewModel = getCombatScreenViewModel(combat, visibleTurnCount);
-  const playerChance = calculateProjectedWinChance(combat.gladiator, combat.opponent);
-  const opponentChance = 1 - playerChance;
+  const odds = getCombatOdds(combat);
   const handleTogglePlayback = () => {
     setPlaybackState({
       combatId: combat.id,
@@ -116,8 +137,8 @@ export function CombatScreen({ combatId, embedded = false, onClose, save }: Comb
         <div className="combat-screen__fighter-sheets">
           <div className="combat-screen__fighter-sheet combat-screen__fighter-sheet--player">
             <FighterSheet
-              chance={playerChance}
               gladiator={combat.gladiator}
+              odds={odds.player}
               side="player"
               statValues={{
                 energy: viewModel.player.energy,
@@ -128,8 +149,8 @@ export function CombatScreen({ combatId, embedded = false, onClose, save }: Comb
           </div>
           <div className="combat-screen__fighter-sheet combat-screen__fighter-sheet--opponent">
             <FighterSheet
-              chance={opponentChance}
               gladiator={combat.opponent}
+              odds={odds.opponent}
               side="opponent"
               statValues={{
                 energy: viewModel.opponent.energy,

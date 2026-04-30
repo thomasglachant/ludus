@@ -47,6 +47,28 @@ describe('save validation', () => {
     });
   });
 
+  it('strips legacy arena market state during normalization', () => {
+    const save = createTestSave();
+    const legacySave = {
+      ...save,
+      schemaVersion: 6,
+      arena: {
+        ...save.arena,
+        betting: {
+          legacy: true,
+        },
+        pendingCombats: [],
+      },
+    };
+    const parsed = parseGameSave(JSON.stringify(legacySave));
+
+    expect(parsed?.schemaVersion).toBe(save.schemaVersion);
+    expect((parsed?.arena as { betting?: unknown } | undefined)?.betting).toBeUndefined();
+    expect(
+      (parsed?.arena as { pendingCombats?: unknown } | undefined)?.pendingCombats,
+    ).toBeUndefined();
+  });
+
   it('rejects malformed arena day checkpoints', () => {
     const save = createTestSave();
     const malformedArenaDays = [

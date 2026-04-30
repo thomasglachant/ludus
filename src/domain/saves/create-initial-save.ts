@@ -13,7 +13,7 @@ export interface InitialSaveInput {
   createdAt: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 6;
+export const CURRENT_SCHEMA_VERSION = 7;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
   return {
@@ -44,16 +44,8 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     gladiators: [],
     market: createMarketState(PROGRESSION_CONFIG.startingYear, PROGRESSION_CONFIG.startingWeek),
     arena: {
-      pendingCombats: [],
       resolvedCombats: [],
       isArenaDayActive: false,
-      betting: {
-        year: PROGRESSION_CONFIG.startingYear,
-        week: PROGRESSION_CONFIG.startingWeek,
-        odds: [],
-        scoutingReports: [],
-        areBetsLocked: false,
-      },
     },
     planning: {
       week: PROGRESSION_CONFIG.startingWeek,

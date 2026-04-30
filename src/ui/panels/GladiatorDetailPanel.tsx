@@ -131,7 +131,6 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
     ? t(BUILDING_DEFINITIONS[recommendation.buildingId].nameKey)
     : t('weeklyPlan.noAssignment');
   const currentArenaRecord = getCurrentArenaRecord(save, gladiator);
-  const bettingOdds = save.arena.betting?.odds.find((odds) => odds.gladiatorId === gladiator.id);
   const skillStats = [
     {
       iconName: 'strength' as const,
@@ -311,29 +310,6 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
             </div>
           </dl>
         </section>
-
-        {bettingOdds ? (
-          <section className="gladiator-info-panel">
-            <h2>
-              <GameIcon name="arenaIntel" size={18} />
-              {t('gladiatorPanel.arenaIntel')}
-            </h2>
-            <dl>
-              <div>
-                <dt>{t('gladiatorPanel.nextOpponent')}</dt>
-                <dd>{bettingOdds.opponent.name}</dd>
-              </div>
-              <div>
-                <dt>{t('arena.rank')}</dt>
-                <dd>{t(`arena.ranks.${bettingOdds.rank}`)}</dd>
-              </div>
-              <div>
-                <dt>{t('gladiatorPanel.winChance')}</dt>
-                <dd>{Math.round(bettingOdds.playerWinChance * 100)}%</dd>
-              </div>
-            </dl>
-          </section>
-        ) : null}
 
         {gladiator.trainingPlan ? (
           <section className="gladiator-info-panel gladiator-info-panel--wide">

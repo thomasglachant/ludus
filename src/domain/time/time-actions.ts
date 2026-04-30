@@ -3,7 +3,7 @@ import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { GAME_BALANCE } from '../../game-data/balance';
 import { getHourlyBuildingEffects } from '../buildings/building-effects';
 import type { BuildingEffect, BuildingId, GameSave, GameSpeed, GameTickContext } from '../types';
-import { synchronizeArena, synchronizeBetting } from '../combat/combat-actions';
+import { synchronizeArena } from '../combat/combat-actions';
 import { synchronizeEvents } from '../events/event-actions';
 import { getActiveGameInterruption, isGameInterrupted } from '../game-flow/interruption';
 import {
@@ -674,10 +674,7 @@ export function tickGame(context: GameTickContext): GameTickResult {
     time: nextTime,
   };
   const saveWithWeeklyLayers = synchronizePlanning(
-    synchronizeEvents(
-      synchronizeArena(synchronizeBetting(saveWithTime, context.random), context.random),
-      context.random,
-    ),
+    synchronizeEvents(synchronizeArena(saveWithTime, context.random), context.random),
   );
   const shouldWakeAfterSleep = didEndSleepAtWakeUp(context.currentSave.time, nextTime);
 
@@ -818,10 +815,9 @@ export function completeSundayArenaDay(save: GameSave): GameSave {
       ...save.arena,
       arenaDay: undefined,
       currentCombatId: undefined,
-      pendingCombats: [],
       isArenaDayActive: true,
     },
   };
 
-  return synchronizePlanning(synchronizeEvents(synchronizeBetting(sundayEveningSave)));
+  return synchronizePlanning(synchronizeEvents(sundayEveningSave));
 }

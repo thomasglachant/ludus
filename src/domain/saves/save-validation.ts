@@ -17,7 +17,7 @@ import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
 const dayOfWeeks = [...DAYS_OF_WEEK];
 const gameSpeeds = [...SUPPORTED_GAME_SPEEDS];
-const legacySupportedSchemaVersions = [1, 2, 3, 4, 5, CURRENT_SCHEMA_VERSION];
+const legacySupportedSchemaVersions = [1, 2, 3, 4, 5, 6, CURRENT_SCHEMA_VERSION];
 const locationIds = [...requiredBuildingIds, 'arena'];
 const mapPlacementKinds = ['building', 'prop', 'road', 'wall'];
 const arenaRanks = [
@@ -300,7 +300,8 @@ function isCombatReward(value: unknown) {
     (value.participationReward === undefined || typeof value.participationReward === 'number') &&
     (value.victoryReward === undefined || typeof value.victoryReward === 'number') &&
     (value.publicStakeModifier === undefined || typeof value.publicStakeModifier === 'number') &&
-    (value.playerDecimalOdds === undefined || typeof value.playerDecimalOdds === 'number')
+    (value.playerDecimalOdds === undefined || typeof value.playerDecimalOdds === 'number') &&
+    (value.opponentDecimalOdds === undefined || typeof value.opponentDecimalOdds === 'number')
   );
 }
 
@@ -336,50 +337,6 @@ function isCombatState(value: unknown): value is CombatState {
   );
 }
 
-function isScoutingReport(value: unknown) {
-  return (
-    isRecord(value) &&
-    hasString(value, 'id') &&
-    hasString(value, 'gladiatorId') &&
-    hasString(value, 'opponentId') &&
-    hasNumber(value, 'opponentStrength') &&
-    hasNumber(value, 'opponentAgility') &&
-    hasNumber(value, 'opponentDefense') &&
-    hasString(value, 'summaryKey') &&
-    hasNumber(value, 'createdAtYear') &&
-    hasNumber(value, 'createdAtWeek') &&
-    hasStringFrom(value, 'createdAtDay', dayOfWeeks)
-  );
-}
-
-function isBettingOdds(value: unknown) {
-  return (
-    isRecord(value) &&
-    hasString(value, 'id') &&
-    hasString(value, 'gladiatorId') &&
-    isGladiator(value.opponent) &&
-    hasStringFrom(value, 'rank', arenaRanks) &&
-    hasNumber(value, 'playerWinChance') &&
-    hasNumber(value, 'playerDecimalOdds') &&
-    hasNumber(value, 'opponentDecimalOdds') &&
-    hasBoolean(value, 'isScouted') &&
-    hasStringFrom(value, 'createdAtDay', dayOfWeeks)
-  );
-}
-
-function isBettingState(value: unknown) {
-  return (
-    isRecord(value) &&
-    hasNumber(value, 'year') &&
-    hasNumber(value, 'week') &&
-    Array.isArray(value.odds) &&
-    value.odds.every(isBettingOdds) &&
-    Array.isArray(value.scoutingReports) &&
-    value.scoutingReports.every(isScoutingReport) &&
-    hasBoolean(value, 'areBetsLocked')
-  );
-}
-
 function isArenaDayState(value: unknown): value is ArenaDayState {
   return (
     isRecord(value) &&
@@ -396,12 +353,9 @@ function isArenaState(value: unknown) {
     isRecord(value) &&
     hasOptionalString(value, 'currentCombatId') &&
     (value.arenaDay === undefined || isArenaDayState(value.arenaDay)) &&
-    Array.isArray(value.pendingCombats) &&
     Array.isArray(value.resolvedCombats) &&
-    value.pendingCombats.every(isCombatState) &&
     value.resolvedCombats.every(isCombatState) &&
-    hasBoolean(value, 'isArenaDayActive') &&
-    (value.betting === undefined || isBettingState(value.betting))
+    hasBoolean(value, 'isArenaDayActive')
   );
 }
 
@@ -723,7 +677,7 @@ function normalizeGladiator(gladiator: Gladiator): Gladiator {
   };
 }
 
-function normalizeCombatState<TCombat extends GameSave['arena']['pendingCombats'][number]>(
+function normalizeCombatState<TCombat extends GameSave['arena']['resolvedCombats'][number]>(
   combat: TCombat,
 ): TCombat {
   const combatWithoutStrategy = { ...combat } as TCombat & {
@@ -773,17 +727,7 @@ export function normalizeGameSave(save: GameSave): GameSave {
     },
     arena: {
       ...save.arena,
-      pendingCombats: save.arena.pendingCombats.map(normalizeCombatState),
       resolvedCombats: save.arena.resolvedCombats.map(normalizeCombatState),
-      betting: save.arena.betting
-        ? {
-            ...save.arena.betting,
-            odds: save.arena.betting.odds.map((odds) => ({
-              ...odds,
-              opponent: normalizeGladiator(odds.opponent),
-            })),
-          }
-        : undefined,
     },
     planning: {
       ...save.planning,
@@ -798,6 +742,8 @@ export function normalizeGameSave(save: GameSave): GameSave {
 
   delete normalizedSave.settings;
   delete normalizedSave.contracts;
+  delete (normalizedSave.arena as GameSave['arena'] & { betting?: unknown }).betting;
+  delete (normalizedSave.arena as GameSave['arena'] & { pendingCombats?: unknown }).pendingCombats;
 
   return normalizedSave;
 }

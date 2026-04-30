@@ -46,7 +46,6 @@ export interface GameStoreValue {
   resolveGameEventChoice(eventId: string, choiceId: string): void;
   triggerDebugDailyEvent(definitionId: string): void;
   adjustDebugTreasury(amount: number): void;
-  scoutOpponent(gladiatorId: string): void;
   markArenaCombatPresented(combatId: string): void;
   completeSundayArenaDay(): void;
   clearError(): void;

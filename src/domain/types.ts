@@ -66,13 +66,10 @@ export type {
   ArenaDayPhase,
   ArenaDayState,
   ArenaState,
-  BettingOdds,
-  BettingState,
   CombatState,
   CombatTurn,
   CombatReward,
   CombatConsequence,
-  ScoutingReport,
 } from './combat/types';
 export type { GameInterruption } from './game-flow/interruption';
 export type {

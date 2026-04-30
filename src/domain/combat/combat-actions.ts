@@ -1,17 +1,16 @@
 import {
+  ARENA_ODDS_CONFIG,
   ARENA_OPPONENT_CONFIG,
   ARENA_PARTICIPATION_REWARDS,
   ARENA_PUBLIC_STAKE_MODIFIER_SPREAD,
   ARENA_RANK_THRESHOLDS,
   ARENA_REWARDS,
   ARENA_VICTORY_ODDS_REWARD_MULTIPLIER,
-  BETTING_CONFIG,
   COMBAT_CONFIG,
 } from '../../game-data/combat';
 import { GAME_BALANCE } from '../../game-data/balance';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
-import { DAYS_OF_WEEK } from '../../game-data/time';
 import {
   assignGladiatorMapLocation,
   synchronizeGladiatorMapMovementSchedules,
@@ -19,33 +18,9 @@ import {
 import { getEffectiveSkillValue, getGladiatorEffectiveSkill } from '../gladiators/skills';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
-import type {
-  ArenaRank,
-  BettingOdds,
-  BettingState,
-  CombatReward,
-  CombatState,
-  ScoutingReport,
-} from './types';
+import type { ArenaRank, CombatReward, CombatState } from './types';
 
 type RandomSource = () => number;
-
-export type ScoutingFailureReason =
-  | 'oddsUnavailable'
-  | 'alreadyScouted'
-  | 'betsLocked'
-  | 'insufficientTreasury';
-
-export interface ScoutingValidation {
-  isAllowed: boolean;
-  cost: number;
-  reason?: ScoutingFailureReason;
-}
-
-export interface ScoutingResult {
-  save: GameSave;
-  validation: ScoutingValidation;
-}
 
 interface CombatParticipant {
   gladiator: Gladiator;
@@ -76,10 +51,6 @@ function roundChance(value: number) {
 
 function roundOdds(value: number) {
   return Math.round(value * 100) / 100;
-}
-
-function getDayIndex(dayOfWeek: string) {
-  return DAYS_OF_WEEK.indexOf(dayOfWeek as (typeof DAYS_OF_WEEK)[number]);
 }
 
 function getCombatId(save: GameSave, gladiatorId: string) {
@@ -125,26 +96,6 @@ function areAllGladiatorsAtArena(save: GameSave) {
   return save.gladiators.every((gladiator) => isAtArena(gladiator));
 }
 
-function getBettingWindowStartIndex() {
-  return getDayIndex(BETTING_CONFIG.firstOddsDay);
-}
-
-function getBettingLockIndex() {
-  return getDayIndex(BETTING_CONFIG.lockDay);
-}
-
-function isBettingWindowVisible(save: GameSave) {
-  return getDayIndex(save.time.dayOfWeek) >= getBettingWindowStartIndex();
-}
-
-function areBetsLocked(save: GameSave) {
-  return getDayIndex(save.time.dayOfWeek) >= getBettingLockIndex();
-}
-
-function getRandomOffset(random: RandomSource, spread: number) {
-  return Math.round((random() * 2 - 1) * spread);
-}
-
 function getParticipantHealth(gladiator: Gladiator) {
   return clamp(
     roundStat(gladiator.health),
@@ -169,6 +120,7 @@ export function calculateArenaCombatReward(
   rank: ArenaRank,
   playerDecimalOdds: number,
   random: RandomSource = Math.random,
+  opponentDecimalOdds?: number,
 ): CombatReward {
   const participationReward = ARENA_PARTICIPATION_REWARDS[rank];
   const publicStakeModifier = createPublicStakeModifier(random);
@@ -189,6 +141,7 @@ export function calculateArenaCombatReward(
     victoryReward,
     publicStakeModifier,
     playerDecimalOdds,
+    ...(opponentDecimalOdds === undefined ? {} : { opponentDecimalOdds }),
   };
 }
 
@@ -196,14 +149,18 @@ function isCurrentWeekCombat(save: GameSave, combat: CombatState) {
   return combat.id.startsWith(getCurrentWeekCombatPrefix(save));
 }
 
-function createOpponentStat(baseValue: number, rank: ArenaRank, random: RandomSource) {
-  const multiplier = ARENA_OPPONENT_CONFIG[rank].statMultiplier;
+function getRandomOpponentSkillMultiplier(random: RandomSource) {
+  const minimum = GAME_BALANCE.combat.opponentGeneration.relativeSkillMultiplierMin;
+  const maximum = GAME_BALANCE.combat.opponentGeneration.relativeSkillMultiplierMax;
+
+  return minimum + random() * (maximum - minimum);
+}
+
+function createOpponentStat(baseValue: number, random: RandomSource) {
+  const multiplier = getRandomOpponentSkillMultiplier(random);
 
   return clamp(
-    roundStat(
-      getEffectiveSkillValue(baseValue) * multiplier +
-        getRandomOffset(random, GAME_BALANCE.combat.opponentGeneration.statRandomOffsetSpread),
-    ),
+    roundStat(getEffectiveSkillValue(baseValue) * multiplier),
     GAME_BALANCE.combat.opponentGeneration.minGeneratedStat,
     GAME_BALANCE.combat.opponentGeneration.maxGeneratedStat,
   );
@@ -273,77 +230,11 @@ export function calculateProjectedWinChance(gladiator: Gladiator, opponent: Glad
 
 export function calculateDecimalOdds(chance: number) {
   return roundOdds(
-    Math.max(BETTING_CONFIG.minimumDecimalOdds, (1 / chance) * (1 - BETTING_CONFIG.houseEdge)),
+    Math.max(
+      ARENA_ODDS_CONFIG.minimumDecimalOdds,
+      (1 / chance) * (1 - ARENA_ODDS_CONFIG.houseEdge),
+    ),
   );
-}
-
-function isCurrentWeekBetting(save: GameSave, betting?: BettingState) {
-  return betting?.year === save.time.year && betting.week === save.time.week;
-}
-
-function getCurrentBettingState(save: GameSave): BettingState {
-  if (isCurrentWeekBetting(save, save.arena.betting)) {
-    return save.arena.betting as BettingState;
-  }
-
-  return {
-    year: save.time.year,
-    week: save.time.week,
-    odds: [],
-    scoutingReports: [],
-    areBetsLocked: areBetsLocked(save),
-  };
-}
-
-function createBettingOdds(
-  save: GameSave,
-  gladiator: Gladiator,
-  existingReport: ScoutingReport | undefined,
-  random: RandomSource,
-): BettingOdds {
-  const opponent = generateOpponent(save, gladiator, random);
-  const rank = getArenaRank(gladiator.reputation);
-  const playerWinChance = calculateProjectedWinChance(gladiator, opponent);
-
-  return {
-    id: `odds-${save.time.year}-${save.time.week}-${gladiator.id}`,
-    gladiatorId: gladiator.id,
-    opponent,
-    rank,
-    playerWinChance,
-    playerDecimalOdds: calculateDecimalOdds(playerWinChance),
-    opponentDecimalOdds: calculateDecimalOdds(1 - playerWinChance),
-    isScouted: Boolean(existingReport),
-    createdAtDay: save.time.dayOfWeek,
-  };
-}
-
-function refreshBettingOdds(save: GameSave, odds: BettingOdds): BettingOdds {
-  const gladiator = save.gladiators.find((candidate) => candidate.id === odds.gladiatorId);
-
-  if (!gladiator) {
-    return odds;
-  }
-
-  const playerWinChance = calculateProjectedWinChance(gladiator, odds.opponent);
-
-  return {
-    ...odds,
-    rank: getArenaRank(gladiator.reputation),
-    playerWinChance,
-    playerDecimalOdds: calculateDecimalOdds(playerWinChance),
-    opponentDecimalOdds: calculateDecimalOdds(1 - playerWinChance),
-  };
-}
-
-function getPreparedOpponent(save: GameSave, gladiatorId: string) {
-  const betting = getCurrentBettingState(save);
-
-  return betting.odds.find((odds) => odds.gladiatorId === gladiatorId)?.opponent;
-}
-
-export function getArenaBettingState(save: GameSave): BettingState {
-  return getCurrentBettingState(save);
 }
 
 export function calculateHitChance(attacker: Gladiator, defender: Gladiator) {
@@ -429,9 +320,9 @@ export function generateOpponent(
           1,
         random,
       ),
-    strength: createOpponentStat(gladiator.strength, rank, random),
-    agility: createOpponentStat(gladiator.agility, rank, random),
-    defense: createOpponentStat(gladiator.defense, rank, random),
+    strength: createOpponentStat(gladiator.strength, random),
+    agility: createOpponentStat(gladiator.agility, random),
+    defense: createOpponentStat(gladiator.defense, random),
     energy: GAME_BALANCE.gladiators.opponentDefaults.energy,
     health: GAME_BALANCE.gladiators.opponentDefaults.health,
     morale: GAME_BALANCE.gladiators.opponentDefaults.morale,
@@ -449,13 +340,14 @@ export function resolveCombat(
   gladiator: Gladiator,
   random: RandomSource = Math.random,
 ): CombatState {
-  const opponent =
-    getPreparedOpponent(save, gladiator.id) ?? generateOpponent(save, gladiator, random);
+  const opponent = generateOpponent(save, gladiator, random);
   const rank = getArenaRank(gladiator.reputation);
   const player: CombatParticipant = { gladiator };
   const rival: CombatParticipant = { gladiator: opponent };
   const playerWinChance = calculateProjectedWinChance(gladiator, opponent);
+  const opponentWinChance = 1 - playerWinChance;
   const playerDecimalOdds = calculateDecimalOdds(playerWinChance);
+  const opponentDecimalOdds = calculateDecimalOdds(opponentWinChance);
   const health: CombatHealth = {
     player: getParticipantHealth(gladiator),
     opponent: getParticipantHealth(opponent),
@@ -525,7 +417,7 @@ export function resolveCombat(
     ? COMBAT_CONFIG.winnerMoraleChange
     : COMBAT_CONFIG.loserMoraleChange;
   const finalReputation = calculateGladiatorCombatReputation(gladiator.reputation, didPlayerWin);
-  const reward = calculateArenaCombatReward(rank, playerDecimalOdds, random);
+  const reward = calculateArenaCombatReward(rank, playerDecimalOdds, random, opponentDecimalOdds);
   const playerReward = didPlayerWin ? reward.winnerReward : reward.loserReward;
 
   return {
@@ -556,171 +448,6 @@ export function resolveCombat(
         GAME_BALANCE.gladiators.gauges.maximum,
       ),
       finalReputation,
-    },
-  };
-}
-
-export function synchronizeBetting(save: GameSave, random: RandomSource = Math.random): GameSave {
-  if (!isBettingWindowVisible(save) || save.gladiators.length === 0) {
-    return {
-      ...save,
-      arena: {
-        ...save.arena,
-        betting: {
-          year: save.time.year,
-          week: save.time.week,
-          odds: [],
-          scoutingReports: [],
-          areBetsLocked: false,
-        },
-      },
-    };
-  }
-
-  const currentBetting = getCurrentBettingState(save);
-  const currentGladiatorIds = new Set(save.gladiators.map((gladiator) => gladiator.id));
-  const scoutingReports = currentBetting.scoutingReports.filter((report) =>
-    currentGladiatorIds.has(report.gladiatorId),
-  );
-  const existingOddsByGladiatorId = new Map(
-    currentBetting.odds
-      .filter((odds) => currentGladiatorIds.has(odds.gladiatorId))
-      .map((odds) => [odds.gladiatorId, odds]),
-  );
-  const odds = save.gladiators
-    .filter((gladiator) => gladiator.health >= GAME_BALANCE.arena.minimumEligibleHealth)
-    .map((gladiator) => {
-      const existingOdds = existingOddsByGladiatorId.get(gladiator.id);
-      const report = scoutingReports.find((candidate) => candidate.gladiatorId === gladiator.id);
-
-      if (existingOdds) {
-        return refreshBettingOdds(save, {
-          ...existingOdds,
-          isScouted: Boolean(report),
-        });
-      }
-
-      return createBettingOdds(save, gladiator, report, random);
-    });
-
-  return {
-    ...save,
-    arena: {
-      ...save.arena,
-      betting: {
-        year: save.time.year,
-        week: save.time.week,
-        odds,
-        scoutingReports,
-        areBetsLocked: areBetsLocked(save),
-      },
-    },
-  };
-}
-
-export function validateScouting(save: GameSave, gladiatorId: string): ScoutingValidation {
-  const betting = getCurrentBettingState(save);
-  const odds = betting.odds.find((candidate) => candidate.gladiatorId === gladiatorId);
-
-  if (!isBettingWindowVisible(save) || !odds) {
-    return {
-      isAllowed: false,
-      cost: BETTING_CONFIG.scoutingCost,
-      reason: 'oddsUnavailable',
-    };
-  }
-
-  if (betting.areBetsLocked) {
-    return {
-      isAllowed: false,
-      cost: BETTING_CONFIG.scoutingCost,
-      reason: 'betsLocked',
-    };
-  }
-
-  if (odds.isScouted) {
-    return {
-      isAllowed: false,
-      cost: BETTING_CONFIG.scoutingCost,
-      reason: 'alreadyScouted',
-    };
-  }
-
-  if (save.ludus.treasury < BETTING_CONFIG.scoutingCost) {
-    return {
-      isAllowed: false,
-      cost: BETTING_CONFIG.scoutingCost,
-      reason: 'insufficientTreasury',
-    };
-  }
-
-  return {
-    isAllowed: true,
-    cost: BETTING_CONFIG.scoutingCost,
-  };
-}
-
-export function scoutOpponent(save: GameSave, gladiatorId: string): ScoutingResult {
-  const synchronizedSave = synchronizeBetting(save);
-  const validation = validateScouting(synchronizedSave, gladiatorId);
-
-  if (!validation.isAllowed) {
-    return { save: synchronizedSave, validation };
-  }
-
-  const betting = getCurrentBettingState(synchronizedSave);
-  const odds = betting.odds.find((candidate) => candidate.gladiatorId === gladiatorId);
-
-  if (!odds) {
-    return {
-      save: synchronizedSave,
-      validation: {
-        isAllowed: false,
-        cost: BETTING_CONFIG.scoutingCost,
-        reason: 'oddsUnavailable',
-      },
-    };
-  }
-
-  const report: ScoutingReport = {
-    id: `scouting-${synchronizedSave.time.year}-${synchronizedSave.time.week}-${gladiatorId}`,
-    gladiatorId,
-    opponentId: odds.opponent.id,
-    opponentStrength: getGladiatorEffectiveSkill(odds.opponent, 'strength'),
-    opponentAgility: getGladiatorEffectiveSkill(odds.opponent, 'agility'),
-    opponentDefense: getGladiatorEffectiveSkill(odds.opponent, 'defense'),
-    summaryKey: 'betting.scoutingReport.standard',
-    createdAtYear: synchronizedSave.time.year,
-    createdAtWeek: synchronizedSave.time.week,
-    createdAtDay: synchronizedSave.time.dayOfWeek,
-  };
-
-  return {
-    validation,
-    save: {
-      ...synchronizedSave,
-      ludus: {
-        ...synchronizedSave.ludus,
-        treasury: synchronizedSave.ludus.treasury - BETTING_CONFIG.scoutingCost,
-      },
-      arena: {
-        ...synchronizedSave.arena,
-        betting: {
-          ...betting,
-          odds: betting.odds.map((candidate) =>
-            candidate.gladiatorId === gladiatorId
-              ? {
-                  ...candidate,
-                  isScouted: true,
-                }
-              : candidate,
-          ),
-          scoutingReports: [
-            ...betting.scoutingReports.filter((candidate) => candidate.gladiatorId !== gladiatorId),
-            report,
-          ],
-        },
-      },
     },
   };
 }
@@ -772,7 +499,6 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
     arena: {
       ...save.arena,
       currentCombatId: resolvedCombats[0]?.id,
-      pendingCombats: [],
       resolvedCombats,
       isArenaDayActive: true,
     },
@@ -836,7 +562,6 @@ export function synchronizeArena(save: GameSave, random: RandomSource = Math.ran
       arena: {
         ...save.arena,
         arenaDay: undefined,
-        pendingCombats: [],
         isArenaDayActive: false,
       },
     };
@@ -848,7 +573,6 @@ export function synchronizeArena(save: GameSave, random: RandomSource = Math.ran
       arena: {
         ...save.arena,
         arenaDay: undefined,
-        pendingCombats: [],
         isArenaDayActive: false,
       },
     };

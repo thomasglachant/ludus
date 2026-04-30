@@ -13,6 +13,7 @@ import {
   calculateDamage,
   calculateHitChance,
   calculateProjectedWinChance,
+  generateOpponent,
   getArenaRank,
   resolveArenaDay,
   resolveCombat,
@@ -65,6 +66,31 @@ describe('combat actions', () => {
     expect(getArenaRank(600)).toBe('gold1');
   });
 
+  it('generates Sunday opponents within 20 percent of player skills in the same league', () => {
+    const save = createTestSave();
+    const gladiator = createGladiator({
+      strength: 50,
+      agility: 40,
+      defense: 30,
+      reputation: 100,
+    });
+    const weakerOpponent = generateOpponent(save, gladiator, () => 0);
+    const strongerOpponent = generateOpponent(save, gladiator, () => 1);
+
+    expect(getArenaRank(weakerOpponent.reputation)).toBe(getArenaRank(gladiator.reputation));
+    expect(getArenaRank(strongerOpponent.reputation)).toBe(getArenaRank(gladiator.reputation));
+    expect(weakerOpponent).toMatchObject({
+      strength: 40,
+      agility: 32,
+      defense: 24,
+    });
+    expect(strongerOpponent).toMatchObject({
+      strength: 60,
+      agility: 48,
+      defense: 36,
+    });
+  });
+
   it('calculates arena rewards from participation, odds and public stake', () => {
     const reward = calculateArenaCombatReward('gold1', 1.8, () => 0.5);
     const expectedParticipationReward = ARENA_PARTICIPATION_REWARDS.gold1;
@@ -88,6 +114,7 @@ describe('combat actions', () => {
     const combat = resolveCombat(save, save.gladiators[0], () => 0);
     const playerChance = calculateProjectedWinChance(combat.gladiator, combat.opponent);
     const playerDecimalOdds = calculateDecimalOdds(playerChance);
+    const opponentDecimalOdds = calculateDecimalOdds(1 - playerChance);
     const expectedParticipationReward = ARENA_PARTICIPATION_REWARDS.bronze3;
     const expectedVictoryReward = Math.max(
       0,
@@ -111,6 +138,7 @@ describe('combat actions', () => {
       victoryReward: expectedVictoryReward,
       publicStakeModifier: -ARENA_PUBLIC_STAKE_MODIFIER_SPREAD,
       playerDecimalOdds,
+      opponentDecimalOdds,
     });
     expect(combat.opponent.visualIdentity?.portraitAssetId).toMatch(/^gladiator-/);
     expect(combat.consequence.didPlayerWin).toBe(true);
@@ -192,7 +220,6 @@ describe('combat actions', () => {
     expect(resolved.arena).toMatchObject({
       currentCombatId: undefined,
       isArenaDayActive: true,
-      pendingCombats: [],
       resolvedCombats: [],
     });
     expect(resolved.ludus.treasury).toBe(save.ludus.treasury);

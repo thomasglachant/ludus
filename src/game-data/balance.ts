@@ -393,6 +393,12 @@ export const GAME_BALANCE = {
     victoryOddsRewardMultiplier: 0.42,
     // Public stake modifier spread applied to the victory bonus, in denarii.
     publicStakeModifierSpread: 20,
+    odds: {
+      // House edge removed from fair decimal odds.
+      houseEdge: 0.08,
+      // Minimum decimal odds displayed after house edge.
+      minimumDecimalOdds: 1.1,
+    },
     rankThresholds: [
       {
         // Arena rank unlocked by the first reputation threshold.
@@ -496,63 +502,47 @@ export const GAME_BALANCE = {
     lossReputationPenalty: 3,
     opponentByRank: {
       bronze3: {
-        // Opponent stat multiplier at bronze 3.
-        statMultiplier: 0.9,
         // Opponent reputation at bronze 3.
         reputation: 0,
       },
       bronze2: {
-        // Opponent stat multiplier at bronze 2.
-        statMultiplier: 0.96,
         // Opponent reputation at bronze 2.
         reputation: 25,
       },
       bronze1: {
-        // Opponent stat multiplier at bronze 1.
-        statMultiplier: 1.03,
         // Opponent reputation at bronze 1.
         reputation: 50,
       },
       silver3: {
-        // Opponent stat multiplier at silver 3.
-        statMultiplier: 1.08,
         // Opponent reputation at silver 3.
         reputation: 100,
       },
       silver2: {
-        // Opponent stat multiplier at silver 2.
-        statMultiplier: 1.14,
         // Opponent reputation at silver 2.
         reputation: 150,
       },
       silver1: {
-        // Opponent stat multiplier at silver 1.
-        statMultiplier: 1.2,
         // Opponent reputation at silver 1.
         reputation: 225,
       },
       gold3: {
-        // Opponent stat multiplier at gold 3.
-        statMultiplier: 1.27,
         // Opponent reputation at gold 3.
         reputation: 325,
       },
       gold2: {
-        // Opponent stat multiplier at gold 2.
-        statMultiplier: 1.34,
         // Opponent reputation at gold 2.
         reputation: 450,
       },
       gold1: {
-        // Opponent stat multiplier at gold 1.
-        statMultiplier: 1.42,
         // Opponent reputation at gold 1.
         reputation: 600,
       },
-    } as const satisfies Record<ArenaRank, { statMultiplier: number; reputation: number }>,
+    } as const satisfies Record<ArenaRank, { reputation: number }>,
     opponentGeneration: {
-      // Random stat offset spread added after rank scaling.
-      statRandomOffsetSpread: 3,
+      // Minimum relative multiplier applied to generated opponent skills.
+      relativeSkillMultiplierMin: 0.8,
+      // Maximum relative multiplier applied to generated opponent skills.
+      relativeSkillMultiplierMax: 1.2,
       // Minimum generated arena opponent skill.
       minGeneratedStat: 3,
       // Maximum generated arena opponent skill.
@@ -573,24 +563,11 @@ export const GAME_BALANCE = {
       moraleWeight: 0.08,
     },
     projectedWinChance: {
-      // Lower clamp for projected player win chance shown in betting.
+      // Lower clamp for projected player win chance used by arena odds.
       minimum: 0.15,
-      // Upper clamp for projected player win chance shown in betting.
+      // Upper clamp for projected player win chance used by arena odds.
       maximum: 0.85,
     },
-  },
-
-  betting: {
-    // First weekday on which betting odds are visible.
-    firstOddsDay: 'thursday' satisfies DayOfWeek,
-    // Weekday from which scouting and betting actions are locked.
-    lockDay: 'saturday' satisfies DayOfWeek,
-    // Denarii paid to scout an opponent.
-    scoutingCost: 25,
-    // House edge removed from fair decimal odds.
-    houseEdge: 0.08,
-    // Minimum decimal odds displayed after house edge.
-    minimumDecimalOdds: 1.1,
   },
 
   planning: {

@@ -58,7 +58,7 @@ function getProgressiveStatValue(startValue: number, endValue: number, progressR
 }
 
 function findCombat(save: GameSave, combatId?: string) {
-  const combats = [...save.arena.pendingCombats, ...save.arena.resolvedCombats];
+  const combats = save.arena.resolvedCombats;
 
   if (combatId) {
     return combats.find((combat) => combat.id === combatId);

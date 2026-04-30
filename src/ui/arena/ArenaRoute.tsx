@@ -1,5 +1,8 @@
 import { useState, type CSSProperties } from 'react';
-import { calculateProjectedWinChance } from '../../domain/combat/combat-actions';
+import {
+  calculateDecimalOdds,
+  calculateProjectedWinChance,
+} from '../../domain/combat/combat-actions';
 import type { CombatState, GameSave } from '../../domain/types';
 import { PRODUCTION_VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
@@ -67,6 +70,25 @@ function getVictoryReward(combat: CombatState) {
     combat.reward.victoryReward ??
     Math.max(0, combat.reward.winnerReward - getParticipationReward(combat))
   );
+}
+
+function getCombatOdds(combat: CombatState) {
+  if (
+    combat.reward.playerDecimalOdds !== undefined &&
+    combat.reward.opponentDecimalOdds !== undefined
+  ) {
+    return {
+      opponent: combat.reward.opponentDecimalOdds,
+      player: combat.reward.playerDecimalOdds,
+    };
+  }
+
+  const playerChance = calculateProjectedWinChance(combat.gladiator, combat.opponent);
+
+  return {
+    opponent: combat.reward.opponentDecimalOdds ?? calculateDecimalOdds(1 - playerChance),
+    player: combat.reward.playerDecimalOdds ?? calculateDecimalOdds(playerChance),
+  };
 }
 
 function CombatIndexButton({ disabled = false, iconName, label, onClick }: CombatIndexButtonProps) {
@@ -154,8 +176,7 @@ function ArenaCombatPage({
   const { t } = useUiStore();
   const canGoPrevious = currentIndex > 0;
   const canGoNext = isPresented;
-  const playerChance = calculateProjectedWinChance(combat.gladiator, combat.opponent);
-  const opponentChance = 1 - playerChance;
+  const odds = getCombatOdds(combat);
 
   return (
     <section
@@ -202,13 +223,13 @@ function ArenaCombatPage({
       </div>
       <div className="arena-route-combat-layout">
         <div className="arena-route-fighter-stack">
-          <FighterSheet chance={playerChance} gladiator={combat.gladiator} side="player" />
+          <FighterSheet gladiator={combat.gladiator} odds={odds.player} side="player" />
         </div>
         <div className="arena-route-versus" aria-hidden="true">
           <span>{t('arenaRoute.versus')}</span>
         </div>
         <div className="arena-route-fighter-stack">
-          <FighterSheet chance={opponentChance} gladiator={combat.opponent} side="opponent" />
+          <FighterSheet gladiator={combat.opponent} odds={odds.opponent} side="opponent" />
         </div>
       </div>
       {isPresented ? <ArenaCombatResultIntel combat={combat} /> : null}

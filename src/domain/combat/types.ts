@@ -1,5 +1,4 @@
 import type { Gladiator } from '../gladiators/types';
-import type { DayOfWeek } from '../time/types';
 
 export type ArenaRank =
   | 'bronze3'
@@ -15,10 +14,8 @@ export type ArenaRank =
 export interface ArenaState {
   currentCombatId?: string;
   arenaDay?: ArenaDayState;
-  pendingCombats: CombatState[];
   resolvedCombats: CombatState[];
   isArenaDayActive: boolean;
-  betting?: BettingState;
 }
 
 export type ArenaDayPhase = 'intro' | 'summary';
@@ -28,39 +25,6 @@ export interface ArenaDayState {
   week: number;
   phase: ArenaDayPhase;
   presentedCombatIds: string[];
-}
-
-export interface BettingState {
-  year: number;
-  week: number;
-  odds: BettingOdds[];
-  scoutingReports: ScoutingReport[];
-  areBetsLocked: boolean;
-}
-
-export interface BettingOdds {
-  id: string;
-  gladiatorId: string;
-  opponent: Gladiator;
-  rank: ArenaRank;
-  playerWinChance: number;
-  playerDecimalOdds: number;
-  opponentDecimalOdds: number;
-  isScouted: boolean;
-  createdAtDay: DayOfWeek;
-}
-
-export interface ScoutingReport {
-  id: string;
-  gladiatorId: string;
-  opponentId: string;
-  opponentStrength: number;
-  opponentAgility: number;
-  opponentDefense: number;
-  summaryKey: string;
-  createdAtYear: number;
-  createdAtWeek: number;
-  createdAtDay: DayOfWeek;
 }
 
 export interface CombatState {
@@ -95,6 +59,7 @@ export interface CombatReward {
   victoryReward?: number;
   publicStakeModifier?: number;
   playerDecimalOdds?: number;
+  opponentDecimalOdds?: number;
 }
 
 export interface CombatConsequence {

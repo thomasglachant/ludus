@@ -1,5 +1,4 @@
 import type { CSSProperties } from 'react';
-import { getArenaBettingState, validateScouting } from '../../domain/combat/combat-actions';
 import type {
   GameEventConsequence,
   GameEventEffect,
@@ -12,8 +11,6 @@ import { ImpactIndicator, type ImpactIndicatorKind } from '../components/ImpactI
 import { ImpactList, type ImpactListItem } from '../components/ImpactList';
 import { GameIcon } from '../icons/GameIcon';
 import { Badge, EmptyState, PanelShell, SectionCard } from '../components/shared';
-import { formatMoneyAmount } from '../formatters/money';
-import { formatNumber } from '../formatters/number';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 import { getArenaDayViewModel } from '../arena/arena-view-model';
 
@@ -28,15 +25,6 @@ interface EventsPanelProps extends PanelProps {
 
 interface ArenaPanelProps extends PanelProps {
   onOpenArenaRoute(): void;
-  onScoutOpponent(gladiatorId: string): void;
-}
-
-function formatOdds(odds: number) {
-  return odds.toFixed(2);
-}
-
-function getWinChancePercent(chance: number) {
-  return Math.round(chance * 100);
 }
 
 function getEventImpactItem(
@@ -230,10 +218,9 @@ export function EventsPanel({ save, onClose, onResolveEventChoice }: EventsPanel
   );
 }
 
-export function ArenaPanel({ save, onClose, onOpenArenaRoute, onScoutOpponent }: ArenaPanelProps) {
+export function ArenaPanel({ save, onClose, onOpenArenaRoute }: ArenaPanelProps) {
   const { t } = useUiStore();
   const viewModel = getArenaDayViewModel(save);
-  const betting = getArenaBettingState(save);
 
   if (save.arena.arenaDay) {
     return (
@@ -269,93 +256,13 @@ export function ArenaPanel({ save, onClose, onOpenArenaRoute, onScoutOpponent }:
         label={t(viewModel.statusKey)}
         tone={viewModel.isArenaDayActive ? 'success' : 'neutral'}
       />
-      {betting.odds.length > 0 ? (
-        <SectionCard titleKey="betting.title" testId="arena-betting-odds">
-          <Badge label={t(betting.areBetsLocked ? 'betting.locked' : 'betting.open')} />
-          <div className="context-panel__list">
-            {betting.odds.map((odds) => {
-              const gladiator = save.gladiators.find(
-                (candidate) => candidate.id === odds.gladiatorId,
-              );
-              const scoutingReport = betting.scoutingReports.find(
-                (report) => report.gladiatorId === odds.gladiatorId,
-              );
-              const validation = validateScouting(save, odds.gladiatorId);
-
-              return (
-                <article key={odds.id}>
-                  <div className="context-panel__portrait-row">
-                    {gladiator ? <GladiatorPortrait gladiator={gladiator} size="small" /> : null}
-                    <div>
-                      <strong>
-                        {gladiator
-                          ? t('arena.combatTitle', {
-                              gladiator: gladiator.name,
-                              opponent: odds.opponent.name,
-                            })
-                          : odds.opponent.name}
-                      </strong>
-                      <span>
-                        {t('betting.winChanceValue', {
-                          chance: getWinChancePercent(odds.playerWinChance),
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                  <dl className="compact-stat-list">
-                    <div>
-                      <dt>{t('betting.playerOdds')}</dt>
-                      <dd>{formatOdds(odds.playerDecimalOdds)}</dd>
-                    </div>
-                    <div>
-                      <dt>{t('betting.opponentOdds')}</dt>
-                      <dd>{formatOdds(odds.opponentDecimalOdds)}</dd>
-                    </div>
-                  </dl>
-                  {scoutingReport ? (
-                    <dl className="compact-stat-list">
-                      <div>
-                        <dt>{t('market.stats.strength')}</dt>
-                        <dd>{formatNumber(scoutingReport.opponentStrength)}</dd>
-                      </div>
-                      <div>
-                        <dt>{t('market.stats.agility')}</dt>
-                        <dd>{formatNumber(scoutingReport.opponentAgility)}</dd>
-                      </div>
-                      <div>
-                        <dt>{t('market.stats.defense')}</dt>
-                        <dd>{formatNumber(scoutingReport.opponentDefense)}</dd>
-                      </div>
-                    </dl>
-                  ) : (
-                    <p className="context-panel__muted">{t('betting.scoutingHidden')}</p>
-                  )}
-                  <button
-                    disabled={!validation.isAllowed || odds.isScouted}
-                    type="button"
-                    onClick={() => onScoutOpponent(odds.gladiatorId)}
-                  >
-                    <GameIcon name="view" size={17} />
-                    <span>
-                      {odds.isScouted
-                        ? t('betting.scouted')
-                        : t('betting.scout', { cost: formatMoneyAmount(validation.cost) })}
-                    </span>
-                  </button>
-                </article>
-              );
-            })}
-          </div>
-        </SectionCard>
-      ) : (
-        <SectionCard titleKey="arena.closedTitle" testId="arena-closed-message">
-          <p>{t('arena.closedBody')}</p>
-          <div className="arena-closed-panel__facts">
-            <span>{t('arena.closedSchedule')}</span>
-          </div>
-          <EmptyState messageKey={viewModel.emptyMessageKey ?? 'arena.nextSunday'} />
-        </SectionCard>
-      )}
+      <SectionCard titleKey="arena.closedTitle" testId="arena-closed-message">
+        <p>{t('arena.closedBody')}</p>
+        <div className="arena-closed-panel__facts">
+          <span>{t('arena.closedSchedule')}</span>
+        </div>
+        <EmptyState messageKey={viewModel.emptyMessageKey ?? 'arena.nextSunday'} />
+      </SectionCard>
     </PanelShell>
   );
 }

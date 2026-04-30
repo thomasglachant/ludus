@@ -17,7 +17,7 @@ The dramatic rhythm is weekly management followed by Sunday arena resolution:
 - manage routines and exceptions;
 - react to events and warnings;
 - improve buildings and gladiators;
-- scout opponents and review betting odds;
+- prepare the roster for uncertain arena opponents;
 - resolve arena fights on Sunday;
 - absorb consequences on Monday.
 
@@ -43,7 +43,7 @@ The removed 1-to-10 building budget system must not return unless a future desig
 
 ### Economy
 
-Money and reputation connect the whole game. The player earns rewards through arena results and sales, then reinvests in buildings, market gladiators, treatment, scouting and future systems.
+Money and reputation connect the whole game. The player earns rewards through arena results and sales, then reinvests in buildings, market gladiators, treatment and future systems.
 
 ## Structural Constraints
 
