@@ -180,7 +180,7 @@ describe('time actions', () => {
     });
   });
 
-  it('does not trigger Sunday arena combats before 8:00', () => {
+  it('does not trigger Sunday arena combats before the arena start hour', () => {
     const save: GameSave = {
       ...createTestSave(),
       time: {
@@ -217,8 +217,8 @@ describe('time actions', () => {
         year: 1,
         week: 1,
         dayOfWeek: 'sunday',
-        hour: 7,
-        minute: 59,
+        hour: 6,
+        minute: 0,
         speed: 1,
         isPaused: false,
       },
@@ -232,23 +232,23 @@ describe('time actions', () => {
 
     expect(result.save.time).toMatchObject({
       dayOfWeek: 'sunday',
-      hour: 8,
-      minute: 59,
+      hour: 7,
+      minute: 0,
     });
     expect(result.save.arena.isArenaDayActive).toBe(false);
     expect(result.save.arena.arenaDay).toBeUndefined();
     expect(result.save.arena.resolvedCombats).toHaveLength(0);
   });
 
-  it('sends gladiators to the arena at 8:00 and starts combats after arrival', () => {
+  it('sends gladiators to the arena at the start hour and starts combats after arrival', () => {
     const save: GameSave = {
       ...createTestSave(),
       time: {
         year: 1,
         week: 1,
         dayOfWeek: 'sunday',
-        hour: 7,
-        minute: 59,
+        hour: 6,
+        minute: 0,
         speed: 1,
         isPaused: false,
       },
@@ -270,8 +270,8 @@ describe('time actions', () => {
 
     expect(result.save.time).toMatchObject({
       dayOfWeek: 'sunday',
-      hour: 8,
-      minute: 0,
+      hour: 6,
+      minute: 1,
     });
     expect(result.save.arena.isArenaDayActive).toBe(false);
     expect(result.save.arena.arenaDay).toBeUndefined();
@@ -336,8 +336,8 @@ describe('time actions', () => {
         year: 1,
         week: 8,
         dayOfWeek: 'sunday',
-        hour: 7,
-        minute: 59,
+        hour: 6,
+        minute: 0,
         speed: 1,
         isPaused: false,
       },

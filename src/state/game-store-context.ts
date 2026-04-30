@@ -43,14 +43,11 @@ export interface GameStoreValue {
   setAutomaticAssignment(gladiatorId: string, allowAutomaticAssignment: boolean): void;
   setManualBuildingOverride(gladiatorId: string, buildingId?: BuildingId): void;
   applyPlanningRecommendations(): void;
-  acceptWeeklyContract(contractId: string): void;
   resolveGameEventChoice(eventId: string, choiceId: string): void;
   triggerDebugDailyEvent(definitionId: string): void;
   adjustDebugTreasury(amount: number): void;
   scoutOpponent(gladiatorId: string): void;
-  startArenaDayCombats(): void;
   markArenaCombatPresented(combatId: string): void;
-  showArenaDaySummary(): void;
   completeSundayArenaDay(): void;
   clearError(): void;
 }

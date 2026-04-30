@@ -3,7 +3,6 @@ import { GAME_BALANCE } from '../../game-data/balance';
 import { createInitialLudusMapState } from '../../game-data/map-layout';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { createInitialBuildings } from '../buildings/initial-buildings';
-import { createWeeklyContracts } from '../contracts/contract-actions';
 import { createMarketState } from '../market/market-actions';
 import type { GameSave } from './types';
 
@@ -14,7 +13,7 @@ export interface InitialSaveInput {
   createdAt: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 5;
+export const CURRENT_SCHEMA_VERSION = 6;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
   return {
@@ -61,13 +60,6 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
       year: PROGRESSION_CONFIG.startingYear,
       routines: [],
       alerts: [],
-    },
-    contracts: {
-      availableContracts: createWeeklyContracts(
-        PROGRESSION_CONFIG.startingYear,
-        PROGRESSION_CONFIG.startingWeek,
-      ),
-      acceptedContracts: [],
     },
     events: {
       pendingEvents: [],

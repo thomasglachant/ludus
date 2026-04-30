@@ -1,8 +1,4 @@
 import {
-  acceptWeeklyContract as acceptWeeklyContractAction,
-  synchronizeContracts,
-} from '../domain/contracts/contract-actions';
-import {
   resolveGameEventChoice as resolveGameEventChoiceAction,
   triggerDebugDailyEvent as triggerDebugDailyEventAction,
 } from '../domain/events/event-actions';
@@ -10,12 +6,10 @@ import { adjustDebugTreasury as adjustDebugTreasuryAction } from '../domain/debu
 import {
   markArenaCombatPresented as markArenaCombatPresentedAction,
   scoutOpponent as scoutOpponentAction,
-  showArenaDaySummary as showArenaDaySummaryAction,
-  startArenaDayCombats as startArenaDayCombatsAction,
   synchronizeBetting,
 } from '../domain/combat/combat-actions';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { getGameIdFromGameSessionPath } from '../app/routes';
+import { getGameSessionRoute } from '../app/routes';
 import { featureFlags } from '../config/features';
 import {
   purchaseBuilding,
@@ -75,16 +69,15 @@ function createSaveService() {
 }
 
 function synchronizeLoadedSave(save: GameSave): GameSave {
-  return synchronizePlanning(synchronizeContracts(synchronizeBetting(save)));
+  return synchronizePlanning(synchronizeBetting(save));
 }
 
 export function GameStoreProvider({ children }: { children: ReactNode }) {
-  const { activeModal, modalStack, screen, setLanguage, navigate, openModal, replaceModal } =
-    useUiStore();
+  const { activeModal, modalStack, screen, setLanguage, navigate, openModal } = useUiStore();
   const [saveService] = useState(createSaveService);
-  const [initialRouteGameId] = useState(() =>
-    getGameIdFromGameSessionPath(window.location.pathname),
-  );
+  const [initialRoute] = useState(() => getGameSessionRoute(window.location.pathname));
+  const initialRouteGameId = initialRoute?.gameId;
+  const initialRouteScreen = initialRoute?.screen ?? 'ludus';
   const [currentSave, setCurrentSave] = useState<GameSave | null>(null);
   const [localSaves, setLocalSaves] = useState<GameSaveMetadata[]>([]);
   const [demoSaves, setDemoSaves] = useState<GameSaveMetadata[]>([]);
@@ -482,13 +475,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     applyPlayerChange((save) => applyPlanningRecommendations(save));
   }, [applyPlayerChange]);
 
-  const acceptWeeklyContract = useCallback(
-    (contractId: string) => {
-      applyPlayerChange((save) => acceptWeeklyContractAction(save, contractId).save);
-    },
-    [applyPlayerChange],
-  );
-
   const resolveGameEventChoice = useCallback(
     (eventId: string, choiceId: string) => {
       applyPlayerChange((save) => resolveGameEventChoiceAction(save, eventId, choiceId).save);
@@ -503,20 +489,12 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     [applyPlayerChange],
   );
 
-  const startArenaDayCombats = useCallback(() => {
-    applyPlayerChange((save) => startArenaDayCombatsAction(save));
-  }, [applyPlayerChange]);
-
   const markArenaCombatPresented = useCallback(
     (combatId: string) => {
       applyPlayerChange((save) => markArenaCombatPresentedAction(save, combatId));
     },
     [applyPlayerChange],
   );
-
-  const showArenaDaySummary = useCallback(() => {
-    applyPlayerChange((save) => showArenaDaySummaryAction(save));
-  }, [applyPlayerChange]);
 
   const completeSundayArenaDay = useCallback(() => {
     applyPlayerChange((save) => completeSundayArenaDayAction(save));
@@ -558,7 +536,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         setSaveNoticeKey(null);
         setCurrentSave(save);
         setLocalSaves(await saveService.listLocalSaves());
-        navigate('ludus', { gameId: save.gameId });
+        navigate(initialRouteScreen, { gameId: save.gameId });
       })
       .catch(() => {
         setErrorKey('loadGame.error');
@@ -570,7 +548,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       });
 
     return undefined;
-  }, [initialRouteGameId, navigate, saveService]);
+  }, [initialRouteGameId, initialRouteScreen, navigate, saveService]);
 
   useEffect(() => {
     const flushLocalAutoSave = () => {
@@ -795,7 +773,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   }, [activeSaveId, isFastForwardingToNextDay, isGameMenuPauseActive, isSimulationBlocked]);
 
   useEffect(() => {
-    if (!currentSave || screen !== 'ludus') {
+    if (!currentSave || (screen !== 'ludus' && screen !== 'arena')) {
       return;
     }
 
@@ -809,10 +787,18 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (interruption?.kind === 'sundayArena' && activeModal?.kind !== 'arena') {
-      replaceModal({ kind: 'arena' });
+    if (interruption?.kind === 'sundayArena') {
+      if (screen !== 'arena') {
+        navigate('arena', { gameId: currentSave.gameId });
+      }
+
+      return;
     }
-  }, [activeModal, currentSave, openModal, replaceModal, screen]);
+
+    if (screen === 'arena') {
+      navigate('ludus', { gameId: currentSave.gameId });
+    }
+  }, [activeModal, currentSave, navigate, openModal, screen]);
 
   const value = useMemo<GameStoreValue>(() => {
     return {
@@ -845,19 +831,15 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       setAutomaticAssignment: setAutomaticAssignmentAction,
       setManualBuildingOverride: setManualBuildingOverrideAction,
       applyPlanningRecommendations: applyPlanningRecommendationsAction,
-      acceptWeeklyContract,
       resolveGameEventChoice,
       triggerDebugDailyEvent,
       adjustDebugTreasury,
       scoutOpponent,
-      startArenaDayCombats,
       markArenaCombatPresented,
-      showArenaDaySummary,
       completeSundayArenaDay,
       clearError,
     };
   }, [
-    acceptWeeklyContract,
     adjustDebugTreasury,
     advanceToNextDayAction,
     applyPlanningRecommendationsAction,
@@ -882,12 +864,10 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     saveCurrentGame,
     saveNoticeKey,
     resolveGameEventChoice,
-    triggerDebugDailyEvent,
     scoutOpponent,
-    startArenaDayCombats,
+    triggerDebugDailyEvent,
     markArenaCombatPresented,
     presentedCurrentSave,
-    showArenaDaySummary,
     completeSundayArenaDay,
     sellGladiatorAction,
     selectBuildingPolicyAction,

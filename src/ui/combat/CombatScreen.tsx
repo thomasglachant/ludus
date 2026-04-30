@@ -1,13 +1,14 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
-import type { GameSave, GameSpeed } from '../../domain/types';
-import { GAME_SPEEDS } from '../../game-data/time';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { calculateProjectedWinChance } from '../../domain/combat/combat-actions';
+import type { GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
-import { DayCycleGauge } from '../components/DayCycleGauge';
-import { formatMoneyAmount } from '../formatters/money';
+import { FighterSheet } from '../arena/FighterSheet';
+import { CardBlured } from '../components/CardBlured';
+import { CTAButton } from '../components/CTAButton';
+import { ImpactList } from '../components/ImpactList';
 import { GameIcon } from '../icons/GameIcon';
-import { CombatantPanel } from './CombatantPanel';
 import { CombatLog } from './CombatLog';
-import { CombatSkillBar } from './CombatSkillBar';
+import { CombatPlaybackBar } from './CombatPlaybackBar';
 import { getCombatScreenCombat, getCombatScreenViewModel } from './combat-screen-view-model';
 
 const PixiCombatArenaStage = lazy(() =>
@@ -18,28 +19,68 @@ const PixiCombatArenaStage = lazy(() =>
 
 interface CombatScreenProps {
   combatId?: string;
-  isBlocking?: boolean;
+  embedded?: boolean;
   save: GameSave;
   onClose(): void;
-  onOpenMenu(): void;
-  onSpeedChange(speed: GameSpeed): void;
 }
 
-export function CombatScreen({
-  combatId,
-  isBlocking = false,
-  onClose,
-  onOpenMenu,
-  onSpeedChange,
-  save,
-}: CombatScreenProps) {
+export function CombatScreen({ combatId, embedded = false, onClose, save }: CombatScreenProps) {
   const { t } = useUiStore();
   const combat = useMemo(() => getCombatScreenCombat(save, combatId), [combatId, save]);
+  const [playbackState, setPlaybackState] = useState<{
+    combatId?: string;
+    isPlaying: boolean;
+  }>({
+    combatId: undefined,
+    isPlaying: true,
+  });
   const [turnProgress, setTurnProgress] = useState<{ combatId?: string; count: number }>({
     combatId: undefined,
     count: 0,
   });
   const visibleTurnCount = turnProgress.combatId === combat?.id ? turnProgress.count : 0;
+  const isCombatComplete = Boolean(combat && visibleTurnCount >= combat.turns.length);
+  const isPlaying =
+    !isCombatComplete && (playbackState.combatId === combat?.id ? playbackState.isPlaying : true);
+
+  const setVisibleTurnCount = useCallback(
+    (nextVisibleTurnCount: number) => {
+      if (!combat) {
+        return;
+      }
+
+      const boundedTurnCount = Math.min(Math.max(0, nextVisibleTurnCount), combat.turns.length);
+
+      setTurnProgress({
+        combatId: combat.id,
+        count: boundedTurnCount,
+      });
+
+      if (boundedTurnCount >= combat.turns.length) {
+        setPlaybackState({
+          combatId: combat.id,
+          isPlaying: false,
+        });
+      }
+    },
+    [combat],
+  );
+
+  const revealNextTurn = useCallback(() => {
+    setVisibleTurnCount(visibleTurnCount + 1);
+  }, [setVisibleTurnCount, visibleTurnCount]);
+
+  useEffect(() => {
+    if (!combat || !isPlaying || visibleTurnCount >= combat.turns.length) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setVisibleTurnCount(visibleTurnCount + 1);
+    }, 1000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [combat, isPlaying, setVisibleTurnCount, visibleTurnCount]);
 
   if (!combat) {
     return (
@@ -54,105 +95,104 @@ export function CombatScreen({
   }
 
   const viewModel = getCombatScreenViewModel(combat, visibleTurnCount);
+  const playerChance = calculateProjectedWinChance(combat.gladiator, combat.opponent);
+  const opponentChance = 1 - playerChance;
+  const handleTogglePlayback = () => {
+    setPlaybackState({
+      combatId: combat.id,
+      isPlaying: !isPlaying,
+    });
+  };
 
   return (
     <section
       aria-label={t('combatScreen.title')}
-      className="combat-screen"
+      className={['combat-screen', embedded ? 'combat-screen--embedded' : '']
+        .filter(Boolean)
+        .join(' ')}
       data-testid="combat-screen"
     >
-      <header className="combat-screen__hud">
-        <div className="combat-screen__identity">
-          <p className="eyebrow">{t('ludus.title')}</p>
-          <h1>{save.player.ludusName}</h1>
-          <span>
-            {t('arena.combatTitle', {
-              gladiator: combat.gladiator.name,
-              opponent: combat.opponent.name,
-            })}
-          </span>
-        </div>
-        <div className="combat-screen__time">
-          <GameIcon name="age" size={18} />
-          <span>{t(`days.${save.time.dayOfWeek}`)}</span>
-          <span>{t('topBar.week', { week: save.time.week })}</span>
-          <DayCycleGauge size="compact" time={save.time} />
-        </div>
-        <div className="combat-screen__round">
-          <span>
-            {t('combatScreen.roundCounter', {
-              current: viewModel.currentTurnNumber,
-              total: viewModel.totalTurnCount,
-            })}
-          </span>
-        </div>
-        {!isBlocking ? (
-          <div className="combat-screen__speeds">
-            {GAME_SPEEDS.map((speed) => (
-              <button
-                aria-label={t(speed === 0 ? 'speed.pause' : `speed.x${speed}`)}
-                className={save.time.speed === speed ? 'is-selected' : ''}
-                key={speed}
-                type="button"
-                onClick={() => onSpeedChange(speed)}
-              >
-                {speed === 0 ? (
-                  <GameIcon color="currentColor" name="pause" size={14} />
-                ) : (
-                  <GameIcon color="currentColor" name="play" size={14} />
-                )}
-                <span>{t(speed === 0 ? 'speed.pause' : `speed.x${speed}`)}</span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-        <div className="combat-screen__resources">
-          <span>
-            <GameIcon name="treasury" size={18} />
-            {formatMoneyAmount(save.ludus.treasury)}
-          </span>
-          {!isBlocking ? (
-            <>
-              <button type="button" onClick={onOpenMenu}>
-                <GameIcon color="currentColor" name="menu" size={18} />
-                <span>{t('topBar.menu')}</span>
-              </button>
-              <button type="button" onClick={onClose}>
-                <GameIcon color="currentColor" name="back" size={18} />
-                <span>{t('common.back')}</span>
-              </button>
-            </>
-          ) : null}
-        </div>
-      </header>
       <div className="combat-screen__body">
-        <CombatantPanel combatant={viewModel.player} />
-        <Suspense fallback={<p className="empty-state">{t('common.loading')}</p>}>
+        <div className="combat-screen__fighter-sheets">
+          <div className="combat-screen__fighter-sheet combat-screen__fighter-sheet--player">
+            <FighterSheet
+              chance={playerChance}
+              gladiator={combat.gladiator}
+              side="player"
+              statValues={{
+                energy: viewModel.player.energy,
+                health: viewModel.player.health,
+                morale: viewModel.player.morale,
+              }}
+            />
+          </div>
+          <div className="combat-screen__fighter-sheet combat-screen__fighter-sheet--opponent">
+            <FighterSheet
+              chance={opponentChance}
+              gladiator={combat.opponent}
+              side="opponent"
+              statValues={{
+                energy: viewModel.opponent.energy,
+                health: viewModel.opponent.health,
+                morale: viewModel.opponent.morale,
+              }}
+            />
+          </div>
+        </div>
+        <Suspense
+          fallback={
+            <p className="combat-screen__stage-loading empty-state">{t('common.loading')}</p>
+          }
+        >
           <PixiCombatArenaStage viewModel={viewModel} />
         </Suspense>
-        <CombatantPanel combatant={viewModel.opponent} />
-        <CombatSkillBar
-          canClose={!isBlocking || viewModel.isComplete}
-          closeLabelKey="combatScreen.returnToArena"
-          viewModel={viewModel}
-          onAdvance={() => setTurnProgress({ combatId: combat.id, count: visibleTurnCount + 1 })}
-          onClose={onClose}
-        />
+        {viewModel.isComplete ? (
+          <CardBlured as="section" className="combat-screen__result-overlay">
+            <div className="combat-screen__result-title">
+              <GameIcon
+                name={viewModel.consequence.didPlayerWin ? 'victory' : 'defeat'}
+                size={58}
+              />
+              <strong>{t(viewModel.consequence.resultKey)}</strong>
+            </div>
+            <p className="combat-screen__winner-line">
+              {t('combatScreen.winnerLine', {
+                winner: viewModel.consequence.winnerName,
+              })}
+            </p>
+            <ImpactList
+              className="combat-screen__result-impacts"
+              impacts={[
+                {
+                  amount: viewModel.consequence.playerReward,
+                  id: 'treasury',
+                  kind: 'treasury',
+                  label: t('arena.rewardReceived'),
+                },
+                {
+                  amount: viewModel.consequence.reputationChange,
+                  id: 'reputation',
+                  kind: 'reputation',
+                  label: t('arena.reputationChange'),
+                },
+              ]}
+            />
+            <CTAButton onClick={onClose}>
+              <GameIcon color="#fff9e7" name="logout" size={18} />
+              <span>{t('combatScreen.returnToArena')}</span>
+            </CTAButton>
+          </CardBlured>
+        ) : null}
         <CombatLog viewModel={viewModel} />
-        <div className="combat-screen__fatigue combat-screen__fatigue--player">
-          <span>{t('combatScreen.fatigue')}</span>
-          <div>
-            <span style={{ width: `${viewModel.player.energy}%` }} />
-          </div>
-          <strong>{viewModel.player.energy} / 100</strong>
-        </div>
-        <div className="combat-screen__fatigue combat-screen__fatigue--opponent">
-          <span>{t('combatScreen.fatigue')}</span>
-          <div>
-            <span style={{ width: `${viewModel.opponent.energy}%` }} />
-          </div>
-          <strong>{viewModel.opponent.energy} / 100</strong>
-        </div>
+        <CombatPlaybackBar
+          isPlaying={isPlaying}
+          viewModel={viewModel}
+          onEnd={() => setVisibleTurnCount(combat.turns.length)}
+          onNext={revealNextTurn}
+          onPrevious={() => setVisibleTurnCount(visibleTurnCount - 1)}
+          onStart={() => setVisibleTurnCount(0)}
+          onTogglePlayback={handleTogglePlayback}
+        />
       </div>
     </section>
   );

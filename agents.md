@@ -16,6 +16,8 @@ Useful commands: `npm run build`, `npm run lint`, `npm run test`.
 - Game rules and balance data belong in `src/game-data`; new tunable balance variables must start in `src/game-data/balance.ts`; pure business logic belongs in `src/domain`.
 - React components should render state and call store actions, selectors or domain services.
 - Reuse shared UI primitives and modal infrastructure before adding feature-specific UI.
+- Use the shared `CardBlured` component for translucent blurred cards or panels over scenic backgrounds.
+- Primary CTAs use the shared green `CTAButton` / `.cta-button` style by default unless the user explicitly asks for another treatment.
 - CSS lives in `src/styles` by functional area; keep `src/index.css` as an import manifest and split large or mixed stylesheet files as routine maintenance.
 - Save data must include `schemaVersion`; local save is always available; cloud save remains behind an abstraction.
 
@@ -34,10 +36,11 @@ Useful commands: `npm run build`, `npm run lint`, `npm run test`.
 - Gameplay and balance: `docs/01_game_design/GAMEPLAY.md`, `docs/01_game_design/GAME_DATA.md`, `docs/01_game_design/DEMO_MODE.md`.
 - Architecture and save/domain models: `docs/02_technical/ARCHITECTURE.md`, `docs/02_technical/DOMAIN_MODELS.md`.
 - UI and art direction: `docs/03_product/UI_UX.md`, `docs/03_product/ART_DIRECTION.md`.
-- Roadmap: `docs/04_roadmap/ROADMAP.md`.
 
 ## Documentation Rules
 
 - Keep durable product, gameplay and technical information in `docs/`.
+- Do not add or maintain roadmap/backlog documents in the repository; roadmap planning lives outside the application.
+- Keep documentation focused on functionality that exists in the current code.
 - Avoid temporary task plans, prompt transcripts and one-off agent prompts in the repository.
 - Do not duplicate detailed data across files; link to the source document instead.

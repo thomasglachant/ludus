@@ -29,10 +29,6 @@ export const GLADIATOR_MAP_ACTIVITY_DESTINATIONS: Record<string, GladiatorMapAct
       buildingId: 'trainingGround',
       animationState: 'train',
     },
-    fightPreparation: {
-      buildingId: 'trainingGround',
-      animationState: 'train',
-    },
     trainStrength: {
       buildingId: 'trainingGround',
       animationState: 'train',

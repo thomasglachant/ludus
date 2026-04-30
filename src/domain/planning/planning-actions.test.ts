@@ -80,7 +80,7 @@ describe('planning actions', () => {
     ]);
   });
 
-  it('generates alerts and planning statuses with readiness', () => {
+  it('generates alerts and planning statuses for owned gladiators', () => {
     const save = synchronizePlanning(
       withGladiators(createTestSave(), [
         createGladiator({
@@ -91,6 +91,11 @@ describe('planning actions', () => {
     );
     const statuses = getGladiatorPlanningStatuses(save);
 
+    expect(statuses).toHaveLength(1);
+    expect(statuses[0]).toMatchObject({
+      gladiator: expect.objectContaining({ id: 'gladiator-test' }),
+      routine: expect.objectContaining({ objective: 'balanced' }),
+    });
     expect(save.planning.alerts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -105,8 +110,6 @@ describe('planning actions', () => {
         }),
       ]),
     );
-    expect(statuses[0].readiness).toBeGreaterThanOrEqual(0);
-    expect(statuses[0].readiness).toBeLessThanOrEqual(100);
   });
 
   it('applies automatic recommendations when the target building is purchased', () => {

@@ -51,7 +51,7 @@ const save = createDemoSave({
       configuration: {
         defaultDoctrineId: 'brutalDiscipline',
       },
-      purchasedImprovementIds: ['woodenWeapons', 'sparringRing', 'advancedDoctoreTools'],
+      purchasedImprovementIds: ['sparringRing', 'advancedDoctoreTools'],
       selectedPolicyId: 'brutalDiscipline',
     }),
     pleasureHall: createPurchasedBuilding({
@@ -91,7 +91,6 @@ const save = createDemoSave({
       traits: ['crowdFavorite', 'stoic'],
       currentBuildingId: 'pleasureHall',
       weeklyObjective: 'protectChampion',
-      combatStrategy: 'defensive',
     },
     {
       id: 'glad-demo-adv-severus',
@@ -109,8 +108,7 @@ const save = createDemoSave({
       losses: 8,
       traits: ['brave'],
       currentBuildingId: 'trainingGround',
-      weeklyObjective: 'fightPreparation',
-      combatStrategy: 'aggressive',
+      weeklyObjective: 'balanced',
     },
     {
       id: 'glad-demo-adv-cassian',
@@ -129,7 +127,6 @@ const save = createDemoSave({
       traits: ['ambitious'],
       currentBuildingId: 'trainingGround',
       weeklyObjective: 'trainAgility',
-      combatStrategy: 'evasive',
     },
     {
       id: 'glad-demo-adv-brutus',
@@ -149,7 +146,6 @@ const save = createDemoSave({
       currentBuildingId: 'dormitory',
       weeklyObjective: 'recovery',
       intensity: 'light',
-      combatStrategy: 'protectInjury',
     },
     {
       id: 'glad-demo-adv-nasica',
@@ -168,7 +164,6 @@ const save = createDemoSave({
       traits: ['stoic'],
       currentBuildingId: 'trainingGround',
       weeklyObjective: 'trainDefense',
-      combatStrategy: 'defensive',
     },
     {
       id: 'glad-demo-adv-syrianus',
@@ -186,8 +181,7 @@ const save = createDemoSave({
       losses: 7,
       traits: ['rivalrous'],
       currentBuildingId: 'dormitory',
-      weeklyObjective: 'fightPreparation',
-      combatStrategy: 'exhaustOpponent',
+      weeklyObjective: 'recovery',
     },
   ],
   market: [

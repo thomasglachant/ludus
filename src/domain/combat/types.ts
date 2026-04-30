@@ -12,14 +12,6 @@ export type ArenaRank =
   | 'gold2'
   | 'gold1';
 
-export type CombatStrategy =
-  | 'balanced'
-  | 'aggressive'
-  | 'defensive'
-  | 'evasive'
-  | 'exhaustOpponent'
-  | 'protectInjury';
-
 export interface ArenaState {
   currentCombatId?: string;
   arenaDay?: ArenaDayState;
@@ -29,7 +21,7 @@ export interface ArenaState {
   betting?: BettingState;
 }
 
-export type ArenaDayPhase = 'intro' | 'combats' | 'summary';
+export type ArenaDayPhase = 'intro' | 'summary';
 
 export interface ArenaDayState {
   year: number;
@@ -76,7 +68,6 @@ export interface CombatState {
   gladiator: Gladiator;
   opponent: Gladiator;
   rank: ArenaRank;
-  strategy: CombatStrategy;
   turns: CombatTurn[];
   winnerId?: string;
   loserId?: string;
@@ -100,6 +91,10 @@ export interface CombatReward {
   totalReward: number;
   winnerReward: number;
   loserReward: number;
+  participationReward?: number;
+  victoryReward?: number;
+  publicStakeModifier?: number;
+  playerDecimalOdds?: number;
 }
 
 export interface CombatConsequence {

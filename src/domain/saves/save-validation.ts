@@ -1,13 +1,11 @@
 import { BUILDING_IDS } from '../../game-data/buildings';
-import { createGladiatorClassId, isGladiatorClassId } from '../../game-data/gladiator-classes';
 import {
   createInitialLudusMapState,
   LUDUS_MAP_STATE_SCHEMA_VERSION,
 } from '../../game-data/map-layout';
 import { DAYS_OF_WEEK, SUPPORTED_GAME_SPEEDS } from '../../game-data/time';
 import type { BuildingId } from '../buildings/types';
-import type { CombatState } from '../combat/types';
-import type { WeeklyContract } from '../contracts/types';
+import type { ArenaDayState, CombatState } from '../combat/types';
 import type { GameEvent, LaunchedGameEventRecord } from '../events/types';
 import type { Gladiator, GladiatorLocationId } from '../gladiators/types';
 import type { MarketGladiator } from '../market/types';
@@ -19,7 +17,7 @@ import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
 const dayOfWeeks = [...DAYS_OF_WEEK];
 const gameSpeeds = [...SUPPORTED_GAME_SPEEDS];
-const legacySupportedSchemaVersions = [1, 2, 3, 4, CURRENT_SCHEMA_VERSION];
+const legacySupportedSchemaVersions = [1, 2, 3, 4, 5, CURRENT_SCHEMA_VERSION];
 const locationIds = [...requiredBuildingIds, 'arena'];
 const mapPlacementKinds = ['building', 'prop', 'road', 'wall'];
 const arenaRanks = [
@@ -33,14 +31,7 @@ const arenaRanks = [
   'gold2',
   'gold1',
 ];
-const combatStrategies = [
-  'balanced',
-  'aggressive',
-  'defensive',
-  'evasive',
-  'exhaustOpponent',
-  'protectInjury',
-];
+const arenaDayPhases = ['intro', 'summary'];
 const gladiatorTraits = [
   'disciplined',
   'lazy',
@@ -54,7 +45,6 @@ const gladiatorTraits = [
 ];
 const weeklyObjectives = [
   'balanced',
-  'fightPreparation',
   'trainStrength',
   'trainAgility',
   'trainDefense',
@@ -63,16 +53,9 @@ const weeklyObjectives = [
   'protectChampion',
   'prepareForSale',
 ];
+const legacyWeeklyObjectives = [...weeklyObjectives, 'fightPreparation'];
 const trainingIntensities = ['light', 'normal', 'hard', 'brutal'];
 const alertSeverities = ['info', 'warning', 'critical'];
-const contractStatuses = ['available', 'accepted', 'completed', 'failed', 'expired'];
-const contractObjectiveTypes = [
-  'winFightCount',
-  'winWithRank',
-  'winWithLowHealth',
-  'earnTreasuryFromArena',
-  'sellGladiatorForAtLeast',
-];
 const eventStatuses = ['pending', 'resolved', 'expired'];
 const eventConsequenceKinds = ['certain', 'chance', 'oneOf'];
 const eventEffectTypes = [
@@ -226,8 +209,6 @@ function isGladiator(value: unknown): value is Gladiator {
   return (
     hasString(value, 'id') &&
     hasString(value, 'name') &&
-    (value.classId === undefined ||
-      (typeof value.classId === 'string' && isGladiatorClassId(value.classId))) &&
     hasNumber(value, 'age') &&
     hasNumber(value, 'strength') &&
     hasNumber(value, 'agility') &&
@@ -303,7 +284,11 @@ function isCombatReward(value: unknown) {
     isRecord(value) &&
     hasNumber(value, 'totalReward') &&
     hasNumber(value, 'winnerReward') &&
-    hasNumber(value, 'loserReward')
+    hasNumber(value, 'loserReward') &&
+    (value.participationReward === undefined || typeof value.participationReward === 'number') &&
+    (value.victoryReward === undefined || typeof value.victoryReward === 'number') &&
+    (value.publicStakeModifier === undefined || typeof value.publicStakeModifier === 'number') &&
+    (value.playerDecimalOdds === undefined || typeof value.playerDecimalOdds === 'number')
   );
 }
 
@@ -330,7 +315,6 @@ function isCombatState(value: unknown): value is CombatState {
     isGladiator(value.gladiator) &&
     isGladiator(value.opponent) &&
     hasStringFrom(value, 'rank', arenaRanks) &&
-    hasStringFrom(value, 'strategy', combatStrategies) &&
     Array.isArray(value.turns) &&
     value.turns.every(isCombatTurn) &&
     hasOptionalString(value, 'winnerId') &&
@@ -384,11 +368,22 @@ function isBettingState(value: unknown) {
   );
 }
 
+function isArenaDayState(value: unknown): value is ArenaDayState {
+  return (
+    isRecord(value) &&
+    hasNumber(value, 'year') &&
+    hasNumber(value, 'week') &&
+    hasStringFrom(value, 'phase', arenaDayPhases) &&
+    Array.isArray(value.presentedCombatIds) &&
+    value.presentedCombatIds.every((combatId) => typeof combatId === 'string')
+  );
+}
+
 function isArenaState(value: unknown) {
   return (
     isRecord(value) &&
     hasOptionalString(value, 'currentCombatId') &&
-    (value.arenaDay === undefined || isRecord(value.arenaDay)) &&
+    (value.arenaDay === undefined || isArenaDayState(value.arenaDay)) &&
     Array.isArray(value.pendingCombats) &&
     Array.isArray(value.resolvedCombats) &&
     value.pendingCombats.every(isCombatState) &&
@@ -402,12 +397,11 @@ function isPlanningRoutine(value: unknown): value is GladiatorRoutine {
   return (
     isRecord(value) &&
     hasString(value, 'gladiatorId') &&
-    hasStringFrom(value, 'objective', weeklyObjectives) &&
+    hasStringFrom(value, 'objective', legacyWeeklyObjectives) &&
     hasStringFrom(value, 'intensity', trainingIntensities) &&
     hasBoolean(value, 'allowAutomaticAssignment') &&
     (value.lockedBuildingId === undefined ||
-      isStringFrom(value.lockedBuildingId, requiredBuildingIds)) &&
-    (value.combatStrategy === undefined || isStringFrom(value.combatStrategy, combatStrategies))
+      isStringFrom(value.lockedBuildingId, requiredBuildingIds))
   );
 }
 
@@ -433,53 +427,6 @@ function isPlanningState(value: unknown) {
     Array.isArray(value.alerts) &&
     value.routines.every(isPlanningRoutine) &&
     value.alerts.every(isGameAlert)
-  );
-}
-
-function isContractObjective(value: unknown) {
-  if (!isRecord(value) || !hasStringFrom(value, 'type', contractObjectiveTypes)) {
-    return false;
-  }
-
-  switch (value.type) {
-    case 'winFightCount':
-      return hasNumber(value, 'count');
-    case 'winWithRank':
-      return hasStringFrom(value, 'rank', arenaRanks);
-    case 'winWithLowHealth':
-      return hasNumber(value, 'maxHealth');
-    case 'earnTreasuryFromArena':
-    case 'sellGladiatorForAtLeast':
-      return hasNumber(value, 'amount');
-    default:
-      return false;
-  }
-}
-
-function isWeeklyContract(value: unknown): value is WeeklyContract {
-  return (
-    isRecord(value) &&
-    hasString(value, 'id') &&
-    hasString(value, 'titleKey') &&
-    hasString(value, 'descriptionKey') &&
-    hasStringFrom(value, 'status', contractStatuses) &&
-    hasNumber(value, 'rewardTreasury') &&
-    (value.rewardReputation === undefined || typeof value.rewardReputation === 'number') &&
-    hasNumber(value, 'issuedAtYear') &&
-    hasNumber(value, 'issuedAtWeek') &&
-    hasNumber(value, 'expiresAtYear') &&
-    hasNumber(value, 'expiresAtWeek') &&
-    isContractObjective(value.objective)
-  );
-}
-
-function isContractState(value: unknown) {
-  return (
-    isRecord(value) &&
-    Array.isArray(value.availableContracts) &&
-    Array.isArray(value.acceptedContracts) &&
-    value.availableContracts.every(isWeeklyContract) &&
-    value.acceptedContracts.every(isWeeklyContract)
   );
 }
 
@@ -674,7 +621,6 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     isMarketState(value.market) &&
     isArenaState(value.arena) &&
     isPlanningState(value.planning) &&
-    isContractState(value.contracts) &&
     isEventState(value.events)
   );
 }
@@ -687,34 +633,76 @@ function normalizeMapState(mapState: unknown): LudusMapState {
   return isMapState(mapState) ? mapState : createInitialLudusMapState();
 }
 
+function normalizePurchasedImprovementIds(purchasedImprovementIds: string[]) {
+  return purchasedImprovementIds.filter((improvementId) => improvementId !== 'woodenWeapons');
+}
+
+function normalizeBuildings(buildings: GameSave['buildings']): GameSave['buildings'] {
+  return Object.fromEntries(
+    requiredBuildingIds.map((buildingId) => [
+      buildingId,
+      {
+        ...buildings[buildingId],
+        purchasedImprovementIds: normalizePurchasedImprovementIds(
+          buildings[buildingId].purchasedImprovementIds,
+        ),
+      },
+    ]),
+  ) as GameSave['buildings'];
+}
+
+function normalizeVisualIdentity(visualIdentity: Gladiator['visualIdentity']) {
+  if (!visualIdentity) {
+    return undefined;
+  }
+
+  const normalizedVisualIdentity = { ...visualIdentity } as Gladiator['visualIdentity'] & {
+    accessoryStyle?: unknown;
+  };
+  delete normalizedVisualIdentity.accessoryStyle;
+
+  return normalizedVisualIdentity;
+}
+
+function stripLegacyGladiatorFields(gladiator: Gladiator): Gladiator {
+  const gladiatorWithoutClass = { ...gladiator } as Gladiator & {
+    classId?: unknown;
+  };
+  delete gladiatorWithoutClass.classId;
+
+  return {
+    ...gladiatorWithoutClass,
+    visualIdentity: normalizeVisualIdentity(gladiatorWithoutClass.visualIdentity),
+  };
+}
+
 function normalizeGladiator(gladiator: Gladiator): Gladiator {
-  const movement = gladiator.mapMovement;
+  const strippedGladiator = stripLegacyGladiatorFields(gladiator);
+  const movement = strippedGladiator.mapMovement;
 
   if (movement) {
     return {
-      ...gladiator,
-      classId: gladiator.classId ?? createGladiatorClassId(gladiator.id),
+      ...strippedGladiator,
       currentLocationId: undefined,
       currentBuildingId: undefined,
       mapMovement: {
         ...movement,
         currentLocation: isLocationId(movement.currentLocation)
           ? movement.currentLocation
-          : (gladiator.currentBuildingId ?? 'domus'),
+          : (strippedGladiator.currentBuildingId ?? 'domus'),
         targetLocation: isLocationId(movement.targetLocation)
           ? movement.targetLocation
-          : (gladiator.currentBuildingId ?? 'domus'),
+          : (strippedGladiator.currentBuildingId ?? 'domus'),
       },
     };
   }
 
-  const currentLocationId = isLocationId(gladiator.currentLocationId)
-    ? gladiator.currentLocationId
-    : gladiator.currentBuildingId;
+  const currentLocationId = isLocationId(strippedGladiator.currentLocationId)
+    ? strippedGladiator.currentLocationId
+    : strippedGladiator.currentBuildingId;
 
   return {
-    ...gladiator,
-    classId: gladiator.classId ?? createGladiatorClassId(gladiator.id),
+    ...strippedGladiator,
     currentLocationId,
     currentBuildingId:
       currentLocationId && requiredBuildingIds.includes(currentLocationId as BuildingId)
@@ -726,16 +714,33 @@ function normalizeGladiator(gladiator: Gladiator): Gladiator {
 function normalizeCombatState<TCombat extends GameSave['arena']['pendingCombats'][number]>(
   combat: TCombat,
 ): TCombat {
+  const combatWithoutStrategy = { ...combat } as TCombat & {
+    strategy?: unknown;
+  };
+  delete combatWithoutStrategy.strategy;
+
   return {
-    ...combat,
+    ...combatWithoutStrategy,
     gladiator: normalizeGladiator(combat.gladiator),
     opponent: normalizeGladiator(combat.opponent),
+  } as TCombat;
+}
+
+function normalizePlanningRoutine(routine: GladiatorRoutine): GladiatorRoutine {
+  const routineWithoutStrategy = { ...routine } as GladiatorRoutine & { combatStrategy?: unknown };
+  delete routineWithoutStrategy.combatStrategy;
+  const legacyObjective = (routine as { objective: string }).objective;
+
+  return {
+    ...routineWithoutStrategy,
+    objective:
+      legacyObjective === 'fightPreparation' ? 'balanced' : routineWithoutStrategy.objective,
   };
 }
 
 export function normalizeGameSave(save: GameSave): GameSave {
   const saveWithOptionalMap = save as GameSave & { gameId?: unknown; map?: unknown };
-  const normalizedSave: GameSave & { settings?: unknown } = {
+  const normalizedSave: GameSave & { contracts?: unknown; settings?: unknown } = {
     ...save,
     schemaVersion: CURRENT_SCHEMA_VERSION,
     gameId:
@@ -745,6 +750,7 @@ export function normalizeGameSave(save: GameSave): GameSave {
       isCloudUser: save.player.isCloudUser,
     },
     map: normalizeMapState(saveWithOptionalMap.map),
+    buildings: normalizeBuildings(save.buildings),
     gladiators: save.gladiators.map(normalizeGladiator),
     market: {
       ...save.market,
@@ -767,6 +773,10 @@ export function normalizeGameSave(save: GameSave): GameSave {
           }
         : undefined,
     },
+    planning: {
+      ...save.planning,
+      routines: save.planning.routines.map(normalizePlanningRoutine),
+    },
     events: {
       pendingEvents: [],
       resolvedEvents: [],
@@ -775,6 +785,7 @@ export function normalizeGameSave(save: GameSave): GameSave {
   };
 
   delete normalizedSave.settings;
+  delete normalizedSave.contracts;
 
   return normalizedSave;
 }

@@ -13,7 +13,6 @@ import {
 } from '../components/shared';
 import { BuildingActionModalContent } from '../modals/BuildingActionModalContent';
 import { GameIcon } from '../icons/GameIcon';
-import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 import { formatMoneyAmount } from '../formatters/money';
 import {
@@ -319,10 +318,6 @@ export function BuildingPanel({
                   {gladiator ? <GladiatorPortrait gladiator={gladiator} size="small" /> : null}
                   <span className="context-panel__identity-stack">
                     <strong>{assignedGladiator.name}</strong>
-                    {gladiator ? <GladiatorClassLine compact gladiator={gladiator} /> : null}
-                  </span>
-                  <span>
-                    {t('weeklyPlan.readinessValue', { score: assignedGladiator.readiness })}
                   </span>
                 </SectionCard>
               );

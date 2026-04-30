@@ -24,7 +24,6 @@ const effectIcons: Record<BuildingEffectType, GameIconName> = {
   increaseEnergy: 'energy',
   increaseHealth: 'health',
   increaseMorale: 'morale',
-  increaseReadiness: 'readiness',
   increaseSatiety: 'satiety',
   increaseStrength: 'strength',
   reduceInjuryRisk: 'defense',

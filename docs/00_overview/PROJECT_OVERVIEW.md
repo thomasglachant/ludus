@@ -9,15 +9,15 @@ The game should feel like a management game set in a living Roman countryside lu
 
 ## Core Fantasy
 
-The player owns and develops a gladiator school. They buy and train gladiators, maintain their health and morale, upgrade buildings, accept contracts, prepare for arena fights and make economic decisions around risk and reputation.
+The player owns and develops a gladiator school. They buy and train gladiators, maintain their health and morale, upgrade buildings, react to events and make economic decisions around risk and reputation.
 
-The dramatic rhythm is weekly preparation followed by Sunday arena resolution:
+The dramatic rhythm is weekly management followed by Sunday arena resolution:
 
 - plan the week;
 - manage routines and exceptions;
 - react to events and warnings;
 - improve buildings and gladiators;
-- prepare combat strategies and betting decisions;
+- scout opponents and review betting odds;
 - resolve arena fights on Sunday;
 - absorb consequences on Monday.
 
@@ -43,7 +43,7 @@ The removed 1-to-10 building budget system must not return unless a future desig
 
 ### Economy
 
-Money and reputation connect the whole game. The player earns rewards through arena results, contracts and sales, then reinvests in buildings, market gladiators, treatment, scouting and future systems.
+Money and reputation connect the whole game. The player earns rewards through arena results and sales, then reinvests in buildings, market gladiators, treatment, scouting and future systems.
 
 ## Structural Constraints
 

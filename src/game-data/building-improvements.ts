@@ -60,15 +60,6 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     effects: [{ type: 'increaseMorale', value: 1, target: 'assignedGladiator' }],
   },
   {
-    id: 'woodenWeapons',
-    buildingId: 'trainingGround',
-    nameKey: 'improvements.woodenWeapons.name',
-    descriptionKey: 'improvements.woodenWeapons.description',
-    cost: 100,
-    requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseReadiness', value: 2, target: 'assignedGladiator' }],
-  },
-  {
     id: 'sparringRing',
     buildingId: 'trainingGround',
     nameKey: 'improvements.sparringRing.name',
@@ -111,7 +102,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.privateRooms.description',
     cost: 210,
     requiredBuildingLevel: 2,
-    effects: [{ type: 'increaseReadiness', value: 3, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseMorale', value: 3, target: 'assignedGladiator' }],
   },
   {
     id: 'cleanBandages',
@@ -194,7 +185,11 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.balancedTraining.name',
     descriptionKey: 'policies.balancedTraining.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseReadiness', value: 1, target: 'assignedGladiator' }],
+    effects: [
+      { type: 'increaseStrength', value: 1, target: 'assignedGladiator' },
+      { type: 'increaseAgility', value: 1, target: 'assignedGladiator' },
+      { type: 'increaseDefense', value: 1, target: 'assignedGladiator' },
+    ],
   },
   {
     id: 'strengthDoctrine',

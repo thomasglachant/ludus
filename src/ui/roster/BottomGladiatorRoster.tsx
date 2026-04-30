@@ -1,10 +1,9 @@
 import type { CSSProperties } from 'react';
-import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import type { GameSave, Gladiator } from '../../domain/types';
 import { getGladiatorPlanningStatuses } from '../../domain/planning/planning-actions';
 import { useUiStore } from '../../state/ui-store-context';
+import { formatNumber } from '../formatters/number';
 import { GameIcon } from '../icons/GameIcon';
-import { GladiatorClassLine } from './GladiatorClassLine';
 import { GladiatorPortrait } from './GladiatorPortrait';
 
 interface BottomGladiatorRosterProps {
@@ -55,7 +54,6 @@ export function BottomGladiatorRoster({
         >
           {save.gladiators.map((gladiator) => {
             const status = statusByGladiatorId.get(gladiator.id);
-            const readiness = calculateEffectiveReadiness(save, gladiator);
             const primaryAlert = getPrimaryAlert(save, gladiator);
 
             return (
@@ -77,9 +75,10 @@ export function BottomGladiatorRoster({
                 <span className="roster-card__body">
                   <span className="roster-card__topline">
                     <strong>{gladiator.name}</strong>
-                    <span>{t('roster.reputation', { reputation: gladiator.reputation })}</span>
+                    <span>
+                      {t('roster.reputation', { reputation: formatNumber(gladiator.reputation) })}
+                    </span>
                   </span>
-                  <GladiatorClassLine compact gladiator={gladiator} />
                   <span className="roster-card__objective">
                     {status
                       ? t(`weeklyPlan.objectives.${status.routine.objective}`)
@@ -92,7 +91,6 @@ export function BottomGladiatorRoster({
                     <Meter label={t('roster.satietyShort')} value={gladiator.satiety} />
                   </span>
                   <span className="roster-card__footer">
-                    <span>{t('weeklyPlan.readinessValue', { score: readiness })}</span>
                     {primaryAlert ? (
                       <span className="roster-card__alert">
                         <GameIcon name="alert" size={13} />

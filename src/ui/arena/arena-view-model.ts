@@ -1,4 +1,5 @@
 import type { CombatState, GameSave } from '../../domain/types';
+import { formatSignedNumber } from '../formatters/number';
 
 export interface ArenaSummaryViewModel {
   totalReward: number;
@@ -10,7 +11,7 @@ export interface ArenaSummaryViewModel {
   losses: number;
 }
 
-export interface ArenaPanelViewModel {
+export interface ArenaDayViewModel {
   currentCombat?: CombatState;
   emptyMessageKey?: string;
   isArenaDayActive: boolean;
@@ -18,6 +19,25 @@ export interface ArenaPanelViewModel {
   resolvedCombats: CombatState[];
   statusKey: string;
   summary: ArenaSummaryViewModel;
+}
+
+export function formatSignedValue(value: number) {
+  return formatSignedNumber(value);
+}
+
+export function getCombatResultKey(combat: CombatState) {
+  return combat.consequence.didPlayerWin ? 'arena.result.win' : 'arena.result.loss';
+}
+
+export function getCombatResultTone(combat: CombatState): 'success' | 'danger' {
+  return combat.consequence.didPlayerWin ? 'success' : 'danger';
+}
+
+export function getCombatTitleParams(combat: CombatState) {
+  return {
+    gladiator: combat.gladiator.name,
+    opponent: combat.opponent.name,
+  };
 }
 
 function summarizeCombats(combats: CombatState[]): ArenaSummaryViewModel {
@@ -51,7 +71,7 @@ function getCurrentCombat(save: GameSave, combats: CombatState[]) {
   return combats.find((combat) => combat.id === save.arena.currentCombatId) ?? combats[0];
 }
 
-export function getArenaPanelViewModel(save: GameSave): ArenaPanelViewModel {
+export function getArenaDayViewModel(save: GameSave): ArenaDayViewModel {
   const pendingCombats = save.arena.pendingCombats;
   const resolvedCombats = save.arena.resolvedCombats;
   const currentCombat = getCurrentCombat(save, [...pendingCombats, ...resolvedCombats]);

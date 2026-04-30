@@ -76,10 +76,6 @@ export interface WeeklyPlanningModalRequest {
   kind: 'weeklyPlanning';
 }
 
-export interface ContractsModalRequest {
-  kind: 'contracts';
-}
-
 export interface EventsModalRequest {
   kind: 'events';
 }
@@ -99,7 +95,6 @@ export type UiModalRequest =
   | BuildingModalRequest
   | GladiatorModalRequest
   | WeeklyPlanningModalRequest
-  | ContractsModalRequest
   | EventsModalRequest
   | ArenaModalRequest;
 
@@ -121,7 +116,7 @@ export interface UiStoreValue {
   replaceModal(request: UiModalRequest): void;
   togglePixiDebug(): void;
   setLanguage(language: LanguageCode): void;
-  navigate(screen: ScreenName, options?: { gameId?: string }): void;
+  navigate(screen: ScreenName, options?: { gameId?: string; preserveModal?: boolean }): void;
   t(key: string, params?: Record<string, string | number>): string;
 }
 

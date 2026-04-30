@@ -51,7 +51,7 @@ const save = createDemoSave({
       configuration: {
         defaultDoctrineId: 'strengthDoctrine',
       },
-      purchasedImprovementIds: ['woodenWeapons', 'sparringRing', 'advancedDoctoreTools'],
+      purchasedImprovementIds: ['sparringRing', 'advancedDoctoreTools'],
       selectedPolicyId: 'strengthDoctrine',
     }),
     pleasureHall: createPurchasedBuilding({
@@ -90,8 +90,7 @@ const save = createDemoSave({
       losses: 2,
       traits: ['brave', 'crowdFavorite'],
       currentBuildingId: 'trainingGround',
-      weeklyObjective: 'fightPreparation',
-      combatStrategy: 'aggressive',
+      weeklyObjective: 'balanced',
     },
     {
       id: 'glad-demo-mid-aulus',
@@ -128,7 +127,6 @@ const save = createDemoSave({
       traits: ['disciplined', 'stoic'],
       currentBuildingId: 'trainingGround',
       weeklyObjective: 'trainDefense',
-      combatStrategy: 'defensive',
     },
     {
       id: 'glad-demo-mid-publius',

@@ -170,29 +170,6 @@ describe('market actions', () => {
     expect(result.save.gladiators).toHaveLength(2);
   });
 
-  it('does not complete sale contracts when buying a market gladiator', () => {
-    const save = withDomusCapacity(createTestSave());
-    const saleContract = {
-      ...save.contracts.availableContracts[0],
-      id: 'contract-sale-test',
-      status: 'accepted' as const,
-      objective: { type: 'sellGladiatorForAtLeast' as const, amount: 0 },
-      rewardTreasury: 80,
-    };
-    const saveWithContract: GameSave = {
-      ...save,
-      contracts: {
-        availableContracts: [],
-        acceptedContracts: [saleContract],
-      },
-    };
-    const candidate = save.market.availableGladiators[0];
-    const result = buyMarketGladiator(saveWithContract, candidate.id);
-
-    expect(result.save.contracts.acceptedContracts[0].status).toBe('accepted');
-    expect(result.save.ludus.treasury).toBe(save.ludus.treasury - candidate.price);
-  });
-
   it('sells an owned gladiator and frees capacity', () => {
     const save = withDomusCapacity(createTestSave());
     const candidate = save.market.availableGladiators[0];

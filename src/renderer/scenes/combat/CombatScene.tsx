@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, Graphics, Sprite, Texture } from 'pixi.js';
+import { AnimatedSprite, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import type { CombatScreenViewModel } from '../../../ui/combat/combat-screen-view-model';
 import type {
   PixiAssetLoader,
@@ -26,7 +26,10 @@ type CombatLayerId =
   | 'vignette';
 
 interface CombatSceneOptions {
+  dodgeLabel?: string;
+  fighterScale?: number;
   reducedMotion?: boolean;
+  showBackdrop?: boolean;
 }
 
 interface CombatFighterDisplay {
@@ -56,6 +59,7 @@ const ARENA_WIDTH = 960;
 const ARENA_HEIGHT = 480;
 const ACTION_DURATION_MS = 620;
 const DUST_DURATION_MS = 760;
+const FLOATING_HEALTH_DURATION_MS = 920;
 const FIGHTER_BASE_SCALE = 2;
 const FIGHTER_GROUND_Y = 388;
 const FIGHTER_POSITIONS = {
@@ -72,11 +76,13 @@ function getFacingDirection(side: 'left' | 'right') {
   return side === 'left' ? 1 : -1;
 }
 
-function collectCombatTextureAssetPaths(viewModel: CombatSceneViewModel): string[] {
+function collectCombatTextureAssetPaths(
+  viewModel: CombatSceneViewModel,
+  showBackdrop: boolean,
+): string[] {
   return Array.from(
     new Set([
-      viewModel.backgroundPath,
-      viewModel.crowdPath,
+      ...(showBackdrop ? [viewModel.backgroundPath, viewModel.crowdPath] : []),
       ...(viewModel.left.spritesheetAtlasPath ? [] : viewModel.left.fallbackFramePaths),
       ...(viewModel.right.spritesheetAtlasPath ? [] : viewModel.right.fallbackFramePaths),
     ]),
@@ -93,9 +99,9 @@ function collectCombatSpritesheetAssetPaths(viewModel: CombatSceneViewModel): st
   );
 }
 
-function createAssetSignature(viewModel: CombatSceneViewModel): string {
+function createAssetSignature(viewModel: CombatSceneViewModel, showBackdrop: boolean): string {
   return [
-    ...collectCombatTextureAssetPaths(viewModel),
+    ...collectCombatTextureAssetPaths(viewModel, showBackdrop),
     ...collectCombatSpritesheetAssetPaths(viewModel),
   ].join(ASSET_SIGNATURE_SEPARATOR);
 }
@@ -214,6 +220,82 @@ function drawFighterShadow(graphics: Graphics, intensity: number): void {
   graphics.fill();
 }
 
+function createFloatingHealthText(): Text {
+  const label = new Text({
+    text: '',
+    style: {
+      align: 'center',
+      dropShadow: {
+        alpha: 0.68,
+        angle: Math.PI / 2,
+        blur: 1,
+        color: '#1a0c08',
+        distance: 3,
+      },
+      fill: '#ff4a3d',
+      fontFamily: 'serif',
+      fontSize: 34,
+      fontWeight: '900',
+      stroke: { color: '#2b110c', width: 5 },
+    },
+  });
+
+  label.anchor.set(0.5);
+  label.eventMode = 'none';
+  label.resolution = 2;
+  label.roundPixels = true;
+  label.visible = false;
+
+  return label;
+}
+
+function createFloatingDodgeText(): Text {
+  const label = new Text({
+    text: '',
+    style: {
+      align: 'center',
+      dropShadow: {
+        alpha: 0.7,
+        angle: Math.PI / 2,
+        blur: 1,
+        color: '#081521',
+        distance: 3,
+      },
+      fill: '#66c7ff',
+      fontFamily: 'serif',
+      fontSize: 30,
+      fontWeight: '900',
+      stroke: { color: '#102c44', width: 5 },
+    },
+  });
+
+  label.anchor.set(0.5);
+  label.eventMode = 'none';
+  label.resolution = 2;
+  label.roundPixels = true;
+  label.visible = false;
+
+  return label;
+}
+
+function formatFloatingHealthDelta(healthDelta: number): string {
+  const roundedDelta = Math.round(healthDelta);
+
+  return `${roundedDelta > 0 ? '+' : ''}${roundedDelta}`;
+}
+
+function getFloatingHealthFill(healthDelta: number): string {
+  return healthDelta >= 0 ? '#68ef7c' : '#ff4a3d';
+}
+
+function getFloatingHealthAlpha(progress: number): number {
+  if (progress < 0.12) {
+    return clamp(progress / 0.12, 0, 1);
+  }
+
+  return 1 - clamp((progress - 0.72) / 0.28, 0, 1);
+}
+
 function drawSlash(graphics: Graphics, attackerSide: 'left' | 'right', progress: number): void {
   const defender = FIGHTER_POSITIONS[attackerSide === 'left' ? 'right' : 'left'];
   const direction = getFacingDirection(attackerSide);
@@ -314,14 +396,19 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
   private readonly crowdFallback = new Graphics({ roundPixels: true });
   private readonly crowdSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
   private readonly debugOverlay: PixiVisualDebugOverlay | null;
+  private readonly dodgeLabel: string;
   private readonly dustGraphics = new Graphics({ roundPixels: true });
   private readonly effectGraphics = new Graphics({ roundPixels: true });
+  private readonly fighterScale: number;
   private readonly fighters = new Map<string, CombatFighterDisplay>();
+  private readonly floatingDodgeText = createFloatingDodgeText();
+  private readonly floatingHealthText = createFloatingHealthText();
   private readonly layers = createRenderLayerSetup(COMBAT_LAYER_IDS, {
     fighters: { sortableChildren: true },
   });
   private readonly reducedMotion: boolean;
   private readonly sandGraphics = new Graphics({ roundPixels: true });
+  private readonly showBackdrop: boolean;
   private readonly tribuneGraphics = new Graphics({ roundPixels: true });
   private readonly vignetteGraphics = new Graphics({ roundPixels: true });
   private actionSignature?: string;
@@ -337,14 +424,22 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
     this.app = context.app;
     this.assetLoader = context.assetLoader;
     this.debugOverlay = context.debugMode ? new PixiVisualDebugOverlay() : null;
+    this.dodgeLabel = options.dodgeLabel ?? 'Dodge';
+    this.fighterScale = options.fighterScale ?? FIGHTER_BASE_SCALE;
     this.reducedMotion = options.reducedMotion ?? false;
+    this.showBackdrop = options.showBackdrop ?? true;
     this.root.label = 'combat-scene';
     this.root.addChild(this.layers.root);
     this.layers.layers.background.addChild(this.backgroundFallback, this.backgroundSprite);
     this.layers.layers.crowd.addChild(this.crowdSprite, this.crowdFallback);
     this.layers.layers.tribune.addChild(this.tribuneGraphics);
     this.layers.layers.sand.addChild(this.sandGraphics);
-    this.layers.layers.effects.addChild(this.dustGraphics, this.effectGraphics);
+    this.layers.layers.effects.addChild(
+      this.dustGraphics,
+      this.effectGraphics,
+      this.floatingHealthText,
+      this.floatingDodgeText,
+    );
     this.layers.layers.vignette.addChild(this.vignetteGraphics);
 
     if (this.debugOverlay) {
@@ -379,6 +474,7 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
 
   update(viewModel: CombatScreenViewModel): void {
     const sceneViewModel = createCombatSceneViewModel(viewModel, {
+      dodgeLabel: this.dodgeLabel,
       reducedMotion: this.reducedMotion,
     });
     const nextActionSignature = [
@@ -454,7 +550,7 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
   private async loadAssets(viewModel: CombatSceneViewModel): Promise<void> {
     const loadId = ++this.assetLoadId;
     const [textures, spritesheets] = await Promise.all([
-      this.assetLoader.loadTextures(collectCombatTextureAssetPaths(viewModel)),
+      this.assetLoader.loadTextures(collectCombatTextureAssetPaths(viewModel, this.showBackdrop)),
       this.assetLoader.loadSpritesheets(collectCombatSpritesheetAssetPaths(viewModel)),
     ]);
 
@@ -471,7 +567,7 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
   }
 
   private loadAssetsIfNeeded(viewModel: CombatSceneViewModel): void {
-    const nextAssetSignature = createAssetSignature(viewModel);
+    const nextAssetSignature = createAssetSignature(viewModel, this.showBackdrop);
 
     if (nextAssetSignature === this.assetSignature) {
       return;
@@ -499,23 +595,35 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
   }
 
   private reconcile(viewModel: CombatSceneViewModel): void {
-    const backgroundTexture = this.textures.get(viewModel.backgroundPath);
-    const crowdTexture = this.textures.get(viewModel.crowdPath);
+    if (this.showBackdrop) {
+      const backgroundTexture = this.textures.get(viewModel.backgroundPath);
+      const crowdTexture = this.textures.get(viewModel.crowdPath);
 
-    this.backgroundSprite.visible = Boolean(backgroundTexture);
-    this.backgroundSprite.texture = backgroundTexture ?? Texture.EMPTY;
-    setPixelArtSpriteSize(this.backgroundSprite, ARENA_WIDTH, ARENA_HEIGHT);
-    this.backgroundFallback.alpha = backgroundTexture ? 0.22 : 1;
-    drawArenaFallback(this.backgroundFallback);
+      this.backgroundSprite.visible = Boolean(backgroundTexture);
+      this.backgroundSprite.texture = backgroundTexture ?? Texture.EMPTY;
+      setPixelArtSpriteSize(this.backgroundSprite, ARENA_WIDTH, ARENA_HEIGHT);
+      this.backgroundFallback.alpha = backgroundTexture ? 0.22 : 1;
+      drawArenaFallback(this.backgroundFallback);
 
-    this.crowdSprite.visible = Boolean(crowdTexture);
-    this.crowdSprite.texture = crowdTexture ?? Texture.EMPTY;
-    setPixelArtSpriteSize(this.crowdSprite, ARENA_WIDTH, 160);
-    this.crowdFallback.visible = !crowdTexture;
-    drawCrowdFallback(this.crowdFallback);
-    drawTribune(this.tribuneGraphics);
-    drawSandFloor(this.sandGraphics);
-    drawVignette(this.vignetteGraphics);
+      this.crowdSprite.visible = Boolean(crowdTexture);
+      this.crowdSprite.texture = crowdTexture ?? Texture.EMPTY;
+      setPixelArtSpriteSize(this.crowdSprite, ARENA_WIDTH, 160);
+      this.crowdFallback.visible = !crowdTexture;
+      drawCrowdFallback(this.crowdFallback);
+      drawTribune(this.tribuneGraphics);
+      drawSandFloor(this.sandGraphics);
+      drawVignette(this.vignetteGraphics);
+    } else {
+      this.backgroundSprite.visible = false;
+      this.backgroundSprite.texture = Texture.EMPTY;
+      this.backgroundFallback.clear();
+      this.crowdSprite.visible = false;
+      this.crowdSprite.texture = Texture.EMPTY;
+      this.crowdFallback.clear();
+      this.tribuneGraphics.clear();
+      this.sandGraphics.clear();
+      this.vignetteGraphics.clear();
+    }
 
     const activeCombatants = [viewModel.left, viewModel.right];
     const activeIds = new Set(activeCombatants.map((combatant) => combatant.id));
@@ -539,6 +647,10 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
   }
 
   private updateCrowd(now: number, reducedMotion: boolean): void {
+    if (!this.showBackdrop) {
+      return;
+    }
+
     if (reducedMotion) {
       this.crowdSprite.alpha = 0.78;
       this.crowdFallback.alpha = 0.78;
@@ -556,6 +668,8 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
   private updateEffects(viewModel: CombatSceneViewModel, now: number): void {
     this.effectGraphics.clear();
     this.dustGraphics.clear();
+    this.floatingDodgeText.visible = false;
+    this.floatingHealthText.visible = false;
 
     if (!viewModel.effect) {
       return;
@@ -563,6 +677,7 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
 
     const actionProgress = this.getActionProgress(now, ACTION_DURATION_MS);
     const dustProgress = this.getActionProgress(now, DUST_DURATION_MS);
+    const floatingHealthProgress = this.getActionProgress(now, FLOATING_HEALTH_DURATION_MS);
 
     if (actionProgress < 1 || viewModel.reducedMotion) {
       drawSlash(this.effectGraphics, viewModel.effect.attackerSide, actionProgress);
@@ -577,6 +692,56 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
     if (!viewModel.reducedMotion && dustProgress < 1) {
       drawDust(this.dustGraphics, viewModel.effect.attackerSide, dustProgress);
     }
+
+    this.updateFloatingHealthText(viewModel.effect, floatingHealthProgress);
+    this.updateFloatingDodgeText(viewModel.effect, floatingHealthProgress);
+  }
+
+  private updateFloatingHealthText(
+    effect: NonNullable<CombatSceneViewModel['effect']>,
+    progress: number,
+  ): void {
+    const healthDelta = Math.round(effect.healthDelta);
+
+    if (healthDelta === 0 || (!this.reducedMotion && progress >= 1)) {
+      return;
+    }
+
+    const defender = FIGHTER_POSITIONS[effect.defenderSide];
+    const direction = getFacingDirection(effect.defenderSide);
+    const lift = this.reducedMotion ? 34 : progress * 58;
+    const wobble = this.reducedMotion ? 0 : Math.sin(progress * Math.PI * 2) * 7;
+    const popScale = this.reducedMotion ? 1.05 : 0.84 + Math.sin(progress * Math.PI) * 0.34;
+
+    this.floatingHealthText.text = formatFloatingHealthDelta(healthDelta);
+    this.floatingHealthText.style.fill = getFloatingHealthFill(healthDelta);
+    this.floatingHealthText.x = defender.x + direction * 8 + wobble;
+    this.floatingHealthText.y = defender.y - 218 - lift;
+    this.floatingHealthText.alpha = this.reducedMotion ? 1 : getFloatingHealthAlpha(progress);
+    this.floatingHealthText.scale.set(popScale);
+    this.floatingHealthText.visible = true;
+  }
+
+  private updateFloatingDodgeText(
+    effect: NonNullable<CombatSceneViewModel['effect']>,
+    progress: number,
+  ): void {
+    if (!effect.dodgeLabel || (!this.reducedMotion && progress >= 1)) {
+      return;
+    }
+
+    const defender = FIGHTER_POSITIONS[effect.defenderSide];
+    const direction = getFacingDirection(effect.defenderSide);
+    const lift = this.reducedMotion ? 28 : progress * 52;
+    const drift = this.reducedMotion ? 0 : Math.sin(progress * Math.PI) * 18 * direction;
+    const popScale = this.reducedMotion ? 1.04 : 0.82 + Math.sin(progress * Math.PI) * 0.28;
+
+    this.floatingDodgeText.text = effect.dodgeLabel.toUpperCase();
+    this.floatingDodgeText.x = defender.x - direction * 18 + drift;
+    this.floatingDodgeText.y = defender.y - 210 - lift;
+    this.floatingDodgeText.alpha = this.reducedMotion ? 1 : getFloatingHealthAlpha(progress);
+    this.floatingDodgeText.scale.set(popScale);
+    this.floatingDodgeText.visible = true;
   }
 
   private updateFighterAnimation(fighter: CombatFighterDisplay, now: number): void {
@@ -600,7 +765,7 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
     fighter.container.x = basePosition.x + attackOffset + hitOffset + blockOffset;
     fighter.container.y = basePosition.y + idleLift;
     fighter.container.zIndex = fighter.container.y + combatant.animation.ySortOffset;
-    fighter.sprite.scale.set(FIGHTER_BASE_SCALE * direction, FIGHTER_BASE_SCALE);
+    fighter.sprite.scale.set(this.fighterScale * direction, this.fighterScale);
     drawFighterShadow(fighter.shadow, actionEnvelope);
 
     if (!this.reducedMotion && fighter.sprite.visible) {

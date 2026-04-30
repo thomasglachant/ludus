@@ -1,4 +1,4 @@
-export type ScreenName = 'mainMenu' | 'newGame' | 'ludus';
+export type ScreenName = 'mainMenu' | 'newGame' | 'ludus' | 'arena';
 
 export const GAME_SESSION_PATH = '/play';
 
@@ -6,18 +6,29 @@ export function getGameSessionPath(gameId: string) {
   return `${GAME_SESSION_PATH}/${encodeURIComponent(gameId)}`;
 }
 
-export function getGameIdFromGameSessionPath(pathname: string) {
-  const gameId = pathname.match(/^\/play\/([^/]+)\/?$/)?.[1];
+export function getArenaSessionPath(gameId: string) {
+  return `${getGameSessionPath(gameId)}/arena`;
+}
 
-  if (!gameId) {
+export function getGameSessionRoute(pathname: string) {
+  const route = pathname.match(/^\/play\/([^/]+)(?:\/(arena))?\/?$/);
+
+  if (!route) {
     return null;
   }
 
   try {
-    return decodeURIComponent(gameId);
+    return {
+      gameId: decodeURIComponent(route[1]),
+      screen: route[2] === 'arena' ? ('arena' as const) : ('ludus' as const),
+    };
   } catch {
     return null;
   }
+}
+
+export function getGameIdFromGameSessionPath(pathname: string) {
+  return getGameSessionRoute(pathname)?.gameId ?? null;
 }
 
 export function isGameSessionPath(pathname: string) {

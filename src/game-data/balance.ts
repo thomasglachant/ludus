@@ -1,6 +1,6 @@
 import type { BuildingId } from '../domain/buildings/types';
-import type { ArenaRank, CombatStrategy } from '../domain/combat/types';
-import type { GladiatorClassId, GladiatorTrait } from '../domain/gladiators/types';
+import type { ArenaRank } from '../domain/combat/types';
+import type { GladiatorTrait } from '../domain/gladiators/types';
 import type { GladiatorWeeklyObjective, TrainingIntensity } from '../domain/planning/types';
 import type { DayOfWeek, GameSpeed } from '../domain/time/types';
 
@@ -134,61 +134,6 @@ export const GAME_BALANCE = {
       wins: 0,
       // Losses assigned to generated arena opponents.
       losses: 0,
-    },
-    classes: {
-      // Historical arena specializations assigned to generated gladiators.
-      ids: [
-        'murmillo',
-        'retiarius',
-        'secutor',
-        'thraex',
-        'hoplomachus',
-      ] as const satisfies readonly GladiatorClassId[],
-      combatModifiers: {
-        murmillo: {
-          // Heavy shield improves survival but makes attacks less decisive.
-          hitChanceBonus: 0,
-          damageMultiplier: 0.97,
-          defenseMultiplier: 1.06,
-          energyCostMultiplier: 1.03,
-        },
-        retiarius: {
-          // Net and trident help accuracy and stamina, at the cost of protection.
-          hitChanceBonus: 0.02,
-          damageMultiplier: 1,
-          defenseMultiplier: 0.94,
-          energyCostMultiplier: 0.95,
-        },
-        secutor: {
-          // Pursuer kit rewards pressure but is demanding and slightly less precise.
-          hitChanceBonus: -0.02,
-          damageMultiplier: 1.03,
-          defenseMultiplier: 1.03,
-          energyCostMultiplier: 1.04,
-        },
-        thraex: {
-          // Curved blade creates dangerous angles while exposing the fighter.
-          hitChanceBonus: 0,
-          damageMultiplier: 1.05,
-          defenseMultiplier: 0.96,
-          energyCostMultiplier: 1.02,
-        },
-        hoplomachus: {
-          // Spear control steadies guard and accuracy, but limits heavy blows.
-          hitChanceBonus: 0.01,
-          damageMultiplier: 0.96,
-          defenseMultiplier: 1.03,
-          energyCostMultiplier: 1,
-        },
-      } as const satisfies Record<
-        GladiatorClassId,
-        {
-          hitChanceBonus: number;
-          damageMultiplier: number;
-          defenseMultiplier: number;
-          energyCostMultiplier: number;
-        }
-      >,
     },
   },
 
@@ -396,33 +341,52 @@ export const GAME_BALANCE = {
     endHour: 20,
     // Minimum health required for a gladiator to receive a fight.
     minimumEligibleHealth: 1,
-    // Total denarii reward available for each arena rank.
+    // Base denarii reward used to calculate the odds-based victory bonus for each arena rank.
     rewards: {
-      // Total reward for the lowest bronze rank.
+      // Base victory reward for the lowest bronze rank.
       bronze3: 80,
-      // Total reward for the middle bronze rank.
+      // Base victory reward for the middle bronze rank.
       bronze2: 120,
-      // Total reward for the highest bronze rank.
+      // Base victory reward for the highest bronze rank.
       bronze1: 180,
-      // Total reward for the lowest silver rank.
+      // Base victory reward for the lowest silver rank.
       silver3: 260,
-      // Total reward for the middle silver rank.
+      // Base victory reward for the middle silver rank.
       silver2: 380,
-      // Total reward for the highest silver rank.
+      // Base victory reward for the highest silver rank.
       silver1: 540,
-      // Total reward for the lowest gold rank.
+      // Base victory reward for the lowest gold rank.
       gold3: 760,
-      // Total reward for the middle gold rank.
+      // Base victory reward for the middle gold rank.
       gold2: 1050,
-      // Total reward for the highest gold rank.
+      // Base victory reward for the highest gold rank.
       gold1: 1400,
     } as const satisfies Record<ArenaRank, number>,
-    rewardSplit: {
-      // Fraction of the arena reward paid after a win.
-      winner: 0.75,
-      // Fraction of the arena reward paid after a loss.
-      loser: 0.25,
-    },
+    // Fixed participation bonus paid by arena rank.
+    participationRewards: {
+      // Participation reward for the lowest bronze rank.
+      bronze3: 20,
+      // Participation reward for the middle bronze rank.
+      bronze2: 30,
+      // Participation reward for the highest bronze rank.
+      bronze1: 45,
+      // Participation reward for the lowest silver rank.
+      silver3: 65,
+      // Participation reward for the middle silver rank.
+      silver2: 95,
+      // Participation reward for the highest silver rank.
+      silver1: 135,
+      // Participation reward for the lowest gold rank.
+      gold3: 190,
+      // Participation reward for the middle gold rank.
+      gold2: 260,
+      // Participation reward for the highest gold rank.
+      gold1: 350,
+    } as const satisfies Record<ArenaRank, number>,
+    // Fraction of the rank base reward multiplied by decimal odds to create the victory bonus.
+    victoryOddsRewardMultiplier: 0.42,
+    // Public stake modifier spread applied to the victory bonus, in denarii.
+    publicStakeModifierSpread: 20,
     rankThresholds: [
       {
         // Arena rank unlocked by the first reputation threshold.
@@ -482,24 +446,9 @@ export const GAME_BALANCE = {
   },
 
   combat: {
-    // Strategies available for gladiator fight planning.
-    strategies: [
-      // Baseline strategy without bonuses or penalties.
-      'balanced',
-      // Strategy favoring damage at the cost of defense and energy.
-      'aggressive',
-      // Strategy favoring defense at the cost of hit chance and damage.
-      'defensive',
-      // Strategy favoring avoidance at the cost of damage.
-      'evasive',
-      // Strategy tuned to outlast the opponent.
-      'exhaustOpponent',
-      // Strategy tuned to reduce risk when already injured.
-      'protectInjury',
-    ] as const satisfies readonly CombatStrategy[],
     // Maximum turns before combat is force-resolved by remaining health.
     maxTurns: 40,
-    // Base chance to hit before agility and strategy modifiers.
+    // Base chance to hit before agility modifiers.
     baseHitChance: 0.65,
     // Hit chance gained per attacker agility point.
     attackerAgilityHitMultiplier: 0.003,
@@ -509,7 +458,7 @@ export const GAME_BALANCE = {
     minHitChance: 0.1,
     // Upper clamp for hit chance.
     maxHitChance: 0.95,
-    // Base damage before strength and strategy modifiers.
+    // Base damage before strength modifiers.
     baseDamage: 5,
     // Damage added per attacker strength point.
     strengthDamageMultiplier: 0.4,
@@ -539,76 +488,6 @@ export const GAME_BALANCE = {
     winReputationValue: 10,
     // Reputation penalty of each loss.
     lossReputationPenalty: 3,
-    strategyModifiers: {
-      balanced: {
-        // Hit chance adjustment for balanced strategy.
-        hitChanceBonus: 0,
-        // Damage multiplier for balanced strategy.
-        damageMultiplier: 1,
-        // Defense multiplier for balanced strategy.
-        defenseMultiplier: 1,
-        // Energy cost multiplier for balanced strategy.
-        energyCostMultiplier: 1,
-      },
-      aggressive: {
-        // Hit chance adjustment for aggressive strategy.
-        hitChanceBonus: 0.05,
-        // Damage multiplier for aggressive strategy.
-        damageMultiplier: 1.18,
-        // Defense multiplier for aggressive strategy.
-        defenseMultiplier: 0.85,
-        // Energy cost multiplier for aggressive strategy.
-        energyCostMultiplier: 1.15,
-      },
-      defensive: {
-        // Hit chance adjustment for defensive strategy.
-        hitChanceBonus: -0.03,
-        // Damage multiplier for defensive strategy.
-        damageMultiplier: 0.9,
-        // Defense multiplier for defensive strategy.
-        defenseMultiplier: 1.25,
-        // Energy cost multiplier for defensive strategy.
-        energyCostMultiplier: 0.9,
-      },
-      evasive: {
-        // Hit chance adjustment for evasive strategy.
-        hitChanceBonus: 0.02,
-        // Damage multiplier for evasive strategy.
-        damageMultiplier: 0.85,
-        // Defense multiplier for evasive strategy.
-        defenseMultiplier: 1.1,
-        // Energy cost multiplier for evasive strategy.
-        energyCostMultiplier: 1.05,
-      },
-      exhaustOpponent: {
-        // Hit chance adjustment for exhaust-opponent strategy.
-        hitChanceBonus: -0.01,
-        // Damage multiplier for exhaust-opponent strategy.
-        damageMultiplier: 0.95,
-        // Defense multiplier for exhaust-opponent strategy.
-        defenseMultiplier: 1.05,
-        // Energy cost multiplier for exhaust-opponent strategy.
-        energyCostMultiplier: 1,
-      },
-      protectInjury: {
-        // Hit chance adjustment for protect-injury strategy.
-        hitChanceBonus: -0.05,
-        // Damage multiplier for protect-injury strategy.
-        damageMultiplier: 0.8,
-        // Defense multiplier for protect-injury strategy.
-        defenseMultiplier: 1.35,
-        // Energy cost multiplier for protect-injury strategy.
-        energyCostMultiplier: 0.8,
-      },
-    } as const satisfies Record<
-      CombatStrategy,
-      {
-        hitChanceBonus: number;
-        damageMultiplier: number;
-        defenseMultiplier: number;
-        energyCostMultiplier: number;
-      }
-    >,
     opponentByRank: {
       bronze3: {
         // Opponent stat multiplier at bronze 3.
@@ -713,8 +592,6 @@ export const GAME_BALANCE = {
     weeklyObjectives: [
       // Balanced objective for general training.
       'balanced',
-      // Objective focused on next arena fight preparation.
-      'fightPreparation',
       // Objective focused on strength training.
       'trainStrength',
       // Objective focused on agility training.
@@ -761,26 +638,6 @@ export const GAME_BALANCE = {
       // Primary need value at or below which automatic assignment changes activity.
       primaryNeedReassignment: 10,
     },
-    readinessWeights: {
-      // Health contribution to readiness score.
-      health: 0.35,
-      // Energy contribution to readiness score.
-      energy: 0.25,
-      // Morale contribution to readiness score.
-      morale: 0.15,
-      // Satiety contribution to readiness score.
-      satiety: 0.15,
-      // Reputation stability contribution to readiness score.
-      reputationStability: 0.1,
-    },
-    readiness: {
-      // Reputation value considered most stable for readiness.
-      reputationStabilityCenter: 50,
-      // Minimum value used by readiness clamping.
-      minimum: 0,
-      // Maximum value used by readiness clamping.
-      maximum: 100,
-    },
     defaultRoutine: {
       // Weekly objective assigned to new gladiator routines.
       objective: 'balanced' satisfies GladiatorWeeklyObjective,
@@ -789,15 +646,6 @@ export const GAME_BALANCE = {
       // Whether new routines allow automatic building assignment.
       allowAutomaticAssignment: true,
     },
-  },
-
-  contracts: {
-    // Number of weekly contracts offered to the player.
-    availableContractsPerWeek: 3,
-    // Year multiplier used by deterministic weekly contract rotation.
-    rotationYearMultiplier: 7,
-    // Week multiplier used by deterministic weekly contract rotation.
-    rotationWeekMultiplier: 3,
   },
 
   events: {

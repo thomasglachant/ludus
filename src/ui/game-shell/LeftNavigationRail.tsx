@@ -17,7 +17,6 @@ const navigationItems: Array<{
     labelKey: 'navigation.weeklyPlanning',
     iconName: 'weeklyPlanning',
   },
-  { panelKind: 'contracts', labelKey: 'navigation.contracts', iconName: 'contracts' },
   { panelKind: 'events', labelKey: 'navigation.events', iconName: 'events' },
 ];
 

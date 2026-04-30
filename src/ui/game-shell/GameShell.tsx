@@ -18,14 +18,13 @@ const PixiLudusMap = lazy(() =>
 export function GameShell() {
   const { advanceToNextDay, currentSave, errorKey, isLoading, saveNoticeKey, setGameSpeed } =
     useGameStore();
-  const { activeModal, openModal, t } = useUiStore();
+  const { activeModal, navigate, openModal, t } = useUiStore();
   const [selectedGladiatorId, setSelectedGladiatorId] = useState<string | null>(null);
 
   const activePanelKind: ContextPanelKind | null =
     activeModal?.kind === 'building' ||
     activeModal?.kind === 'gladiator' ||
     activeModal?.kind === 'weeklyPlanning' ||
-    activeModal?.kind === 'contracts' ||
     activeModal?.kind === 'events' ||
     activeModal?.kind === 'market' ||
     activeModal?.kind === 'arena'
@@ -38,21 +37,35 @@ export function GameShell() {
         return;
       }
 
+      if (panelKind === 'arena' && currentSave?.arena.arenaDay) {
+        navigate('arena', { gameId: currentSave.gameId });
+        return;
+      }
+
       openModal({ kind: panelKind });
     },
-    [openModal],
+    [currentSave, navigate, openModal],
   );
 
   const selectLocation = useCallback(
     (location: MapLocationDefinition) => {
+      if (!currentSave) {
+        return;
+      }
+
       if (location.kind === 'building') {
         openModal({ buildingId: location.id, kind: 'building' });
         return;
       }
 
+      if (location.id === 'arena' && currentSave.arena.arenaDay) {
+        navigate('arena', { gameId: currentSave.gameId });
+        return;
+      }
+
       openModal({ kind: location.id === 'market' ? 'market' : 'arena' });
     },
-    [openModal],
+    [currentSave, navigate, openModal],
   );
 
   const selectGladiator = useCallback(

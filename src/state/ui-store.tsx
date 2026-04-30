@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import {
   GAME_SESSION_PATH,
-  getGameIdFromGameSessionPath,
+  getArenaSessionPath,
   getGameSessionPath,
+  getGameSessionRoute,
   type ScreenName,
 } from '../app/routes';
 import type { LanguageCode } from '../domain/types';
@@ -36,12 +37,16 @@ function getInitialLanguage(): LanguageCode {
 }
 
 function getInitialScreen(): ScreenName {
-  return getGameIdFromGameSessionPath(window.location.pathname) ? 'ludus' : 'mainMenu';
+  return getGameSessionRoute(window.location.pathname)?.screen ?? 'mainMenu';
 }
 
 function getPathForScreen(screen: ScreenName, options: { gameId?: string } = {}) {
-  if (screen !== 'ludus') {
+  if (screen !== 'ludus' && screen !== 'arena') {
     return '/';
+  }
+
+  if (screen === 'arena') {
+    return options.gameId ? getArenaSessionPath(options.gameId) : `${GAME_SESSION_PATH}/arena`;
   }
 
   return options.gameId ? getGameSessionPath(options.gameId) : GAME_SESSION_PATH;
@@ -99,11 +104,17 @@ export function UiStoreProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('ludus:language', nextLanguage);
     setLanguageState(nextLanguage);
   }, []);
-  const navigate = useCallback((nextScreen: ScreenName, options?: { gameId?: string }) => {
-    writeScreenPath(nextScreen, options);
-    setScreen(nextScreen);
-    setModalStack([]);
-  }, []);
+  const navigate = useCallback(
+    (nextScreen: ScreenName, options?: { gameId?: string; preserveModal?: boolean }) => {
+      writeScreenPath(nextScreen, options);
+      setScreen(nextScreen);
+
+      if (!options?.preserveModal) {
+        setModalStack([]);
+      }
+    },
+    [],
+  );
   const t = useCallback(
     (key: string, params?: Record<string, string | number>) => translate(language, key, params),
     [language],

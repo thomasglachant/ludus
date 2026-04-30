@@ -1,4 +1,3 @@
-import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import { getEffectiveSkillValue, getSkillTrainingProgress } from '../../domain/gladiators/skills';
 import {
   getPlanningRecommendation,
@@ -9,8 +8,8 @@ import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { getMapLocation } from '../../game-data/map-layout';
 import { useUiStore } from '../../state/ui-store-context';
 import { PanelShell } from '../components/shared';
+import { formatNumber } from '../formatters/number';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
-import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface GladiatorDetailPanelProps {
@@ -41,26 +40,29 @@ function clampMeterValue(value: number) {
 }
 
 function StatChip({ iconName, label, value }: StatChipProps) {
+  const formattedValue = typeof value === 'number' ? formatNumber(value) : value;
+
   return (
     <div className="gladiator-stat-chip">
       <GameIcon name={iconName} size={19} />
       <span>{label}</span>
-      <strong>{value}</strong>
+      <strong>{formattedValue}</strong>
     </div>
   );
 }
 
 function SkillChip({ iconName, label, value, progress }: SkillChipProps) {
   const { t } = useUiStore();
+  const formattedValue = typeof value === 'number' ? formatNumber(value) : value;
 
   return (
     <div className="gladiator-stat-chip gladiator-stat-chip--skill">
       <GameIcon name={iconName} size={19} />
       <span>{label}</span>
-      <strong>{value}</strong>
+      <strong>{formattedValue}</strong>
       <span
         className="gladiator-skill-progress"
-        aria-label={t('gladiatorPanel.skillProgress', { progress })}
+        aria-label={t('gladiatorPanel.skillProgress', { progress: formatNumber(progress) })}
       >
         <span className="gladiator-skill-progress__value" style={{ width: `${progress}%` }} />
       </span>
@@ -76,7 +78,9 @@ function ResourceMeter({ iconName, label, tone, value }: ResourceMeterProps) {
       <div className="gladiator-resource-meter__label">
         <GameIcon name={iconName} size={18} />
         <span>{label}</span>
-        <strong>{value}/100</strong>
+        <strong>
+          {formatNumber(value)}/{formatNumber(100)}
+        </strong>
       </div>
       <span className="gladiator-resource-meter__track" aria-hidden="true">
         <span className="gladiator-resource-meter__value" style={{ width: `${clampedValue}%` }} />
@@ -114,7 +118,6 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
   const { t } = useUiStore();
   const routine = getRoutineForGladiator(save, gladiator.id);
   const recommendation = getPlanningRecommendation(save, gladiator, routine);
-  const readiness = calculateEffectiveReadiness(save, gladiator);
   const currentLocationName = getLocationName(
     t,
     gladiator.currentLocationId ?? gladiator.currentBuildingId,
@@ -197,15 +200,9 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
         <div className="gladiator-profile-card__main">
           <div className="gladiator-profile-card__identity">
             <h2>{gladiator.name}</h2>
-            <GladiatorClassLine gladiator={gladiator} showDescription showEffect />
           </div>
 
           <div className="gladiator-profile-card__summary">
-            <StatChip
-              iconName="readiness"
-              label={t('weeklyPlan.readiness')}
-              value={t('weeklyPlan.readinessValue', { score: readiness })}
-            />
             <StatChip iconName="age" label={t('gladiatorPanel.age')} value={gladiator.age} />
             <StatChip
               iconName="reputation"
@@ -286,10 +283,6 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
             <div>
               <dt>{t('weeklyPlan.intensity')}</dt>
               <dd>{t(`weeklyPlan.intensities.${routine.intensity}`)}</dd>
-            </div>
-            <div>
-              <dt>{t('weeklyPlan.strategy')}</dt>
-              <dd>{t(`combat.strategies.${routine.combatStrategy ?? 'balanced'}`)}</dd>
             </div>
           </dl>
         </section>

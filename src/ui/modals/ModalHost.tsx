@@ -1,10 +1,9 @@
-import { useState, type FormEvent } from 'react';
+import { type FormEvent, useState } from 'react';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore, type FormModalField, type UiModalState } from '../../state/ui-store-context';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
-import { CombatScreen } from '../combat/CombatScreen';
 import { ActionButton } from '../components/ActionButton';
-import { ArenaPanel, ContractsPanel, EventsPanel } from '../panels/ActivityPanels';
+import { ArenaPanel, EventsPanel } from '../panels/ActivityPanels';
 import { BuildingPanel } from '../panels/BuildingPanel';
 import { GladiatorDetailPanel } from '../panels/GladiatorDetailPanel';
 import { WeeklyPlanningPanel } from '../panels/WeeklyPlanningPanel';
@@ -135,31 +134,23 @@ function FormDialog({
 }
 
 function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): void }) {
-  const [activeCombatId, setActiveCombatId] = useState<string | undefined>();
   const {
-    acceptWeeklyContract,
     applyPlanningRecommendations,
-    completeSundayArenaDay,
     currentSave,
     hasUnsavedChanges,
     isLoading,
     isSaving,
-    markArenaCombatPresented,
     purchaseBuilding,
     purchaseBuildingImprovement,
     resolveGameEventChoice,
     saveCurrentGame,
     scoutOpponent,
     selectBuildingPolicy,
-    setGameSpeed,
-    showArenaDaySummary,
-    startArenaDayCombats,
     updateGladiatorRoutine,
     upgradeBuilding,
   } = useGameStore();
-  const { closeAllModals, navigate, pushModal } = useUiStore();
+  const { closeAllModals, navigate } = useUiStore();
   const isDailyEventBlocking = currentSave ? currentSave.events.pendingEvents.length > 0 : false;
-  const isArenaDayBlocking = Boolean(currentSave?.arena.arenaDay);
 
   const quitToMainMenu = () => {
     navigate('mainMenu');
@@ -261,24 +252,6 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
     );
   }
 
-  if (modal.kind === 'contracts') {
-    return (
-      <AppModal
-        size="lg"
-        testId="contracts-modal"
-        titleKey="contracts.title"
-        onBack={onBack}
-        onClose={closeAllModals}
-      >
-        <ContractsPanel
-          save={currentSave}
-          onAcceptContract={acceptWeeklyContract}
-          onClose={closeAllModals}
-        />
-      </AppModal>
-    );
-  }
-
   if (modal.kind === 'events') {
     return (
       <AppModal
@@ -303,46 +276,23 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
 
   if (modal.kind === 'arena') {
     return (
-      <>
-        <AppModal
-          dismissible={!isArenaDayBlocking}
-          size="xl"
-          testId="arena-panel"
-          titleKey="arena.title"
-          onBack={onBack}
+      <AppModal
+        size="md"
+        testId="arena-panel"
+        titleKey="arena.title"
+        onBack={onBack}
+        onClose={closeAllModals}
+      >
+        <ArenaPanel
+          save={currentSave}
           onClose={closeAllModals}
-        >
-          <ArenaPanel
-            save={currentSave}
-            onCompleteArenaDay={completeSundayArenaDay}
-            onClose={closeAllModals}
-            onOpenCombat={setActiveCombatId}
-            onScoutOpponent={scoutOpponent}
-            onShowArenaDaySummary={showArenaDaySummary}
-            onStartArenaDayCombats={startArenaDayCombats}
-          />
-        </AppModal>
-        {activeCombatId ? (
-          <CombatScreen
-            combatId={activeCombatId}
-            isBlocking={isArenaDayBlocking}
-            save={currentSave}
-            onClose={() => {
-              if (isArenaDayBlocking) {
-                markArenaCombatPresented(activeCombatId);
-              }
-
-              setActiveCombatId(undefined);
-            }}
-            onOpenMenu={() => {
-              if (!isArenaDayBlocking) {
-                pushModal({ kind: 'gameMenu' });
-              }
-            }}
-            onSpeedChange={setGameSpeed}
-          />
-        ) : null}
-      </>
+          onOpenArenaRoute={() => {
+            closeAllModals();
+            navigate('arena', { gameId: currentSave.gameId });
+          }}
+          onScoutOpponent={scoutOpponent}
+        />
+      </AppModal>
     );
   }
 

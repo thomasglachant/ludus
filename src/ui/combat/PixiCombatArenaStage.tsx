@@ -13,9 +13,16 @@ interface PixiCombatArenaStageProps {
 export function PixiCombatArenaStage({ viewModel }: PixiCombatArenaStageProps) {
   const { isPixiDebugEnabled, t } = useUiStore();
   const reducedMotion = usePrefersReducedMotion();
+  const dodgeLabel = t('combatScreen.logImpact.dodged');
   const createScene = useCallback(
-    (context: PixiSceneContext) => new CombatScene(context, { reducedMotion }),
-    [reducedMotion],
+    (context: PixiSceneContext) =>
+      new CombatScene(context, {
+        dodgeLabel,
+        fighterScale: 1.55,
+        reducedMotion,
+        showBackdrop: false,
+      }),
+    [dodgeLabel, reducedMotion],
   );
 
   return (
@@ -23,7 +30,7 @@ export function PixiCombatArenaStage({ viewModel }: PixiCombatArenaStageProps) {
       <PixiSceneViewport
         createScene={createScene}
         debugMode={isPixiDebugEnabled}
-        sceneKey={reducedMotion ? 'combat-reduced-motion' : 'combat-motion'}
+        sceneKey={`${reducedMotion ? 'combat-reduced-motion' : 'combat-motion'}:${dodgeLabel}`}
         sceneLabel={t('combatScreen.title')}
         snapshot={viewModel}
       />

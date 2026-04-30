@@ -1,9 +1,7 @@
 import type { BuildingId } from '../buildings/types';
-import type { CombatStrategy } from '../combat/types';
 
 export type GladiatorWeeklyObjective =
   | 'balanced'
-  | 'fightPreparation'
   | 'trainStrength'
   | 'trainAgility'
   | 'trainDefense'
@@ -20,7 +18,6 @@ export interface GladiatorRoutine {
   intensity: TrainingIntensity;
   allowAutomaticAssignment: boolean;
   lockedBuildingId?: BuildingId;
-  combatStrategy?: CombatStrategy;
 }
 
 export interface WeeklyPlanningState {

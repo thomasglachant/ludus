@@ -1,14 +1,14 @@
-import type { ArenaRank, CombatStrategy } from '../domain/combat/types';
+import type { ArenaRank } from '../domain/combat/types';
 import { GAME_BALANCE } from './balance';
-
-export const COMBAT_STRATEGIES = GAME_BALANCE.combat.strategies satisfies readonly CombatStrategy[];
 
 export const ARENA_REWARDS: Record<ArenaRank, number> = GAME_BALANCE.arena.rewards;
 
-export const ARENA_REWARD_SPLIT = {
-  winner: GAME_BALANCE.arena.rewardSplit.winner,
-  loser: GAME_BALANCE.arena.rewardSplit.loser,
-} as const;
+export const ARENA_PARTICIPATION_REWARDS: Record<ArenaRank, number> =
+  GAME_BALANCE.arena.participationRewards;
+
+export const ARENA_VICTORY_ODDS_REWARD_MULTIPLIER = GAME_BALANCE.arena.victoryOddsRewardMultiplier;
+
+export const ARENA_PUBLIC_STAKE_MODIFIER_SPREAD = GAME_BALANCE.arena.publicStakeModifierSpread;
 
 export const BETTING_CONFIG = {
   firstOddsDay: GAME_BALANCE.betting.firstOddsDay,
@@ -43,16 +43,6 @@ export const COMBAT_CONFIG = {
   winReputationValue: GAME_BALANCE.combat.winReputationValue,
   lossReputationPenalty: GAME_BALANCE.combat.lossReputationPenalty,
 } as const;
-
-export const COMBAT_STRATEGY_MODIFIERS: Record<
-  CombatStrategy,
-  {
-    hitChanceBonus: number;
-    damageMultiplier: number;
-    defenseMultiplier: number;
-    energyCostMultiplier: number;
-  }
-> = GAME_BALANCE.combat.strategyModifiers;
 
 export const ARENA_OPPONENT_CONFIG: Record<
   ArenaRank,

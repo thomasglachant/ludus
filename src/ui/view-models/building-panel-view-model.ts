@@ -9,7 +9,6 @@ import {
   getAvailableLudusGladiatorPlaces,
   getLudusGladiatorCapacity,
 } from '../../domain/ludus/capacity';
-import { calculateEffectiveReadiness } from '../../domain/planning/readiness';
 import type {
   BuildingActionValidation,
   BuildingEffect,
@@ -49,7 +48,6 @@ export interface BuildingPanelViewModel {
   assignedGladiators: {
     id: string;
     name: string;
-    readiness: number;
   }[];
   descriptionKey: string;
   effects: string[];
@@ -210,7 +208,6 @@ export function createBuildingPanelViewModel(
       .map((gladiator) => ({
         id: gladiator.id,
         name: gladiator.name,
-        readiness: calculateEffectiveReadiness(save, gladiator),
       })),
     descriptionKey: definition.descriptionKey,
     effects: formatBuildingEffects(getActiveBuildingEffects(save, buildingId), t),

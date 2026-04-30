@@ -249,7 +249,7 @@ const LOCATION_GRID_SPECS: Record<MapLocationId, LocationGridSpec> = {
     entrance: { column: 2, row: 22 },
     activitySlots: {
       recruits: { column: 1, row: 19 },
-      equipment: { column: 2, row: 20 },
+      stall: { column: 2, row: 20 },
       supplies: { column: 3, row: 19 },
     },
     blocksMovement: true,
@@ -263,7 +263,7 @@ const LOCATION_GRID_SPECS: Record<MapLocationId, LocationGridSpec> = {
     entrance: { column: 27, row: 27 },
     activitySlots: {
       'owner-desk': { column: 25, row: 24 },
-      'strategy-table': { column: 27, row: 24 },
+      ledger: { column: 27, row: 24 },
       treasury: { column: 28, row: 24 },
       shrine: { column: 27, row: 25 },
     },
@@ -277,9 +277,9 @@ const LOCATION_GRID_SPECS: Record<MapLocationId, LocationGridSpec> = {
     grid: gridRect(24, 7, 8, 6),
     entrance: { column: 28, row: 13 },
     activitySlots: {
-      'sword-dummy': { column: 25, row: 9 },
-      'shield-post': { column: 27, row: 9 },
-      'spear-target': { column: 29, row: 9 },
+      'striking-post': { column: 25, row: 9 },
+      'guard-post': { column: 27, row: 9 },
+      'footwork-ring': { column: 29, row: 9 },
       weights: { column: 25, row: 11 },
       'sparring-circle': { column: 27, row: 11 },
       'agility-rope': { column: 29, row: 11 },

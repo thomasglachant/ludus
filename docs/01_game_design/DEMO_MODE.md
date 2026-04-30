@@ -122,7 +122,7 @@ Expected state:
 - Domus capacity at the maximum roster size;
 - 5 predefined market candidates;
 - multiple active alerts;
-- arena preparation state with predefined betting odds locked for the weekend;
+- arena state with predefined betting odds locked for the weekend;
 - dusk or night visual coverage.
 
 The advanced demo must verify that the bottom gladiator roster remains readable with 6 gladiators and that Playwright can advance from Saturday evening into the Sunday arena state without relying on random setup.
@@ -145,6 +145,13 @@ export interface GladiatorVisualIdentity {
   bodyType?: string;
   hairStyle?: string;
   armorStyle?: string;
+  clothingStyle?: string;
+  clothingColor?: string;
+  hairAndBeardStyle?: string;
+  headwearStyle?: string;
+  bodyBuildStyle?: string;
+  skinTone?: string;
+  markingStyle?: string;
 }
 ```
 
@@ -165,7 +172,7 @@ Map layout and visual definitions must be data-driven. Demo saves may reference 
 
 Demo saves must not call random generation on load.
 
-If a demo scenario needs market candidates, opponents, events or contracts, those entities must be predefined in the demo save or generated once ahead of time and committed as static data.
+If a demo scenario needs market candidates, opponents or events, those entities must be predefined in the demo save or generated once ahead of time and committed as static data.
 
 Demo data should be stored in `src/game-data/demo-saves` or another dedicated game-data demo module. Gameplay rules stay in `src/domain` and `src/game-data`; React components render the loaded state and call actions.
 

@@ -115,27 +115,6 @@ export function getPurchasedDormitoryImprovementCapacityBonus(save: GameSave) {
   );
 }
 
-export function getGladiatorReadinessEffectBonus(save: GameSave, gladiator: Gladiator) {
-  const assignedBuildingEffects = gladiator.currentBuildingId
-    ? getActiveBuildingEffects(save, gladiator.currentBuildingId, {
-        includeHourly: false,
-        includeNonHourly: true,
-        target: 'assignedGladiator',
-        type: 'increaseReadiness',
-      })
-    : [];
-  const globalEffects = Object.values(save.buildings).flatMap((building) =>
-    getActiveBuildingEffects(save, building.id, {
-      includeHourly: false,
-      includeNonHourly: true,
-      target: 'allGladiators',
-      type: 'increaseReadiness',
-    }),
-  );
-
-  return sumEffectValues([...assignedBuildingEffects, ...globalEffects]);
-}
-
 export function getGladiatorInjuryRiskReduction(save: GameSave, gladiator: Gladiator) {
   const assignedBuildingEffects = gladiator.currentBuildingId
     ? getActiveBuildingEffects(save, gladiator.currentBuildingId, {

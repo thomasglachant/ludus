@@ -16,14 +16,4 @@ export const PLANNING_THRESHOLDS = {
   primaryNeedReassignment: GAME_BALANCE.planning.thresholds.primaryNeedReassignment,
 } as const;
 
-export const READINESS_WEIGHTS = {
-  health: GAME_BALANCE.planning.readinessWeights.health,
-  energy: GAME_BALANCE.planning.readinessWeights.energy,
-  morale: GAME_BALANCE.planning.readinessWeights.morale,
-  satiety: GAME_BALANCE.planning.readinessWeights.satiety,
-  reputationStability: GAME_BALANCE.planning.readinessWeights.reputationStability,
-} as const;
-
 export const DEFAULT_ROUTINE_CONFIG = GAME_BALANCE.planning.defaultRoutine;
-
-export const READINESS_CONFIG = GAME_BALANCE.planning.readiness;

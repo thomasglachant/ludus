@@ -13,8 +13,8 @@ import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { EmptyState, MetricList, NoticeBox } from '../components/shared';
 import { formatMoneyAmount } from '../formatters/money';
+import { formatNumber } from '../formatters/number';
 import { GameIcon } from '../icons/GameIcon';
-import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface MarketContentProps {
@@ -40,29 +40,29 @@ function StatBlock({
     <dl className="gladiator-stat-list">
       <div>
         <dt>{t('market.stats.strength')}</dt>
-        <dd>{getEffectiveSkillValue(gladiator.strength)}</dd>
+        <dd>{formatNumber(getEffectiveSkillValue(gladiator.strength))}</dd>
       </div>
       <div>
         <dt>{t('market.stats.agility')}</dt>
-        <dd>{getEffectiveSkillValue(gladiator.agility)}</dd>
+        <dd>{formatNumber(getEffectiveSkillValue(gladiator.agility))}</dd>
       </div>
       <div>
         <dt>{t('market.stats.defense')}</dt>
-        <dd>{getEffectiveSkillValue(gladiator.defense)}</dd>
+        <dd>{formatNumber(getEffectiveSkillValue(gladiator.defense))}</dd>
       </div>
       {showCondition ? (
         <>
           <div>
             <dt>{t('market.stats.health')}</dt>
-            <dd>{gladiator.health}</dd>
+            <dd>{formatNumber(gladiator.health)}</dd>
           </div>
           <div>
             <dt>{t('market.stats.energy')}</dt>
-            <dd>{gladiator.energy}</dd>
+            <dd>{formatNumber(gladiator.energy)}</dd>
           </div>
           <div>
             <dt>{t('market.stats.morale')}</dt>
-            <dd>{gladiator.morale}</dd>
+            <dd>{formatNumber(gladiator.morale)}</dd>
           </div>
         </>
       ) : null}
@@ -105,13 +105,11 @@ function MarketCandidateCard({
         <GladiatorPortrait gladiator={candidate} size="small" />
         <div>
           <h3>{candidate.name}</h3>
-          <GladiatorClassLine gladiator={candidate} />
           <p>{t('market.age', { age: candidate.age })}</p>
         </div>
         <strong>{t('market.price', { price: formatMoneyAmount(candidate.price) })}</strong>
       </div>
       <StatBlock gladiator={candidate} />
-      <GladiatorClassLine gladiator={candidate} showDescription showEffect />
       <TraitList gladiator={candidate} />
       {validationMessageKey ? (
         <p className="gladiator-card__warning">{t(validationMessageKey)}</p>
@@ -146,7 +144,6 @@ function OwnedGladiatorCard({
         <GladiatorPortrait gladiator={gladiator} size="small" />
         <div>
           <h3>{gladiator.name}</h3>
-          <GladiatorClassLine gladiator={gladiator} />
           <p>{t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}</p>
         </div>
         <strong>{t('market.saleValue', { price: formatMoneyAmount(saleValue) })}</strong>

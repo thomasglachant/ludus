@@ -253,11 +253,7 @@ export function createLudusMapSceneViewModel(
       const animation = movement
         ? getGladiatorMapAnimationDefinitionById('walk')
         : getGladiatorMapAnimationDefinition(gladiator);
-      const visualIdentity = getGladiatorVisualIdentity(
-        gladiator.id,
-        gladiator.visualIdentity,
-        gladiator.classId,
-      );
+      const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity);
       const animationAsset = getGladiatorMapAnimationAsset(visualIdentity, animation.id);
       const movementRoute = movement
         ? movement.route && movement.route.length > 0

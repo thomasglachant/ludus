@@ -1,12 +1,9 @@
-import { calculateReadiness } from '../../domain/planning/readiness';
 import { getGladiatorPlanningStatuses } from '../../domain/planning/planning-actions';
 import type { GameSave, GladiatorRoutineUpdate } from '../../domain/types';
 import { BUILDING_DEFINITIONS, BUILDING_IDS } from '../../game-data/buildings';
-import { COMBAT_STRATEGIES } from '../../game-data/combat';
 import { TRAINING_INTENSITIES, WEEKLY_OBJECTIVES } from '../../game-data/planning';
 import { useUiStore } from '../../state/ui-store-context';
 import { GameIcon } from '../icons/GameIcon';
-import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface WeeklyPlanningPanelProps {
@@ -41,17 +38,8 @@ export function WeeklyPlanningPanel({
       </div>
       <dl className="context-panel__stats">
         <div>
-          <dt>{t('weeklyPlan.readiness')}</dt>
-          <dd>
-            {statuses.length > 0
-              ? Math.round(
-                  statuses.reduce(
-                    (total, status) => total + calculateReadiness(status.gladiator),
-                    0,
-                  ) / statuses.length,
-                )
-              : 0}
-          </dd>
+          <dt>{t('weeklyPlan.routines')}</dt>
+          <dd>{statuses.length}</dd>
         </div>
         <div>
           <dt>{t('weeklyPlan.alerts')}</dt>
@@ -82,7 +70,6 @@ export function WeeklyPlanningPanel({
                 <GladiatorPortrait gladiator={status.gladiator} size="small" />
                 <div>
                   <h3>{status.gladiator.name}</h3>
-                  <GladiatorClassLine compact gladiator={status.gladiator} />
                   <p>
                     {status.recommendation
                       ? t(status.recommendation.reasonKey)
@@ -90,7 +77,6 @@ export function WeeklyPlanningPanel({
                   </p>
                 </div>
               </div>
-              <strong>{t('weeklyPlan.readinessValue', { score: status.readiness })}</strong>
             </div>
             <div className="planning-controls">
               <label>
@@ -123,24 +109,6 @@ export function WeeklyPlanningPanel({
                   {TRAINING_INTENSITIES.map((intensity) => (
                     <option key={intensity} value={intensity}>
                       {t(`weeklyPlan.intensities.${intensity}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span>{t('weeklyPlan.strategy')}</span>
-                <select
-                  value={status.routine.combatStrategy ?? 'balanced'}
-                  onChange={(event) =>
-                    onUpdateRoutine(status.gladiator.id, {
-                      combatStrategy: event.target
-                        .value as GladiatorRoutineUpdate['combatStrategy'],
-                    })
-                  }
-                >
-                  {COMBAT_STRATEGIES.map((strategy) => (
-                    <option key={strategy} value={strategy}>
-                      {t(`combat.strategies.${strategy}`)}
                     </option>
                   ))}
                 </select>

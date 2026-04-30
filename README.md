@@ -8,9 +8,9 @@ The game combines:
 - gladiator training and recovery;
 - strategic building upgrades;
 - market decisions;
-- contracts and events;
+- events;
 - Sunday arena combats;
-- betting and combat preparation.
+- betting and scouting.
 
 ## Stack
 
@@ -49,7 +49,6 @@ npm run test
 - `docs/02_technical/DOMAIN_MODELS.md`
 - `docs/03_product/UI_UX.md`
 - `docs/03_product/ART_DIRECTION.md`
-- `docs/04_roadmap/ROADMAP.md`
 
 ## Principles
 
@@ -59,3 +58,4 @@ npm run test
 - React components do not contain complex game logic.
 - The project should remain easy to rebalance.
 - The default player interface is map-first, not dashboard-first.
+- Documentation describes the implementation that exists now; roadmap planning lives outside the repository.

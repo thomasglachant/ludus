@@ -1,4 +1,3 @@
-import type { ContractState } from '../contracts/types';
 import type { ArenaState } from '../combat/types';
 import type { BuildingId, BuildingState } from '../buildings/types';
 import type { EventState } from '../events/types';
@@ -30,7 +29,6 @@ export interface GameSave {
   market: MarketState;
   arena: ArenaState;
   planning: WeeklyPlanningState;
-  contracts: ContractState;
   events: EventState;
   metadata?: SaveMetadata;
 }

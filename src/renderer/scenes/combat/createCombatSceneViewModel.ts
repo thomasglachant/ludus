@@ -82,7 +82,12 @@ function getCombatantSide(
   return undefined;
 }
 
-function createTurnEffect(viewModel: CombatScreenViewModel) {
+interface CombatSceneViewModelOptions {
+  dodgeLabel?: string;
+  reducedMotion?: boolean;
+}
+
+function createTurnEffect(viewModel: CombatScreenViewModel, options: CombatSceneViewModelOptions) {
   const latestTurn = viewModel.latestTurn;
 
   if (!latestTurn) {
@@ -101,18 +106,20 @@ function createTurnEffect(viewModel: CombatScreenViewModel) {
     attackerSide,
     defenderSide,
     didHit: latestTurn.didHit,
+    dodgeLabel: latestTurn.didHit ? undefined : options.dodgeLabel,
+    healthDelta: latestTurn.didHit ? -latestTurn.damage : 0,
   };
 }
 
 export function createCombatSceneViewModel(
   viewModel: CombatScreenViewModel,
-  options: { reducedMotion?: boolean } = {},
+  options: CombatSceneViewModelOptions = {},
 ): CombatSceneViewModel {
   return {
     backgroundPath: viewModel.combatBackgroundPath,
     crowdPath: viewModel.combatCrowdPath,
     currentActionId: getCurrentActionId(viewModel),
-    effect: createTurnEffect(viewModel),
+    effect: createTurnEffect(viewModel, options),
     reducedMotion: options.reducedMotion ?? false,
     left: createCombatSceneCombatant(viewModel, viewModel.player, 'left'),
     right: createCombatSceneCombatant(viewModel, viewModel.opponent, 'right'),

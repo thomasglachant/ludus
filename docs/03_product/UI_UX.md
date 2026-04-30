@@ -6,11 +6,26 @@ The player interface must support the core management loop without exposing ever
 
 The main screen should present the ludus as the primary interaction space. The player should be able to observe gladiators, buildings, paths, routines and time-of-day changes without opening every system at once.
 
-The interface should reveal information progressively. The normal player experience should not expose weekly planning details, contracts, events, market details, arena preparation, building configuration and debug data all at the same time.
+The interface should reveal information progressively. The normal player experience should not expose weekly planning details, events, market details, arena results, building configuration and debug data all at the same time.
 
 All visible UI text must use i18n keys and support French and English. React components must not hardcode player-facing copy.
 
 UI work should prioritize layout and interaction hierarchy before adding more gameplay features. A feature is not ready for the normal player interface if it requires permanently exposing every detail on the main screen.
+
+Primary calls to action should use the shared green `CTAButton` / `.cta-button`
+style by default. Use lower-emphasis action buttons only for secondary,
+navigation or utility actions, unless a feature explicitly requires another
+treatment.
+
+Translucent cards and panels placed over scenic backgrounds should use the
+shared `CardBlured` component. It provides the main-menu-inspired translucent
+background and backdrop blur while allowing feature CSS to keep its own border,
+size and padding.
+
+Grouped numeric impacts should use the shared `ImpactList` component instead
+of manually arranging several `ImpactIndicator` instances. `ImpactList` keeps
+positive or neutral impacts before negative impacts while preserving the
+original order inside each tone.
 
 ## 2. Main Game Shell
 
@@ -31,9 +46,9 @@ Elements:
 
 - `TopHud`: day, week, year, day-night cycle gauge, speed controls, pause, treasury, save status, alerts and menu access.
 - `LudusMap`: the main interactive visual map and primary screen focus.
-- `LeftNavigationRail`: access to planning, contracts, market, arena and menu.
+- `LeftNavigationRail`: access to planning, market, arena and menu.
 - `BottomGladiatorRoster`: portrait-based roster for owned gladiators.
-- `ModalHost`: focused confirmations, menu/options flows and centered feature modals for building, gladiator, planning, contracts, market, events and arena.
+- `ModalHost`: focused confirmations, menu/options flows and centered feature modals for building, gladiator, planning, market, events and arena.
 - `ToastAndAlertLayer`: warnings, recommendations and notifications.
 
 The shell should occupy the full viewport.
@@ -73,15 +88,14 @@ The following must not be permanently displayed on the main screen:
 - weekly planning details;
 - building configuration;
 - full gladiator details;
-- contracts;
 - events;
 - market details;
-- arena preparation;
+- arena results;
 - debug data.
 
 They should open through centered modals or dedicated full-screen presentations when a system needs a theatrical scene, such as combat.
 
-Blocking flows may temporarily override the hidden-by-default rule. A pending daily event auto-opens a non-dismissible event modal. Sunday at 08:00 auto-opens the arena flow, and the player cannot return to the map until the combat presentations and final summary are complete.
+Blocking flows may temporarily override the hidden-by-default rule. A pending daily event auto-opens a non-dismissible event modal. Sunday at 06:00 opens the dedicated arena route, and the player cannot return to the map until the combat presentations and final summary are complete.
 
 ## 5. Main Map
 
@@ -153,7 +167,7 @@ Building panels should use shared tabs:
 - Overview: ownership, level, upgrade or purchase action, current level effects and building-specific summaries.
 - Improvements: available improvements, cost, required level, required improvements, effects, purchased status and disabled purchase reasons.
 - Policy: available policies, selection cost when present, required level, effects, selected status and disabled selection reasons.
-- Gladiators: assigned gladiators with compact readiness context.
+- Gladiators: assigned gladiators with compact condition context.
 
 For base buildings, the primary call to action should be upgrade or configure rather than purchase, because they start owned at level 1. Purchase actions should still exist for future optional buildings that start unpurchased.
 
@@ -204,7 +218,6 @@ Each card displays:
 - energy;
 - morale;
 - satiety;
-- readiness score;
 - current objective or warning.
 
 Clicking a gladiator should:
@@ -221,7 +234,6 @@ Weekly planning should be a dedicated `XL` modal.
 
 It should display:
 
-- readiness summary;
 - at-risk gladiators;
 - weekly objectives;
 - recommendations;
@@ -243,9 +255,9 @@ Expected shared primitives:
 - tabs for panel subviews such as overview, improvements, policies and assigned gladiators;
 - empty states for unavailable content, empty rosters, empty event queues and future feature placeholders;
 - notice boxes for warnings, recommendations, save errors and temporary informational states;
-- effect lists for building effects, policies, improvements, contract consequences and event choices;
+- effect lists for building effects, policies, improvements and event choices;
 - cost summaries for purchases, upgrades, market buys and paid actions;
-- badges or status pills for level, ownership, readiness, risk, availability and demo state;
+- badges or status pills for level, ownership, risk, availability and demo state;
 - metric rows or stat lines for compact values such as health, energy, morale, satiety, capacity and treasury;
 - confirmation dialogs for irreversible, expensive or blocking choices;
 - lightweight form modal layouts for focused interactions that do not need a full screen.
@@ -260,7 +272,6 @@ Player screens and panels should expose clear, i18n-backed states for missing or
 - empty market: the market shows that no candidates remain this week;
 - full capacity: the market shows used places, available places and a warning before blocking recruitment;
 - no owned gladiators: the market sell section shows an empty state;
-- no contracts: the contracts panel shows that no contract is available this week;
 - no events: the events panel shows that no event needs a decision right now;
 - no combat or no eligible combatant: the arena panel shows why no Sunday combat is available;
 - save failures: the HUD/toast layer shows the local save error while preserving dirty state;
@@ -295,20 +306,20 @@ The market must:
 
 ## 12. Arena
 
-Arena should be available from the map or navigation rail as a centered `XL` modal.
+Arena should be available from the map. Before Sunday, it opens as a focused panel for odds and scouting. During Sunday arena day, it opens as a dedicated full-screen route.
 
 The arena panel must show:
 
 - pending combats for the active Sunday when any remain;
-- the current combat with gladiator, opponent, rank, strategy and victory or defeat state;
+- the current combat with gladiator, opponent, rank and victory or defeat state;
 - combat log progression using shared log-row or list primitives and i18n-backed log text;
 - rewards and consequences for each resolved combat;
 - a Sunday summary with total treasury gained, reputation change, health, energy and morale changes, wins and losses;
 - a clear empty state when no gladiator is eligible or no arena day is active.
 
-The player should be able to advance the visible combat log when progression is used, switch to resolved combats to inspect their logs, and finish or continue the weekly flow when the Sunday summary is complete. The arena modal should compose shared primitives such as modal content shells, `SectionCard`, `Badge`, `MetricList`, `EmptyState` and reusable log rows rather than duplicating feature-specific modal chrome.
+The player should be able to advance the visible combat log when progression is used, switch to resolved combats to inspect their logs, and finish or continue the weekly flow when the Sunday summary is complete. The arena panel and route should compose shared primitives such as modal content shells, `CardBlured`, `SectionCard`, `Badge`, `ImpactList`, `EmptyState` and reusable log rows rather than duplicating feature-specific chrome.
 
-Before Sunday, the arena panel may show betting or scouting preparation when odds exist. If no odds exist yet, it should show an empty state explaining the next useful timing.
+Before Sunday, the arena panel may show betting or scouting information when odds exist. If no odds exist yet, it should show an empty state explaining the next useful timing.
 
 When combat presentation is available, the arena panel should provide an entry
 point into a dedicated full-screen or overlay combat view instead of forcing the
@@ -320,7 +331,7 @@ The combat presentation should:
 - show left and right combatant panels with portraits, health, energy, morale
   and active effects;
 - render central fighter sprites with combat idle/attack frames;
-- expose the selected strategy or skill area;
+- expose combat skills, condition, odds and core fighter attributes;
 - progress the visible combat log one turn at a time for replay-based combat;
 - show final reward, reputation and consequence summary from existing combat
   state;

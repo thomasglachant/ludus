@@ -4,6 +4,7 @@ import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { DAYS_OF_WEEK, TIME_CONFIG } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store-context';
 import { formatMoneyAmount } from '../formatters/money';
+import { formatNumber } from '../formatters/number';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface TopHudProps {
@@ -259,7 +260,7 @@ export function TopHud({ onAdvanceToNextDay, onOpenMenu, onSpeedChange, save }: 
             <span aria-hidden="true" className="top-hud__resource-icon">
               <GameIcon name="reputation" size={28} />
             </span>
-            <span className="top-hud__resource-value">{save.ludus.reputation}</span>
+            <span className="top-hud__resource-value">{formatNumber(save.ludus.reputation)}</span>
           </div>
         </div>
 

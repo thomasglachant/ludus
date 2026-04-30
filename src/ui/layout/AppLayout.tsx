@@ -7,7 +7,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const className = [
     'app-layout',
     screen === 'mainMenu' ? 'app-layout--main-menu' : '',
-    screen === 'ludus' ? 'app-layout--game-shell' : '',
+    screen === 'ludus' || screen === 'arena' ? 'app-layout--game-shell' : '',
   ]
     .filter(Boolean)
     .join(' ');

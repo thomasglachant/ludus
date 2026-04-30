@@ -1,15 +1,12 @@
-import { createWeeklyContracts } from '../../domain/contracts/contract-actions';
 import { synchronizePlanning } from '../../domain/planning/planning-actions';
 import { CURRENT_SCHEMA_VERSION } from '../../domain/saves/create-initial-save';
 import { createInitialLudusMapState } from '../map-layout';
-import { createGladiatorClassId } from '../gladiator-classes';
 import { getGladiatorVisualIdentity } from '../gladiator-visuals';
 import type {
   ArenaRank,
   BettingOdds,
   BuildingId,
   BuildingState,
-  CombatStrategy,
   DemoSaveId,
   GameSave,
   Gladiator,
@@ -23,7 +20,6 @@ export const DEMO_UPDATED_AT = '2026-01-01T00:00:00.000Z';
 export type DemoGladiatorInput = Gladiator & {
   weeklyObjective: GladiatorRoutine['objective'];
   intensity?: GladiatorRoutine['intensity'];
-  combatStrategy?: CombatStrategy;
 };
 
 interface DemoSaveInput {
@@ -51,12 +47,9 @@ export function createPurchasedBuilding(
 
 export function createDemoSave(input: DemoSaveInput): GameSave {
   const gladiators = input.gladiators.map<Gladiator>((gladiator) => {
-    const classId = gladiator.classId ?? createGladiatorClassId(gladiator.id);
-
     return {
       id: gladiator.id,
       name: gladiator.name,
-      classId,
       age: gladiator.age,
       strength: gladiator.strength,
       agility: gladiator.agility,
@@ -74,7 +67,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       currentActivityId: gladiator.currentActivityId,
       currentTaskStartedAt: gladiator.currentTaskStartedAt,
       trainingPlan: gladiator.trainingPlan,
-      visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, classId),
+      visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity),
     };
   });
   const routines = input.gladiators.map<GladiatorRoutine>((gladiator) => ({
@@ -82,7 +75,6 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     objective: gladiator.weeklyObjective,
     intensity: gladiator.intensity ?? 'normal',
     allowAutomaticAssignment: true,
-    combatStrategy: gladiator.combatStrategy ?? 'balanced',
   }));
   const marketGladiators = input.market.map(createMarketGladiator);
   const baseSave: GameSave = {
@@ -123,10 +115,6 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       routines,
       alerts: [],
     },
-    contracts: {
-      availableContracts: createWeeklyContracts(input.time.year, input.time.week),
-      acceptedContracts: [],
-    },
     events: {
       pendingEvents: [],
       resolvedEvents: [],
@@ -141,15 +129,12 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
 }
 
 export function createMarketGladiator(gladiator: Gladiator & { price: number }): MarketGladiator {
-  const classId = gladiator.classId ?? createGladiatorClassId(gladiator.id);
-
   return {
     ...gladiator,
-    classId,
     health: 100,
     energy: 100,
     morale: 100,
-    visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, classId),
+    visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity),
   };
 }
 
@@ -164,19 +149,12 @@ export function createBettingOdds(input: {
   opponentDecimalOdds: number;
   createdAtDay: BettingOdds['createdAtDay'];
 }): BettingOdds {
-  const opponentClassId = input.opponent.classId ?? createGladiatorClassId(input.opponent.id);
-
   return {
     id: `odds-${input.year}-${input.week}-${input.gladiatorId}`,
     gladiatorId: input.gladiatorId,
     opponent: {
       ...input.opponent,
-      classId: opponentClassId,
-      visualIdentity: getGladiatorVisualIdentity(
-        input.opponent.id,
-        input.opponent.visualIdentity,
-        opponentClassId,
-      ),
+      visualIdentity: getGladiatorVisualIdentity(input.opponent.id, input.opponent.visualIdentity),
     },
     rank: input.rank,
     playerWinChance: input.playerWinChance,

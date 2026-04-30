@@ -1,12 +1,6 @@
-const COMPACT_MONEY_THRESHOLDS = [{ divisor: 1_000_000, minimum: 1_000_000, suffix: 'M' }] as const;
+import { formatNumber } from './number';
 
-function formatSpacedInteger(value: number) {
-  return new Intl.NumberFormat('fr-FR', {
-    maximumFractionDigits: 0,
-  })
-    .format(value)
-    .replace(/\u202f|\u00a0/g, ' ');
-}
+const COMPACT_MONEY_THRESHOLDS = [{ divisor: 1_000_000, minimum: 1_000_000, suffix: 'M' }] as const;
 
 function formatCompactValue(value: number) {
   const hasDecimal = !Number.isInteger(value) && value < 10;
@@ -26,7 +20,7 @@ export function formatMoneyAmount(amount: number) {
   );
 
   if (!threshold) {
-    return `${sign}${formatSpacedInteger(absoluteAmount)}`;
+    return `${sign}${formatNumber(absoluteAmount)}`;
   }
 
   return `${sign}${formatCompactValue(absoluteAmount / threshold.divisor)}${threshold.suffix}`;

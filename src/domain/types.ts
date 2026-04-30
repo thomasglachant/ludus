@@ -36,7 +36,6 @@ export type {
 } from './buildings/building-actions';
 export type {
   Gladiator,
-  GladiatorClassId,
   GladiatorLocationId,
   GladiatorMapMovement,
   GladiatorTrait,
@@ -66,7 +65,6 @@ export type {
   ArenaRank,
   ArenaDayPhase,
   ArenaDayState,
-  CombatStrategy,
   ArenaState,
   BettingOdds,
   BettingState,
@@ -77,13 +75,6 @@ export type {
   ScoutingReport,
 } from './combat/types';
 export type { GameInterruption } from './game-flow/interruption';
-export type {
-  ContractStatus,
-  WeeklyContract,
-  ContractObjective,
-  ContractState,
-  ContractProgress,
-} from './contracts/types';
 export type {
   GameEventStatus,
   GameEventChoice,

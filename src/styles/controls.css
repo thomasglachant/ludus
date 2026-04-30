@@ -64,6 +64,59 @@
   filter: saturate(0.52);
 }
 
+.card-blured {
+  background:
+    linear-gradient(180deg, rgba(255, 244, 212, 0.08), rgba(255, 244, 212, 0.015)),
+    rgba(7, 5, 4, 0.7);
+  -webkit-backdrop-filter: blur(10px) saturate(1.08);
+  backdrop-filter: blur(10px) saturate(1.08);
+}
+
+.card-scroll-area {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: rgba(238, 186, 92, 0.78) rgba(7, 5, 4, 0.42);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.card-scroll-area::-webkit-scrollbar {
+  width: 10px;
+}
+
+.card-scroll-area::-webkit-scrollbar-track {
+  border: 1px solid rgba(214, 163, 74, 0.14);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 212, 0.055), rgba(255, 244, 212, 0.018)),
+    rgba(7, 5, 4, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 188, 0.08),
+    inset 0 -1px 0 rgba(121, 70, 31, 0.18);
+}
+
+.card-scroll-area::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(7, 5, 4, 0.7);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 232, 174, 0.86), rgba(190, 128, 50, 0.82)),
+    rgba(238, 186, 92, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 222, 0.34),
+    0 0 10px rgba(214, 163, 74, 0.14);
+}
+
+.card-scroll-area::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 240, 197, 0.95), rgba(214, 163, 74, 0.9)),
+    rgba(238, 186, 92, 0.9);
+}
+
+.card-scroll-area::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 .impact-indicator {
   position: relative;
   display: inline-flex;
@@ -72,13 +125,202 @@
   align-items: center;
   gap: 6px;
   padding: 4px 11px 4px 9px;
-  border: 1px solid rgba(111, 69, 35, 0.28);
+  border: 1px solid rgba(214, 163, 74, 0.16);
   border-radius: 8px;
-  background: rgba(255, 248, 226, 0.92);
+  background: rgba(255, 241, 199, 0.05);
   color: #4f3825;
   font-size: 0.84rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.2;
+}
+
+.impact-indicator--sm {
+  min-height: 24px;
+  gap: 4px;
+  padding: 3px 7px 3px 6px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+}
+
+.impact-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+.icon-value-stat {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid rgba(214, 163, 74, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 241, 199, 0.05);
+  color: #fff1c7;
+  line-height: 1;
+}
+
+.icon-value-stat strong {
+  color: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.league-rank-badge {
+  display: inline-grid;
+  width: 46px;
+  height: 46px;
+  min-height: 46px;
+  aspect-ratio: 1;
+  place-items: center;
+  padding: 6px;
+  border: 1px solid rgba(214, 163, 74, 0.16);
+  border-radius: 4px;
+  background: rgba(255, 241, 199, 0.05);
+  color: #fff1c7;
+  line-height: 1;
+  text-align: center;
+}
+
+.league-rank-badge__icon {
+  width: 34px;
+  height: 34px;
+}
+
+.gauge-stat-bar {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(48px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 8px;
+  border: 1px solid rgba(214, 163, 74, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 241, 199, 0.05);
+  color: #fff1c7;
+  line-height: 1;
+}
+
+.gauge-stat-bar--labeled {
+  grid-template-columns: auto auto minmax(80px, 1fr) auto;
+}
+
+.gauge-stat-bar--labeled.gauge-stat-bar--no-icon {
+  grid-template-columns: auto minmax(80px, 1fr) auto;
+}
+
+.gauge-stat-bar__label {
+  color: #d7bd84;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.gauge-stat-bar__track {
+  position: relative;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 241, 199, 0.11);
+}
+
+.gauge-stat-bar__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--gauge-percent);
+  border-radius: inherit;
+  background: var(--gauge-fill);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--gauge-fill) 42%, transparent);
+}
+
+.gauge-stat-bar strong {
+  color: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.gauge-stat-bar--major {
+  min-height: 36px;
+  padding: 8px 10px;
+  border-color: rgba(120, 196, 107, 0.24);
+  background:
+    linear-gradient(180deg, rgba(120, 196, 107, 0.16), rgba(120, 196, 107, 0.08)),
+    rgba(255, 241, 199, 0.05);
+}
+
+.gauge-stat-bar--major .gauge-stat-bar__track {
+  height: 9px;
+}
+
+.percentage-stat-bar {
+  display: grid;
+  grid-template-columns: 20px minmax(92px, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.percentage-stat-bar__icon-target,
+.percentage-stat-bar__icon {
+  display: inline-flex;
+}
+
+.percentage-stat-bar__icon-target {
+  color: #f1c765;
+}
+
+.percentage-stat-bar--health .percentage-stat-bar__icon-target {
+  color: var(--health-red);
+}
+
+.percentage-stat-bar--energy .percentage-stat-bar__icon-target {
+  color: var(--energy-ochre);
+}
+
+.percentage-stat-bar--morale .percentage-stat-bar__icon-target {
+  color: var(--morale-green);
+}
+
+.percentage-stat-bar__track {
+  position: relative;
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 241, 199, 0.18);
+  border-radius: 3px;
+  background: rgba(5, 4, 3, 0.62);
+}
+
+.percentage-stat-bar__fill {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--health-red),
+    var(--energy-ochre) 48%,
+    var(--morale-green)
+  );
+  clip-path: inset(0 calc(100% - var(--percentage-stat-percent)) 0 0);
+}
+
+.percentage-stat-bar__value {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  color: #fff1c7;
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0;
+  text-shadow: 0 1px 3px rgba(5, 4, 3, 0.92);
+  transform: translate(-50%, -50%);
+  transition: opacity 140ms ease;
+  white-space: nowrap;
+}
+
+.percentage-stat-bar:hover .percentage-stat-bar__value,
+.percentage-stat-bar:focus-within .percentage-stat-bar__value {
+  opacity: 1;
 }
 
 .impact-indicator__icon {
@@ -87,7 +329,7 @@
   flex: 0 0 auto;
 }
 
-.impact-indicator__tooltip {
+.impact-indicator__tooltip-target {
   flex: 0 0 auto;
 }
 
@@ -133,7 +375,11 @@
 
 .impact-indicator__amount {
   font-size: 0.95rem;
-  font-weight: 950;
+  font-weight: 700;
+}
+
+.impact-indicator--sm .impact-indicator__amount {
+  font-size: 0.78rem;
 }
 
 .impact-indicator__chance {
@@ -142,7 +388,12 @@
   background: rgba(111, 69, 35, 0.12);
   color: #5d452e;
   font-size: 0.72rem;
-  font-weight: 950;
+  font-weight: 700;
+}
+
+.impact-indicator--sm .impact-indicator__chance {
+  padding: 1px 4px;
+  font-size: 0.64rem;
 }
 
 .impact-indicator--positive {

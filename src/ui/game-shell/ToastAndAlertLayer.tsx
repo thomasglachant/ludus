@@ -1,7 +1,6 @@
 import type { GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { GameIcon } from '../icons/GameIcon';
-import { GladiatorClassLine } from '../roster/GladiatorClassLine';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface ToastAndAlertLayerProps {
@@ -57,7 +56,6 @@ export function ToastAndAlertLayer({
                 <GladiatorPortrait gladiator={gladiator} size="small" />
                 <span className="toast-alert__copy">
                   <strong>{gladiator.name}</strong>
-                  <GladiatorClassLine compact gladiator={gladiator} />
                   <span>{t(alert.titleKey)}</span>
                 </span>
               </span>

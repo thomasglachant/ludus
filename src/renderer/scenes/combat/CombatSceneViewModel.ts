@@ -21,6 +21,8 @@ export interface CombatSceneTurnEffectViewModel {
   attackerSide: 'left' | 'right';
   defenderSide: 'left' | 'right';
   didHit: boolean;
+  dodgeLabel?: string;
+  healthDelta: number;
   id: string;
 }
 

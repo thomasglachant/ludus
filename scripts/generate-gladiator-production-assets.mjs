@@ -28,15 +28,6 @@ const combatFrameKeys = [
   'combat-victory',
 ];
 
-const classOrder = ['murmillo', 'retiarius', 'secutor', 'thraex', 'hoplomachus'];
-const classAccessoryFallback = {
-  murmillo: 'gladiusScutum',
-  retiarius: 'tridentNet',
-  secutor: 'gladiusScutum',
-  thraex: 'sicaParmula',
-  hoplomachus: 'spearRoundShield',
-};
-
 const colorByClothingColor = {
   madderRed: '#9f3f32',
   ochre: '#bd8131',
@@ -113,7 +104,6 @@ function readVariantConfig() {
     clothingColors: parseArrayConstant(source, 'GLADIATOR_CLOTHING_COLORS'),
     hairAndBeardStyles: parseArrayConstant(source, 'GLADIATOR_HAIR_AND_BEARD_STYLES'),
     headwearStyles: parseArrayConstant(source, 'GLADIATOR_HEADWEAR_STYLES'),
-    accessoryStyles: parseArrayConstant(source, 'GLADIATOR_ACCESSORY_STYLES'),
     bodyBuildStyles: parseArrayConstant(source, 'GLADIATOR_BODY_BUILD_STYLES'),
     skinTones: parseArrayConstant(source, 'GLADIATOR_SKIN_TONES'),
     markingStyles: parseArrayConstant(source, 'GLADIATOR_MARKING_STYLES'),
@@ -310,25 +300,19 @@ function buildVariants(config, limit) {
     for (const clothingColor of config.clothingColors) {
       for (const hairAndBeardStyle of config.hairAndBeardStyles) {
         for (const headwearStyle of config.headwearStyles) {
-          for (const classId of classOrder) {
-            const index = variants.length;
-            variants.push({
-              classId,
-              clothingStyle,
-              clothingColor,
-              hairAndBeardStyle,
-              headwearStyle,
-              accessoryStyle: classAccessoryFallback[classId],
-              bodyBuildStyle: config.bodyBuildStyles[index % config.bodyBuildStyles.length],
-              skinTone: config.skinTones[(Math.floor(index / 5) + index) % config.skinTones.length],
-              markingStyle:
-                config.markingStyles[
-                  (Math.floor(index / 25) + index) % config.markingStyles.length
-                ],
-            });
-            if (variants.length >= limit) {
-              return variants;
-            }
+          const index = variants.length;
+          variants.push({
+            clothingStyle,
+            clothingColor,
+            hairAndBeardStyle,
+            headwearStyle,
+            bodyBuildStyle: config.bodyBuildStyles[index % config.bodyBuildStyles.length],
+            skinTone: config.skinTones[(Math.floor(index / 3) + index) % config.skinTones.length],
+            markingStyle:
+              config.markingStyles[(Math.floor(index / 9) + index) % config.markingStyles.length],
+          });
+          if (variants.length >= limit) {
+            return variants;
           }
         }
       }
@@ -512,121 +496,6 @@ function drawClothing(image, variant, cx, y, width, height, scale) {
   }
 }
 
-function drawAccessory(image, variant, cx, y, scale, pose = 'idle', facing = 1) {
-  const attack = pose === 'attack';
-  if (variant.accessoryStyle === 'gladiusScutum') {
-    image.rectOutline(
-      cx - 25 * scale * facing,
-      y + 22 * scale,
-      10 * scale,
-      22 * scale,
-      metal.red,
-      metal.bronzeLight,
-      scale,
-    );
-    image.line(
-      cx + 16 * scale * facing,
-      y + 8 * scale,
-      cx + (attack ? 40 : 25) * scale * facing,
-      y - (attack ? 10 : 16) * scale,
-      metal.iron,
-      2 * scale,
-    );
-  }
-  if (variant.accessoryStyle === 'tridentNet') {
-    image.line(
-      cx + 18 * scale * facing,
-      y + 35 * scale,
-      cx + (attack ? 48 : 32) * scale * facing,
-      y - 24 * scale,
-      metal.iron,
-      2 * scale,
-    );
-    for (const offset of [-4, 0, 4]) {
-      image.line(
-        cx + (attack ? 48 : 32) * scale * facing,
-        y - 24 * scale,
-        cx + (attack ? 51 : 35) * scale * facing,
-        y + offset * scale - 34 * scale,
-        metal.iron,
-        scale,
-      );
-    }
-    image.rect(cx - 28 * scale * facing, y + 30 * scale, 16 * scale, 13 * scale, '#cdbd8a');
-    image.line(
-      cx - 28 * scale * facing,
-      y + 30 * scale,
-      cx - 12 * scale * facing,
-      y + 43 * scale,
-      '#8f805e',
-      scale,
-    );
-  }
-  if (variant.accessoryStyle === 'sicaParmula') {
-    image.rectOutline(
-      cx - 25 * scale * facing,
-      y + 25 * scale,
-      14 * scale,
-      17 * scale,
-      '#5b7240',
-      metal.bronzeLight,
-      scale,
-    );
-    image.line(
-      cx + 15 * scale * facing,
-      y + 13 * scale,
-      cx + (attack ? 37 : 27) * scale * facing,
-      y - 12 * scale,
-      metal.iron,
-      2 * scale,
-    );
-    image.line(
-      cx + (attack ? 37 : 27) * scale * facing,
-      y - 12 * scale,
-      cx + (attack ? 31 : 22) * scale * facing,
-      y - 18 * scale,
-      metal.iron,
-      scale,
-    );
-  }
-  if (variant.accessoryStyle === 'spearRoundShield') {
-    image.ellipse(
-      cx - 23 * scale * facing,
-      y + 32 * scale,
-      8 * scale,
-      11 * scale,
-      metal.bronzeLight,
-    );
-    image.ellipse(cx - 23 * scale * facing, y + 32 * scale, 5 * scale, 7 * scale, metal.red);
-    image.line(
-      cx + 17 * scale * facing,
-      y + 40 * scale,
-      cx + (attack ? 48 : 30) * scale * facing,
-      y - 28 * scale,
-      metal.iron,
-      2 * scale,
-    );
-  }
-  if (variant.accessoryStyle === 'dualDaggers') {
-    image.line(
-      cx - 17 * scale,
-      y + 20 * scale,
-      cx - 30 * scale,
-      y + 6 * scale,
-      metal.iron,
-      2 * scale,
-    );
-    image.line(
-      cx + 17 * scale,
-      y + 20 * scale,
-      cx + 30 * scale,
-      y + 6 * scale,
-      metal.iron,
-      2 * scale,
-    );
-  }
-}
-
 function drawGladiator(image, variant, options) {
   const scale = options.scale;
   const cx = options.cx;
@@ -720,14 +589,6 @@ function drawGladiator(image, variant, options) {
   if (options.activity === 'celebrate') {
     image.rect(cx - 8 * scale, headY - 11 * scale, 16 * scale, 4 * scale, metal.bronzeLight);
   }
-  drawAccessory(
-    image,
-    variant,
-    cx,
-    torsoY,
-    scale,
-    options.activity === 'attack' ? 'attack' : 'idle',
-  );
 }
 
 function drawMapFrame(variant, frameKey, frameIndex) {
@@ -764,7 +625,6 @@ function drawCombatFrame(variant, frameKey, frameIndex) {
       2,
     );
     image.rectOutline(70, 118, 22, 20, skinByTone[variant.skinTone], metal.outline, 2);
-    drawAccessory(image, variant, 58, 116, 2, 'idle');
     return image;
   }
   drawGladiator(image, variant, {
@@ -775,9 +635,6 @@ function drawCombatFrame(variant, frameKey, frameIndex) {
     frame: frameIndex,
     scale: 2,
   });
-  if (activity === 'block') {
-    image.rectOutline(19, 88, 26, 43, metal.red, metal.bronzeLight, 2);
-  }
   if (activity === 'hit') {
     image.rect(82, 54, 9, 4, '#f4d073');
     image.rect(88, 61, 7, 3, '#f4d073');
@@ -906,7 +763,6 @@ function generateAssets(variant, id, dryRun) {
     clothingColor: variant.clothingColor,
     hairAndBeardStyle: variant.hairAndBeardStyle,
     headwearStyle: variant.headwearStyle,
-    accessoryStyle: variant.accessoryStyle,
     bodyBuildStyle: variant.bodyBuildStyle,
     skinTone: variant.skinTone,
     markingStyle: variant.markingStyle,
@@ -933,8 +789,8 @@ function run() {
   const config = readVariantConfig();
   const limit = options.limit ?? config.maxVariantCount;
 
-  if (!Number.isInteger(limit) || limit < classOrder.length) {
-    throw new Error(`--limit must be an integer >= ${classOrder.length}`);
+  if (!Number.isInteger(limit) || limit < 1) {
+    throw new Error('--limit must be a positive integer');
   }
   if (limit > config.maxVariantCount) {
     throw new Error(`--limit must be <= ${config.maxVariantCount}`);

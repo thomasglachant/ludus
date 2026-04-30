@@ -34,15 +34,6 @@ const combatFrameKeys = [
   'combat-defeat',
   'combat-victory',
 ];
-const classOrder = ['murmillo', 'retiarius', 'secutor', 'thraex', 'hoplomachus'];
-const classAccessoryFallback = {
-  murmillo: 'gladiusScutum',
-  retiarius: 'tridentNet',
-  secutor: 'gladiusScutum',
-  thraex: 'sicaParmula',
-  hoplomachus: 'spearRoundShield',
-};
-
 function toWebPath(path) {
   return `/assets/${relative(publicAssetsRoot, path).split(sep).join('/')}`;
 }
@@ -106,7 +97,6 @@ function readVariantConfig() {
     clothingColors: parseArrayConstant(source, 'GLADIATOR_CLOTHING_COLORS'),
     hairAndBeardStyles: parseArrayConstant(source, 'GLADIATOR_HAIR_AND_BEARD_STYLES'),
     headwearStyles: parseArrayConstant(source, 'GLADIATOR_HEADWEAR_STYLES'),
-    accessoryStyles: parseArrayConstant(source, 'GLADIATOR_ACCESSORY_STYLES'),
     bodyBuildStyles: parseArrayConstant(source, 'GLADIATOR_BODY_BUILD_STYLES'),
     skinTones: parseArrayConstant(source, 'GLADIATOR_SKIN_TONES'),
     markingStyles: parseArrayConstant(source, 'GLADIATOR_MARKING_STYLES'),
@@ -123,25 +113,19 @@ function buildVariants(config, limit) {
     for (const clothingColor of config.clothingColors) {
       for (const hairAndBeardStyle of config.hairAndBeardStyles) {
         for (const headwearStyle of config.headwearStyles) {
-          for (const classId of classOrder) {
-            const index = variants.length;
-            variants.push({
-              classId,
-              clothingStyle,
-              clothingColor,
-              hairAndBeardStyle,
-              headwearStyle,
-              accessoryStyle: classAccessoryFallback[classId],
-              bodyBuildStyle: config.bodyBuildStyles[index % config.bodyBuildStyles.length],
-              skinTone: config.skinTones[(Math.floor(index / 5) + index) % config.skinTones.length],
-              markingStyle:
-                config.markingStyles[
-                  (Math.floor(index / 25) + index) % config.markingStyles.length
-                ],
-            });
-            if (variants.length >= limit) {
-              return variants;
-            }
+          const index = variants.length;
+          variants.push({
+            clothingStyle,
+            clothingColor,
+            hairAndBeardStyle,
+            headwearStyle,
+            bodyBuildStyle: config.bodyBuildStyles[index % config.bodyBuildStyles.length],
+            skinTone: config.skinTones[(Math.floor(index / 3) + index) % config.skinTones.length],
+            markingStyle:
+              config.markingStyles[(Math.floor(index / 9) + index) % config.markingStyles.length],
+          });
+          if (variants.length >= limit) {
+            return variants;
           }
         }
       }
@@ -268,7 +252,6 @@ function buildGladiatorManifest() {
             clothingColor: variant.clothingColor,
             hairAndBeardStyle: variant.hairAndBeardStyle,
             headwearStyle: variant.headwearStyle,
-            accessoryStyle: variant.accessoryStyle,
             bodyBuildStyle: variant.bodyBuildStyle,
             skinTone: variant.skinTone,
             markingStyle: variant.markingStyle,

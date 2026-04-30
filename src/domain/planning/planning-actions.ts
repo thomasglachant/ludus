@@ -3,11 +3,9 @@ import { TIME_CONFIG } from '../../game-data/time';
 import { GAME_BALANCE } from '../../game-data/balance';
 import { isGladiatorBuildingLocation } from '../../game-data/gladiator-map-movement';
 import type { BuildingId } from '../buildings/types';
-import type { CombatStrategy } from '../combat/types';
 import { assignGladiatorMapLocation, getGameMinuteStamp } from '../gladiators/map-movement';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
-import { calculateEffectiveReadiness } from './readiness';
 import type {
   GameAlert,
   GladiatorRoutine,
@@ -24,7 +22,6 @@ export interface PlanningRecommendation {
 export interface GladiatorPlanningStatus {
   gladiator: Gladiator;
   routine: GladiatorRoutine;
-  readiness: number;
   alerts: GameAlert[];
   recommendation: PlanningRecommendation;
 }
@@ -34,7 +31,6 @@ export interface GladiatorRoutineUpdate {
   intensity?: TrainingIntensity;
   allowAutomaticAssignment?: boolean;
   lockedBuildingId?: BuildingId;
-  combatStrategy?: CombatStrategy;
 }
 
 type GaugeAlertKind =
@@ -142,11 +138,6 @@ function getAvailableRecommendation(save: GameSave, buildingId: BuildingId, reas
 
 function getObjectiveRecommendation(objective: GladiatorWeeklyObjective) {
   switch (objective) {
-    case 'fightPreparation':
-      return {
-        buildingId: 'trainingGround' as const,
-        reasonKey: 'weeklyPlan.recommendations.fightPreparation',
-      };
     case 'trainStrength':
       return {
         buildingId: 'trainingGround' as const,
@@ -333,7 +324,6 @@ export function getGladiatorPlanningStatuses(save: GameSave): GladiatorPlanningS
     return {
       gladiator,
       routine,
-      readiness: calculateEffectiveReadiness(save, gladiator),
       alerts,
       recommendation: getPlanningRecommendation(save, gladiator, routine),
     };

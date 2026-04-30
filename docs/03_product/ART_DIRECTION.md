@@ -12,7 +12,7 @@ The player should understand at first glance:
 
 - the ludus is a physical place;
 - buildings, paths, gladiators, market and arena exist in the same world;
-- weekly preparation happens on the map;
+- weekly routines happen on the map;
 - Sunday combat is a theatrical climax, not just a log table.
 
 The tone is warm, readable and game-like: dark Roman HUDs, bronze and stone
@@ -41,7 +41,7 @@ The interface and assets should use:
 - dark bronze, charcoal and stone HUD frames;
 - parchment surfaces for panels, modals and repeated cards;
 - bronze, gold and ochre borders/highlights;
-- red banners, laurels, shields and Roman motifs where useful;
+- red banners, laurels and Roman motifs where useful;
 - readable pixel-art buildings, portraits, sprites and icons.
 
 ### Strategic Readability
@@ -51,7 +51,7 @@ The visuals should support management decisions. The player should quickly read:
 - which buildings are owned, locked or upgraded;
 - where gladiators are and what they are doing;
 - current time-of-day mood;
-- alerts, readiness risks and blocked actions;
+- alerts, condition risks and blocked actions;
 - where the Market and Arena are located;
 - which action is currently being asked of the player.
 
@@ -237,7 +237,7 @@ The combat presentation should include:
 - a full arena background with crowd and sand;
 - left and right combatant panels;
 - central fighter sprites with health bars;
-- selected strategy or skill area;
+- combat skills, condition, odds and core fighter attributes;
 - visible fatigue/energy feedback;
 - combat log progression;
 - result, reward and consequence summary.
@@ -302,7 +302,7 @@ Gladiator sprite priorities:
 
 - define a sprite charter for proportions, palette, shadow and outline;
 - normalize directions and frame dimensions;
-- create map spritesheets by class or visual identity;
+- create map spritesheets by visual identity and equipment silhouette;
 - create frames for idle, walk, train, rest, eat, injured and healing states;
 - keep deterministic visual identity resolution for saves that lack explicit
   identity metadata.
@@ -312,7 +312,7 @@ Combat asset priorities:
 - create a complete arena background with crowd, sand, gates and lighting;
 - create combat spritesheets for idle, attack, dodge, parry, impact, victory and
   defeat;
-- create class or equipment variants that remain readable at combat scale;
+- create equipment variants that remain readable at combat scale;
 - define animation timing and impact readability guidelines.
 
 Integration rules:

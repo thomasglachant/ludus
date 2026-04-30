@@ -1,6 +1,5 @@
 import type { CombatState, CombatTurn, GameSave, Gladiator } from '../../domain/types';
 import type { GladiatorVisualIdentity } from '../../domain/gladiators/types';
-import { getGladiatorClassDefinition } from '../../game-data/gladiator-classes';
 import {
   getGladiatorPortraitAssetPath,
   getGladiatorVisualIdentity,
@@ -10,10 +9,6 @@ import { PRODUCTION_VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets'
 export type CombatantSide = 'player' | 'opponent';
 
 export interface CombatantViewModel {
-  armorKey: string;
-  classDescriptionKey: string;
-  classEffectSummaryKey: string;
-  classNameKey: string;
   energy: number;
   health: number;
   id: string;
@@ -25,6 +20,7 @@ export interface CombatantViewModel {
 }
 
 export interface CombatConsequenceViewModel {
+  didPlayerWin: boolean;
   healthChange: number;
   energyChange: number;
   moraleChange: number;
@@ -55,6 +51,10 @@ interface CombatantHealthState {
 
 function clampPercent(value: number) {
   return Math.min(100, Math.max(0, Math.round(value)));
+}
+
+function getProgressiveStatValue(startValue: number, endValue: number, progressRatio: number) {
+  return startValue + (endValue - startValue) * progressRatio;
 }
 
 function findCombat(save: GameSave, combatId?: string) {
@@ -90,35 +90,16 @@ function getTurnHealthState(combat: CombatState, visibleTurns: CombatTurn[]): Co
   };
 }
 
-function getArmorKey(gladiator: Pick<Gladiator, 'id' | 'classId' | 'visualIdentity'>) {
-  const visualIdentity = getGladiatorVisualIdentity(
-    gladiator.id,
-    gladiator.visualIdentity,
-    gladiator.classId,
-  );
-
-  return `combatScreen.armor.${visualIdentity.armorStyle ?? 'unknown'}`;
-}
-
 function createCombatantViewModel(
-  gladiator: Pick<Gladiator, 'id' | 'name' | 'classId' | 'visualIdentity'>,
+  gladiator: Pick<Gladiator, 'id' | 'name' | 'visualIdentity'>,
   side: CombatantSide,
   health: number,
   energy: number,
   morale: number,
 ): CombatantViewModel {
-  const classDefinition = getGladiatorClassDefinition(gladiator);
-  const visualIdentity = getGladiatorVisualIdentity(
-    gladiator.id,
-    gladiator.visualIdentity,
-    gladiator.classId,
-  );
+  const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity);
 
   return {
-    armorKey: getArmorKey(gladiator),
-    classDescriptionKey: classDefinition.descriptionKey,
-    classEffectSummaryKey: classDefinition.effectSummaryKey,
-    classNameKey: classDefinition.nameKey,
     energy: clampPercent(energy),
     health: clampPercent(health),
     id: gladiator.id,
@@ -141,15 +122,27 @@ export function getCombatScreenViewModel(
   const boundedVisibleTurnCount = Math.min(Math.max(0, visibleTurnCount), combat.turns.length);
   const visibleTurns = combat.turns.slice(0, boundedVisibleTurnCount);
   const isComplete = boundedVisibleTurnCount >= combat.turns.length;
+  const progressRatio = combat.turns.length > 0 ? boundedVisibleTurnCount / combat.turns.length : 1;
   const healthState = getTurnHealthState(combat, visibleTurns);
   const winnerName =
     combat.winnerId === combat.gladiator.id ? combat.gladiator.name : combat.opponent.name;
+  const playerEnergy = getProgressiveStatValue(
+    combat.gladiator.energy,
+    combat.consequence.finalEnergy,
+    progressRatio,
+  );
+  const playerMorale = getProgressiveStatValue(
+    combat.gladiator.morale,
+    combat.consequence.finalMorale,
+    progressRatio,
+  );
 
   return {
     combat,
     combatBackgroundPath: PRODUCTION_VISUAL_ASSET_MANIFEST.locations.arena.combatBackground,
     combatCrowdPath: PRODUCTION_VISUAL_ASSET_MANIFEST.locations.arena.crowd,
     consequence: {
+      didPlayerWin: combat.consequence.didPlayerWin,
       healthChange: combat.consequence.healthChange,
       energyChange: combat.consequence.energyChange,
       moraleChange: combat.consequence.moraleChange,
@@ -172,8 +165,8 @@ export function getCombatScreenViewModel(
       combat.gladiator,
       'player',
       healthState.player,
-      isComplete ? combat.consequence.finalEnergy : combat.gladiator.energy,
-      isComplete ? combat.consequence.finalMorale : combat.gladiator.morale,
+      playerEnergy,
+      playerMorale,
     ),
     totalTurnCount: combat.turns.length,
     visibleTurns,

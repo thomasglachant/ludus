@@ -4,6 +4,7 @@ import { useUiStore } from '../state/ui-store-context';
 import { DevDemoRoute } from './DevDemoRoute';
 import { getDevDemoSaveId } from './dev-demo-route-utils';
 import { AppLayout } from '../ui/layout/AppLayout';
+import { ArenaScreen } from '../ui/screens/ArenaScreen';
 import { LudusScreen } from '../ui/screens/LudusScreen';
 import { MainMenuScreen } from '../ui/screens/MainMenuScreen';
 import { NewGameScreen } from '../ui/screens/NewGameScreen';
@@ -20,6 +21,8 @@ function renderScreen(screen: ScreenName) {
       return <NewGameScreen />;
     case 'ludus':
       return <LudusScreen />;
+    case 'arena':
+      return <ArenaScreen />;
     case 'mainMenu':
       return <MainMenuScreen />;
   }

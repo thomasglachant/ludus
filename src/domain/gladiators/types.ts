@@ -24,7 +24,6 @@ export interface GladiatorVisualIdentity {
   clothingColor?: string;
   hairAndBeardStyle?: string;
   headwearStyle?: string;
-  accessoryStyle?: string;
   bodyBuildStyle?: string;
   skinTone?: string;
   markingStyle?: string;
@@ -33,7 +32,6 @@ export interface GladiatorVisualIdentity {
 export interface Gladiator {
   id: string;
   name: string;
-  classId?: GladiatorClassId;
   age: number;
   strength: number;
   agility: number;
@@ -65,8 +63,6 @@ export type GladiatorTrait =
   | 'crowdFavorite'
   | 'rivalrous'
   | 'stoic';
-
-export type GladiatorClassId = 'murmillo' | 'retiarius' | 'secutor' | 'thraex' | 'hoplomachus';
 
 export interface GladiatorTrainingPlan {
   gladiatorId: string;

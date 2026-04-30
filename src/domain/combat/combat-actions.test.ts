@@ -1,10 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { ARENA_REWARDS, ARENA_REWARD_SPLIT } from '../../game-data/combat';
+import {
+  ARENA_PARTICIPATION_REWARDS,
+  ARENA_PUBLIC_STAKE_MODIFIER_SPREAD,
+  ARENA_REWARDS,
+  ARENA_VICTORY_ODDS_REWARD_MULTIPLIER,
+} from '../../game-data/combat';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave, Gladiator } from '../types';
 import {
+  calculateArenaCombatReward,
+  calculateDecimalOdds,
   calculateDamage,
   calculateHitChance,
+  calculateProjectedWinChance,
   getArenaRank,
   resolveArenaDay,
   resolveCombat,
@@ -57,10 +65,38 @@ describe('combat actions', () => {
     expect(getArenaRank(600)).toBe('gold1');
   });
 
-  it('resolves a turn-based combat with a visible reward split', () => {
+  it('calculates arena rewards from participation, odds and public stake', () => {
+    const reward = calculateArenaCombatReward('gold1', 1.8, () => 0.5);
+    const expectedParticipationReward = ARENA_PARTICIPATION_REWARDS.gold1;
+    const expectedVictoryReward = Math.round(
+      ARENA_REWARDS.gold1 * ARENA_VICTORY_ODDS_REWARD_MULTIPLIER * 1.8,
+    );
+
+    expect(reward).toEqual({
+      totalReward: expectedParticipationReward + expectedVictoryReward,
+      winnerReward: expectedParticipationReward + expectedVictoryReward,
+      loserReward: expectedParticipationReward,
+      participationReward: expectedParticipationReward,
+      victoryReward: expectedVictoryReward,
+      publicStakeModifier: 0,
+      playerDecimalOdds: 1.8,
+    });
+  });
+
+  it('resolves a turn-based combat with odds-based arena rewards', () => {
     const save = withSundayArena(createTestSave(), [createGladiator()]);
     const combat = resolveCombat(save, save.gladiators[0], () => 0);
-    const expectedWinnerReward = Math.round(ARENA_REWARDS.bronze3 * ARENA_REWARD_SPLIT.winner);
+    const playerChance = calculateProjectedWinChance(combat.gladiator, combat.opponent);
+    const playerDecimalOdds = calculateDecimalOdds(playerChance);
+    const expectedParticipationReward = ARENA_PARTICIPATION_REWARDS.bronze3;
+    const expectedVictoryReward = Math.max(
+      0,
+      Math.round(
+        ARENA_REWARDS.bronze3 * ARENA_VICTORY_ODDS_REWARD_MULTIPLIER * playerDecimalOdds -
+          ARENA_PUBLIC_STAKE_MODIFIER_SPREAD,
+      ),
+    );
+    const expectedWinnerReward = expectedParticipationReward + expectedVictoryReward;
 
     expect(combat.turns.length).toBeGreaterThan(0);
     expect(combat.turns[0]).toMatchObject({
@@ -68,13 +104,26 @@ describe('combat actions', () => {
       logKey: 'combat.log.hit',
     });
     expect(combat.reward).toEqual({
-      totalReward: ARENA_REWARDS.bronze3,
+      totalReward: expectedWinnerReward,
       winnerReward: expectedWinnerReward,
-      loserReward: ARENA_REWARDS.bronze3 - expectedWinnerReward,
+      loserReward: expectedParticipationReward,
+      participationReward: expectedParticipationReward,
+      victoryReward: expectedVictoryReward,
+      publicStakeModifier: -ARENA_PUBLIC_STAKE_MODIFIER_SPREAD,
+      playerDecimalOdds,
     });
     expect(combat.opponent.visualIdentity?.portraitAssetId).toMatch(/^gladiator-/);
     expect(combat.consequence.didPlayerWin).toBe(true);
     expect(combat.consequence.playerReward).toBe(expectedWinnerReward);
+  });
+
+  it('adds reputation from the current value when the player wins', () => {
+    const save = withSundayArena(createTestSave(), [createGladiator({ reputation: 20 })]);
+    const combat = resolveCombat(save, save.gladiators[0], () => 0);
+
+    expect(combat.consequence.didPlayerWin).toBe(true);
+    expect(combat.consequence.reputationChange).toBe(10);
+    expect(combat.consequence.finalReputation).toBe(30);
   });
 
   it('uses floored skill values for combat calculations', () => {
@@ -118,6 +167,24 @@ describe('combat actions', () => {
     expect(resolved.ludus.reputation).toBe(gladiator.reputation);
   });
 
+  it('orders arena day combats from the lowest league to the highest league before presentation', () => {
+    const save = withSundayArena(createTestSave(), [
+      createGladiator({ id: 'gold-test', name: 'Goldius', reputation: 600 }),
+      createGladiator({ id: 'bronze-test', name: 'Brutus', reputation: 0 }),
+      createGladiator({ id: 'silver-test', name: 'Silvanus', reputation: 100 }),
+      createGladiator({ id: 'bronze-two-test', name: 'Cassius', reputation: 25 }),
+    ]);
+    const resolved = resolveArenaDay(save, () => 0);
+
+    expect(resolved.arena.resolvedCombats.map((combat) => combat.rank)).toEqual([
+      'bronze3',
+      'bronze2',
+      'silver3',
+      'gold1',
+    ]);
+    expect(resolved.arena.currentCombatId).toBe(resolved.arena.resolvedCombats[0].id);
+  });
+
   it('activates an empty Sunday arena day without rewards when no gladiator is eligible', () => {
     const save = withSundayArena(createTestSave(), [createGladiator({ health: 0 })]);
     const resolved = resolveArenaDay(save, () => 0);
@@ -132,7 +199,7 @@ describe('combat actions', () => {
     expect(resolved.gladiators[0].wins + resolved.gladiators[0].losses).toBe(0);
   });
 
-  it('grants the loser share and applies loss consequences when the player loses', () => {
+  it('grants the participation reward and applies loss consequences when the player loses', () => {
     const save = withSundayArena(createTestSave(), [
       createGladiator({
         strength: 3,
@@ -154,6 +221,25 @@ describe('combat actions', () => {
       morale: 62,
       reputation: 0,
     });
+  });
+
+  it('subtracts reputation from the current value when the player loses', () => {
+    const save = withSundayArena(createTestSave(), [
+      createGladiator({
+        strength: 3,
+        agility: 3,
+        defense: 3,
+        health: 30,
+        reputation: 20,
+      }),
+    ]);
+    const resolved = resolveArenaDay(save, () => 0);
+    const combat = resolved.arena.resolvedCombats[0];
+    const gladiator = resolved.gladiators[0];
+
+    expect(combat.consequence.didPlayerWin).toBe(false);
+    expect(combat.consequence.reputationChange).toBe(-3);
+    expect(gladiator.reputation).toBe(17);
   });
 
   it('keeps arena inactive outside Sunday', () => {

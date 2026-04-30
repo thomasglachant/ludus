@@ -92,8 +92,7 @@ export type BuildingEffectType =
   | 'decreaseEnergy'
   | 'decreaseMorale'
   | 'increaseCapacity'
-  | 'reduceInjuryRisk'
-  | 'increaseReadiness';
+  | 'reduceInjuryRisk';
 
 export interface BuildingEffect {
   type: BuildingEffectType;

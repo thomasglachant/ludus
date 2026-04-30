@@ -98,7 +98,7 @@ const save = createDemoSave({
       losses: 0,
       traits: ['disciplined'],
       currentBuildingId: 'canteen',
-      weeklyObjective: 'fightPreparation',
+      weeklyObjective: 'balanced',
     },
     {
       id: 'glad-demo-early-darius',

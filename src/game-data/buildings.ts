@@ -215,7 +215,7 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         ],
       },
     ],
-    improvementIds: ['woodenWeapons', 'sparringRing', 'advancedDoctoreTools'],
+    improvementIds: ['sparringRing', 'advancedDoctoreTools'],
   },
   pleasureHall: {
     id: 'pleasureHall',

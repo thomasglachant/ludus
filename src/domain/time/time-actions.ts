@@ -4,7 +4,6 @@ import { GAME_BALANCE } from '../../game-data/balance';
 import { getHourlyBuildingEffects } from '../buildings/building-effects';
 import type { BuildingEffect, BuildingId, GameSave, GameSpeed, GameTickContext } from '../types';
 import { synchronizeArena, synchronizeBetting } from '../combat/combat-actions';
-import { synchronizeContracts } from '../contracts/contract-actions';
 import { synchronizeEvents } from '../events/event-actions';
 import { getActiveGameInterruption, isGameInterrupted } from '../game-flow/interruption';
 import {
@@ -284,7 +283,6 @@ function getTrainingStatEffectType(gladiator: Gladiator, save: GameSave): Buildi
       return 'increaseDefense';
     case 'trainStrength':
     case 'balanced':
-    case 'fightPreparation':
     case 'moraleBoost':
     case 'prepareForSale':
     case 'recovery':
@@ -633,9 +631,7 @@ export function tickGame(context: GameTickContext): GameTickResult {
   };
   const saveWithWeeklyLayers = synchronizePlanning(
     synchronizeEvents(
-      synchronizeContracts(
-        synchronizeArena(synchronizeBetting(saveWithTime, context.random), context.random),
-      ),
+      synchronizeArena(synchronizeBetting(saveWithTime, context.random), context.random),
       context.random,
     ),
   );
@@ -760,17 +756,16 @@ export function completeSundayArenaDay(save: GameSave): GameSave {
     return save;
   }
 
-  const saveWithResolvedContracts = synchronizeContracts(save);
   const sundayEveningSave: GameSave = {
-    ...saveWithResolvedContracts,
+    ...save,
     time: {
-      ...saveWithResolvedContracts.time,
+      ...save.time,
       dayOfWeek: GAME_BALANCE.arena.dayOfWeek,
       hour: GAME_BALANCE.arena.endHour,
       minute: 0,
     },
     arena: {
-      ...saveWithResolvedContracts.arena,
+      ...save.arena,
       arenaDay: undefined,
       currentCombatId: undefined,
       pendingCombats: [],

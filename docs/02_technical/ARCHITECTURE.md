@@ -24,8 +24,7 @@ ludus/
 │   ├── 00_overview/
 │   ├── 01_game_design/
 │   ├── 02_technical/
-│   ├── 03_product/
-│   └── 04_roadmap/
+│   └── 03_product/
 ├── public/
 │   └── assets/
 ├── src/
@@ -51,7 +50,7 @@ ludus/
 
 Contains tunable game definitions, content and balance parameters.
 
-`src/game-data/balance.ts` is the canonical home for gameplay balance values. New variables that tune economy, progression, training, combat, market, arena, planning, contracts, events, gauges, skills or building behavior must be added to `GAME_BALANCE` before being consumed elsewhere.
+`src/game-data/balance.ts` is the canonical home for gameplay balance values. New variables that tune economy, progression, training, combat, market, arena, planning, events, gauges, skills or building behavior must be added to `GAME_BALANCE` before being consumed elsewhere.
 
 Dedicated game-data modules may re-export compatibility constants from `GAME_BALANCE` or combine those constants with larger content definitions. Domain, state, UI, persistence and renderer modules must not introduce new hardcoded balance constants.
 
@@ -65,7 +64,6 @@ Examples:
 - arena rewards;
 - market generation settings;
 - planning thresholds;
-- contract definitions;
 - event definitions;
 - map layout and visual definitions;
 - asset manifest helpers;
@@ -85,11 +83,9 @@ Examples:
 - validate building purchase;
 - apply building effects;
 - generate market gladiators;
-- calculate readiness;
 - generate alerts;
 - resolve combat;
 - apply combat consequences;
-- validate contracts;
 - resolve events;
 - serialize, validate and migrate saves.
 
@@ -172,7 +168,7 @@ Examples:
 - `createDormitoryCapacityViewModel(save)`;
 - `createGladiatorCardViewModel(save, gladiator)`.
 
-React components should consume prepared view-model fields and call store actions. Rules such as upgrade validation, ludus capacity, readiness scoring, market prices and combat resolution remain in `src/domain` and `src/game-data`.
+React components should consume prepared view-model fields and call store actions. Rules such as upgrade validation, ludus capacity, market prices and combat resolution remain in `src/domain` and `src/game-data`.
 
 ### `src/persistence`
 
@@ -224,7 +220,7 @@ needs to know what to draw, React/state prepares a view-model. If the player
 clicks a scene element, Pixi calls back with an id or intent and React/state
 performs the action.
 
-### Scene View-Model Contract
+### Scene View Models
 
 Every Pixi scene receives a serializable view-model. Scenes must not receive the
 complete store, store hooks, mutable save objects, domain service instances or
@@ -326,7 +322,7 @@ boundary.
 
 ## Modal Management
 
-Focused player interactions use the centralized modal framework instead of local modal state, side-panel chrome or standalone feature screens.
+Most focused player interactions use the centralized modal framework instead of local modal state or side-panel chrome. Dedicated full-screen routes are reserved for blocking theatrical flows such as Sunday arena presentation.
 
 Conventions:
 
@@ -342,10 +338,10 @@ Size guidance:
 
 - `sm`: menu, simple confirmation;
 - `md`: options, lightweight forms, focused gladiator details;
-- `lg`: building details, building action previews, load game, contracts and events;
-- `xl`: dense systems such as market, weekly planning and arena preparation/results.
+- `lg`: building details, building action previews, load game and events;
+- `xl`: dense systems such as market, weekly planning and arena results.
 
-Confirmation modals should be used for irreversible, expensive or blocking actions. Lightweight form modals should be used when a focused form does not need its own screen. New gameplay panels should be implemented as modal content rendered by `ModalHost`, not as independently positioned contextual panels.
+Confirmation modals should be used for irreversible, expensive or blocking actions. Lightweight form modals should be used when a focused form does not need its own screen. New gameplay panels should be implemented as modal content rendered by `ModalHost`, unless the feature needs a dedicated blocking presentation such as the arena route.
 
 ## Save Provider Abstraction
 
@@ -453,7 +449,7 @@ A tick can:
 
 Blocking game flows are derived from the save, not from transient component state. `getActiveGameInterruption(save)` returns a daily event interruption when an event is pending, or a Sunday arena interruption when `arena.arenaDay` exists. The game store uses this derived state to stop the real-time tick loop and auto-open the relevant UI.
 
-Sunday arena resolution is checkpointed at Sunday 08:00. If a tick would pass beyond that time, `tickGame` clamps the time advancement to 08:00, starts the arena day and leaves further progression blocked until the arena day is completed. Completing the arena day resolves weekly arena contracts before moving the clock to Sunday 20:00. `arena.isArenaDayActive` stays true until the natural Monday rollover so Sunday evening ticks do not restart the arena flow.
+Sunday arena resolution is checkpointed at Sunday 06:00. If a tick would pass beyond that time, `tickGame` clamps the time advancement to 06:00, starts the arena day and leaves further progression blocked until the arena day is completed. Completing the arena day moves the clock to Sunday 20:00. `arena.isArenaDayActive` stays true until the natural Monday rollover so Sunday evening ticks do not restart the arena flow.
 
 Tick behavior should remain testable through explicit inputs.
 
@@ -476,11 +472,11 @@ Use keys such as:
 
 ```ts
 t('mainMenu.newGame');
-t('weeklyPlan.objectives.fightPreparation');
+t('weeklyPlan.objectives.balanced');
 t('alerts.lowEnergy.title');
 ```
 
-## Testing Strategy
+## Testing Approach
 
 During rapid prototyping, tests are intentionally narrow. The default suite should protect durable game rules, save behavior and i18n hygiene. It should not try to lock down volatile UI flows, component structure, visual layout or end-to-end player paths while the product shape is still changing quickly.
 
@@ -494,12 +490,10 @@ Priority test areas:
 - building purchase and upgrade rules;
 - ludus capacity;
 - market generation;
-- readiness score;
 - automatic planning recommendations;
 - combat hit chance and damage;
 - combat consequences;
 - reward distribution;
-- contract resolution;
 - event effects;
 - corrupted save handling;
 - demo provider read-only behavior.

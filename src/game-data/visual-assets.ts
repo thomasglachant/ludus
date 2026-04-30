@@ -48,7 +48,6 @@ export interface GladiatorAssetSet {
   clothingColor?: string;
   hairAndBeardStyle?: string;
   headwearStyle?: string;
-  accessoryStyle?: string;
   bodyBuildStyle?: string;
   skinTone?: string;
   markingStyle?: string;

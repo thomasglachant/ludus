@@ -1,6 +1,6 @@
 # Domain Models
 
-This document defines the TypeScript vocabulary for persisted game state and major gameplay contracts.
+This document defines the TypeScript vocabulary for persisted game state and major gameplay state shapes.
 
 Implementation source lives under `src/domain`. This document should stay aligned with the current save schema.
 
@@ -35,6 +35,7 @@ export interface SaveMetadata {
 ```ts
 export interface GameSave {
   schemaVersion: number;
+  gameId: string;
   saveId: string;
   createdAt: string;
   updatedAt: string;
@@ -47,7 +48,6 @@ export interface GameSave {
   market: MarketState;
   arena: ArenaState;
   planning: WeeklyPlanningState;
-  contracts: ContractState;
   events: EventState;
   metadata?: SaveMetadata;
 }
@@ -55,6 +55,7 @@ export interface GameSave {
 
 ```ts
 export interface GameSaveMetadata {
+  gameId: string;
   saveId: string;
   ludusName: string;
   createdAt?: string;
@@ -83,13 +84,6 @@ The store owns transient save UI fields such as:
 - `lastSavedAt`: the latest successful save timestamp shown in the HUD for the current session;
 - `isSaving`: whether a save write is currently in progress;
 - `saveNoticeKey`: the i18n key for the latest save success, error or related save notice.
-
-Loading an existing local save sets `hasUnsavedChanges` to `false`. Creating a
-new local save also starts clean because the save is written during creation.
-Loading a demo template first creates a normal local save copy; that copy keeps
-`metadata.demoSaveId` so the HUD can label it and reset it from the source
-template. The demo provider templates remain read-only and are not mutated by
-manual saves.
 
 ## Ludus and Time
 
@@ -138,10 +132,7 @@ export interface LudusMapState {
 }
 ```
 
-`map` stores the player-visible ludus grid state. The initial implementation uses
-fixed building placements, road tiles and wall tiles. Future construction should
-mutate `placements` and `editedTiles` through domain actions instead of changing
-renderer-only coordinates.
+`map` stores the player-visible ludus grid state. The current implementation uses fixed building placements, road tiles and wall tiles. Future construction should mutate `placements` and `editedTiles` through domain actions instead of changing renderer-only coordinates.
 
 ## Buildings
 
@@ -179,28 +170,6 @@ export type BuildingConfiguration =
   | InfirmaryConfiguration;
 ```
 
-```ts
-export interface CanteenConfiguration {
-  mealPlanId: string;
-}
-
-export interface DormitoryConfiguration {
-  purchasedBeds: number;
-}
-
-export interface TrainingGroundConfiguration {
-  defaultDoctrineId: string;
-}
-
-export interface PleasureHallConfiguration {
-  entertainmentPlanId: string;
-}
-
-export interface InfirmaryConfiguration {
-  carePolicyId: string;
-}
-```
-
 Owned gladiator capacity is derived from the Domus level and capped at 6. Legacy save data may still contain dormitory `purchasedBeds` configuration, but domain capacity helpers ignore it.
 
 Building state must not contain a generic `budget` field.
@@ -218,10 +187,6 @@ export interface BuildingDefinition {
   improvementIds: string[];
 }
 ```
-
-`startsPurchased` is the data-driven source of truth for whether a building is owned in a new save. `startsAtLevel` defines the initial level written into new saves. The six base `BuildingId` values are required at the start of the initial player experience, so their definitions use `startsPurchased: true` and `startsAtLevel: 1`.
-
-Future optional buildings can use `startsPurchased: false` and `startsAtLevel: 0` without adding a new save field. The purchase domain logic remains available for those buildings.
 
 ```ts
 export interface BuildingLevelDefinition {
@@ -270,8 +235,7 @@ export type BuildingEffectType =
   | 'decreaseEnergy'
   | 'decreaseMorale'
   | 'increaseCapacity'
-  | 'reduceInjuryRisk'
-  | 'increaseReadiness';
+  | 'reduceInjuryRisk';
 ```
 
 ```ts
@@ -289,7 +253,7 @@ Building effects can come from three sources:
 - purchased improvements;
 - the selected policy.
 
-`perHour: true` is the only signal that an effect may be applied during time advancement. Effects without `perHour` are permanent or contextual modifiers. Time-domain actions must filter to hourly effects before changing gladiator gauges, while non-hourly effects should be exposed through building-effect helpers for capacity, readiness, injury-risk and other contextual calculations.
+`perHour: true` is the only signal that an effect may be applied during time advancement. Effects without `perHour` are permanent or contextual modifiers.
 
 The default target is `assignedGladiator` when omitted. `allGladiators` affects the full roster or a roster-wide calculation. `ludus` affects school-level values such as capacity.
 
@@ -303,6 +267,13 @@ export interface GladiatorVisualIdentity {
   bodyType?: string;
   hairStyle?: string;
   armorStyle?: string;
+  clothingStyle?: string;
+  clothingColor?: string;
+  hairAndBeardStyle?: string;
+  headwearStyle?: string;
+  bodyBuildStyle?: string;
+  skinTone?: string;
+  markingStyle?: string;
 }
 ```
 
@@ -325,6 +296,7 @@ export interface Gladiator {
   currentLocationId?: GladiatorLocationId;
   currentBuildingId?: BuildingId;
   currentActivityId?: string;
+  currentTaskStartedAt?: number;
   mapMovement?: GladiatorMapMovement;
   trainingPlan?: GladiatorTrainingPlan;
   visualIdentity?: GladiatorVisualIdentity;
@@ -343,8 +315,7 @@ export interface GladiatorMapMovement {
 }
 ```
 
-`route` is a cardinal grid-cell path. Domain/game-data helpers compute it from
-the current map occupancy; Pixi only interpolates along the prepared route.
+`route` is a cardinal grid-cell path. Domain/game-data helpers compute it from the current map occupancy; Pixi only interpolates along the prepared route.
 
 ```ts
 export type GladiatorTrait =
@@ -373,7 +344,6 @@ export interface GladiatorTrainingPlan {
 ```ts
 export type GladiatorWeeklyObjective =
   | 'balanced'
-  | 'fightPreparation'
   | 'trainStrength'
   | 'trainAgility'
   | 'trainDefense'
@@ -394,7 +364,6 @@ export interface GladiatorRoutine {
   intensity: TrainingIntensity;
   allowAutomaticAssignment: boolean;
   lockedBuildingId?: BuildingId;
-  combatStrategy?: CombatStrategy;
 }
 ```
 
@@ -451,22 +420,24 @@ export type ArenaRank =
 ```
 
 ```ts
-export type CombatStrategy =
-  | 'balanced'
-  | 'aggressive'
-  | 'defensive'
-  | 'evasive'
-  | 'exhaustOpponent'
-  | 'protectInjury';
-```
-
-```ts
 export interface ArenaState {
   currentCombatId?: string;
+  arenaDay?: ArenaDayState;
   pendingCombats: CombatState[];
   resolvedCombats: CombatState[];
   isArenaDayActive: boolean;
   betting?: BettingState;
+}
+```
+
+```ts
+export type ArenaDayPhase = 'intro' | 'summary';
+
+export interface ArenaDayState {
+  year: number;
+  week: number;
+  phase: ArenaDayPhase;
+  presentedCombatIds: string[];
 }
 ```
 
@@ -478,7 +449,6 @@ export interface CombatState {
   gladiator: Gladiator;
   opponent: Gladiator;
   rank: ArenaRank;
-  strategy: CombatStrategy;
   turns: CombatTurn[];
   winnerId?: string;
   loserId?: string;
@@ -508,8 +478,14 @@ export interface CombatReward {
   totalReward: number;
   winnerReward: number;
   loserReward: number;
+  participationReward?: number;
+  victoryReward?: number;
+  publicStakeModifier?: number;
+  playerDecimalOdds?: number;
 }
 ```
+
+Arena rewards are resolved when the combat is generated. `loserReward` is the fixed participation amount for the arena rank. `winnerReward` is the participation amount plus an odds-based victory bonus. Current saves include the explicit `participationReward`, `victoryReward`, `publicStakeModifier` and `playerDecimalOdds` fields; they remain optional so older saves with the original reward split continue to load.
 
 ```ts
 export interface CombatConsequence {
@@ -567,105 +543,10 @@ export interface ScoutingReport {
 }
 ```
 
-## Contracts
-
-```ts
-export type ContractStatus = 'available' | 'accepted' | 'completed' | 'failed' | 'expired';
-```
-
-```ts
-export interface WeeklyContract {
-  id: string;
-  titleKey: string;
-  descriptionKey: string;
-  status: ContractStatus;
-  rewardTreasury: number;
-  rewardReputation?: number;
-  issuedAtYear: number;
-  issuedAtWeek: number;
-  expiresAtYear: number;
-  expiresAtWeek: number;
-  objective: ContractObjective;
-}
-```
-
-```ts
-export type ContractObjective =
-  | { type: 'winFightCount'; count: number }
-  | { type: 'winWithRank'; rank: ArenaRank }
-  | { type: 'winWithLowHealth'; maxHealth: number }
-  | { type: 'earnTreasuryFromArena'; amount: number }
-  | { type: 'sellGladiatorForAtLeast'; amount: number };
-```
-
-```ts
-export interface ContractState {
-  availableContracts: WeeklyContract[];
-  acceptedContracts: WeeklyContract[];
-}
-
-export interface ContractProgress {
-  current: number;
-  target: number;
-  isComplete: boolean;
-}
-```
-
 ## Events
 
 ```ts
 export type GameEventStatus = 'pending' | 'resolved' | 'expired';
-```
-
-```ts
-export interface GameEventChoice {
-  id: string;
-  labelKey: string;
-  consequenceKey: string;
-  consequences: GameEventConsequence[];
-}
-```
-
-```ts
-export type GameEventConsequence =
-  | { kind: 'certain'; effects: GameEventEffect[] }
-  | {
-      kind: 'chance';
-      id: string;
-      chancePercent: number;
-      effects?: GameEventEffect[];
-      textKey?: string;
-    }
-  | { kind: 'oneOf'; outcomes: GameEventOutcome[] };
-```
-
-```ts
-export interface GameEventOutcome {
-  id: string;
-  chancePercent: number;
-  effects?: GameEventEffect[];
-  textKey?: string;
-}
-```
-
-`certain` consequences always apply. `chance` consequences are independent probability checks. `oneOf` consequences are exclusive outcome groups; exactly one outcome is selected from the group according to cumulative `chancePercent` values, and the percentages must total 100.
-
-```ts
-export interface GameEvent {
-  id: string;
-  definitionId: string;
-  titleKey: string;
-  descriptionKey: string;
-  status: GameEventStatus;
-  createdAtYear: number;
-  createdAtWeek: number;
-  createdAtDay: DayOfWeek;
-  gladiatorId?: string;
-  buildingId?: BuildingId;
-  choices: GameEventChoice[];
-  selectedChoiceId?: string;
-  resolvedOutcomeIds?: string[];
-}
 ```
 
 ```ts
@@ -686,7 +567,23 @@ export interface LaunchedGameEventRecord {
 }
 ```
 
-`pendingEvents` and `resolvedEvents` are transient UI/domain queues and are not persisted across local save normalization. `launchedEvents` is persisted and stores the minimum launch history needed for game-week cooldowns, daily generation limits and weekly generation limits.
+```ts
+export interface GameEventChoice {
+  id: string;
+  labelKey: string;
+  consequenceKey: string;
+  consequences: GameEventConsequence[];
+}
+```
+
+```ts
+export interface GameEventOutcome {
+  id: string;
+  chancePercent: number;
+  effects?: GameEventEffect[];
+  textKey?: string;
+}
+```
 
 ```ts
 export type GameEventEffect =
@@ -705,17 +602,35 @@ export type GameEventEffect =
     };
 ```
 
-## Demo Save Definition
+```ts
+export type GameEventConsequence =
+  | { kind: 'certain'; effects: GameEventEffect[] }
+  | {
+      kind: 'chance';
+      id: string;
+      chancePercent: number;
+      effects?: GameEventEffect[];
+      textKey?: string;
+    }
+  | { kind: 'oneOf'; outcomes: GameEventOutcome[] };
+```
+
+`certain` consequences always apply. `chance` consequences are independent probability checks. `oneOf` consequences are exclusive outcome groups; exactly one outcome is selected from the group according to cumulative `chancePercent` values, and the percentages must total 100.
 
 ```ts
-export interface DemoSaveDefinition {
-  id: DemoSaveId;
-  nameKey: string;
+export interface GameEvent {
+  id: string;
+  definitionId: string;
+  titleKey: string;
   descriptionKey: string;
-  stageKey: string;
-  tags: string[];
-  save: GameSave;
-  preferredRoute?: string;
-  preferredCameraTarget?: 'ludus' | 'market' | 'arena';
+  status: GameEventStatus;
+  createdAtYear: number;
+  createdAtWeek: number;
+  createdAtDay: DayOfWeek;
+  gladiatorId?: string;
+  buildingId?: BuildingId;
+  choices: GameEventChoice[];
+  selectedChoiceId?: string;
+  resolvedOutcomeIds?: string[];
 }
 ```
