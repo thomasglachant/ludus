@@ -46,10 +46,14 @@ export function getCurrentBuildingLevelEffects(save: GameSave, buildingId: Build
     return [];
   }
 
-  return (
-    BUILDING_DEFINITIONS[buildingId].levels.find((level) => level.level === building.level)
-      ?.effects ?? []
-  );
+  const levelDefinitions = BUILDING_DEFINITIONS[buildingId].levels;
+  const levelDefinition =
+    levelDefinitions.find((level) => level.level === building.level) ??
+    levelDefinitions
+      .filter((level) => level.level <= building.level)
+      .sort((left, right) => right.level - left.level)[0];
+
+  return levelDefinition?.effects ?? [];
 }
 
 export function getPurchasedBuildingImprovementEffects(save: GameSave, buildingId: BuildingId) {

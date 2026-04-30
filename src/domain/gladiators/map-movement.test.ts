@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import type { Gladiator } from './types';
+import type { Gladiator, GladiatorMapMovement } from './types';
 import { getMapLocationEntrance } from '../../game-data/map-layout';
 import {
   assignGladiatorMapLocation,
   createGladiatorMapMovement,
   getGameMinuteStamp,
+  getGladiatorMapMovementArrivalStamp,
   resolveGladiatorMapMovement,
+  synchronizeGladiatorMapMovementSchedules,
 } from './map-movement';
 
 const baseGladiator: Gladiator = {
@@ -35,6 +37,22 @@ const time = {
   speed: 0 as const,
   isPaused: true,
 };
+
+function getOccupiedTileSlots(movement: GladiatorMapMovement) {
+  const tileSchedule = movement.tileSchedule ?? [];
+  const occupiedSlots: string[] = [];
+
+  for (let index = 0; index < tileSchedule.length - 1; index += 1) {
+    const entry = tileSchedule[index];
+    const nextEntry = tileSchedule[index + 1];
+
+    for (let stamp = entry.arrivalStamp; stamp < nextEntry.arrivalStamp; stamp += 1) {
+      occupiedSlots.push(`${entry.coord.column}:${entry.coord.row}:${stamp}`);
+    }
+  }
+
+  return occupiedSlots;
+}
 
 describe('gladiator map movement', () => {
   it('creates serializable movement intent when a gladiator changes location', () => {
@@ -137,5 +155,64 @@ describe('gladiator map movement', () => {
     expect(reassigned.currentLocationId).toBeUndefined();
     expect(reassigned.currentTaskStartedAt).toBe(movingGladiator.currentTaskStartedAt);
     expect(reassigned.mapMovement).toEqual(movingGladiator.mapMovement);
+  });
+
+  it('queues gladiators so a walking tile has one occupant at a time', () => {
+    const firstGladiator = assignGladiatorMapLocation(
+      baseGladiator,
+      'trainingGround',
+      time,
+      'trainAgility',
+    );
+    const secondGladiator = assignGladiatorMapLocation(
+      {
+        ...baseGladiator,
+        id: 'gladiator-second',
+        name: 'Brutus',
+      },
+      'trainingGround',
+      time,
+      'trainAgility',
+    );
+    const [scheduledFirstGladiator, scheduledSecondGladiator] =
+      synchronizeGladiatorMapMovementSchedules([firstGladiator, secondGladiator]);
+    const firstMovement = scheduledFirstGladiator.mapMovement;
+    const secondMovement = scheduledSecondGladiator.mapMovement;
+
+    expect(firstMovement?.tileSchedule?.[0].arrivalStamp).toBe(getGameMinuteStamp(time));
+    expect(secondMovement?.tileSchedule?.[0].arrivalStamp).toBe(
+      firstMovement?.tileSchedule?.[1].arrivalStamp,
+    );
+    expect(getGladiatorMapMovementArrivalStamp(secondMovement!)).toBeGreaterThan(
+      getGladiatorMapMovementArrivalStamp(firstMovement!),
+    );
+
+    const occupiedSlots = [
+      ...getOccupiedTileSlots(firstMovement!),
+      ...getOccupiedTileSlots(secondMovement!),
+    ];
+
+    expect(new Set(occupiedSlots).size).toBe(occupiedSlots.length);
+  });
+
+  it('considers scheduled movement complete when reaching the final tile', () => {
+    const [scheduledGladiator] = synchronizeGladiatorMapMovementSchedules([
+      assignGladiatorMapLocation(baseGladiator, 'trainingGround', time, 'trainAgility'),
+    ]);
+    const movement = scheduledGladiator.mapMovement;
+    const finalTile = movement?.tileSchedule?.at(-1);
+
+    expect(finalTile).toBeDefined();
+    expect(getGladiatorMapMovementArrivalStamp(movement!)).toBe(finalTile?.arrivalStamp);
+    expect(getGladiatorMapMovementArrivalStamp(movement!)).toBeLessThan(finalTile!.departureStamp);
+
+    const resolved = resolveGladiatorMapMovement(scheduledGladiator, {
+      ...time,
+      minute:
+        time.minute + getGladiatorMapMovementArrivalStamp(movement!) - getGameMinuteStamp(time),
+    });
+
+    expect(resolved.currentLocationId).toBe('trainingGround');
+    expect(resolved.mapMovement).toBeUndefined();
   });
 });

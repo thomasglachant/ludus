@@ -1,9 +1,16 @@
 import { describe, expect, it } from 'vitest';
+import { demoAdvancedLudus } from '../../game-data/demo-saves/demo-advanced-ludus';
 import { TIME_CONFIG } from '../../game-data/time';
 import type { BuildingId, GameSave, Gladiator } from '../types';
 import { createInitialSave } from '../saves/create-initial-save';
 import { updateGladiatorRoutine } from '../planning/planning-actions';
-import { advanceToNextDay, completeSundayArenaDay, setGameSpeed, tickGame } from './time-actions';
+import {
+  advanceToNextDay,
+  areAllGladiatorsSleepingInDormitory,
+  completeSundayArenaDay,
+  setGameSpeed,
+  tickGame,
+} from './time-actions';
 
 const REAL_MILLISECONDS_PER_GAME_MINUTE =
   TIME_CONFIG.realMillisecondsPerGameHour / TIME_CONFIG.minutesPerHour;
@@ -103,18 +110,97 @@ describe('time actions', () => {
     });
   });
 
-  it('advances directly to the next day and restores the selected speed', () => {
+  it('advances directly to the next day target and restores the selected speed', () => {
     const save = setGameSpeed(createTestSave(), 4);
     const result = advanceToNextDay(save);
 
-    expect(result.advancedGameMinutes).toBe(1_320);
+    expect(result.advancedGameMinutes).toBe(1_305);
     expect(result.save.time).toMatchObject({
       dayOfWeek: 'tuesday',
-      hour: 6,
-      minute: 0,
+      hour: 5,
+      minute: 45,
       speed: 4,
       isPaused: false,
     });
+  });
+
+  it('keeps gladiators asleep between the next-day target and wake-up time', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      time: {
+        ...createTestSave().time,
+        hour: 5,
+        minute: 45,
+      },
+      gladiators: [
+        createGladiator({
+          currentActivityId: 'sleep',
+          currentBuildingId: 'dormitory',
+        }),
+      ],
+    };
+
+    expect(areAllGladiatorsSleepingInDormitory(save)).toBe(true);
+
+    const result = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 3_750,
+      speed: save.time.speed,
+    });
+
+    expect(result.save.time).toMatchObject({
+      hour: 6,
+      minute: 30,
+    });
+    expect(result.save.gladiators[0].currentActivityId).not.toBe('sleep');
+  });
+
+  it('detects when every gladiator is asleep in the dormitory at night', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      time: {
+        ...createTestSave().time,
+        hour: TIME_CONFIG.sleepStartHour,
+      },
+      gladiators: [
+        createGladiator({
+          id: 'gladiator-first',
+          currentActivityId: 'sleep',
+          currentBuildingId: 'dormitory',
+        }),
+        createGladiator({
+          id: 'gladiator-second',
+          currentActivityId: 'sleep',
+          currentBuildingId: 'dormitory',
+        }),
+      ],
+    };
+
+    expect(areAllGladiatorsSleepingInDormitory(save)).toBe(true);
+  });
+
+  it('does not consider gladiators asleep until they have reached the dormitory', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      time: {
+        ...createTestSave().time,
+        hour: TIME_CONFIG.sleepStartHour,
+      },
+      gladiators: [
+        createGladiator({
+          currentActivityId: 'sleep',
+          mapMovement: {
+            currentLocation: 'trainingGround',
+            targetLocation: 'dormitory',
+            activity: 'sleep',
+            movementStartedAt: 0,
+            movementDuration: 10,
+          },
+        }),
+      ],
+    };
+
+    expect(areAllGladiatorsSleepingInDormitory(save)).toBe(false);
   });
 
   it('does not advance while paused', () => {
@@ -232,8 +318,8 @@ describe('time actions', () => {
 
     expect(result.save.time).toMatchObject({
       dayOfWeek: 'sunday',
-      hour: 7,
-      minute: 0,
+      hour: 6,
+      minute: 30,
     });
     expect(result.save.arena.isArenaDayActive).toBe(false);
     expect(result.save.arena.arenaDay).toBeUndefined();
@@ -373,6 +459,48 @@ describe('time actions', () => {
     expect(laterSunday.arena.resolvedCombats).toHaveLength(1);
   });
 
+  it('restores energy after the advanced demo arena night', () => {
+    let save = setGameSpeed(demoAdvancedLudus.save, 1);
+
+    for (let tickIndex = 0; tickIndex < 24 && !save.arena.arenaDay; tickIndex += 1) {
+      save = tickGame({
+        currentSave: save,
+        elapsedRealMilliseconds: 5_000,
+        speed: save.time.speed,
+        random: () => 0,
+      }).save;
+    }
+
+    expect(save.arena.arenaDay).toBeDefined();
+
+    const completed = completeSundayArenaDay(save);
+    const postCombatEnergy = completed.gladiators.map((gladiator) => gladiator.energy);
+    const nextDay = advanceToNextDay(completed, { random: () => 0 }).save;
+
+    expect(postCombatEnergy.some((energy) => energy < 100)).toBe(true);
+    expect(nextDay.time).toMatchObject({
+      dayOfWeek: 'monday',
+      hour: 5,
+      minute: 45,
+    });
+    expect(nextDay.gladiators.every((gladiator) => gladiator.currentActivityId === 'sleep')).toBe(
+      true,
+    );
+
+    const wakeUp = tickGame({
+      currentSave: nextDay,
+      elapsedRealMilliseconds: 3_750,
+      speed: nextDay.time.speed,
+      random: () => 0,
+    }).save;
+
+    expect(wakeUp.time).toMatchObject({
+      hour: 6,
+      minute: 30,
+    });
+    expect(wakeUp.gladiators.every((gladiator) => gladiator.energy === 100)).toBe(true);
+  });
+
   it('applies purchased building effects to assigned gladiators once per game hour', () => {
     const save: GameSave = {
       ...withPurchasedBuildings(createTestSave(), ['canteen']),
@@ -415,6 +543,112 @@ describe('time actions', () => {
     });
 
     expect(result.save.gladiators[0].satiety).toBe(100);
+  });
+
+  it('restores ten health after one game hour at the infirmary', () => {
+    const save: GameSave = {
+      ...withPurchasedBuildings(createTestSave(), ['infirmary']),
+      gladiators: [
+        createGladiator({
+          currentBuildingId: 'infirmary',
+          health: 50,
+        }),
+      ],
+    };
+
+    const result = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 5_000,
+      speed: save.time.speed,
+    });
+
+    expect(result.save.gladiators[0].health).toBe(60);
+  });
+
+  it('heals an automatically assigned gladiator after reaching the infirmary', () => {
+    const save: GameSave = {
+      ...withPurchasedBuildings(createTestSave(), ['infirmary']),
+      gladiators: [
+        createGladiator({
+          currentBuildingId: 'domus',
+          currentLocationId: 'domus',
+          health: 30,
+        }),
+      ],
+    };
+    let result = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 5_000,
+      speed: save.time.speed,
+    });
+
+    for (
+      let tickIndex = 0;
+      tickIndex < 6 && result.save.gladiators[0].health === 30;
+      tickIndex += 1
+    ) {
+      result = tickGame({
+        currentSave: result.save,
+        elapsedRealMilliseconds: 5_000,
+        speed: result.save.time.speed,
+      });
+    }
+
+    expect(result.save.gladiators[0].currentLocationId).toBe('infirmary');
+    expect(result.save.gladiators[0].health).toBeGreaterThan(30);
+  });
+
+  it('heals an automatically assigned gladiator with one-second runtime ticks', () => {
+    let save: GameSave = {
+      ...withPurchasedBuildings(createTestSave(), ['infirmary']),
+      gladiators: [
+        createGladiator({
+          currentBuildingId: 'domus',
+          currentLocationId: 'domus',
+          health: 30,
+        }),
+      ],
+    };
+    let effectAccumulatorMinutes = 0;
+
+    for (let tickIndex = 0; tickIndex < 50 && save.gladiators[0].health === 30; tickIndex += 1) {
+      const result = tickGame({
+        currentSave: save,
+        elapsedRealMilliseconds: 1_000,
+        speed: save.time.speed,
+        effectAccumulatorMinutes,
+      });
+
+      save = result.save;
+      effectAccumulatorMinutes = result.effectAccumulatorMinutes;
+    }
+
+    expect(save.gladiators[0].currentLocationId).toBe('infirmary');
+    expect(save.gladiators[0].health).toBeGreaterThan(30);
+  });
+
+  it('starts infirmary travel before the next hourly effect boundary', () => {
+    const save: GameSave = {
+      ...withPurchasedBuildings(createTestSave(), ['infirmary']),
+      gladiators: [
+        createGladiator({
+          currentBuildingId: 'domus',
+          currentLocationId: 'domus',
+          health: 30,
+        }),
+      ],
+    };
+    const result = tickGame({
+      currentSave: save,
+      elapsedRealMilliseconds: 1_000,
+      speed: save.time.speed,
+    });
+
+    expect(result.appliedEffectHours).toBe(0);
+    expect(result.save.gladiators[0].mapMovement).toMatchObject({
+      currentLocation: 'domus',
+      targetLocation: 'infirmary',
+    });
   });
 
   it('ignores permanent building effects during hourly ticks', () => {
@@ -532,14 +766,14 @@ describe('time actions', () => {
     };
     const result = tickGame({
       currentSave: saveWithGladiator,
-      elapsedRealMilliseconds: 40_000,
+      elapsedRealMilliseconds: 42_500,
       speed: saveWithGladiator.time.speed,
     });
 
     expect(result.save.time).toMatchObject({
       dayOfWeek: 'tuesday',
       hour: 6,
-      minute: 0,
+      minute: 30,
     });
     expect(result.save.gladiators[0]).toMatchObject({
       currentActivityId: 'balanced',

@@ -28,6 +28,10 @@ describe('SaveService demo saves', () => {
     expect(localSave.saveId).not.toBe('demo-early-ludus');
     expect(localSave.gameId).not.toBe(demoSave.gameId);
     expect(localSave.metadata).toEqual({ demoSaveId: 'demo-early-ludus' });
+    expect(localSave.time).toMatchObject({
+      speed: 1,
+      isPaused: false,
+    });
     await expect(service.listLocalSaves()).resolves.toHaveLength(1);
 
     const updatedSave = await service.updateLocalSave({

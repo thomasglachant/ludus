@@ -27,6 +27,7 @@ import {
 } from '../domain/planning/planning-actions';
 import {
   advanceToNextDay as advanceSaveToNextDay,
+  areAllGladiatorsSleepingInDormitory,
   completeSundayArenaDay as completeSundayArenaDayAction,
   setGameSpeed as setSaveGameSpeed,
   tickGame,
@@ -42,6 +43,7 @@ import type {
   GladiatorRoutineUpdate,
   LanguageCode,
 } from '../domain/types';
+import { PROGRESSION_CONFIG } from '../game-data/progression';
 import { TIME_CONFIG } from '../game-data/time';
 import { CloudSaveProvider } from '../persistence/cloud-save-provider';
 import { DemoSaveProvider } from '../persistence/demo-save-provider';
@@ -268,7 +270,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       setHasUnsavedChanges(false);
       setLastSavedAt(resetSave.updatedAt);
       setSaveNoticeKey(null);
-      setCurrentSave(resetSave);
+      setCurrentSave(setSaveGameSpeed(resetSave, PROGRESSION_CONFIG.initialSpeed));
       setLocalSaves(await saveService.listLocalSaves());
     } catch {
       setErrorKey('demoMode.loadError');
@@ -381,10 +383,13 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       }
 
       const currentMinuteOfDay = save.time.hour * TIME_CONFIG.minutesPerHour + save.time.minute;
+      const targetMinuteOfDay =
+        TIME_CONFIG.nextDayAdvanceTargetHour * TIME_CONFIG.minutesPerHour +
+        TIME_CONFIG.nextDayAdvanceTargetMinute;
       const targetOffsetMinutes =
         TIME_CONFIG.hoursPerDay * TIME_CONFIG.minutesPerHour -
         currentMinuteOfDay +
-        TIME_CONFIG.wakeUpHour * TIME_CONFIG.minutesPerHour;
+        targetMinuteOfDay;
 
       nextDayFastForwardRef.current = {
         targetGameMinute: getGameMinuteStamp(save.time) + targetOffsetMinutes,
@@ -771,6 +776,38 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
     return () => window.clearInterval(intervalId);
   }, [activeSaveId, isFastForwardingToNextDay, isGameMenuPauseActive, isSimulationBlocked]);
+
+  useEffect(() => {
+    const currentMinuteOfDay = currentSave
+      ? currentSave.time.hour * TIME_CONFIG.minutesPerHour + currentSave.time.minute
+      : 0;
+    const sleepStartMinuteOfDay = TIME_CONFIG.sleepStartHour * TIME_CONFIG.minutesPerHour;
+    const nextDayTargetMinuteOfDay =
+      TIME_CONFIG.nextDayAdvanceTargetHour * TIME_CONFIG.minutesPerHour +
+      TIME_CONFIG.nextDayAdvanceTargetMinute;
+    const shouldAutoAdvanceSleepingTime =
+      currentMinuteOfDay >= sleepStartMinuteOfDay || currentMinuteOfDay < nextDayTargetMinuteOfDay;
+
+    if (
+      !currentSave ||
+      currentSave.time.isPaused ||
+      isFastForwardingToNextDay ||
+      isGameMenuPauseActive ||
+      isSimulationBlocked ||
+      !shouldAutoAdvanceSleepingTime ||
+      !areAllGladiatorsSleepingInDormitory(currentSave)
+    ) {
+      return;
+    }
+
+    advanceToNextDayAction();
+  }, [
+    advanceToNextDayAction,
+    currentSave,
+    isFastForwardingToNextDay,
+    isGameMenuPauseActive,
+    isSimulationBlocked,
+  ]);
 
   useEffect(() => {
     if (!currentSave || (screen !== 'ludus' && screen !== 'arena')) {

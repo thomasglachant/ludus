@@ -27,6 +27,7 @@ import type {
   LudusMapSceneDecorationViewModel,
   LudusMapSceneGladiatorViewModel,
   LudusMapSceneLocationViewModel,
+  LudusMapSceneThemeViewModel,
   LudusMapSceneTileViewModel,
   LudusMapSceneViewModel,
   LudusMapSceneWallViewModel,
@@ -67,6 +68,8 @@ interface GladiatorDisplay {
   sprite: AnimatedSprite;
 }
 
+type ScheduledRoutePoint = LudusMapSceneGladiatorViewModel['routeSchedule'][number];
+
 interface LabelDisplay {
   container: Container;
   plaque: Graphics;
@@ -104,12 +107,79 @@ const LUDUS_MAP_LAYER_IDS = [
   'light-sprites',
   'labels',
 ] as const satisfies readonly LudusMapLayerId[];
+
+const TIME_OF_DAY_THEME_TRANSITION_MILLISECONDS = 2_400;
+
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
 function interpolate(start: number, end: number, progress: number): number {
   return start + (end - start) * progress;
+}
+
+function easeInOut(progress: number): number {
+  return progress * progress * (3 - 2 * progress);
+}
+
+function interpolateColor(start: number, end: number, progress: number): number {
+  const startRed = (start >> 16) & 255;
+  const startGreen = (start >> 8) & 255;
+  const startBlue = start & 255;
+  const endRed = (end >> 16) & 255;
+  const endGreen = (end >> 8) & 255;
+  const endBlue = end & 255;
+
+  return (
+    (Math.round(interpolate(startRed, endRed, progress)) << 16) |
+    (Math.round(interpolate(startGreen, endGreen, progress)) << 8) |
+    Math.round(interpolate(startBlue, endBlue, progress))
+  );
+}
+
+function interpolateTheme(
+  start: LudusMapSceneThemeViewModel,
+  end: LudusMapSceneThemeViewModel,
+  progress: number,
+): LudusMapSceneThemeViewModel {
+  return {
+    skyColor: interpolateColor(start.skyColor, end.skyColor, progress),
+    terrainColor: interpolateColor(start.terrainColor, end.terrainColor, progress),
+    terrainHighlightColor: interpolateColor(
+      start.terrainHighlightColor,
+      end.terrainHighlightColor,
+      progress,
+    ),
+    overlayColor: interpolateColor(start.overlayColor, end.overlayColor, progress),
+    overlayOpacity: interpolate(start.overlayOpacity, end.overlayOpacity, progress),
+    lightColor: interpolateColor(start.lightColor, end.lightColor, progress),
+    shadowColor: interpolateColor(start.shadowColor, end.shadowColor, progress),
+    spriteBrightness: interpolate(start.spriteBrightness, end.spriteBrightness, progress),
+    buildingLightOpacity: interpolate(
+      start.buildingLightOpacity,
+      end.buildingLightOpacity,
+      progress,
+    ),
+    backgroundAssetPath: progress < 1 ? start.backgroundAssetPath : end.backgroundAssetPath,
+  };
+}
+
+function areThemesEqual(
+  left: LudusMapSceneThemeViewModel,
+  right: LudusMapSceneThemeViewModel,
+): boolean {
+  return (
+    left.skyColor === right.skyColor &&
+    left.terrainColor === right.terrainColor &&
+    left.terrainHighlightColor === right.terrainHighlightColor &&
+    left.overlayColor === right.overlayColor &&
+    left.overlayOpacity === right.overlayOpacity &&
+    left.lightColor === right.lightColor &&
+    left.shadowColor === right.shadowColor &&
+    left.spriteBrightness === right.spriteBrightness &&
+    left.buildingLightOpacity === right.buildingLightOpacity &&
+    left.backgroundAssetPath === right.backgroundAssetPath
+  );
 }
 
 function getPointAlongRoute(
@@ -130,6 +200,47 @@ function getPointAlongRoute(
     x: interpolate(segmentStart.x, segmentEnd.x, segmentProgress),
     y: interpolate(segmentStart.y, segmentEnd.y, segmentProgress),
   };
+}
+
+function getPointAlongScheduledRoute(
+  routeSchedule: ScheduledRoutePoint[],
+  queuedFrom: { x: number; y: number },
+  visualGameMinute: number,
+): { x: number; y: number } | undefined {
+  if (routeSchedule.length === 0) {
+    return undefined;
+  }
+
+  const firstPoint = routeSchedule[0];
+
+  if (visualGameMinute < firstPoint.arrivalStamp) {
+    return queuedFrom;
+  }
+
+  for (let index = 0; index < routeSchedule.length - 1; index += 1) {
+    const currentPoint = routeSchedule[index];
+    const nextPoint = routeSchedule[index + 1];
+
+    if (visualGameMinute < currentPoint.departureStamp) {
+      return currentPoint;
+    }
+
+    if (visualGameMinute < nextPoint.arrivalStamp) {
+      const progress = clamp(
+        (visualGameMinute - currentPoint.departureStamp) /
+          Math.max(nextPoint.arrivalStamp - currentPoint.departureStamp, 1),
+        0,
+        1,
+      );
+
+      return {
+        x: interpolate(currentPoint.x, nextPoint.x, progress),
+        y: interpolate(currentPoint.y, nextPoint.y, progress),
+      };
+    }
+  }
+
+  return routeSchedule[routeSchedule.length - 1];
 }
 
 function isAssetPath(assetPath: string | undefined): assetPath is string {
@@ -606,6 +717,10 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
   private gameMinuteSyncedAt = 0;
   private hoveredLocationId: string | null = null;
   private isDestroyed = false;
+  private displayedTheme: LudusMapSceneThemeViewModel | null = null;
+  private themeTransitionFrom: LudusMapSceneThemeViewModel | null = null;
+  private themeTransitionStartedAt = 0;
+  private themeTransitionTarget: LudusMapSceneThemeViewModel | null = null;
   private spritesheets: PixiSpritesheetMap = new Map();
   private textures: PixiTextureMap = new Map();
   private viewModel: LudusMapSceneViewModel | null = null;
@@ -671,8 +786,7 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     this.cameraController?.resize();
 
     if (this.viewModel) {
-      this.drawViewportTerrainFill(this.viewModel);
-      this.drawViewportLightingOverlay(this.viewModel);
+      this.redrawThemeElements(this.getThemedViewModel(this.viewModel));
     }
   }
 
@@ -682,6 +796,10 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     }
 
     const now = performance.now();
+
+    if (this.themeTransitionFrom && this.themeTransitionTarget) {
+      this.redrawThemeElements(this.getThemedViewModel(this.viewModel, now));
+    }
 
     for (const decorationDisplay of this.decorations.values()) {
       this.updateDecorationAnimation(decorationDisplay, now);
@@ -695,12 +813,86 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
   }
 
   update(viewModel: LudusMapSceneViewModel): void {
+    const now = performance.now();
+
     this.viewModel = viewModel;
     this.gameMinuteAtSync = viewModel.currentGameMinute;
-    this.gameMinuteSyncedAt = performance.now();
+    this.gameMinuteSyncedAt = now;
+    this.prepareThemeTransition(viewModel, now);
     this.ensureCamera(viewModel);
-    this.reconcile(viewModel);
+    this.reconcile(this.getThemedViewModel(viewModel, now));
     this.loadAssetsWhenNeeded(viewModel);
+  }
+
+  private prepareThemeTransition(viewModel: LudusMapSceneViewModel, now: number): void {
+    if (!this.displayedTheme) {
+      this.displayedTheme = viewModel.theme;
+      this.themeTransitionTarget = viewModel.theme;
+      return;
+    }
+
+    const currentTarget = this.themeTransitionTarget ?? this.displayedTheme;
+
+    if (areThemesEqual(currentTarget, viewModel.theme)) {
+      return;
+    }
+
+    this.displayedTheme = this.getDisplayedTheme(now);
+    this.themeTransitionFrom = this.displayedTheme;
+    this.themeTransitionTarget = viewModel.theme;
+    this.themeTransitionStartedAt = now;
+  }
+
+  private getDisplayedTheme(now: number): LudusMapSceneThemeViewModel {
+    if (!this.themeTransitionFrom || !this.themeTransitionTarget) {
+      return this.displayedTheme ?? this.viewModel?.theme ?? this.themeTransitionTarget!;
+    }
+
+    const progress = clamp(
+      (now - this.themeTransitionStartedAt) / TIME_OF_DAY_THEME_TRANSITION_MILLISECONDS,
+      0,
+      1,
+    );
+
+    if (progress >= 1) {
+      this.displayedTheme = this.themeTransitionTarget;
+      this.themeTransitionFrom = null;
+
+      return this.displayedTheme;
+    }
+
+    this.displayedTheme = interpolateTheme(
+      this.themeTransitionFrom,
+      this.themeTransitionTarget,
+      easeInOut(progress),
+    );
+
+    return this.displayedTheme;
+  }
+
+  private getThemedViewModel(
+    viewModel: LudusMapSceneViewModel,
+    now = performance.now(),
+  ): LudusMapSceneViewModel {
+    const theme = this.getDisplayedTheme(now);
+
+    return theme === viewModel.theme ? viewModel : { ...viewModel, theme };
+  }
+
+  private redrawThemeElements(viewModel: LudusMapSceneViewModel): void {
+    const backgroundTexture = viewModel.theme.backgroundAssetPath
+      ? this.textures.get(viewModel.theme.backgroundAssetPath)
+      : undefined;
+
+    drawFallbackBackground(this.backgroundFallback, viewModel);
+    this.drawViewportTerrainFill(viewModel);
+    this.drawViewportLightingOverlay(viewModel);
+    this.backgroundFallback.visible = !backgroundTexture;
+    this.backgroundSprite.visible = Boolean(backgroundTexture);
+    this.backgroundSprite.texture = backgroundTexture ?? Texture.EMPTY;
+    setPixelArtSpriteSize(this.backgroundSprite, viewModel.width, viewModel.height);
+    drawTerrainOverlay(this.terrainOverlay, viewModel);
+    this.lightingSystem.reconcile(viewModel);
   }
 
   private createDecorationDisplay(decoration: LudusMapSceneDecorationViewModel): DecorationDisplay {
@@ -888,25 +1080,13 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
   }
 
   private reconcile(viewModel: LudusMapSceneViewModel): void {
-    const backgroundTexture = viewModel.theme.backgroundAssetPath
-      ? this.textures.get(viewModel.theme.backgroundAssetPath)
-      : undefined;
-
-    drawFallbackBackground(this.backgroundFallback, viewModel);
-    this.drawViewportTerrainFill(viewModel);
-    this.drawViewportLightingOverlay(viewModel);
-    this.backgroundFallback.visible = !backgroundTexture;
-    this.backgroundSprite.visible = Boolean(backgroundTexture);
-    this.backgroundSprite.texture = backgroundTexture ?? Texture.EMPTY;
-    setPixelArtSpriteSize(this.backgroundSprite, viewModel.width, viewModel.height);
-    drawTerrainOverlay(this.terrainOverlay, viewModel);
+    this.redrawThemeElements(viewModel);
     drawMapWalls(this.pathGraphics, viewModel.walls);
     this.reconcileDecorations(viewModel.decorations);
     this.reconcileLocations(viewModel.locations);
     this.reconcileGladiators(viewModel.gladiators);
     this.ambientAnimationSystem.reconcile(viewModel, this.textures);
     this.particleEffectSystem.reconcile(viewModel, this.textures);
-    this.lightingSystem.reconcile(viewModel);
     this.updateLocationAffordances();
     this.updateDebugOverlay();
   }
@@ -1032,12 +1212,12 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
             1,
           );
 
-    const routePoint = getPointAlongRoute(
-      gladiator.routePoints,
-      gladiator.from,
-      gladiator.to,
-      progress,
-    );
+    const routePoint =
+      getPointAlongScheduledRoute(
+        gladiator.routeSchedule,
+        gladiator.queuedFrom,
+        visualGameMinute,
+      ) ?? getPointAlongRoute(gladiator.routePoints, gladiator.from, gladiator.to, progress);
 
     display.container.x = routePoint.x;
     display.container.y = routePoint.y;

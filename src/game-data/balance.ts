@@ -71,8 +71,14 @@ export const GAME_BALANCE = {
     duskStartHour: 21,
     // Hour at which night lighting starts.
     nightStartHour: 22,
+    // Hour at which the next-day fast-forward stops before dawn routines resume.
+    nextDayAdvanceTargetHour: 5,
+    // Minute at which the next-day fast-forward stops before dawn routines resume.
+    nextDayAdvanceTargetMinute: 45,
     // Hour at which gladiators wake up after night sleep.
     wakeUpHour: 6,
+    // Minute at which gladiators wake up after night sleep.
+    wakeUpMinute: 30,
     // Hour at which night sleep begins.
     sleepStartHour: 22,
     // Minimum time a gladiator remains on a task before auto reassignment.
@@ -239,10 +245,10 @@ export const GAME_BALANCE = {
       },
       infirmary: {
         // Health restored per hour by Infirmary level 1.
-        1: { healthPerHour: 5 },
+        1: { healthPerHour: 10 },
         2: {
           // Health restored per hour by Infirmary level 2.
-          healthPerHour: 7,
+          healthPerHour: 10,
           // Injury-risk reduction granted by Infirmary level 2.
           injuryRiskReduction: 5,
         },

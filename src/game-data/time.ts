@@ -16,7 +16,10 @@ export const TIME_CONFIG = {
   dayStartHour: GAME_BALANCE.time.dayStartHour,
   duskStartHour: GAME_BALANCE.time.duskStartHour,
   nightStartHour: GAME_BALANCE.time.nightStartHour,
+  nextDayAdvanceTargetHour: GAME_BALANCE.time.nextDayAdvanceTargetHour,
+  nextDayAdvanceTargetMinute: GAME_BALANCE.time.nextDayAdvanceTargetMinute,
   wakeUpHour: GAME_BALANCE.time.wakeUpHour,
+  wakeUpMinute: GAME_BALANCE.time.wakeUpMinute,
   sleepStartHour: GAME_BALANCE.time.sleepStartHour,
   minimumTaskMinutes: GAME_BALANCE.time.minimumTaskMinutes,
 } as const;

@@ -139,6 +139,32 @@ describe('planning actions', () => {
     expect(result.gladiators[0].currentTaskStartedAt).toBe(getGameMinuteStamp(save.time));
   });
 
+  it('schedules simultaneous automatic departures without sharing the exit tile', () => {
+    const save = synchronizePlanning(
+      withPurchasedBuildings(
+        withGladiators(createTestSave(), [
+          createGladiator({
+            id: 'gladiator-first',
+            currentBuildingId: 'domus',
+            health: 40,
+          }),
+          createGladiator({
+            id: 'gladiator-second',
+            currentBuildingId: 'domus',
+            health: 40,
+          }),
+        ]),
+        ['infirmary'],
+      ),
+    );
+    const result = applyPlanningRecommendations(save);
+    const firstSchedule = result.gladiators[0].mapMovement?.tileSchedule;
+    const secondSchedule = result.gladiators[1].mapMovement?.tileSchedule;
+
+    expect(firstSchedule?.[0].arrivalStamp).toBe(getGameMinuteStamp(save.time));
+    expect(secondSchedule?.[0].arrivalStamp).toBe(firstSchedule?.[1].arrivalStamp);
+  });
+
   it('sends gladiators to sleep during the night', () => {
     const save = synchronizePlanning({
       ...withGladiators(createTestSave(), [
@@ -197,6 +223,7 @@ describe('planning actions', () => {
       time: {
         ...createTestSave().time,
         hour: TIME_CONFIG.wakeUpHour,
+        minute: TIME_CONFIG.wakeUpMinute,
       },
     });
     const result = applyPlanningRecommendations(save);

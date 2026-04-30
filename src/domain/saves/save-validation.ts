@@ -187,7 +187,19 @@ function isGladiatorMapMovement(value: unknown) {
     hasNumber(value, 'movementStartedAt') &&
     hasNumber(value, 'movementDuration') &&
     (value.minutesPerTile === undefined || typeof value.minutesPerTile === 'number') &&
-    (value.route === undefined || (Array.isArray(value.route) && value.route.every(isGridCoord)))
+    (value.route === undefined || (Array.isArray(value.route) && value.route.every(isGridCoord))) &&
+    (value.tileSchedule === undefined ||
+      (Array.isArray(value.tileSchedule) &&
+        value.tileSchedule.every(isMapMovementTileScheduleEntry)))
+  );
+}
+
+function isMapMovementTileScheduleEntry(value: unknown) {
+  return (
+    isRecord(value) &&
+    isGridCoord(value.coord) &&
+    hasNumber(value, 'arrivalStamp') &&
+    hasNumber(value, 'departureStamp')
   );
 }
 

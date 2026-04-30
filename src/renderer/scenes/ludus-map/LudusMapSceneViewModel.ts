@@ -70,6 +70,10 @@ export interface LudusMapSceneLocationViewModel {
 export interface LudusMapSceneGladiatorViewModel {
   id: string;
   name: string;
+  queuedFrom: {
+    x: number;
+    y: number;
+  };
   from: {
     x: number;
     y: number;
@@ -81,6 +85,12 @@ export interface LudusMapSceneGladiatorViewModel {
   routePoints: {
     x: number;
     y: number;
+  }[];
+  routeSchedule: {
+    x: number;
+    y: number;
+    arrivalStamp: number;
+    departureStamp: number;
   }[];
   movementStartedAt: number;
   movementDuration: number;

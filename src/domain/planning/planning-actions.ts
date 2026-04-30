@@ -3,7 +3,11 @@ import { TIME_CONFIG } from '../../game-data/time';
 import { GAME_BALANCE } from '../../game-data/balance';
 import { isGladiatorBuildingLocation } from '../../game-data/gladiator-map-movement';
 import type { BuildingId } from '../buildings/types';
-import { assignGladiatorMapLocation, getGameMinuteStamp } from '../gladiators/map-movement';
+import {
+  assignGladiatorMapLocation,
+  getGameMinuteStamp,
+  synchronizeGladiatorMapMovementSchedules,
+} from '../gladiators/map-movement';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
 import type {
@@ -54,8 +58,16 @@ const alertBuildingTargets: Partial<Record<GaugeAlertKind, BuildingId>> = {
   lowMorale: 'pleasureHall',
 };
 
-function isSleepTime(hour: number) {
-  return hour >= TIME_CONFIG.sleepStartHour || hour < TIME_CONFIG.wakeUpHour;
+function getMinuteOfDay(hour: number, minute = 0) {
+  return hour * TIME_CONFIG.minutesPerHour + minute;
+}
+
+function isSleepTime(hour: number, minute = 0) {
+  const minuteOfDay = getMinuteOfDay(hour, minute);
+  const sleepStartMinute = getMinuteOfDay(TIME_CONFIG.sleepStartHour);
+  const wakeUpMinute = getMinuteOfDay(TIME_CONFIG.wakeUpHour, TIME_CONFIG.wakeUpMinute);
+
+  return minuteOfDay >= sleepStartMinute || minuteOfDay < wakeUpMinute;
 }
 
 function isArenaAssemblyLocked(save: GameSave, gladiator: Gladiator) {
@@ -281,7 +293,7 @@ export function getPlanningRecommendation(
     return getAvailableRecommendation(save, 'infirmary', 'weeklyPlan.recommendations.health');
   }
 
-  if (isSleepTime(save.time.hour)) {
+  if (isSleepTime(save.time.hour, save.time.minute)) {
     return getAvailableRecommendation(save, 'dormitory', 'weeklyPlan.recommendations.energy');
   }
 
@@ -397,72 +409,76 @@ export function setManualBuildingOverride(
   gladiatorId: string,
   buildingId?: BuildingId,
 ): GameSave {
+  const updatedSave = updateGladiatorRoutine(save, gladiatorId, {
+    allowAutomaticAssignment: false,
+    lockedBuildingId: buildingId,
+  });
+  const gladiators = save.gladiators.map((gladiator) =>
+    gladiator.id === gladiatorId
+      ? {
+          ...assignGladiatorMapLocation(
+            gladiator,
+            buildingId,
+            save.time,
+            'manualOverride',
+            save.map,
+          ),
+        }
+      : gladiator,
+  );
+
   return synchronizePlanning({
-    ...updateGladiatorRoutine(save, gladiatorId, {
-      allowAutomaticAssignment: false,
-      lockedBuildingId: buildingId,
-    }),
-    gladiators: save.gladiators.map((gladiator) =>
-      gladiator.id === gladiatorId
-        ? {
-            ...assignGladiatorMapLocation(
-              gladiator,
-              buildingId,
-              save.time,
-              'manualOverride',
-              save.map,
-            ),
-          }
-        : gladiator,
-    ),
+    ...updatedSave,
+    gladiators: synchronizeGladiatorMapMovementSchedules(gladiators, save.map),
   });
 }
 
 export function applyPlanningRecommendations(save: GameSave): GameSave {
   const synchronizedSave = synchronizePlanning(save);
+  const gladiators = synchronizedSave.gladiators.map((gladiator) => {
+    const routine = getRoutineForGladiator(synchronizedSave, gladiator.id);
+
+    if (isArenaAssemblyLocked(synchronizedSave, gladiator)) {
+      return gladiator;
+    }
+
+    if (isSleepTime(synchronizedSave.time.hour, synchronizedSave.time.minute)) {
+      return assignGladiatorMapLocation(
+        gladiator,
+        'dormitory',
+        synchronizedSave.time,
+        'sleep',
+        synchronizedSave.map,
+      );
+    }
+
+    if (!routine.allowAutomaticAssignment) {
+      return gladiator;
+    }
+
+    if (isTaskLocked(gladiator, synchronizedSave)) {
+      return gladiator;
+    }
+
+    const recommendation = getPlanningRecommendation(synchronizedSave, gladiator, routine);
+
+    if (!recommendation.buildingId || !recommendation.isAvailable) {
+      return gladiator;
+    }
+
+    return {
+      ...assignGladiatorMapLocation(
+        gladiator,
+        recommendation.buildingId,
+        synchronizedSave.time,
+        routine.objective,
+        synchronizedSave.map,
+      ),
+    };
+  });
 
   return synchronizePlanning({
     ...synchronizedSave,
-    gladiators: synchronizedSave.gladiators.map((gladiator) => {
-      const routine = getRoutineForGladiator(synchronizedSave, gladiator.id);
-
-      if (isArenaAssemblyLocked(synchronizedSave, gladiator)) {
-        return gladiator;
-      }
-
-      if (isSleepTime(synchronizedSave.time.hour)) {
-        return assignGladiatorMapLocation(
-          gladiator,
-          'dormitory',
-          synchronizedSave.time,
-          'sleep',
-          synchronizedSave.map,
-        );
-      }
-
-      if (!routine.allowAutomaticAssignment) {
-        return gladiator;
-      }
-
-      if (isTaskLocked(gladiator, synchronizedSave)) {
-        return gladiator;
-      }
-
-      const recommendation = getPlanningRecommendation(synchronizedSave, gladiator, routine);
-
-      if (!recommendation.buildingId || !recommendation.isAvailable) {
-        return gladiator;
-      }
-
-      return {
-        ...assignGladiatorMapLocation(
-          gladiator,
-          recommendation.buildingId,
-          synchronizedSave.time,
-          routine.objective,
-          synchronizedSave.map,
-        ),
-      };
-    }),
+    gladiators: synchronizeGladiatorMapMovementSchedules(gladiators, synchronizedSave.map),
   });
 }

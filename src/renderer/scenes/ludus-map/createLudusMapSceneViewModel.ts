@@ -19,6 +19,7 @@ import {
   getGladiatorVisualIdentity,
 } from '../../../game-data/gladiator-visuals';
 import {
+  cellToWorldCenter,
   createInitialLudusMapState,
   getLudusMapTiles,
   getMapObjectDefinitions,
@@ -250,6 +251,9 @@ export function createLudusMapSceneViewModel(
         'domus';
       const slotIndex = usedSlotsByBuilding.get(targetLocationId) ?? 0;
       const movement = gladiator.mapMovement;
+      const queuedSlotIndex = movement
+        ? (usedSlotsByBuilding.get(movement.currentLocation) ?? 0)
+        : slotIndex;
       const animation = movement
         ? getGladiatorMapAnimationDefinitionById('walk')
         : getGladiatorMapAnimationDefinition(gladiator);
@@ -261,21 +265,36 @@ export function createLudusMapSceneViewModel(
           : getGladiatorMapRoute(movement.currentLocation, movement.targetLocation, mapState)
         : undefined;
       const routePoints = getGladiatorMapRoutePoints(movementRoute);
+      const routeSchedule =
+        movement?.tileSchedule?.map((entry) => ({
+          ...cellToWorldCenter(entry.coord),
+          arrivalStamp: entry.arrivalStamp,
+          departureStamp: entry.departureStamp,
+        })) ?? [];
       const fallbackFrom = movement
         ? getGladiatorMapEntrancePoint(movement.currentLocation)
         : getGladiatorMapPoint(targetLocationId, slotIndex);
       const fallbackTo = movement
         ? getGladiatorMapEntrancePoint(movement.targetLocation)
         : fallbackFrom;
+      const queuedFrom = movement
+        ? getGladiatorMapPoint(movement.currentLocation, queuedSlotIndex)
+        : fallbackFrom;
 
       usedSlotsByBuilding.set(targetLocationId, slotIndex + 1);
+
+      if (movement) {
+        usedSlotsByBuilding.set(movement.currentLocation, queuedSlotIndex + 1);
+      }
 
       return {
         id: gladiator.id,
         name: gladiator.name,
+        queuedFrom,
         from: routePoints[0] ?? fallbackFrom,
         to: routePoints[routePoints.length - 1] ?? fallbackTo,
         routePoints,
+        routeSchedule,
         movementStartedAt: movement?.movementStartedAt ?? currentGameMinute,
         movementDuration: movement?.movementDuration ?? 1,
         animation,

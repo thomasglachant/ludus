@@ -12,7 +12,10 @@ import { GAME_BALANCE } from '../../game-data/balance';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
 import { DAYS_OF_WEEK } from '../../game-data/time';
-import { assignGladiatorMapLocation } from '../gladiators/map-movement';
+import {
+  assignGladiatorMapLocation,
+  synchronizeGladiatorMapMovementSchedules,
+} from '../gladiators/map-movement';
 import { getEffectiveSkillValue, getGladiatorEffectiveSkill } from '../gladiators/skills';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
@@ -106,13 +109,15 @@ function isMovingToArena(gladiator: Gladiator) {
 }
 
 function sendGladiatorsToArena(save: GameSave): GameSave {
+  const gladiators = save.gladiators.map((gladiator) =>
+    isAtArena(gladiator) || isMovingToArena(gladiator)
+      ? gladiator
+      : assignGladiatorMapLocation(gladiator, 'arena', save.time, 'arenaTravel', save.map),
+  );
+
   return {
     ...save,
-    gladiators: save.gladiators.map((gladiator) =>
-      isAtArena(gladiator) || isMovingToArena(gladiator)
-        ? gladiator
-        : assignGladiatorMapLocation(gladiator, 'arena', save.time, 'arenaTravel', save.map),
-    ),
+    gladiators: synchronizeGladiatorMapMovementSchedules(gladiators, save.map),
   };
 }
 

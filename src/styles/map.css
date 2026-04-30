@@ -67,8 +67,8 @@
   opacity: var(--map-overlay-opacity);
   pointer-events: none;
   transition:
-    background 500ms ease,
-    opacity 500ms ease;
+    background 2400ms ease-in-out,
+    opacity 2400ms ease-in-out;
 }
 
 .ludus-map__viewport--dawn::after {

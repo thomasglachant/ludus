@@ -3,11 +3,18 @@ import type { GridCoord } from '../map/types';
 
 export type GladiatorLocationId = BuildingId | 'arena';
 
+export interface GladiatorMapMovementTileScheduleEntry {
+  coord: GridCoord;
+  arrivalStamp: number;
+  departureStamp: number;
+}
+
 export interface GladiatorMapMovement {
   currentLocation: GladiatorLocationId;
   targetLocation: GladiatorLocationId;
   activity: string;
   route?: GridCoord[];
+  tileSchedule?: GladiatorMapMovementTileScheduleEntry[];
   movementStartedAt: number;
   movementDuration: number;
   minutesPerTile?: number;

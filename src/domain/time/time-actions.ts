@@ -14,8 +14,10 @@ import {
 import { isGladiatorBuildingLocation } from '../../game-data/gladiator-map-movement';
 import {
   assignGladiatorMapLocation,
+  getGladiatorMapMovementExitStamp,
   getGladiatorMapMovementArrivalStamp,
   resolveGladiatorMapMovement,
+  synchronizeGladiatorMapMovementSchedules,
 } from '../gladiators/map-movement';
 import { addSkillTrainingProgress, isGladiatorSkillName } from '../gladiators/skills';
 import type { Gladiator, GladiatorLocationId } from '../gladiators/types';
@@ -30,6 +32,25 @@ export interface GameTickResult {
 
 function getDayKey(time: GameTimeState) {
   return `${time.year}-${time.week}-${time.dayOfWeek}`;
+}
+
+function getMinuteOfDay(hour: number, minute = 0) {
+  return hour * TIME_CONFIG.minutesPerHour + minute;
+}
+
+function getSleepStartMinuteOfDay() {
+  return getMinuteOfDay(TIME_CONFIG.sleepStartHour);
+}
+
+function getWakeUpMinuteOfDay() {
+  return getMinuteOfDay(TIME_CONFIG.wakeUpHour, TIME_CONFIG.wakeUpMinute);
+}
+
+function getNextDayAdvanceTargetMinuteOfDay() {
+  return getMinuteOfDay(
+    TIME_CONFIG.nextDayAdvanceTargetHour,
+    TIME_CONFIG.nextDayAdvanceTargetMinute,
+  );
 }
 
 function expirePendingEvents(save: GameSave): GameSave {
@@ -166,12 +187,10 @@ function getDayStartStamp(time: GameTimeState) {
 function getNextSleepBoundaryStamp(time: GameTimeState) {
   const currentStamp = getGameMinuteStamp(time);
   const dayStartStamp = getDayStartStamp(time);
-  const sleepStartStamp = dayStartStamp + TIME_CONFIG.sleepStartHour * TIME_CONFIG.minutesPerHour;
-  const wakeUpStamp = dayStartStamp + TIME_CONFIG.wakeUpHour * TIME_CONFIG.minutesPerHour;
+  const sleepStartStamp = dayStartStamp + getSleepStartMinuteOfDay();
+  const wakeUpStamp = dayStartStamp + getWakeUpMinuteOfDay();
   const nextDayWakeUpStamp =
-    dayStartStamp +
-    TIME_CONFIG.hoursPerDay * TIME_CONFIG.minutesPerHour +
-    TIME_CONFIG.wakeUpHour * TIME_CONFIG.minutesPerHour;
+    dayStartStamp + TIME_CONFIG.hoursPerDay * TIME_CONFIG.minutesPerHour + getWakeUpMinuteOfDay();
 
   if (currentStamp < wakeUpStamp) {
     return wakeUpStamp;
@@ -211,24 +230,42 @@ function clampToSundayArenaStart(
   };
 }
 
-function isSleepTime(hour: number) {
-  return hour >= TIME_CONFIG.sleepStartHour || hour < TIME_CONFIG.wakeUpHour;
+function isSleepTime(hour: number, minute = 0) {
+  const minuteOfDay = getMinuteOfDay(hour, minute);
+
+  return minuteOfDay >= getSleepStartMinuteOfDay() || minuteOfDay < getWakeUpMinuteOfDay();
+}
+
+export function areAllGladiatorsSleepingInDormitory(save: Pick<GameSave, 'gladiators' | 'time'>) {
+  return (
+    save.gladiators.length > 0 &&
+    isSleepTime(save.time.hour, save.time.minute) &&
+    save.gladiators.every(
+      (gladiator) =>
+        !gladiator.mapMovement &&
+        gladiator.currentActivityId === 'sleep' &&
+        (gladiator.currentBuildingId === 'dormitory' ||
+          gladiator.currentLocationId === 'dormitory'),
+    )
+  );
 }
 
 function isWakeUpTime(time: GameTimeState) {
-  return time.hour === TIME_CONFIG.wakeUpHour && time.minute === 0;
+  return time.hour === TIME_CONFIG.wakeUpHour && time.minute === TIME_CONFIG.wakeUpMinute;
 }
 
 function didEndSleepAtWakeUp(currentTime: GameTimeState, nextTime: GameTimeState) {
-  return isSleepTime(currentTime.hour) && isWakeUpTime(nextTime);
+  return isSleepTime(currentTime.hour, currentTime.minute) && isWakeUpTime(nextTime);
 }
 
 function assignNightSleep(save: GameSave, time = save.time): GameSave {
+  const gladiators = save.gladiators.map((gladiator) =>
+    assignGladiatorMapLocation(gladiator, 'dormitory', time, 'sleep', save.map),
+  );
+
   return {
     ...save,
-    gladiators: save.gladiators.map((gladiator) =>
-      assignGladiatorMapLocation(gladiator, 'dormitory', time, 'sleep', save.map),
-    ),
+    gladiators: synchronizeGladiatorMapMovementSchedules(gladiators, save.map),
   };
 }
 
@@ -463,18 +500,18 @@ function applyMovementAwareAssignedEffects(
   }
 
   let updatedGladiator = gladiator;
-  const movementStartStamp = movement.movementStartedAt;
+  const movementExitStamp = getGladiatorMapMovementExitStamp(movement);
   const arrivalStamp = getGladiatorMapMovementArrivalStamp(movement);
   const originBuildingId = getBuildingLocationId(movement.currentLocation);
   const targetBuildingId = getBuildingLocationId(movement.targetLocation);
   const originMinutes = clamp(
-    Math.min(movementStartStamp, effectWindowEndStamp) - effectWindowStartStamp,
+    Math.min(movementExitStamp, effectWindowEndStamp) - effectWindowStartStamp,
     0,
     windowMinutes,
   );
   const movementMinutes = clamp(
     Math.min(arrivalStamp, effectWindowEndStamp) -
-      Math.max(movementStartStamp, effectWindowStartStamp),
+      Math.max(movementExitStamp, effectWindowStartStamp),
     0,
     windowMinutes,
   );
@@ -528,9 +565,11 @@ function applyAllGladiatorEffects(save: GameSave, gladiator: Gladiator, hours: n
 }
 
 function resolveCompletedGladiatorMovements(save: GameSave): GameSave {
+  const scheduledGladiators = synchronizeGladiatorMapMovementSchedules(save.gladiators, save.map);
+
   return {
     ...save,
-    gladiators: save.gladiators.map((gladiator) =>
+    gladiators: scheduledGladiators.map((gladiator) =>
       resolveGladiatorMapMovement(gladiator, save.time),
     ),
   };
@@ -541,16 +580,21 @@ function applyHourlyBuildingEffects(save: GameSave, hours: number): GameSave {
     return resolveCompletedGladiatorMovements(save);
   }
 
-  const effectWindowEndStamp = getGameMinuteStamp(save.time);
+  const scheduledSave = {
+    ...save,
+    gladiators: synchronizeGladiatorMapMovementSchedules(save.gladiators, save.map),
+  };
+
+  const effectWindowEndStamp = getGameMinuteStamp(scheduledSave.time);
   const effectWindowStartStamp = effectWindowEndStamp - hours * TIME_CONFIG.minutesPerHour;
 
   return synchronizePlanning({
-    ...save,
-    gladiators: save.gladiators.map((gladiator) =>
+    ...scheduledSave,
+    gladiators: scheduledSave.gladiators.map((gladiator) =>
       applyAllGladiatorEffects(
-        save,
+        scheduledSave,
         applyMovementAwareAssignedEffects(
-          save,
+          scheduledSave,
           gladiator,
           effectWindowStartStamp,
           effectWindowEndStamp,
@@ -656,10 +700,7 @@ export function tickGame(context: GameTickContext): GameTickResult {
     };
   }
 
-  const saveWithAssignments =
-    appliedEffectHours > 0 || isSleepTime(nextTime.hour)
-      ? applyPlanningRecommendations(saveWithWeeklyLayers)
-      : saveWithWeeklyLayers;
+  const saveWithAssignments = applyPlanningRecommendations(saveWithWeeklyLayers);
   const saveWithEffects = applyHourlyBuildingEffects(saveWithAssignments, appliedEffectHours);
   const saveWithArenaStart = synchronizeArena(saveWithEffects, context.random);
 
@@ -703,11 +744,20 @@ export function advanceToNextDay(
     appliedEffectHours: 0,
     effectAccumulatorMinutes: input.effectAccumulatorMinutes ?? 0,
   };
+  const currentMinuteOfDay = getMinuteOfDay(save.time.hour, save.time.minute);
+  const targetOffsetMinutes =
+    TIME_CONFIG.hoursPerDay * TIME_CONFIG.minutesPerHour -
+    currentMinuteOfDay +
+    getNextDayAdvanceTargetMinuteOfDay();
+  const targetStamp = getGameMinuteStamp(save.time) + targetOffsetMinutes;
 
-  while (getDayKey(result.save.time) === initialDayKey) {
+  while (getGameMinuteStamp(result.save.time) < targetStamp) {
+    const remainingGameMinutes = targetStamp - getGameMinuteStamp(result.save.time);
     const nextResult = tickGame({
       currentSave: result.save,
-      elapsedRealMilliseconds: TIME_CONFIG.realMillisecondsPerGameHour * TIME_CONFIG.hoursPerDay,
+      elapsedRealMilliseconds:
+        (remainingGameMinutes * TIME_CONFIG.realMillisecondsPerGameHour) /
+        (PROGRESSION_CONFIG.initialSpeed * TIME_CONFIG.minutesPerHour),
       speed: PROGRESSION_CONFIG.initialSpeed,
       effectAccumulatorMinutes: result.effectAccumulatorMinutes,
       random: input.random,
