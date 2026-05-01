@@ -6,10 +6,10 @@ import { CardScrollArea } from '../components/CardScrollArea';
 import { ImpactIndicator } from '../components/ImpactIndicator';
 import { ImpactList } from '../components/ImpactList';
 import { GameIcon } from '../icons/GameIcon';
-import type { CombatScreenViewModel } from './combat-screen-view-model';
+import type { CombatReplayViewModel } from './combat-replay-view-model';
 
 interface CombatLogProps {
-  viewModel: CombatScreenViewModel;
+  viewModel: CombatReplayViewModel;
 }
 
 type CombatLogSide = 'left' | 'right';
@@ -43,7 +43,7 @@ interface CombatResultColumnViewModel {
   side: CombatLogSide;
 }
 
-function getCombatantReward(viewModel: CombatScreenViewModel, combatantId: string) {
+function getCombatantReward(viewModel: CombatReplayViewModel, combatantId: string) {
   const didCombatantWin = viewModel.combat.winnerId === combatantId;
 
   return didCombatantWin
@@ -51,7 +51,7 @@ function getCombatantReward(viewModel: CombatScreenViewModel, combatantId: strin
     : viewModel.combat.reward.loserReward;
 }
 
-function getCombatResultColumns(viewModel: CombatScreenViewModel): CombatResultColumnViewModel[] {
+function getCombatResultColumns(viewModel: CombatReplayViewModel): CombatResultColumnViewModel[] {
   const player = viewModel.combat.gladiator;
   const opponent = viewModel.combat.opponent;
 
@@ -78,13 +78,13 @@ function getCombatResultColumns(viewModel: CombatScreenViewModel): CombatResultC
 }
 
 function getTurnParticipantSide(
-  viewModel: CombatScreenViewModel,
+  viewModel: CombatReplayViewModel,
   combatantId: string,
 ): CombatLogSide {
   return viewModel.combat.gladiator.id === combatantId ? 'left' : 'right';
 }
 
-function getTurnEnergyLoss(viewModel: CombatScreenViewModel, turnIndex: number) {
+function getTurnEnergyLoss(viewModel: CombatReplayViewModel, turnIndex: number) {
   const totalEnergyCost = Math.abs(Math.round(viewModel.consequence.energyChange));
   const totalTurns = Math.max(1, viewModel.combat.turns.length);
   const baseLoss = Math.floor(totalEnergyCost / totalTurns);
@@ -93,7 +93,7 @@ function getTurnEnergyLoss(viewModel: CombatScreenViewModel, turnIndex: number) 
   return baseLoss + (turnIndex < remainder ? 1 : 0);
 }
 
-function getCombatLogTurns(viewModel: CombatScreenViewModel): CombatLogTurnViewModel[] {
+function getCombatLogTurns(viewModel: CombatReplayViewModel): CombatLogTurnViewModel[] {
   return viewModel.visibleTurns.map((turn, turnIndex) => {
     const attackerSide = getTurnParticipantSide(viewModel, turn.attackerId);
     const defenderSide = getTurnParticipantSide(viewModel, turn.defenderId);
@@ -119,7 +119,7 @@ function getCombatLogTurns(viewModel: CombatScreenViewModel): CombatLogTurnViewM
   });
 }
 
-function getCombatWinnerAndLoser(viewModel: CombatScreenViewModel) {
+function getCombatWinnerAndLoser(viewModel: CombatReplayViewModel) {
   const player = viewModel.combat.gladiator;
   const opponent = viewModel.combat.opponent;
   const isPlayerWinner = viewModel.combat.winnerId === player.id;
@@ -145,15 +145,15 @@ function CombatLogEventEntry({
 }) {
   return (
     <li
-      className={['combat-screen-log__event-row', isLatest ? 'is-latest' : '', className]
+      className={['combat-replay-log__event-row', isLatest ? 'is-latest' : '', className]
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="combat-screen-log__turn-header">
+      <div className="combat-replay-log__turn-header">
         <span>{title}</span>
         <p>{children}</p>
       </div>
-      {details ? <div className="combat-screen-log__event-details">{details}</div> : null}
+      {details ? <div className="combat-replay-log__event-details">{details}</div> : null}
     </li>
   );
 }
@@ -172,7 +172,7 @@ function CombatantTurnColumn({
   return (
     <div
       className={[
-        'combat-screen-log__combatant-turn',
+        'combat-replay-log__combatant-turn',
         isAttacker ? 'is-acting' : '',
         isDefender ? 'is-defending' : '',
       ]
@@ -180,10 +180,10 @@ function CombatantTurnColumn({
         .join(' ')}
     >
       <strong>{combatant.gladiator.name}</strong>
-      <div className="combat-screen-log__impacts">
+      <div className="combat-replay-log__impacts">
         {isAttacker ? (
           <>
-            <span className="combat-screen-log__impact combat-screen-log__impact--attack">
+            <span className="combat-replay-log__impact combat-replay-log__impact--attack">
               <GameIcon name="combatStrike" size={16} />
               <span>
                 <small>{t('combatScreen.logImpact.attackerAttack')}</small>
@@ -211,7 +211,7 @@ function CombatantTurnColumn({
         ) : null}
         {isDefender && !turn.isHit ? (
           <>
-            <span className="combat-screen-log__impact combat-screen-log__impact--dodge">
+            <span className="combat-replay-log__impact combat-replay-log__impact--dodge">
               <GameIcon name="combatFeint" size={16} />
               <span>
                 <small>{t('combatScreen.logImpact.dodged')}</small>
@@ -232,15 +232,15 @@ function CombatantTurnColumn({
   );
 }
 
-function CombatWinnerLine({ viewModel }: { viewModel: CombatScreenViewModel }) {
+function CombatWinnerLine({ viewModel }: { viewModel: CombatReplayViewModel }) {
   const { t } = useUiStore();
   const { loserName, winnerName } = getCombatWinnerAndLoser(viewModel);
 
   return (
     <>
-      <strong className="combat-screen-log__winner-name">{winnerName}</strong>
+      <strong className="combat-replay-log__winner-name">{winnerName}</strong>
       <span> {t('combatScreen.winnerLineAgainst')} </span>
-      <span className="combat-screen-log__loser-name">{loserName}</span>
+      <span className="combat-replay-log__loser-name">{loserName}</span>
     </>
   );
 }
@@ -250,13 +250,13 @@ function CombatResultColumn({ result }: { result: CombatResultColumnViewModel })
 
   return (
     <div
-      className={['combat-screen-log__combatant-turn', result.isWinner ? 'is-acting' : '']
+      className={['combat-replay-log__combatant-turn', result.isWinner ? 'is-acting' : '']
         .filter(Boolean)
         .join(' ')}
     >
       <strong>{result.gladiator.name}</strong>
       <ImpactList
-        className="combat-screen-log__impacts"
+        className="combat-replay-log__impacts"
         impacts={[
           {
             amount: result.reward,
@@ -320,12 +320,12 @@ export function CombatLog({ viewModel }: CombatLogProps) {
   }, [logTurns.length, viewModel.isComplete]);
 
   return (
-    <CardBlured as="section" className="combat-screen-log" data-testid="combat-screen-log">
+    <CardBlured as="section" className="combat-replay-log" data-testid="combat-replay-log">
       <header>
         <strong>{t('arena.combatLog')}</strong>
       </header>
-      <CardScrollArea className="combat-screen-log__scroll" ref={listRef}>
-        <ul className="combat-screen-log__entries" aria-live="polite">
+      <CardScrollArea className="combat-replay-log__scroll" ref={listRef}>
+        <ul className="combat-replay-log__entries" aria-live="polite">
           <CombatLogEventEntry
             isLatest={viewModel.visibleTurns.length === 0}
             title={t('combatScreen.logIntroTitle')}
@@ -340,11 +340,11 @@ export function CombatLog({ viewModel }: CombatLogProps) {
               className={turn.turnNumber === viewModel.latestTurn?.turnNumber ? 'is-latest' : ''}
               key={turn.turnNumber}
             >
-              <div className="combat-screen-log__turn-header">
+              <div className="combat-replay-log__turn-header">
                 <span>{t('arena.turnNumber', { turn: turn.turnNumber })}</span>
                 <p>{t(turn.summaryKey, turn.summaryParams)}</p>
               </div>
-              <div className="combat-screen-log__turn-combatants">
+              <div className="combat-replay-log__turn-combatants">
                 <CombatantTurnColumn combatant={turn.left} turn={turn} />
                 <CombatantTurnColumn combatant={turn.right} turn={turn} />
               </div>
@@ -352,9 +352,9 @@ export function CombatLog({ viewModel }: CombatLogProps) {
           ))}
           {viewModel.isComplete ? (
             <CombatLogEventEntry
-              className="combat-screen-log__result"
+              className="combat-replay-log__result"
               details={
-                <div className="combat-screen-log__turn-combatants">
+                <div className="combat-replay-log__turn-combatants">
                   {resultColumns.map((result) => (
                     <CombatResultColumn key={result.side} result={result} />
                   ))}

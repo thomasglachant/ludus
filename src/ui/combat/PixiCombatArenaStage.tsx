@@ -4,10 +4,10 @@ import { PixiSceneViewport } from '../../renderer/pixi/PixiSceneViewport';
 import { CombatScene } from '../../renderer/scenes/combat/CombatScene';
 import { useUiStore } from '../../state/ui-store-context';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
-import type { CombatScreenViewModel } from './combat-screen-view-model';
+import type { CombatReplayViewModel } from './combat-replay-view-model';
 
 interface PixiCombatArenaStageProps {
-  viewModel: CombatScreenViewModel;
+  viewModel: CombatReplayViewModel;
 }
 
 export function PixiCombatArenaStage({ viewModel }: PixiCombatArenaStageProps) {

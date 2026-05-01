@@ -1,12 +1,12 @@
 import type {
   CombatantViewModel,
-  CombatScreenViewModel,
-} from '../../../ui/combat/combat-screen-view-model';
+  CombatReplayViewModel,
+} from '../../../ui/combat/combat-replay-view-model';
 import type { GladiatorCombatAnimationId } from '../../../game-data/gladiator-animations';
 import { getProductionGladiatorCombatAnimationAsset } from '../../../game-data/gladiator-visuals';
 import type { CombatSceneViewModel } from './CombatSceneViewModel';
 
-function getCurrentActionId(viewModel: CombatScreenViewModel) {
+function getCurrentActionId(viewModel: CombatReplayViewModel) {
   if (viewModel.isComplete) {
     return `complete:${viewModel.combat.winnerId ?? 'draw'}`;
   }
@@ -17,7 +17,7 @@ function getCurrentActionId(viewModel: CombatScreenViewModel) {
 }
 
 function getCombatantAnimationId(
-  viewModel: CombatScreenViewModel,
+  viewModel: CombatReplayViewModel,
   combatantId: string,
 ): GladiatorCombatAnimationId {
   if (viewModel.isComplete && viewModel.combat.winnerId) {
@@ -42,7 +42,7 @@ function getCombatantAnimationId(
 }
 
 function createCombatSceneCombatant(
-  viewModel: CombatScreenViewModel,
+  viewModel: CombatReplayViewModel,
   combatant: CombatantViewModel,
   side: 'left' | 'right',
 ) {
@@ -68,7 +68,7 @@ function createCombatSceneCombatant(
 }
 
 function getCombatantSide(
-  viewModel: CombatScreenViewModel,
+  viewModel: CombatReplayViewModel,
   combatantId: string,
 ): 'left' | 'right' | undefined {
   if (viewModel.player.id === combatantId) {
@@ -87,7 +87,7 @@ interface CombatSceneViewModelOptions {
   reducedMotion?: boolean;
 }
 
-function createTurnEffect(viewModel: CombatScreenViewModel, options: CombatSceneViewModelOptions) {
+function createTurnEffect(viewModel: CombatReplayViewModel, options: CombatSceneViewModelOptions) {
   const latestTurn = viewModel.latestTurn;
 
   if (!latestTurn) {
@@ -112,7 +112,7 @@ function createTurnEffect(viewModel: CombatScreenViewModel, options: CombatScene
 }
 
 export function createCombatSceneViewModel(
-  viewModel: CombatScreenViewModel,
+  viewModel: CombatReplayViewModel,
   options: CombatSceneViewModelOptions = {},
 ): CombatSceneViewModel {
   return {

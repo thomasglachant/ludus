@@ -1,4 +1,4 @@
-import { getEffectiveSkillValue, getSkillTrainingProgress } from '../../domain/gladiators/skills';
+import { getEffectiveSkillValue } from '../../domain/gladiators/skills';
 import {
   getPlanningRecommendation,
   getRoutineForGladiator,
@@ -10,7 +10,7 @@ import { useUiStore } from '../../state/ui-store-context';
 import { PanelShell } from '../components/shared';
 import { formatNumber } from '../formatters/number';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
-import { GladiatorPortrait } from '../roster/GladiatorPortrait';
+import { GladiatorSummary } from '../gladiators/GladiatorSummary';
 
 interface GladiatorDetailPanelProps {
   save: GameSave;
@@ -24,21 +24,6 @@ interface StatChipProps {
   value: number | string;
 }
 
-interface SkillChipProps extends StatChipProps {
-  progress: number;
-}
-
-interface ResourceMeterProps {
-  iconName: Extract<GameIconName, 'energy' | 'health' | 'morale'>;
-  label: string;
-  tone: 'health' | 'energy' | 'morale';
-  value: number;
-}
-
-function clampMeterValue(value: number) {
-  return Math.min(Math.max(value, 0), 100);
-}
-
 function StatChip({ iconName, label, value }: StatChipProps) {
   const formattedValue = typeof value === 'number' ? formatNumber(value) : value;
 
@@ -47,44 +32,6 @@ function StatChip({ iconName, label, value }: StatChipProps) {
       <GameIcon name={iconName} size={19} />
       <span>{label}</span>
       <strong>{formattedValue}</strong>
-    </div>
-  );
-}
-
-function SkillChip({ iconName, label, value, progress }: SkillChipProps) {
-  const { t } = useUiStore();
-  const formattedValue = typeof value === 'number' ? formatNumber(value) : value;
-
-  return (
-    <div className="gladiator-stat-chip gladiator-stat-chip--skill">
-      <GameIcon name={iconName} size={19} />
-      <span>{label}</span>
-      <strong>{formattedValue}</strong>
-      <span
-        className="gladiator-skill-progress"
-        aria-label={t('gladiatorPanel.skillProgress', { progress: formatNumber(progress) })}
-      >
-        <span className="gladiator-skill-progress__value" style={{ width: `${progress}%` }} />
-      </span>
-    </div>
-  );
-}
-
-function ResourceMeter({ iconName, label, tone, value }: ResourceMeterProps) {
-  const clampedValue = clampMeterValue(value);
-
-  return (
-    <div className={`gladiator-resource-meter gladiator-resource-meter--${tone}`}>
-      <div className="gladiator-resource-meter__label">
-        <GameIcon name={iconName} size={18} />
-        <span>{label}</span>
-        <strong>
-          {formatNumber(value)}/{formatNumber(100)}
-        </strong>
-      </div>
-      <span className="gladiator-resource-meter__track" aria-hidden="true">
-        <span className="gladiator-resource-meter__value" style={{ width: `${clampedValue}%` }} />
-      </span>
     </div>
   );
 }
@@ -131,110 +78,9 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
     ? t(BUILDING_DEFINITIONS[recommendation.buildingId].nameKey)
     : t('weeklyPlan.noAssignment');
   const currentArenaRecord = getCurrentArenaRecord(save, gladiator);
-  const skillStats = [
-    {
-      iconName: 'strength' as const,
-      label: t('market.stats.strength'),
-      value: getEffectiveSkillValue(gladiator.strength),
-      progress: getSkillTrainingProgress(gladiator.strength),
-    },
-    {
-      iconName: 'agility' as const,
-      label: t('market.stats.agility'),
-      value: getEffectiveSkillValue(gladiator.agility),
-      progress: getSkillTrainingProgress(gladiator.agility),
-    },
-    {
-      iconName: 'defense' as const,
-      label: t('market.stats.defense'),
-      value: getEffectiveSkillValue(gladiator.defense),
-      progress: getSkillTrainingProgress(gladiator.defense),
-    },
-  ];
-  const resourceStats = [
-    {
-      iconName: 'health' as const,
-      label: t('market.stats.health'),
-      tone: 'health' as const,
-      value: gladiator.health,
-    },
-    {
-      iconName: 'energy' as const,
-      label: t('market.stats.energy'),
-      tone: 'energy' as const,
-      value: gladiator.energy,
-    },
-    {
-      iconName: 'morale' as const,
-      label: t('market.stats.morale'),
-      tone: 'morale' as const,
-      value: gladiator.morale,
-    },
-  ];
-
   return (
     <PanelShell eyebrowKey="gladiatorPanel.eyebrow" title={gladiator.name} onClose={onClose}>
-      <div className="gladiator-profile-card">
-        <div className="gladiator-profile-card__portrait">
-          <GladiatorPortrait gladiator={gladiator} size="large" />
-          {gladiator.traits.length > 0 ? (
-            <ul className="trait-list trait-list--featured" aria-label={t('market.traits')}>
-              {gladiator.traits.map((trait) => (
-                <li key={trait}>{t(`traits.${trait}`)}</li>
-              ))}
-            </ul>
-          ) : (
-            <span className="gladiator-profile-card__empty-traits">
-              {t('gladiatorPanel.noTraits')}
-            </span>
-          )}
-        </div>
-
-        <div className="gladiator-profile-card__main">
-          <div className="gladiator-profile-card__identity">
-            <h2>{gladiator.name}</h2>
-          </div>
-
-          <div className="gladiator-profile-card__summary">
-            <StatChip iconName="age" label={t('gladiatorPanel.age')} value={gladiator.age} />
-            <StatChip
-              iconName="reputation"
-              label={t('gladiatorPanel.reputation')}
-              value={gladiator.reputation}
-            />
-          </div>
-
-          <section className="gladiator-profile-section">
-            <h2>{t('gladiatorPanel.combatSkills')}</h2>
-            <div className="gladiator-skill-grid">
-              {skillStats.map((stat) => (
-                <SkillChip
-                  key={stat.label}
-                  iconName={stat.iconName}
-                  label={stat.label}
-                  value={stat.value}
-                  progress={stat.progress}
-                />
-              ))}
-            </div>
-          </section>
-
-          <section className="gladiator-profile-section">
-            <h2>{t('gladiatorPanel.condition')}</h2>
-            <div className="gladiator-resource-grid">
-              {resourceStats.map((stat) => (
-                <ResourceMeter
-                  key={stat.label}
-                  iconName={stat.iconName}
-                  label={stat.label}
-                  tone={stat.tone}
-                  value={stat.value}
-                />
-              ))}
-            </div>
-          </section>
-        </div>
-      </div>
+      <GladiatorSummary gladiator={gladiator} tone="light" />
 
       <div className="gladiator-info-grid">
         <section className="gladiator-info-panel">

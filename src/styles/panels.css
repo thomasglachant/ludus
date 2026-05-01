@@ -266,82 +266,7 @@
   gap: 12px;
 }
 
-.gladiator-card {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 12px;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-}
-
-.gladiator-card__header,
-.gladiator-card__actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.gladiator-card__header p {
-  color: var(--text-muted);
-}
-
-.gladiator-card__header strong {
-  flex-shrink: 0;
-  padding: 4px 8px;
-  border-radius: 8px;
-  background: #fff3d2;
-  color: #6b4a05;
-  font-size: 0.82rem;
-}
-
-.gladiator-stat-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.gladiator-stat-list div {
-  min-height: 58px;
-  padding: 8px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface-muted);
-}
-
-.gladiator-stat-list dt {
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  font-weight: 750;
-}
-
-.gladiator-stat-list dd {
-  margin-top: 2px;
-  color: var(--text);
-  font-weight: 850;
-}
-
-.trait-list {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  padding: 0;
-  list-style: none;
-}
-
-.trait-list li {
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 0.78rem;
-  font-weight: 850;
-}
-
-.gladiator-card__warning {
+.market-gladiator-summary__warning {
   padding: 9px 10px;
   border: 1px solid #ddb777;
   border-radius: 8px;
@@ -350,16 +275,11 @@
   font-weight: 700;
 }
 
-.gladiator-card__actions {
-  justify-content: flex-end;
-}
-
 @media (max-width: 900px) {
   .gladiator-grid {
     grid-template-columns: 1fr;
   }
 
-  .gladiator-stat-list,
   .planning-controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -536,74 +456,18 @@
   color: #7d2f1f;
 }
 
-.gladiator-profile-card {
-  display: grid;
-  grid-template-columns: minmax(128px, 168px) minmax(0, 1fr);
-  gap: 16px;
-  align-items: stretch;
-  padding: 14px;
-  border: 2px solid rgba(111, 69, 35, 0.42);
-  border-radius: 8px;
-  background:
-    linear-gradient(135deg, rgba(42, 33, 24, 0.97), rgba(76, 50, 31, 0.93)), var(--obsidian-raised);
-  box-shadow:
-    inset 0 0 0 2px rgba(255, 246, 222, 0.08),
-    0 16px 26px rgba(37, 27, 20, 0.18);
-}
-
-.gladiator-profile-card__portrait {
-  display: grid;
-  align-content: start;
-  justify-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.gladiator-profile-card__portrait .gladiator-portrait--large {
-  width: 132px;
-  height: 156px;
-  border-color: rgba(240, 194, 109, 0.72);
-  box-shadow:
-    inset 0 0 0 3px rgba(255, 246, 222, 0.2),
-    0 12px 24px rgba(8, 6, 4, 0.38);
-}
-
-.trait-list--featured {
-  justify-content: center;
-}
-
-.trait-list--featured li,
-.gladiator-profile-card__empty-traits {
-  border: 1px solid rgba(214, 163, 74, 0.38);
-  background: rgba(220, 232, 204, 0.92);
-  color: #225f49;
-  box-shadow: 0 6px 12px rgba(8, 6, 4, 0.14);
-}
-
-.gladiator-profile-card__empty-traits {
-  display: inline-flex;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 850;
-}
-
-.gladiator-profile-card__main,
-.gladiator-profile-section,
 .gladiator-info-panel,
 .gladiator-info-panel dl {
   display: grid;
   gap: 10px;
 }
 
-.gladiator-profile-card__summary,
 .gladiator-skill-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
-.gladiator-profile-section h2,
 .gladiator-info-panel h2 {
   display: flex;
   align-items: center;
@@ -613,10 +477,6 @@
   font-size: 0.78rem;
   font-weight: 950;
   text-transform: uppercase;
-}
-
-.gladiator-profile-section h2 {
-  color: #f6d486;
 }
 
 .gladiator-stat-chip {
@@ -676,71 +536,6 @@
   background: linear-gradient(90deg, #8c2f39, #d6a34a);
 }
 
-.gladiator-resource-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.gladiator-resource-meter {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-  padding: 8px;
-  border: 1px solid rgba(214, 163, 74, 0.34);
-  border-radius: 7px;
-  background: rgba(255, 246, 222, 0.11);
-}
-
-.gladiator-resource-meter__label {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 7px;
-  align-items: center;
-  color: #f6e7c2;
-  font-size: 0.78rem;
-  font-weight: 900;
-}
-
-.gladiator-resource-meter__label span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.gladiator-resource-meter__label strong {
-  color: #fff1c7;
-  font-size: 0.78rem;
-  white-space: nowrap;
-}
-
-.gladiator-resource-meter__track {
-  display: block;
-  height: 10px;
-  overflow: hidden;
-  border: 1px solid rgba(8, 6, 4, 0.54);
-  border-radius: 999px;
-  background: rgba(8, 6, 4, 0.38);
-}
-
-.gladiator-resource-meter__value {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-}
-
-.gladiator-resource-meter--health .gladiator-resource-meter__value {
-  background: linear-gradient(90deg, #8d2d31, #d85a4c);
-}
-
-.gladiator-resource-meter--energy .gladiator-resource-meter__value {
-  background: linear-gradient(90deg, #9a681c, #e0b353);
-}
-
-.gladiator-resource-meter--morale .gladiator-resource-meter__value {
-  background: linear-gradient(90deg, #2f7041, #70b864);
-}
-
 .gladiator-info-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -796,23 +591,12 @@
 }
 
 @media (max-width: 760px) {
-  .gladiator-profile-card,
   .gladiator-info-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .gladiator-profile-card__portrait .gladiator-portrait--large {
-    width: 112px;
-    height: 136px;
-  }
-
-  .gladiator-profile-card__summary,
   .gladiator-skill-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .gladiator-resource-grid {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .gladiator-info-panel dl div {
@@ -882,8 +666,7 @@
 .context-panel__stats div,
 .context-panel__list article,
 .section-card,
-.planning-card,
-.gladiator-card {
+.planning-card {
   border: 1px solid rgba(111, 69, 35, 0.42);
   border-radius: 6px;
   background:

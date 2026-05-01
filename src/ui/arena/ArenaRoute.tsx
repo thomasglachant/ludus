@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from 'react';
 import {
   calculateDecimalOdds,
+  calculateGladiatorCombatReputation,
   calculateProjectedWinChance,
 } from '../../domain/combat/combat-actions';
 import type { CombatState, GameSave } from '../../domain/types';
@@ -10,15 +11,14 @@ import { ActionButton } from '../components/ActionButton';
 import { CardBlured } from '../components/CardBlured';
 import { CardScrollArea } from '../components/CardScrollArea';
 import { CTAButton } from '../components/CTAButton';
-import { ImpactIndicator } from '../components/ImpactIndicator';
 import { ImpactList } from '../components/ImpactList';
 import { LeagueRankBadge } from '../components/LeagueRankBadge';
 import { EmptyState } from '../components/shared';
-import { CombatScreen } from '../combat/CombatScreen';
+import { CombatReplayView } from '../combat/CombatReplayView';
 import { formatMoneyAmount } from '../formatters/money';
+import { GladiatorSummary } from '../gladiators/GladiatorSummary';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import { formatSignedValue, getArenaDayViewModel } from './arena-view-model';
-import { FighterSheet } from './FighterSheet';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface ArenaRouteProps {
@@ -35,7 +35,7 @@ interface CombatIndexButtonProps {
   onClick(): void;
 }
 
-interface ArenaCombatPageProps {
+interface BoutPreviewViewProps {
   combat: CombatState;
   currentIndex: number;
   isPresented: boolean;
@@ -65,10 +65,10 @@ function getParticipationReward(combat: CombatState) {
   return combat.reward.participationReward ?? combat.reward.loserReward;
 }
 
-function getVictoryReward(combat: CombatState) {
+function getCombatReputationChange(combat: CombatState, didWin: boolean) {
   return (
-    combat.reward.victoryReward ??
-    Math.max(0, combat.reward.winnerReward - getParticipationReward(combat))
+    calculateGladiatorCombatReputation(combat.gladiator.reputation, didWin) -
+    combat.gladiator.reputation
   );
 }
 
@@ -107,32 +107,49 @@ function CombatIndexButton({ disabled = false, iconName, label, onClick }: Comba
 
 function CombatRewardImpacts({ combat }: { combat: CombatState }) {
   const { t } = useUiStore();
+  const lossReward = getParticipationReward(combat);
 
   return (
-    <section className="arena-route-reward-impacts" aria-label={t('arenaRoute.purseTitle')}>
-      <dl>
-        <div>
-          <dt>{t('arenaRoute.participationBonus')}</dt>
-          <dd>
-            <ImpactIndicator
-              amount={getParticipationReward(combat)}
-              kind="treasury"
-              label={t('arenaRoute.participationBonus')}
-            />
-          </dd>
-        </div>
-        <div>
-          <dt>{t('arenaRoute.victoryBonus')}</dt>
-          <dd>
-            <ImpactIndicator
-              amount={getVictoryReward(combat)}
-              kind="treasury"
-              label={t('arenaRoute.victoryBonus')}
-            />
-          </dd>
-        </div>
-      </dl>
-    </section>
+    <div className="arena-route-reward-impacts" aria-label={t('arenaRoute.purseTitle')}>
+      <div className="arena-route-reward-impacts__group">
+        <h2>{t('arenaRoute.victoryImpacts')}</h2>
+        <ImpactList
+          impacts={[
+            {
+              amount: combat.reward.winnerReward,
+              id: 'victory-treasury',
+              kind: 'treasury',
+              label: t('arena.totalReward'),
+            },
+            {
+              amount: getCombatReputationChange(combat, true),
+              id: 'victory-reputation',
+              kind: 'reputation',
+              label: t('arena.reputationChange'),
+            },
+          ]}
+        />
+      </div>
+      <div className="arena-route-reward-impacts__group">
+        <h2>{t('arenaRoute.defeatImpacts')}</h2>
+        <ImpactList
+          impacts={[
+            {
+              amount: lossReward,
+              id: 'defeat-treasury',
+              kind: 'treasury',
+              label: t('arenaRoute.participationBonus'),
+            },
+            {
+              amount: getCombatReputationChange(combat, false),
+              id: 'defeat-reputation',
+              kind: 'reputation',
+              label: t('arena.reputationChange'),
+            },
+          ]}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -140,7 +157,7 @@ function ArenaCombatResultIntel({ combat }: { combat: CombatState }) {
   const { t } = useUiStore();
 
   return (
-    <aside className="arena-route-result-intel" aria-label={t('arenaRoute.intelTitle')}>
+    <aside className="arena-route-bout-result-intel" aria-label={t('arenaRoute.intelTitle')}>
       <div className="arena-route-intel__card arena-route-intel__card--result">
         <header>
           <GameIcon name="victory" size={20} />
@@ -164,7 +181,7 @@ function ArenaCombatResultIntel({ combat }: { combat: CombatState }) {
   );
 }
 
-function ArenaCombatPage({
+function BoutPreviewView({
   combat,
   currentIndex,
   isPresented,
@@ -172,7 +189,7 @@ function ArenaCombatPage({
   onPrevious,
   onStartCombat,
   totalCombats,
-}: ArenaCombatPageProps) {
+}: BoutPreviewViewProps) {
   const { t } = useUiStore();
   const canGoPrevious = currentIndex > 0;
   const canGoNext = isPresented;
@@ -180,10 +197,10 @@ function ArenaCombatPage({
 
   return (
     <section
-      className="arena-route-panel arena-route-panel--combat"
-      data-testid="arena-route-combat"
+      className="arena-route-panel arena-route-panel--bout-preview"
+      data-testid="arena-route-bout-preview"
     >
-      <header className="arena-route-combat-header">
+      <header className="arena-route-step-header">
         <div>
           <h1>{t('arenaRoute.programTitle')}</h1>
         </div>
@@ -215,28 +232,28 @@ function ArenaCombatPage({
           />
         </nav>
       </header>
-      <div className="arena-route-combat-summary">
-        <div className="arena-route-combat-tags">
+      <div className="arena-route-bout-summary">
+        <div className="arena-route-bout-tags">
           <LeagueRankBadge label={t(`arena.ranks.${combat.rank}`)} rank={combat.rank} />
         </div>
         <CombatRewardImpacts combat={combat} />
       </div>
-      <div className="arena-route-combat-layout">
+      <div className="arena-route-bout-layout">
         <div className="arena-route-fighter-stack">
-          <FighterSheet gladiator={combat.gladiator} odds={odds.player} side="player" />
+          <GladiatorSummary gladiator={combat.gladiator} odds={odds.player} side="player" />
         </div>
         <div className="arena-route-versus" aria-hidden="true">
           <span>{t('arenaRoute.versus')}</span>
         </div>
         <div className="arena-route-fighter-stack">
-          <FighterSheet gladiator={combat.opponent} odds={odds.opponent} side="opponent" />
+          <GladiatorSummary gladiator={combat.opponent} odds={odds.opponent} side="opponent" />
         </div>
       </div>
       {isPresented ? <ArenaCombatResultIntel combat={combat} /> : null}
       <div className="arena-route-actions arena-route-actions--footer">
         <CTAButton
-          className="arena-route-combat-cta"
-          data-testid="arena-route-combat-cta"
+          className="arena-route-primary-cta"
+          data-testid="arena-route-primary-cta"
           onClick={onStartCombat}
         >
           <GameIcon color="#fff9e7" name={isPresented ? 'view' : 'combatStrike'} size={18} />
@@ -253,7 +270,7 @@ function CombatImpactList({ combat }: { combat: CombatState }) {
   return (
     <ImpactList
       aria-label={t('arenaRoute.combatImpacts')}
-      className="arena-route-result-card__impacts"
+      className="arena-route-day-result-card__impacts"
       impacts={[
         {
           amount: combat.consequence.playerReward,
@@ -298,13 +315,13 @@ function CombatResultRow({ combat, onOpenCombat }: { combat: CombatState; onOpen
   return (
     <CardBlured
       as="article"
-      className={`arena-route-result-card arena-route-result-card--${didPlayerWin ? 'win' : 'loss'}`}
+      className={`arena-route-day-result-card arena-route-day-result-card--${didPlayerWin ? 'win' : 'loss'}`}
     >
-      <div className="arena-route-result-card__identity">
+      <div className="arena-route-day-result-card__identity">
         <LeagueRankBadge label={t(`arena.ranks.${combat.rank}`)} rank={combat.rank} />
         <GladiatorPortrait gladiator={combat.gladiator} size="small" />
         <button
-          className="arena-route-result-card__fighter-button"
+          className="arena-route-day-result-card__fighter-button"
           type="button"
           onClick={onOpenCombat}
         >
@@ -313,7 +330,7 @@ function CombatResultRow({ combat, onOpenCombat }: { combat: CombatState; onOpen
       </div>
       <CombatImpactList combat={combat} />
       <GameIcon
-        className="arena-route-result-card__result-icon"
+        className="arena-route-day-result-card__result-icon"
         name={didPlayerWin ? 'victory' : 'defeat'}
         size={34}
       />
@@ -321,7 +338,7 @@ function CombatResultRow({ combat, onOpenCombat }: { combat: CombatState; onOpen
   );
 }
 
-function ArenaSummaryView({
+function DayResultsView({
   canGoPrevious,
   onCompleteArenaDay,
   onOpenCombat,
@@ -341,10 +358,10 @@ function ArenaSummaryView({
 
   return (
     <section
-      className="arena-route-panel arena-route-panel--summary"
-      data-testid="arena-route-summary"
+      className="arena-route-panel arena-route-panel--day-results"
+      data-testid="arena-route-day-results"
     >
-      <header className="arena-route-combat-header">
+      <header className="arena-route-step-header">
         <div>
           <h1>{t('arenaRoute.programTitle')}</h1>
         </div>
@@ -358,19 +375,19 @@ function ArenaSummaryView({
           <strong>{t('arenaRoute.summaryStep')}</strong>
         </nav>
       </header>
-      <section aria-label={t('arenaRoute.summaryTitle')} className="arena-route-summary-bar">
-        <div className="arena-route-summary-record">
-          <span className="arena-route-summary-stat arena-route-summary-stat--win">
+      <section aria-label={t('arenaRoute.summaryTitle')} className="arena-route-day-results-bar">
+        <div className="arena-route-day-results-record">
+          <span className="arena-route-day-results-stat arena-route-day-results-stat--win">
             <GameIcon name="victory" size={28} />
             <strong aria-label={t('arenaRoute.summaryWins')}>{viewModel.summary.wins}</strong>
           </span>
-          <span className="arena-route-summary-stat arena-route-summary-stat--loss">
+          <span className="arena-route-day-results-stat arena-route-day-results-stat--loss">
             <GameIcon name="defeat" size={28} />
             <strong aria-label={t('arenaRoute.summaryLosses')}>{viewModel.summary.losses}</strong>
           </span>
         </div>
         <ImpactList
-          className="arena-route-summary-gain-impacts"
+          className="arena-route-day-results-gain-impacts"
           impacts={[
             {
               amount: totalTreasuryReward,
@@ -387,8 +404,11 @@ function ArenaSummaryView({
           ]}
         />
       </section>
-      <section aria-label={t('arenaRoute.combatListTitle')} className="arena-route-result-section">
-        <CardScrollArea className="arena-route-result-list">
+      <section
+        aria-label={t('arenaRoute.combatListTitle')}
+        className="arena-route-day-results-section"
+      >
+        <CardScrollArea className="arena-route-day-results-list">
           {viewModel.resolvedCombats.map((combat, combatIndex) => (
             <CombatResultRow
               combat={combat}
@@ -400,7 +420,7 @@ function ArenaSummaryView({
       </section>
       <div className="arena-route-actions arena-route-actions--footer">
         <CTAButton
-          className="arena-route-combat-cta"
+          className="arena-route-primary-cta"
           data-testid="arena-route-return-ludus"
           onClick={onCompleteArenaDay}
         >
@@ -456,7 +476,7 @@ export function ArenaRoute({
     <section className="arena-route" style={arenaBackgroundStyle}>
       <main className="arena-route__stage">
         {activeCombatId ? (
-          <CombatScreen
+          <CombatReplayView
             combatId={activeCombatId}
             embedded
             save={save}
@@ -467,7 +487,7 @@ export function ArenaRoute({
             }}
           />
         ) : isSummary ? (
-          <ArenaSummaryView
+          <DayResultsView
             canGoPrevious={totalCombats > 0}
             save={save}
             onCompleteArenaDay={onCompleteArenaDay}
@@ -475,7 +495,7 @@ export function ArenaRoute({
             onPrevious={() => setCurrentStepIndex(Math.max(totalCombats - 1, 0))}
           />
         ) : currentCombat ? (
-          <ArenaCombatPage
+          <BoutPreviewView
             combat={currentCombat}
             currentIndex={visibleStepIndex}
             isPresented={presentedCombatIds.has(currentCombat.id)}

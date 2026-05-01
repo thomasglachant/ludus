@@ -1,9 +1,4 @@
 import {
-  getAvailableLudusGladiatorPlaces,
-  getLudusGladiatorCapacity,
-} from '../../domain/ludus/capacity';
-import { getEffectiveSkillValue } from '../../domain/gladiators/skills';
-import {
   calculateGladiatorSaleValue,
   validateMarketPurchase,
   type MarketActionValidation,
@@ -11,79 +6,24 @@ import {
 import type { GameSave, Gladiator, MarketGladiator } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
-import { EmptyState, MetricList, NoticeBox } from '../components/shared';
+import { CTAButton } from '../components/CTAButton';
+import { EmptyState } from '../components/shared';
 import { formatMoneyAmount } from '../formatters/money';
-import { formatNumber } from '../formatters/number';
+import { GladiatorSummary } from '../gladiators/GladiatorSummary';
 import { GameIcon } from '../icons/GameIcon';
-import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface MarketContentProps {
   save: GameSave;
-  onBuy(candidateId: string): void;
+  onBuy(candidate: MarketGladiator): void;
   onSell(gladiator: Gladiator): void;
 }
 
 function getMarketValidationMessageKey(validation: MarketActionValidation) {
-  return validation.reason ? `market.validation.${validation.reason}` : null;
-}
-
-function StatBlock({
-  gladiator,
-  showCondition = false,
-}: {
-  gladiator: Pick<Gladiator, 'strength' | 'agility' | 'defense' | 'health' | 'energy' | 'morale'>;
-  showCondition?: boolean;
-}) {
-  const { t } = useUiStore();
-
-  return (
-    <dl className="gladiator-stat-list">
-      <div>
-        <dt>{t('market.stats.strength')}</dt>
-        <dd>{formatNumber(getEffectiveSkillValue(gladiator.strength))}</dd>
-      </div>
-      <div>
-        <dt>{t('market.stats.agility')}</dt>
-        <dd>{formatNumber(getEffectiveSkillValue(gladiator.agility))}</dd>
-      </div>
-      <div>
-        <dt>{t('market.stats.defense')}</dt>
-        <dd>{formatNumber(getEffectiveSkillValue(gladiator.defense))}</dd>
-      </div>
-      {showCondition ? (
-        <>
-          <div>
-            <dt>{t('market.stats.health')}</dt>
-            <dd>{formatNumber(gladiator.health)}</dd>
-          </div>
-          <div>
-            <dt>{t('market.stats.energy')}</dt>
-            <dd>{formatNumber(gladiator.energy)}</dd>
-          </div>
-          <div>
-            <dt>{t('market.stats.morale')}</dt>
-            <dd>{formatNumber(gladiator.morale)}</dd>
-          </div>
-        </>
-      ) : null}
-    </dl>
-  );
-}
-
-function TraitList({ gladiator }: { gladiator: Pick<Gladiator, 'traits'> }) {
-  const { t } = useUiStore();
-
-  if (gladiator.traits.length === 0) {
+  if (validation.reason === 'noAvailableBed') {
     return null;
   }
 
-  return (
-    <ul className="trait-list" aria-label={t('market.traits')}>
-      {gladiator.traits.map((trait) => (
-        <li key={trait}>{t(`traits.${trait}`)}</li>
-      ))}
-    </ul>
-  );
+  return validation.reason ? `market.validation.${validation.reason}` : null;
 }
 
 function MarketCandidateCard({
@@ -92,39 +32,42 @@ function MarketCandidateCard({
   save,
 }: {
   candidate: MarketGladiator;
-  onBuy(candidateId: string): void;
+  onBuy(candidate: MarketGladiator): void;
   save: GameSave;
 }) {
   const { t } = useUiStore();
   const validation = validateMarketPurchase(save, candidate.id);
   const validationMessageKey = getMarketValidationMessageKey(validation);
+  const formattedPrice = formatMoneyAmount(candidate.price);
 
   return (
-    <article className="gladiator-card" data-testid={`market-candidate-${candidate.id}`}>
-      <div className="gladiator-card__header">
-        <GladiatorPortrait gladiator={candidate} size="small" />
-        <div>
-          <h3>{candidate.name}</h3>
-          <p>{t('market.age', { age: candidate.age })}</p>
-        </div>
-        <strong>{t('market.price', { price: formatMoneyAmount(candidate.price) })}</strong>
-      </div>
-      <StatBlock gladiator={candidate} />
-      <TraitList gladiator={candidate} />
-      {validationMessageKey ? (
-        <p className="gladiator-card__warning">{t(validationMessageKey)}</p>
-      ) : null}
-      <div className="gladiator-card__actions">
-        <ActionButton
+    <GladiatorSummary
+      className="gladiator-summary--market"
+      gladiator={candidate}
+      testId={`market-candidate-${candidate.id}`}
+      tone="light"
+      topRightContent={
+        <>
+          <GameIcon name="treasury" size={17} />
+          <strong>{formattedPrice}</strong>
+        </>
+      }
+      topRightLabel={t('market.price', { price: formattedPrice })}
+    >
+      <div className="market-gladiator-summary__footer">
+        <CTAButton
+          data-testid={`market-buy-${candidate.id}`}
           disabled={!validation.isAllowed}
-          icon={<GameIcon name="shoppingCart" size={18} />}
-          label={t('market.buyWithPrice', { price: formatMoneyAmount(candidate.price) })}
-          testId={`market-buy-${candidate.id}`}
-          variant="primary"
-          onClick={() => onBuy(candidate.id)}
-        />
+          onClick={() => onBuy(candidate)}
+        >
+          <GameIcon color="#fff9e7" name="shoppingCart" size={18} />
+          <span>{t('market.buy')}</span>
+        </CTAButton>
       </div>
-    </article>
+      {validationMessageKey ? (
+        <p className="market-gladiator-summary__warning">{t(validationMessageKey)}</p>
+      ) : null}
+    </GladiatorSummary>
   );
 }
 
@@ -136,62 +79,41 @@ function OwnedGladiatorCard({
   onSell(gladiator: Gladiator): void;
 }) {
   const { t } = useUiStore();
-  const saleValue = calculateGladiatorSaleValue(gladiator);
+  const formattedSaleValue = formatMoneyAmount(calculateGladiatorSaleValue(gladiator));
 
   return (
-    <article className="gladiator-card" data-testid={`market-owned-${gladiator.id}`}>
-      <div className="gladiator-card__header">
-        <GladiatorPortrait gladiator={gladiator} size="small" />
-        <div>
-          <h3>{gladiator.name}</h3>
-          <p>{t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}</p>
-        </div>
-        <strong>{t('market.saleValue', { price: formatMoneyAmount(saleValue) })}</strong>
-      </div>
-      <StatBlock gladiator={gladiator} showCondition />
-      <TraitList gladiator={gladiator} />
-      <div className="gladiator-card__actions">
+    <GladiatorSummary
+      className="gladiator-summary--market"
+      gladiator={gladiator}
+      testId={`market-owned-${gladiator.id}`}
+      tone="light"
+      topRightContent={
+        <>
+          <GameIcon name="treasury" size={17} />
+          <strong>{formattedSaleValue}</strong>
+        </>
+      }
+      topRightLabel={t('market.saleValue', { price: formattedSaleValue })}
+    >
+      <div className="market-gladiator-summary__footer">
         <ActionButton
           icon={<GameIcon name="userMinus" size={18} />}
           label={t('market.sell')}
+          testId={`market-sell-${gladiator.id}`}
           onClick={() => onSell(gladiator)}
         />
       </div>
-    </article>
+    </GladiatorSummary>
   );
 }
 
 export function MarketContent({ save, onBuy, onSell }: MarketContentProps) {
   const { t } = useUiStore();
-  const ludusCapacity = getLudusGladiatorCapacity(save);
-  const availablePlaces = getAvailableLudusGladiatorPlaces(save);
 
   return (
     <div className="market-content">
-      <section className="panel panel--summary" data-testid="market-capacity-summary">
-        <h2>{t('market.capacityTitle')}</h2>
-        <MetricList
-          items={[
-            {
-              labelKey: 'market.ownedBeds',
-              value: `${save.gladiators.length}/${ludusCapacity}`,
-            },
-            { labelKey: 'market.availableBeds', value: availablePlaces },
-            { labelKey: 'market.candidates', value: save.market.availableGladiators.length },
-          ]}
-        />
-        {availablePlaces <= 0 ? (
-          <NoticeBox tone="warning" testId="market-capacity-full-notice">
-            <GameIcon name="capacity" size={18} />
-            <span>{t('market.noBedWarning')}</span>
-          </NoticeBox>
-        ) : null}
-      </section>
-      <section className="panel" data-testid="market-candidates-section">
+      <section className="market-candidates" data-testid="market-candidates-section">
         <h2>{t('market.availableGladiators')}</h2>
-        {availablePlaces <= 0 ? (
-          <EmptyState messageKey="market.capacityFullState" testId="market-capacity-full-state" />
-        ) : null}
         {save.market.availableGladiators.length > 0 ? (
           <div className="gladiator-grid">
             {save.market.availableGladiators.map((candidate) => (
@@ -207,7 +129,7 @@ export function MarketContent({ save, onBuy, onSell }: MarketContentProps) {
           <EmptyState messageKey="market.noCandidates" testId="market-empty-candidates" />
         )}
       </section>
-      <section className="panel" data-testid="market-owned-section">
+      <section className="market-candidates" data-testid="market-owned-section">
         <h2>{t('market.ownedGladiators')}</h2>
         {save.gladiators.length > 0 ? (
           <div className="gladiator-grid">

@@ -2,7 +2,7 @@ import { useUiStore } from '../../state/ui-store-context';
 import { formatNumber } from '../formatters/number';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import { Tooltip } from '../components/Tooltip';
-import type { CombatantViewModel } from './combat-screen-view-model';
+import type { CombatantViewModel } from './combat-replay-view-model';
 
 interface CombatantPanelProps {
   combatant: CombatantViewModel;

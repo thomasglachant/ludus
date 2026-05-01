@@ -8,6 +8,7 @@ interface PercentageStatBarProps {
   iconName: GameIconName;
   label: string;
   max?: number;
+  variant?: 'dark' | 'light';
   tone?: 'energy' | 'health' | 'morale';
   value: number;
 }
@@ -25,6 +26,7 @@ export function PercentageStatBar({
   iconName,
   label,
   max = 100,
+  variant = 'dark',
   tone = 'energy',
   value,
 }: PercentageStatBarProps) {
@@ -40,7 +42,12 @@ export function PercentageStatBar({
   return (
     <div
       aria-label={title}
-      className={['percentage-stat-bar', `percentage-stat-bar--${tone}`, className ?? '']
+      className={[
+        'percentage-stat-bar',
+        `percentage-stat-bar--${tone}`,
+        `percentage-stat-bar--${variant}`,
+        className ?? '',
+      ]
         .filter(Boolean)
         .join(' ')}
       style={style}

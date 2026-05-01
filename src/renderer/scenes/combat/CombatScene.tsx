@@ -1,5 +1,5 @@
 import { AnimatedSprite, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
-import type { CombatScreenViewModel } from '../../../ui/combat/combat-screen-view-model';
+import type { CombatReplayViewModel } from '../../../ui/combat/combat-replay-view-model';
 import type {
   PixiAssetLoader,
   PixiSpritesheetMap,
@@ -386,7 +386,7 @@ function drawDust(graphics: Graphics, side: 'left' | 'right', progress: number):
   }
 }
 
-export class CombatScene implements PixiScene<CombatScreenViewModel> {
+export class CombatScene implements PixiScene<CombatReplayViewModel> {
   readonly root = new Container();
 
   private readonly app: PixiSceneContext['app'];
@@ -472,7 +472,7 @@ export class CombatScene implements PixiScene<CombatScreenViewModel> {
     this.updateDebugOverlay();
   }
 
-  update(viewModel: CombatScreenViewModel): void {
+  update(viewModel: CombatReplayViewModel): void {
     const sceneViewModel = createCombatSceneViewModel(viewModel, {
       dodgeLabel: this.dodgeLabel,
       reducedMotion: this.reducedMotion,

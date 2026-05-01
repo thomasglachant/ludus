@@ -1,7 +1,7 @@
 import type { CombatState, GameSave } from '../../domain/types';
 import { formatSignedNumber } from '../formatters/number';
 
-export interface ArenaSummaryViewModel {
+export interface DayResultsSummaryViewModel {
   totalReward: number;
   reputationChange: number;
   healthChange: number;
@@ -17,7 +17,7 @@ export interface ArenaDayViewModel {
   isArenaDayActive: boolean;
   resolvedCombats: CombatState[];
   statusKey: string;
-  summary: ArenaSummaryViewModel;
+  summary: DayResultsSummaryViewModel;
 }
 
 export function formatSignedValue(value: number) {
@@ -39,8 +39,8 @@ export function getCombatTitleParams(combat: CombatState) {
   };
 }
 
-function summarizeCombats(combats: CombatState[]): ArenaSummaryViewModel {
-  return combats.reduce<ArenaSummaryViewModel>(
+function summarizeCombats(combats: CombatState[]): DayResultsSummaryViewModel {
+  return combats.reduce<DayResultsSummaryViewModel>(
     (summary, combat) => ({
       totalReward: summary.totalReward + combat.consequence.playerReward,
       reputationChange: summary.reputationChange + combat.consequence.reputationChange,

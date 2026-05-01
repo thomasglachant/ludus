@@ -30,7 +30,7 @@ export interface CombatConsequenceViewModel {
   winnerName: string;
 }
 
-export interface CombatScreenViewModel {
+export interface CombatReplayViewModel {
   combat: CombatState;
   combatBackgroundPath: string;
   combatCrowdPath: string;
@@ -111,14 +111,14 @@ function createCombatantViewModel(
   };
 }
 
-export function getCombatScreenCombat(save: GameSave, combatId?: string) {
+export function getCombatReplayCombat(save: GameSave, combatId?: string) {
   return findCombat(save, combatId);
 }
 
-export function getCombatScreenViewModel(
+export function getCombatReplayViewModel(
   combat: CombatState,
   visibleTurnCount: number,
-): CombatScreenViewModel {
+): CombatReplayViewModel {
   const boundedVisibleTurnCount = Math.min(Math.max(0, visibleTurnCount), combat.turns.length);
   const visibleTurns = combat.turns.slice(0, boundedVisibleTurnCount);
   const isComplete = boundedVisibleTurnCount >= combat.turns.length;

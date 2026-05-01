@@ -5,14 +5,14 @@ import {
 } from '../../domain/combat/combat-actions';
 import type { CombatState, GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
-import { FighterSheet } from '../arena/FighterSheet';
+import { GladiatorSummary } from '../gladiators/GladiatorSummary';
 import { CardBlured } from '../components/CardBlured';
 import { CTAButton } from '../components/CTAButton';
 import { ImpactList } from '../components/ImpactList';
 import { GameIcon } from '../icons/GameIcon';
 import { CombatLog } from './CombatLog';
 import { CombatPlaybackBar } from './CombatPlaybackBar';
-import { getCombatScreenCombat, getCombatScreenViewModel } from './combat-screen-view-model';
+import { getCombatReplayCombat, getCombatReplayViewModel } from './combat-replay-view-model';
 
 const PixiCombatArenaStage = lazy(() =>
   import('./PixiCombatArenaStage').then((module) => ({
@@ -20,7 +20,7 @@ const PixiCombatArenaStage = lazy(() =>
   })),
 );
 
-interface CombatScreenProps {
+interface CombatReplayViewProps {
   combatId?: string;
   embedded?: boolean;
   save: GameSave;
@@ -46,9 +46,14 @@ function getCombatOdds(combat: CombatState) {
   };
 }
 
-export function CombatScreen({ combatId, embedded = false, onClose, save }: CombatScreenProps) {
+export function CombatReplayView({
+  combatId,
+  embedded = false,
+  onClose,
+  save,
+}: CombatReplayViewProps) {
   const { t } = useUiStore();
-  const combat = useMemo(() => getCombatScreenCombat(save, combatId), [combatId, save]);
+  const combat = useMemo(() => getCombatReplayCombat(save, combatId), [combatId, save]);
   const [playbackState, setPlaybackState] = useState<{
     combatId?: string;
     isPlaying: boolean;
@@ -106,7 +111,7 @@ export function CombatScreen({ combatId, embedded = false, onClose, save }: Comb
 
   if (!combat) {
     return (
-      <section className="combat-screen combat-screen--empty" data-testid="combat-screen">
+      <section className="combat-replay combat-replay--empty" data-testid="combat-replay">
         <button type="button" onClick={onClose}>
           <GameIcon color="currentColor" name="back" size={18} />
           <span>{t('common.back')}</span>
@@ -116,7 +121,7 @@ export function CombatScreen({ combatId, embedded = false, onClose, save }: Comb
     );
   }
 
-  const viewModel = getCombatScreenViewModel(combat, visibleTurnCount);
+  const viewModel = getCombatReplayViewModel(combat, visibleTurnCount);
   const odds = getCombatOdds(combat);
   const handleTogglePlayback = () => {
     setPlaybackState({
@@ -128,15 +133,15 @@ export function CombatScreen({ combatId, embedded = false, onClose, save }: Comb
   return (
     <section
       aria-label={t('combatScreen.title')}
-      className={['combat-screen', embedded ? 'combat-screen--embedded' : '']
+      className={['combat-replay', embedded ? 'combat-replay--embedded' : '']
         .filter(Boolean)
         .join(' ')}
-      data-testid="combat-screen"
+      data-testid="combat-replay"
     >
-      <div className="combat-screen__body">
-        <div className="combat-screen__fighter-sheets">
-          <div className="combat-screen__fighter-sheet combat-screen__fighter-sheet--player">
-            <FighterSheet
+      <div className="combat-replay__body">
+        <div className="combat-replay__fighter-sheets">
+          <div className="combat-replay__fighter-sheet combat-replay__fighter-sheet--player">
+            <GladiatorSummary
               gladiator={combat.gladiator}
               odds={odds.player}
               side="player"
@@ -147,8 +152,8 @@ export function CombatScreen({ combatId, embedded = false, onClose, save }: Comb
               }}
             />
           </div>
-          <div className="combat-screen__fighter-sheet combat-screen__fighter-sheet--opponent">
-            <FighterSheet
+          <div className="combat-replay__fighter-sheet combat-replay__fighter-sheet--opponent">
+            <GladiatorSummary
               gladiator={combat.opponent}
               odds={odds.opponent}
               side="opponent"
@@ -162,27 +167,27 @@ export function CombatScreen({ combatId, embedded = false, onClose, save }: Comb
         </div>
         <Suspense
           fallback={
-            <p className="combat-screen__stage-loading empty-state">{t('common.loading')}</p>
+            <p className="combat-replay__stage-loading empty-state">{t('common.loading')}</p>
           }
         >
           <PixiCombatArenaStage viewModel={viewModel} />
         </Suspense>
         {viewModel.isComplete ? (
-          <CardBlured as="section" className="combat-screen__result-overlay">
-            <div className="combat-screen__result-title">
+          <CardBlured as="section" className="combat-replay__result-overlay">
+            <div className="combat-replay__result-title">
               <GameIcon
                 name={viewModel.consequence.didPlayerWin ? 'victory' : 'defeat'}
                 size={58}
               />
               <strong>{t(viewModel.consequence.resultKey)}</strong>
             </div>
-            <p className="combat-screen__winner-line">
+            <p className="combat-replay__winner-line">
               {t('combatScreen.winnerLine', {
                 winner: viewModel.consequence.winnerName,
               })}
             </p>
             <ImpactList
-              className="combat-screen__result-impacts"
+              className="combat-replay__result-impacts"
               impacts={[
                 {
                   amount: viewModel.consequence.playerReward,

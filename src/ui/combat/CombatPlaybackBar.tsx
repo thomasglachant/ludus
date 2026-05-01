@@ -1,11 +1,11 @@
 import { useUiStore } from '../../state/ui-store-context';
 import { CardBlured } from '../components/CardBlured';
 import { GameIcon } from '../icons/GameIcon';
-import type { CombatScreenViewModel } from './combat-screen-view-model';
+import type { CombatReplayViewModel } from './combat-replay-view-model';
 
 interface CombatPlaybackBarProps {
   isPlaying: boolean;
-  viewModel: CombatScreenViewModel;
+  viewModel: CombatReplayViewModel;
   onEnd(): void;
   onNext(): void;
   onPrevious(): void;

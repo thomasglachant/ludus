@@ -1,6 +1,9 @@
-import type { Gladiator } from '../../domain/types';
+import { getAvailableLudusGladiatorPlaces } from '../../domain/ludus/capacity';
+import type { Gladiator, MarketGladiator } from '../../domain/types';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
+import { UserAlert } from '../components/UserAlert';
+import { formatMoneyAmount } from '../formatters/money';
 import { MarketContent } from '../market/MarketContent';
 import { AppModal } from './AppModal';
 
@@ -17,7 +20,21 @@ export function MarketModal({ onBack, onClose }: MarketModalProps) {
     return null;
   }
 
-  const handleSell = (gladiator: Gladiator) => {
+  const requestBuy = (candidate: MarketGladiator) => {
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: 'market.buy',
+      messageKey: 'market.buyConfirmation',
+      messageParams: {
+        name: candidate.name,
+        price: formatMoneyAmount(candidate.price),
+      },
+      onConfirm: () => buyMarketGladiator(candidate.id),
+      testId: 'market-buy-confirm-dialog',
+      titleKey: 'market.buyConfirmationTitle',
+    });
+  };
+  const requestSell = (gladiator: Gladiator) => {
     openConfirmModal({
       kind: 'confirm',
       confirmLabelKey: 'market.sell',
@@ -28,6 +45,7 @@ export function MarketModal({ onBack, onClose }: MarketModalProps) {
       titleKey: 'market.sellConfirmationTitle',
     });
   };
+  const isLudusFull = getAvailableLudusGladiatorPlaces(currentSave) <= 0;
 
   return (
     <AppModal
@@ -37,8 +55,17 @@ export function MarketModal({ onBack, onClose }: MarketModalProps) {
       onBack={onBack}
       onClose={onClose}
     >
+      {isLudusFull ? (
+        <UserAlert
+          className="market-modal__alert"
+          iconName="capacity"
+          level="error"
+          messageKey="market.capacityFullState"
+          testId="market-capacity-full-notice"
+        />
+      ) : null}
       <p className="market-modal__subtitle">{t('market.subtitle')}</p>
-      <MarketContent save={currentSave} onBuy={buyMarketGladiator} onSell={handleSell} />
+      <MarketContent save={currentSave} onBuy={requestBuy} onSell={requestSell} />
     </AppModal>
   );
 }

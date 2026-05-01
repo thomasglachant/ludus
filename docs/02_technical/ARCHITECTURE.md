@@ -119,10 +119,13 @@ Current stylesheet groups:
 - `hud.css`: top HUD and day-cycle gauge;
 - `map.css`: Pixi scene viewport and Ludus map container chrome;
 - `roster.css`: bottom roster and gladiator portrait styles;
+- `gladiator-summary.css`: reusable gladiator summary cards shared by market, arena and detail views;
 - `panels.css`: feature panel content, shared panel sections, planning, events, arena panel lists and gladiator details;
 - `modals.css`: modal shell, modal body/footer/header, game menu and building action modal content;
 - `feedback.css`: toast and alert layer;
-- `combat.css`: full-screen combat presentation UI around the Pixi combat stage.
+- `arena.css`: dedicated Sunday arena route and arena-day result presentation;
+- `combat.css`: full-screen combat presentation UI around the Pixi combat stage;
+- `debug.css`: debug-only dashboard and diagnostic surfaces.
 
 Styles should be added to the narrowest existing stylesheet that matches the
 feature area. Do not grow `index.css` with rules directly.
