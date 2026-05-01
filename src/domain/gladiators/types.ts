@@ -1,26 +1,15 @@
-import type { BuildingId } from '../buildings/types';
-import type { GridCoord } from '../map/types';
+export const GLADIATOR_CLASS_IDS = ['murmillo', 'retiarius', 'secutor'] as const;
 
-export type GladiatorLocationId = BuildingId | 'arena';
+export type GladiatorClassId = (typeof GLADIATOR_CLASS_IDS)[number];
 
-export interface GladiatorMapMovementTileScheduleEntry {
-  coord: GridCoord;
-  arrivalStamp: number;
-  departureStamp: number;
-}
-
-export interface GladiatorMapMovement {
-  currentLocation: GladiatorLocationId;
-  targetLocation: GladiatorLocationId;
-  activity: string;
-  route?: GridCoord[];
-  tileSchedule?: GladiatorMapMovementTileScheduleEntry[];
-  movementStartedAt: number;
-  movementDuration: number;
-  minutesPerTile?: number;
+export interface GladiatorSkillProfile {
+  strength: number;
+  agility: number;
+  defense: number;
 }
 
 export interface GladiatorVisualIdentity {
+  classId?: GladiatorClassId;
   portraitAssetId: string;
   spriteAssetId: string;
   paletteId?: string;
@@ -50,13 +39,15 @@ export interface Gladiator {
   wins: number;
   losses: number;
   traits: GladiatorTrait[];
-  currentLocationId?: GladiatorLocationId;
-  currentBuildingId?: BuildingId;
-  currentActivityId?: string;
-  currentTaskStartedAt?: number;
-  mapMovement?: GladiatorMapMovement;
   trainingPlan?: GladiatorTrainingPlan;
+  weeklyInjury?: GladiatorWeeklyInjury;
   visualIdentity?: GladiatorVisualIdentity;
+}
+
+export interface GladiatorWeeklyInjury {
+  reason: 'training' | 'combat' | 'event';
+  week: number;
+  year: number;
 }
 
 export type GladiatorTrait =

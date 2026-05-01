@@ -2,227 +2,178 @@
 
 ## Core Fantasy
 
-The player is the lanista of a Roman gladiator school. They manage ambition, risk, reputation, money and human bodies under pressure.
+The player is the lanista of a Roman gladiator school. The ludus is managed as a house, business and small productive estate: gladiators remain important, but most decisions are now made at ludus scale.
 
-The game creates tension during the week before resolving consequences in Sunday arena combats.
+The weekly rhythm is:
+
+1. Plan the week through shared daily allocations.
+2. Resolve daily consequences for training, needs, money, staff, security and risks.
+3. Handle blocking events when they appear.
+4. Resolve Sunday arena combat as the weekly climax.
+5. Review reports and start the next week.
 
 ## Main Design Pillar
 
-The player manages priorities, risks and exceptions, not repetitive micro-actions.
+The player manages priorities, risk and money, not minute-by-minute movement.
 
-Manual assignment is allowed, but the game must remain playable with 8, 12 or more gladiators through weekly objectives, recommendations and automation.
+The game should support larger rosters and more buildings by avoiding continuous individual micromanagement. Gladiators follow the shared ludus plan unless an exception prevents them from participating.
 
-## Weekly Gameplay Philosophy
+## Macro Planning
 
-The player should not manually move every gladiator every few in-game hours.
+The planning model is day-based. Each day contains three point pools:
 
-The week is played through:
+- `gladiatorTimePoints`: time spent by gladiators;
+- `laborPoints`: productive and maintenance labor;
+- `adminPoints`: contracts, events and administrative effort.
 
-- weekly objectives;
-- automatic recommendations;
-- alerts;
-- building policies;
-- events;
-- market decisions;
-- arena preparation;
-- risk/reward decisions.
+Daily activities are:
 
-The player defines priorities and handles exceptions. The game handles routine assignments where possible.
+- `training`;
+- `meals`;
+- `sleep`;
+- `leisure`;
+- `care`;
+- `contracts`;
+- `production`;
+- `security`;
+- `maintenance`;
+- `events`.
 
-Weekly planning, building policies and alerts open as focused feature flows instead of permanently occupying the main game screen.
+The default planning baseline is 12 gladiator time points per day. Food and sleep have minimum and ideal values. Under-allocation creates capped penalties. Overtraining increases fatigue, injury risk and unhappiness. Gladiators below the physical activity health threshold are unavailable for training and gladiator contract participation until their health recovers. Training injuries also create a weekly injury state that blocks physical activity until the next week begins.
 
-## Time Flow
+Point buckets are budgeted and clamped by the domain: 12 gladiator time points, 8 labor points and 6 administration points per day. The planning UI previews daily and weekly projected deltas before the week is resolved.
 
-Time runs continuously at the normal pace unless the player pauses. The HUD does not expose manual speed multipliers or a next-day skip.
+## Daily Resolution
 
-When every gladiator is sleeping in the dormitory during the night window, the game automatically fast-forwards to the next morning target before daytime routines resume.
+`resolveDailyPlan` is the daily macro resolver.
 
-## Removed Mechanic: Building Budgets
+Each day resolves:
 
-The previous 1-to-10 building budget mechanic is removed.
+- vital needs and gauge changes;
+- training progress;
+- injury checks;
+- contract and production income;
+- staff wages and maintenance costs;
+- staff experience growth;
+- building efficiency updates;
+- happiness, security and rebellion movement;
+- ledger entries and current week summary;
+- game over if treasury reaches the defeat threshold.
 
-Buildings no longer have budget sliders. This keeps the player's attention on explicit decisions that create drama:
+Injured gladiators lose their personal gains for incompatible activities through the daily result and become a week-level planning risk.
 
-- purchase;
-- upgrades;
-- improvement modules;
-- weekly policies;
-- special actions;
-- named choices;
-- capacity constraints;
-- building-specific effects.
+## Economy
 
-Building rules and formulas stay in `src/domain` and `src/game-data`. React components render choices and call domain or store actions.
+Treasury is the central pressure. Arena participation no longer pays a reward. A Sunday combat only pays treasury when the gladiator wins.
 
-## Building Strategic Choices
+The economy now includes:
 
-Buildings are managed through level upgrades, purchasable improvements, weekly policies, strategic actions and building-specific mechanics.
+- ledger entries;
+- current week ledger summary;
+- weekly projections;
+- active loans;
+- daily income and expense categories;
+- weekly loan repayment;
+- loan buyout.
 
-Level upgrades define the building baseline. Improvements are explicit purchases that permanently expand what a building contributes. Policies are explicit weekly stance choices that shape how a building is used by assigned gladiators or the whole ludus.
+The ledger records daily income and expenses, building activity income, arena rewards, event treasury choices, staff purchase and sale, gladiator market purchase and sale, building purchase and upgrade, improvements, policies and skill purchases. The finance projection is calculated from the weekly plan and active loan repayments, not from one-shot ledger lines already recorded.
 
-Paid policies spend treasury when selected. They do not create a hidden recurring budget slider. If the same policy is already selected, selecting it again has no effect and should not charge the player again.
+Loans:
 
-Examples:
+- `smallLoan`: available from Domus level 1;
+- `businessLoan`: available from Domus level 2;
+- `patronLoan`: available from Domus level 4.
 
-- Canteen: currently neutral until its food loop is redesigned.
-- Training Ground: balanced training, strength doctrine, agility doctrine, defense doctrine, brutal discipline.
-- Pleasure Hall: quiet evening, games and songs, grand entertainment.
-- Infirmary: basic care, preventive care, intensive treatment.
+If treasury reaches `-1000`, the save enters `gameOver`.
 
-## Weekly Gameplay Loop
+## Staff
 
-### Monday: Planning and Consequences
+Staff is stored in `StaffState`.
 
-The player reviews the previous Sunday results, sees injuries and reputation changes, checks the renewed gladiator market and assigns weekly objectives.
+Types:
 
-Main actions:
+- `slave`: can work in any building;
+- `guard`: can only work in `guardBarracks`;
+- `trainer`: can only work in `trainingGround`.
 
-- review arena results;
-- inspect injured gladiators;
-- buy or sell gladiators;
-- define weekly objectives;
-- buy upgrades if needed.
+Assigned staff increases building efficiency until the building's required staff count is covered. Extra staff beyond that requirement cannot inflate the base efficiency. Building experience grows slowly each assigned day and can provide up to a 20% efficiency bonus.
 
-### Tuesday and Wednesday: Development
+Assignments are mirrored in `StaffState.assignments` and `BuildingState.staffAssignmentIds`. Building efficiency uses the building definition's `requiredStaffByLevel`, then adds the capped staff experience bonus.
 
-The ludus operates according to routines. The player reacts to alerts, manages upgrades and handles events.
+Staff can be unassigned from a building. Staff purchase and sale actions are recorded in the financial ledger.
 
-Main actions:
+The number of owned staff members is capped by Domus level. The current rule grants 3 staff places per Domus level, from 3 at level 1 to 18 at level 6.
 
-- adjust routines;
-- solve events;
-- perform special actions;
-- develop young gladiators;
-- keep gauges under control.
+The staff market refreshes weekly alongside the gladiator market.
 
-### Thursday: Midweek Adjustments
+Security is driven primarily by guards. The target balance is roughly one guard per two gladiators.
 
-The player reviews the state of the ludus and corrects problems before the weekend.
+## Buildings
 
-Main actions:
+Buildings no longer have capacity. Capacity is not used as the way to limit building usage. Instead, each building has:
 
-- adjust weekly objectives;
-- respond to alerts;
-- preserve tired or injured gladiators;
-- decide how much risk the roster can take before Sunday.
+- purchase state;
+- level;
+- efficiency;
+- purchased skill ids;
+- assigned staff ids;
+- optional configuration and selected policy.
 
-### Friday and Saturday: Risk or Prudence
+Building levels unlock stronger global effects and future feature branches. Skill trees contain four tiers of five skills per building. Tier 2 requires three tier 1 skills, tier 3 requires building level 3, and tier 4 requires building level 5 plus the key tier 3 branch.
 
-The player chooses whether to push training, restore gauges or preserve important gladiators before Sunday.
+Building skills can unlock building-specific macro activities. These activities are specialized planning options that spend the existing daily point pools rather than adding a separate building budget. They must be selected in the daily plan for their matching generic activity before they affect simulation, which prevents every unlocked option from stacking automatically.
 
-Main actions:
+Daily simulation applies purchased building, improvement, policy and skill effects directly to macro outcomes. These effects are scaled by operational efficiency, so staffing shortages reduce income, production, security, happiness and other building-driven benefits. Some random events are gated by selected building activities, so a specialized event can only appear when the player actually routed points into that activity.
 
-- intensive training;
-- medical treatment;
-- morale support;
-- final rest;
-- review alerts.
+Current building ids:
 
-### Sunday: Arena
+- `domus`;
+- `trainingGround`;
+- `canteen`;
+- `dormitory`;
+- `infirmary`;
+- `guardBarracks`;
+- `farm`;
+- `pleasureHall`;
+- `exhibitionGrounds`;
+- `armory`;
+- `bookmakerOffice`;
+- `banquetHall`;
+- `forgeWorkshop`.
 
-Sunday becomes a special arena day at 06:00. The game enters a blocking arena mode and pauses simulation time until the player completes the arena flow.
+Domus level controls progressive access. The first save includes the core starting buildings and map slots for later construction.
 
-Gladiators fight. Combats are turn-based and shown through a combat log. Results affect money, reputation, morale, health, energy and future opportunities.
+## Sunday Arena
 
-Sunday is the weekly climax and should be readable as a focused arena flow:
+Sunday combat is preserved as a focused combat flow.
 
-- routine management is locked once Sunday arena resolution starts at 06:00;
-- the player first sees an arena-day introduction explaining the schedule;
-- eligible owned gladiators are placed into a combat queue for the current week;
-- each eligible gladiator receives a random same-league opponent only when the Sunday arena flow starts;
-- each combat has a visible opponent, rank and victory or defeat state;
-- the player advances through the dedicated arena route combat by combat;
-- the combat presentation reveals the existing combat log turn by turn;
-- the player returns to the arena hub between combats;
-- rewards and consequences are applied once per combat and cannot be doubled by repeated Sunday ticks;
-- arena rewards are split into a fixed participation bonus by league rank and a victory bonus weighted by the gladiator's decimal odds;
-- the victory bonus also includes a public stake modifier that can move the payout by -20 to +20 treasury when the combat is generated;
-- once all combats have been presented, the player reviews a final summary showing win/loss record, arena gains, total gains and reputation changes;
-- accepting the summary ends the arena flow and advances automatically to Sunday 20:00.
+The weekly simulation reaches Sunday through `resolveWeekStep`, then `resolveSundayArena` delegates to the existing combat domain.
 
-If no gladiator is eligible, the arena still opens at 06:00, shows a clear empty state and lets the player acknowledge the summary before advancing to Sunday 20:00.
+Arena reward rule:
 
-Daily events also use blocking event mode. When a daily event appears during the week, the game opens the event modal and pauses simulation time until the player chooses a resolution. Daily events do not appear on Sunday.
+- win: the gladiator earns the victory reward;
+- loss: no treasury reward;
+- reputation and combat consequences still apply.
 
-## Weekly Objectives
-
-Each gladiator has one weekly objective.
-
-Current objectives:
-
-- `balanced`: keep the gladiator in acceptable condition while slowly improving skills.
-- `trainStrength`: push strength through training-ground activity.
-- `trainAgility`: push agility through training-ground activity.
-- `trainDefense`: push defense through training-ground activity.
-- `recovery`: prioritize health and energy for injured or exhausted gladiators.
-- `moraleBoost`: recover morale after defeats, harsh training or negative events.
-- `protectChampion`: keep an important gladiator safe and fresh.
-- `prepareForSale`: improve visible value through morale, health and reputation stability before selling.
-
-## Training Intensity
-
-Each routine can have an intensity:
-
-- `light`: safe, slow progress;
-- `normal`: default;
-- `hard`: faster progress, more fatigue;
-- `brutal`: high progress, high fatigue, morale loss and injury risk.
-
-Intensity controls risk and reward.
-
-## Automatic Assignment
-
-Automatic assignment uses a simple priority system:
-
-1. If health is critically low, go to the infirmary.
-2. If energy is critically low, go to the dormitory.
-3. If morale is critically low, go to the pleasure hall.
-4. Otherwise, follow the weekly objective.
-
-Manual override must remain possible.
-
-## Alerts
-
-The game surfaces problems automatically.
-
-Examples:
-
-- health is too low;
-- energy is too low;
-- morale collapse risk;
-- no roster place available for a new gladiator;
-- a champion is overtraining;
-- a gladiator is ready for a more difficult rank.
-
-Alert severities:
-
-- `info`;
-- `warning`;
-- `critical`.
+Combat rewards remain odds-based for winners and include the public stake modifier.
 
 ## Events
 
-Events make the week feel alive.
+Events should be eligible only when their source activity or global condition is present.
 
-Recommended frequency: at most one event per day.
+Activity-gated examples:
 
-Event examples:
+- training accidents, noble humiliation, new technique;
+- fever, recovery, medicus demand;
+- bodyguard offer, army request, contract dispute;
+- grain blight, surplus harvest, weapon defect;
+- escape attempt, guard corruption, riot spark;
+- refinancing offer, tax inspection, bookmaker scandal.
 
-- a gladiator refuses training;
-- a patrician visits the ludus;
-- a medicus offers expensive treatment;
-- a rival lanista spreads rumors;
-- two gladiators develop a rivalry;
-- a young gladiator shows promise;
-- a merchant offers a dubious training tonic.
+Global events may still trigger from debt, security, reputation, rivalry or rebellion state.
 
-Each event presents a choice with clear consequences.
+When rebellion reaches a critical level, a priority rebellion crisis can appear regardless of the weekly activity mix. It offers three resolution paths: pay for calm, repress the riot, or free all gladiators and rebuild the roster.
 
-## Fun Target
+## Loss State
 
-The week should repeatedly ask interesting questions:
-
-- Should I protect my champion or push him harder?
-- Should I spend money on treatment?
-- Should I train young gladiators even if they lose Sunday?
-- Should I sell a gladiator now or after one more victory?
+The game can now be lost. If treasury reaches `-1000`, the ludus status becomes `lost` and time phase becomes `gameOver`.

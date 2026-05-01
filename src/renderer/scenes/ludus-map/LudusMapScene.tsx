@@ -1,5 +1,4 @@
 import {
-  AnimatedSprite,
   Container,
   Graphics,
   Rectangle,
@@ -9,11 +8,7 @@ import {
   type FederatedPointerEvent,
 } from 'pixi.js';
 import { CameraController } from '../../pixi/CameraController';
-import type {
-  PixiAssetLoader,
-  PixiSpritesheetMap,
-  PixiTextureMap,
-} from '../../pixi/PixiAssetLoader';
+import type { PixiAssetLoader, PixiTextureMap } from '../../pixi/PixiAssetLoader';
 import {
   PixiVisualDebugOverlay,
   type PixiVisualDebugMetric,
@@ -25,7 +20,6 @@ import { createRenderLayerSetup } from '../../pixi/render-layers';
 import { AmbientAnimationSystem } from './AmbientAnimationSystem';
 import type {
   LudusMapSceneDecorationViewModel,
-  LudusMapSceneGladiatorViewModel,
   LudusMapSceneLocationViewModel,
   LudusMapSceneThemeViewModel,
   LudusMapSceneTileViewModel,
@@ -42,7 +36,6 @@ type LudusMapLayerId =
   | 'selection-highlight'
   | 'static-props'
   | 'buildings-back'
-  | 'characters-y-sorted'
   | 'buildings-front'
   | 'ambient-effects'
   | 'lighting-overlay'
@@ -60,18 +53,9 @@ interface DecorationDisplay {
   sprite: Sprite;
 }
 
-interface GladiatorDisplay {
-  animationSignature?: string;
-  container: Container;
-  fallback: Graphics;
-  gladiator: LudusMapSceneGladiatorViewModel;
-  sprite: AnimatedSprite;
-}
-
-type ScheduledRoutePoint = LudusMapSceneGladiatorViewModel['routeSchedule'][number];
-
 interface LabelDisplay {
   container: Container;
+  detail: Text;
   plaque: Graphics;
   title: Text;
   subtitle: Text;
@@ -100,7 +84,6 @@ const LUDUS_MAP_LAYER_IDS = [
   'selection-highlight',
   'static-props',
   'buildings-back',
-  'characters-y-sorted',
   'buildings-front',
   'ambient-effects',
   'lighting-overlay',
@@ -182,67 +165,6 @@ function areThemesEqual(
   );
 }
 
-function getPointAlongRoute(
-  routePoints: { x: number; y: number }[],
-  from: { x: number; y: number },
-  to: { x: number; y: number },
-  progress: number,
-): { x: number; y: number } {
-  const points = routePoints.length >= 2 ? routePoints : [from, to];
-  const segmentCount = Math.max(points.length - 1, 1);
-  const scaledProgress = clamp(progress, 0, 1) * segmentCount;
-  const segmentIndex = Math.min(Math.floor(scaledProgress), segmentCount - 1);
-  const segmentProgress = scaledProgress - segmentIndex;
-  const segmentStart = points[segmentIndex] ?? from;
-  const segmentEnd = points[segmentIndex + 1] ?? to;
-
-  return {
-    x: interpolate(segmentStart.x, segmentEnd.x, segmentProgress),
-    y: interpolate(segmentStart.y, segmentEnd.y, segmentProgress),
-  };
-}
-
-function getPointAlongScheduledRoute(
-  routeSchedule: ScheduledRoutePoint[],
-  queuedFrom: { x: number; y: number },
-  visualGameMinute: number,
-): { x: number; y: number } | undefined {
-  if (routeSchedule.length === 0) {
-    return undefined;
-  }
-
-  const firstPoint = routeSchedule[0];
-
-  if (visualGameMinute < firstPoint.arrivalStamp) {
-    return queuedFrom;
-  }
-
-  for (let index = 0; index < routeSchedule.length - 1; index += 1) {
-    const currentPoint = routeSchedule[index];
-    const nextPoint = routeSchedule[index + 1];
-
-    if (visualGameMinute < currentPoint.departureStamp) {
-      return currentPoint;
-    }
-
-    if (visualGameMinute < nextPoint.arrivalStamp) {
-      const progress = clamp(
-        (visualGameMinute - currentPoint.departureStamp) /
-          Math.max(nextPoint.arrivalStamp - currentPoint.departureStamp, 1),
-        0,
-        1,
-      );
-
-      return {
-        x: interpolate(currentPoint.x, nextPoint.x, progress),
-        y: interpolate(currentPoint.y, nextPoint.y, progress),
-      };
-    }
-  }
-
-  return routeSchedule[routeSchedule.length - 1];
-}
-
 function isAssetPath(assetPath: string | undefined): assetPath is string {
   return Boolean(assetPath);
 }
@@ -261,22 +183,9 @@ function collectLudusMapTextureAssetPaths(viewModel: LudusMapSceneViewModel): st
       ...viewModel.decorations.flatMap((decoration) =>
         decoration.assetPath ? [decoration.assetPath] : [],
       ),
-      ...viewModel.gladiators.flatMap((gladiator) =>
-        gladiator.spritesheetAtlasPath ? [] : gladiator.fallbackFramePaths,
-      ),
       ...viewModel.ambientElements.map((element) => element.assetPath),
       ...(viewModel.theme.backgroundAssetPath ? [viewModel.theme.backgroundAssetPath] : []),
     ]),
-  );
-}
-
-function collectLudusMapSpritesheetAssetPaths(viewModel: LudusMapSceneViewModel): string[] {
-  return Array.from(
-    new Set(
-      viewModel.gladiators.flatMap((gladiator) =>
-        gladiator.spritesheetAtlasPath ? [gladiator.spritesheetAtlasPath] : [],
-      ),
-    ),
   );
 }
 
@@ -410,33 +319,36 @@ function drawMapWalls(graphics: Graphics, walls: LudusMapSceneWallViewModel[]): 
   }
 }
 
-function drawGladiatorFallback(graphics: Graphics): void {
-  graphics.clear();
-  graphics.setFillStyle({ color: 0x8f3f2c });
-  graphics.circle(0, -24, 18);
-  graphics.fill();
-}
-
-function drawGladiatorShadow(graphics: Graphics): void {
-  graphics.clear();
-  graphics.setFillStyle({ color: 0x1e1712, alpha: 0.28 });
-  graphics.ellipse(0, 8, 34, 12);
-  graphics.fill();
-}
-
 function drawLocationFallbackFrame(
   graphics: Graphics,
   location: LudusMapSceneLocationViewModel,
 ): void {
+  const fillColor =
+    location.kind === 'external'
+      ? 0x7b4c32
+      : location.ownershipStatus === 'owned'
+        ? 0x9b6535
+        : location.ownershipStatus === 'available'
+          ? 0x6d5a37
+          : 0x3f3a34;
+  const strokeColor =
+    location.kind === 'external'
+      ? 0xe0b15e
+      : location.ownershipStatus === 'owned'
+        ? 0xd6a557
+        : location.ownershipStatus === 'available'
+          ? 0xd0a85a
+          : 0x756a5b;
+
   graphics.clear();
   graphics.setFillStyle({
-    color: location.kind === 'external' ? 0x7b4c32 : location.isOwned ? 0x9b6535 : 0x4b3d33,
+    color: fillColor,
     alpha: 0.28,
   });
   graphics.rect(0, 0, location.width, location.height);
   graphics.fill();
   graphics.setStrokeStyle({
-    color: location.kind === 'external' ? 0xe0b15e : location.isOwned ? 0xd6a557 : 0x7d6959,
+    color: strokeColor,
     width: 4,
     alpha: 0.72,
   });
@@ -444,8 +356,94 @@ function drawLocationFallbackFrame(
   graphics.stroke();
 }
 
+function drawConstructionSite(graphics: Graphics, location: LudusMapSceneLocationViewModel): void {
+  const isAvailable = location.ownershipStatus === 'available';
+  const foundationColor = isAvailable ? 0xc6a15e : 0x7a6b59;
+  const stakeColor = isAvailable ? 0x8b5a2f : 0x51483d;
+  const strokeColor = isAvailable ? 0xe0bd72 : 0x8c7d68;
+  const markerFillColor = isAvailable ? 0x28563b : 0x3a3630;
+  const markerStrokeColor = isAvailable ? 0xa8d27c : 0xa39780;
+  const markerIconColor = isAvailable ? 0xe9f0b3 : 0xc1b49b;
+  const insetX = Math.max(28, location.width * 0.12);
+  const insetY = Math.max(24, location.height * 0.14);
+  const foundationWidth = location.width - insetX * 2;
+  const foundationHeight = location.height - insetY * 2;
+  const markerX = location.width / 2;
+  const markerY = Math.max(34, insetY - 4);
+
+  graphics.setFillStyle({ color: 0x1d1712, alpha: isAvailable ? 0.18 : 0.24 });
+  graphics.roundRect(10, 18, location.width - 20, location.height - 16, 8);
+  graphics.fill();
+
+  graphics.setFillStyle({ color: foundationColor, alpha: isAvailable ? 0.48 : 0.26 });
+  graphics.roundRect(insetX, insetY, foundationWidth, foundationHeight, 8);
+  graphics.fill();
+  graphics.setStrokeStyle({ color: strokeColor, width: 5, alpha: isAvailable ? 0.78 : 0.45 });
+  graphics.roundRect(insetX, insetY, foundationWidth, foundationHeight, 8);
+  graphics.stroke();
+
+  graphics.setStrokeStyle({ color: strokeColor, width: 3, alpha: isAvailable ? 0.45 : 0.26 });
+  for (let lineIndex = 0; lineIndex < 4; lineIndex += 1) {
+    const x = insetX + foundationWidth * ((lineIndex + 1) / 5);
+
+    graphics.moveTo(x, insetY + 12);
+    graphics.lineTo(x, insetY + foundationHeight - 12);
+    graphics.stroke();
+  }
+
+  graphics.setStrokeStyle({ color: stakeColor, width: 5, alpha: isAvailable ? 0.72 : 0.42 });
+  graphics.moveTo(insetX + 10, insetY + foundationHeight - 10);
+  graphics.lineTo(insetX + foundationWidth - 10, insetY + 10);
+  graphics.stroke();
+  graphics.moveTo(insetX + 10, insetY + 10);
+  graphics.lineTo(insetX + foundationWidth - 10, insetY + foundationHeight - 10);
+  graphics.stroke();
+
+  const postRadius = isAvailable ? 8 : 6;
+
+  graphics.setFillStyle({ color: stakeColor, alpha: isAvailable ? 0.9 : 0.48 });
+  graphics.circle(insetX, insetY, postRadius);
+  graphics.circle(insetX + foundationWidth, insetY, postRadius);
+  graphics.circle(insetX, insetY + foundationHeight, postRadius);
+  graphics.circle(insetX + foundationWidth, insetY + foundationHeight, postRadius);
+  graphics.fill();
+
+  graphics.setFillStyle({ color: markerFillColor, alpha: isAvailable ? 0.94 : 0.86 });
+  graphics.roundRect(markerX - 36, markerY - 24, 72, 44, 6);
+  graphics.fill();
+  graphics.setStrokeStyle({
+    color: markerStrokeColor,
+    width: isAvailable ? 4 : 3,
+    alpha: isAvailable ? 0.94 : 0.72,
+  });
+  graphics.roundRect(markerX - 36, markerY - 24, 72, 44, 6);
+  graphics.stroke();
+
+  graphics.setStrokeStyle({ color: markerIconColor, width: 6, alpha: 0.95 });
+
+  if (isAvailable) {
+    graphics.moveTo(markerX - 15, markerY - 2);
+    graphics.lineTo(markerX + 15, markerY - 2);
+    graphics.stroke();
+    graphics.moveTo(markerX, markerY - 17);
+    graphics.lineTo(markerX, markerY + 13);
+    graphics.stroke();
+    return;
+  }
+
+  graphics.roundRect(markerX - 17, markerY - 4, 34, 21, 4);
+  graphics.stroke();
+  graphics.arc(markerX, markerY - 4, 14, Math.PI, 0);
+  graphics.stroke();
+}
+
 function drawLocationDetails(graphics: Graphics, location: LudusMapSceneLocationViewModel): void {
   graphics.clear();
+
+  if (location.kind === 'building' && !location.isOwned) {
+    drawConstructionSite(graphics, location);
+    return;
+  }
 
   const isArena = location.id === 'arena';
   const wallColor = isArena ? 0x9c6a3d : 0x7b5a3b;
@@ -551,17 +549,21 @@ function drawLocationDetails(graphics: Graphics, location: LudusMapSceneLocation
 }
 
 function drawLabelPlaque(labelDisplay: LabelDisplay, isActive: boolean): void {
-  const { plaque, title, subtitle } = labelDisplay;
+  const { detail, plaque, title, subtitle } = labelDisplay;
   const paddingX = 18;
   const paddingTop = 8;
-  const paddingBottom = subtitle.text ? 10 : 8;
+  const hasSubtitle = subtitle.visible && Boolean(subtitle.text);
+  const hasDetail = detail.visible && Boolean(detail.text);
+  const paddingBottom = hasSubtitle || hasDetail ? 10 : 8;
   const titleWidth = Math.ceil(title.width);
-  const subtitleWidth = subtitle.visible ? Math.ceil(subtitle.width) : 0;
-  const width = Math.max(118, titleWidth, subtitleWidth) + paddingX * 2;
+  const subtitleWidth = hasSubtitle ? Math.ceil(subtitle.width) : 0;
+  const detailWidth = hasDetail ? Math.ceil(detail.width) : 0;
+  const width = Math.max(118, titleWidth, subtitleWidth, detailWidth) + paddingX * 2;
   const height =
     paddingTop +
     Math.ceil(title.height) +
-    (subtitle.visible ? Math.ceil(subtitle.height) + 1 : 0) +
+    (hasSubtitle ? Math.ceil(subtitle.height) + 1 : 0) +
+    (hasDetail ? Math.ceil(detail.height) + 2 : 0) +
     paddingBottom;
   const x = -width / 2;
   const y = 0;
@@ -595,6 +597,8 @@ function drawLabelPlaque(labelDisplay: LabelDisplay, isActive: boolean): void {
   title.y = y + paddingTop;
   subtitle.x = 0;
   subtitle.y = title.y + title.height + 1;
+  detail.x = 0;
+  detail.y = hasSubtitle ? subtitle.y + subtitle.height + 1 : title.y + title.height + 1;
 }
 
 function drawLocationHighlight(
@@ -694,11 +698,9 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
   private readonly backgroundSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
   private readonly decorations = new Map<string, DecorationDisplay>();
   private readonly debugOverlay: PixiVisualDebugOverlay | null;
-  private readonly gladiators = new Map<string, GladiatorDisplay>();
   private readonly layers = createRenderLayerSetup(LUDUS_MAP_LAYER_IDS, {
     'ambient-effects': { sortableChildren: true },
     'buildings-back': { sortableChildren: true },
-    'characters-y-sorted': { sortableChildren: true },
     'light-sprites': { sortableChildren: true },
     'static-props': { sortableChildren: true },
   });
@@ -713,15 +715,12 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
   private assetLoadId = 0;
   private assetPathKey = '';
   private cameraController: CameraController | null = null;
-  private gameMinuteAtSync = 0;
-  private gameMinuteSyncedAt = 0;
   private hoveredLocationId: string | null = null;
   private isDestroyed = false;
   private displayedTheme: LudusMapSceneThemeViewModel | null = null;
   private themeTransitionFrom: LudusMapSceneThemeViewModel | null = null;
   private themeTransitionStartedAt = 0;
   private themeTransitionTarget: LudusMapSceneThemeViewModel | null = null;
-  private spritesheets: PixiSpritesheetMap = new Map();
   private textures: PixiTextureMap = new Map();
   private viewModel: LudusMapSceneViewModel | null = null;
 
@@ -754,7 +753,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       brightnessTargets: [
         this.layers.layers['static-props'],
         this.layers.layers['buildings-back'],
-        this.layers.layers['characters-y-sorted'],
         this.layers.layers['buildings-front'],
         this.layers.layers['ambient-effects'],
       ],
@@ -777,7 +775,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     this.cameraController?.destroy();
     this.cameraController = null;
     this.decorations.clear();
-    this.gladiators.clear();
     this.locations.clear();
     destroyDisplayObject(this.root);
   }
@@ -805,10 +802,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       this.updateDecorationAnimation(decorationDisplay, now);
     }
 
-    for (const gladiatorDisplay of this.gladiators.values()) {
-      this.updateGladiatorAnimation(gladiatorDisplay, now);
-    }
-
     this.updateDebugOverlay();
   }
 
@@ -816,8 +809,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     const now = performance.now();
 
     this.viewModel = viewModel;
-    this.gameMinuteAtSync = viewModel.currentGameMinute;
-    this.gameMinuteSyncedAt = now;
     this.prepareThemeTransition(viewModel, now);
     this.ensureCamera(viewModel);
     this.reconcile(this.getThemedViewModel(viewModel, now));
@@ -910,26 +901,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     return display;
   }
 
-  private createGladiatorDisplay(gladiator: LudusMapSceneGladiatorViewModel): GladiatorDisplay {
-    const container = new Container();
-    const shadow = new Graphics({ roundPixels: true });
-    const sprite = configurePixelArtSprite(new AnimatedSprite([Texture.EMPTY], false));
-    const fallback = new Graphics({ roundPixels: true });
-
-    container.label = gladiator.id;
-    container.eventMode = 'none';
-    sprite.eventMode = 'none';
-    sprite.anchor.set(gladiator.animation.anchor.x, gladiator.animation.anchor.y);
-    sprite.x = 0;
-    sprite.y = 4;
-    drawGladiatorShadow(shadow);
-    drawGladiatorFallback(fallback);
-    container.addChild(shadow, sprite, fallback);
-    this.layers.layers['characters-y-sorted'].addChild(container);
-
-    return { container, fallback, gladiator, sprite };
-  }
-
   private createLocationDisplay(location: LudusMapSceneLocationViewModel): LocationDisplay {
     const backContainer = new Container();
     const frontContainer = new Container();
@@ -945,8 +916,10 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     const roofSprite = configurePixelArtSprite(new Sprite(Texture.EMPTY));
     const titleLabel = createPlaqueText(location.labelTitle, 20, '#f6ddb0');
     const subtitleLabel = createPlaqueText(location.labelSubtitle, 16, '#d9a94f');
+    const detailLabel = createPlaqueText(location.labelDetail, 14, '#c9b98f');
     const labelDisplay: LabelDisplay = {
       container: labelContainer,
+      detail: detailLabel,
       plaque: labelPlaque,
       title: titleLabel,
       subtitle: subtitleLabel,
@@ -978,12 +951,13 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     labelContainer.label = `${location.id}:label`;
     titleLabel.label = `${location.id}:label-title`;
     subtitleLabel.label = `${location.id}:label-subtitle`;
+    detailLabel.label = `${location.id}:label-detail`;
     exteriorSprite.eventMode = 'none';
     propsSprite.eventMode = 'none';
     roofSprite.eventMode = 'none';
     labelPlaque.eventMode = 'none';
     labelPlaque.label = `${location.id}:label-plaque`;
-    labelContainer.addChild(labelPlaque, titleLabel, subtitleLabel);
+    labelContainer.addChild(labelPlaque, titleLabel, subtitleLabel, detailLabel);
     backContainer.addChild(fallbackFrame, exteriorSprite, locationDetails);
     propsContainer.addChild(propsSprite);
     frontContainer.addChild(roofSprite);
@@ -1007,7 +981,7 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       }
     });
     this.layers.layers['buildings-back'].addChild(backContainer);
-    this.layers.layers['characters-y-sorted'].addChild(propsContainer);
+    this.layers.layers['static-props'].addChild(propsContainer);
     this.layers.layers['buildings-front'].addChild(frontContainer);
     this.layers.layers['selection-highlight'].addChild(highlight, interaction);
     this.layers.layers.labels.addChild(labelContainer);
@@ -1045,37 +1019,28 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
 
   private loadAssetsWhenNeeded(viewModel: LudusMapSceneViewModel): void {
     const textureAssetPaths = collectLudusMapTextureAssetPaths(viewModel);
-    const spritesheetAssetPaths = collectLudusMapSpritesheetAssetPaths(viewModel);
-    const assetPathKey = [
-      textureAssetPaths.join(ASSET_PATH_SEPARATOR),
-      spritesheetAssetPaths.join(ASSET_PATH_SEPARATOR),
-    ].join(ASSET_PATH_SEPARATOR);
+    const assetPathKey = textureAssetPaths.join(ASSET_PATH_SEPARATOR);
 
     if (assetPathKey === this.assetPathKey) {
       return;
     }
 
     this.assetPathKey = assetPathKey;
-    void this.loadAssets(textureAssetPaths, spritesheetAssetPaths, viewModel);
+    void this.loadAssets(textureAssetPaths, viewModel);
   }
 
   private async loadAssets(
     textureAssetPaths: string[],
-    spritesheetAssetPaths: string[],
     viewModel: LudusMapSceneViewModel,
   ): Promise<void> {
     const loadId = ++this.assetLoadId;
-    const [textures, spritesheets] = await Promise.all([
-      this.assetLoader.loadTextures(textureAssetPaths),
-      this.assetLoader.loadSpritesheets(spritesheetAssetPaths),
-    ]);
+    const textures = await this.assetLoader.loadTextures(textureAssetPaths);
 
     if (this.isDestroyed || loadId !== this.assetLoadId) {
       return;
     }
 
     this.textures = textures;
-    this.spritesheets = spritesheets;
     this.reconcile(viewModel);
   }
 
@@ -1084,7 +1049,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     drawMapWalls(this.pathGraphics, viewModel.walls);
     this.reconcileDecorations(viewModel.decorations);
     this.reconcileLocations(viewModel.locations);
-    this.reconcileGladiators(viewModel.gladiators);
     this.ambientAnimationSystem.reconcile(viewModel, this.textures);
     this.particleEffectSystem.reconcile(viewModel, this.textures);
     this.updateLocationAffordances();
@@ -1145,26 +1109,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     display.container.rotation = baseRotation + (wave * Math.PI) / 180;
   }
 
-  private reconcileGladiators(gladiators: LudusMapSceneGladiatorViewModel[]): void {
-    const activeIds = new Set(gladiators.map((gladiator) => gladiator.id));
-
-    for (const [gladiatorId, display] of this.gladiators) {
-      if (!activeIds.has(gladiatorId)) {
-        destroyDisplayObject(display.container);
-        this.gladiators.delete(gladiatorId);
-      }
-    }
-
-    for (const gladiator of gladiators) {
-      const display = this.gladiators.get(gladiator.id) ?? this.createGladiatorDisplay(gladiator);
-
-      this.gladiators.set(gladiator.id, display);
-      display.gladiator = gladiator;
-      this.updateGladiatorSprite(display);
-      this.updateGladiatorAnimation(display, performance.now());
-    }
-  }
-
   private reconcileLocations(locations: LudusMapSceneLocationViewModel[]): void {
     const activeIds = new Set(locations.map((location) => location.id));
 
@@ -1187,109 +1131,8 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       display.location = location;
       display.labelDisplay.title.text = location.labelTitle;
       display.labelDisplay.subtitle.text = location.labelSubtitle;
+      display.labelDisplay.detail.text = location.labelDetail;
       this.updateLocationDisplay(display);
-    }
-  }
-
-  private updateGladiatorAnimation(display: GladiatorDisplay, now: number): void {
-    const viewModel = this.viewModel;
-    const gladiator = display.gladiator;
-
-    if (!viewModel) {
-      return;
-    }
-
-    const visualGameMinute =
-      this.gameMinuteAtSync +
-      (now - this.gameMinuteSyncedAt) * viewModel.gameMinutesPerRealMillisecond;
-    const progress =
-      viewModel.gameMinutesPerRealMillisecond === 0
-        ? 1
-        : clamp(
-            (visualGameMinute - gladiator.movementStartedAt) /
-              Math.max(gladiator.movementDuration, 1),
-            0,
-            1,
-          );
-
-    const routePoint =
-      getPointAlongScheduledRoute(
-        gladiator.routeSchedule,
-        gladiator.queuedFrom,
-        visualGameMinute,
-      ) ?? getPointAlongRoute(gladiator.routePoints, gladiator.from, gladiator.to, progress);
-
-    display.container.x = routePoint.x;
-    display.container.y = routePoint.y;
-    display.container.zIndex = display.container.y + gladiator.animation.ySortOffset;
-
-    if (!viewModel.reducedMotion && display.sprite.visible) {
-      display.sprite.update(this.app.ticker);
-    }
-  }
-
-  private getGladiatorAnimationTextures(gladiator: LudusMapSceneGladiatorViewModel): Texture[] {
-    const spritesheet = gladiator.spritesheetAtlasPath
-      ? this.spritesheets.get(gladiator.spritesheetAtlasPath)
-      : undefined;
-    const spritesheetTextures =
-      spritesheet && gladiator.frameNames.length > 0
-        ? gladiator.frameNames.flatMap((frameName) => {
-            const texture = spritesheet.textures[frameName];
-
-            return texture ? [texture] : [];
-          })
-        : [];
-
-    if (spritesheetTextures.length > 0) {
-      return spritesheetTextures;
-    }
-
-    return gladiator.fallbackFramePaths.flatMap((framePath) => {
-      const texture = this.textures.get(framePath);
-
-      return texture ? [texture] : [];
-    });
-  }
-
-  private updateGladiatorSprite(display: GladiatorDisplay): void {
-    const viewModel = this.viewModel;
-    const { animation } = display.gladiator;
-    const textures = this.getGladiatorAnimationTextures(display.gladiator);
-    const animationSignature = [
-      display.gladiator.animationId,
-      display.gladiator.spritesheetAtlasPath ?? 'fallback',
-      display.gladiator.frameNames.join('|'),
-      display.gladiator.fallbackFramePaths.join('|'),
-    ].join(':');
-
-    display.sprite.visible = textures.length > 0;
-    display.fallback.visible = textures.length === 0;
-
-    if (textures.length === 0) {
-      return;
-    }
-
-    display.sprite.anchor.set(animation.anchor.x, animation.anchor.y);
-    display.sprite.loop = animation.loop && !(viewModel?.reducedMotion ?? false);
-    display.sprite.animationSpeed =
-      (viewModel?.reducedMotion ?? false)
-        ? 0
-        : (animation.fps / 60) * (viewModel?.animationSpeedMultiplier ?? 1);
-
-    if (display.animationSignature !== animationSignature) {
-      display.animationSignature = animationSignature;
-      display.sprite.textures = textures;
-      display.sprite.gotoAndStop(0);
-    }
-
-    if (viewModel?.reducedMotion || textures.length === 1) {
-      display.sprite.gotoAndStop(0);
-      return;
-    }
-
-    if (!display.sprite.playing) {
-      display.sprite.play();
     }
   }
 
@@ -1310,6 +1153,7 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       display.labelDisplay.container.alpha = isActive ? 1 : 0.88;
       display.labelDisplay.title.alpha = isActive ? 1 : 0.92;
       display.labelDisplay.subtitle.alpha = isActive ? 1 : 0.9;
+      display.labelDisplay.detail.alpha = isActive ? 1 : 0.9;
       drawLabelPlaque(display.labelDisplay, isActive);
       drawLocationHighlight(display.highlight, location, isSelected);
     }
@@ -1326,9 +1170,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
       ),
       ...Array.from(this.decorations.values()).map((display) =>
         this.createDecorationDebugMetric(display),
-      ),
-      ...Array.from(this.gladiators.values()).map((display) =>
-        this.createGladiatorDebugMetric(display),
       ),
     ]);
   }
@@ -1408,36 +1249,6 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     };
   }
 
-  private createGladiatorDebugMetric(display: GladiatorDisplay): PixiVisualDebugMetric {
-    const { animation } = display.gladiator;
-    const { sprite } = display;
-    const width = Math.abs(sprite.width);
-    const height = Math.abs(sprite.height);
-    const originX = display.container.x + sprite.x;
-    const originY = display.container.y + sprite.y;
-
-    return {
-      label: `gladiator:${display.gladiator.id}`,
-      x: originX - width * sprite.anchor.x,
-      y: originY - height * sprite.anchor.y,
-      width,
-      height,
-      nativeWidth: sprite.texture === Texture.EMPTY ? undefined : sprite.texture.width,
-      nativeHeight: sprite.texture === Texture.EMPTY ? undefined : sprite.texture.height,
-      scaleX: sprite.texture === Texture.EMPTY ? undefined : sprite.scale.x,
-      scaleY: sprite.texture === Texture.EMPTY ? undefined : sprite.scale.y,
-      anchor: { x: sprite.anchor.x, y: sprite.anchor.y },
-      anchorPosition: { x: originX, y: originY },
-      hitbox: {
-        x: display.container.x + animation.hitbox.x,
-        y: display.container.y + animation.hitbox.y,
-        width: animation.hitbox.width,
-        height: animation.hitbox.height,
-      },
-      color: 0xf8e56b,
-    };
-  }
-
   private updateLocationDisplay(display: LocationDisplay): void {
     const { location } = display;
     const exteriorTexture = location.exteriorAssetPath
@@ -1449,7 +1260,12 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     const roofTexture = location.roofAssetPath
       ? this.textures.get(location.roofAssetPath)
       : undefined;
-    const visualAlpha = location.isOwned ? 1 : 0.58;
+    const visualAlpha =
+      location.ownershipStatus === 'owned'
+        ? 1
+        : location.ownershipStatus === 'available'
+          ? 0.72
+          : 0.46;
 
     display.backContainer.x = location.x;
     display.backContainer.y = location.y;
@@ -1474,6 +1290,7 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     display.labelDisplay.container.x = location.labelPosition.x;
     display.labelDisplay.container.y = location.labelPosition.y;
     display.labelDisplay.subtitle.visible = Boolean(location.labelSubtitle);
+    display.labelDisplay.detail.visible = Boolean(location.labelDetail);
     display.exteriorSprite.texture = exteriorTexture ?? Texture.EMPTY;
     display.exteriorSprite.visible = Boolean(exteriorTexture);
     setPixelArtSpriteSize(display.exteriorSprite, location.width, location.height);

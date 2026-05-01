@@ -1,6 +1,6 @@
 export type { LanguageCode } from './common/types';
-export type { GameSpeed, DayOfWeek, GameTimeState, GameTickContext } from './time/types';
-export type { LudusState } from './ludus/types';
+export type { DayOfWeek, GamePhase, GameTimeState } from './time/types';
+export type { GameStatus, LudusState } from './ludus/types';
 export type {
   GridCoord,
   GridSize,
@@ -25,6 +25,8 @@ export type {
   BuildingLevelDefinition,
   BuildingImprovementDefinition,
   BuildingPolicyDefinition,
+  BuildingSkillDefinition,
+  BuildingActivityId,
   BuildingEffectType,
   BuildingEffect,
 } from './buildings/types';
@@ -35,24 +37,49 @@ export type {
 } from './buildings/building-actions';
 export type {
   Gladiator,
-  GladiatorLocationId,
-  GladiatorMapMovement,
+  GladiatorClassId,
+  GladiatorSkillProfile,
   GladiatorTrait,
   GladiatorTrainingPlan,
+  GladiatorWeeklyInjury,
   GladiatorVisualIdentity,
 } from './gladiators/types';
+export { GLADIATOR_CLASS_IDS } from './gladiators/types';
 export type {
-  GladiatorWeeklyObjective,
-  TrainingIntensity,
-  GladiatorRoutine,
   WeeklyPlanningState,
+  DailyPlan,
+  DailyPlanActivity,
+  DailyPlanBuildingActivitySelections,
+  DailyPlanPoints,
+  DailySimulationSummary,
+  WeeklyReport,
   AlertSeverity,
   GameAlert,
 } from './planning/types';
 export type {
+  ActiveLoan,
+  EconomyCategory,
+  EconomyEntryKind,
+  EconomyLedgerEntry,
+  EconomyState,
+  LoanDefinition,
+  LoanId,
+  WeeklyProjection,
+} from './economy/types';
+export type {
+  StaffAssignment,
+  StaffMarketCandidate,
+  StaffMember,
+  StaffState,
+  StaffType,
+  StaffVisualId,
+} from './staff/types';
+export type {
   PlanningRecommendation,
   GladiatorPlanningStatus,
-  GladiatorRoutineUpdate,
+  DailyPlanBucket,
+  DailyPlanUpdate,
+  DailyPlanBuildingActivitySelectionUpdate,
 } from './planning/planning-actions';
 export type { MarketState, MarketGladiator } from './market/types';
 export type {

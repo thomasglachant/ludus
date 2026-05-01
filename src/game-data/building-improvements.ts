@@ -11,7 +11,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.strawBeds.description',
     cost: 70,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseEnergy', value: 1, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseEnergy', value: 1, target: 'plannedGladiators' }],
   },
   {
     id: 'woodenBeds',
@@ -21,7 +21,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     cost: 130,
     requiredBuildingLevel: 1,
     requiredImprovementIds: ['strawBeds'],
-    effects: [{ type: 'increaseEnergy', value: 2, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseEnergy', value: 2, target: 'plannedGladiators' }],
   },
   {
     id: 'quietQuarters',
@@ -30,7 +30,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.quietQuarters.description',
     cost: 150,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseMorale', value: 1, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseMorale', value: 1, target: 'plannedGladiators' }],
   },
   {
     id: 'sparringRing',
@@ -39,7 +39,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.sparringRing.description',
     cost: 160,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseAgility', value: 1, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseAgility', value: 1, target: 'plannedGladiators' }],
   },
   {
     id: 'advancedDoctoreTools',
@@ -48,7 +48,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.advancedDoctoreTools.description',
     cost: 220,
     requiredBuildingLevel: 2,
-    effects: [{ type: 'reduceInjuryRisk', value: 3, target: 'assignedGladiator' }],
+    effects: [{ type: 'reduceInjuryRisk', value: 3, target: 'plannedGladiators' }],
   },
   {
     id: 'gameTables',
@@ -57,7 +57,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.gameTables.description',
     cost: 90,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseMorale', value: 2, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseMorale', value: 2, target: 'plannedGladiators' }],
   },
   {
     id: 'musicians',
@@ -75,7 +75,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.privateRooms.description',
     cost: 210,
     requiredBuildingLevel: 2,
-    effects: [{ type: 'increaseMorale', value: 3, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseMorale', value: 3, target: 'plannedGladiators' }],
   },
   {
     id: 'cleanBandages',
@@ -84,7 +84,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.cleanBandages.description',
     cost: 100,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseHealth', value: 2, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseHealth', value: 2, target: 'plannedGladiators' }],
   },
   {
     id: 'herbalStock',
@@ -114,9 +114,9 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     descriptionKey: 'policies.balancedTraining.description',
     requiredBuildingLevel: 1,
     effects: [
-      { type: 'increaseStrength', value: 1, target: 'assignedGladiator' },
-      { type: 'increaseAgility', value: 1, target: 'assignedGladiator' },
-      { type: 'increaseDefense', value: 1, target: 'assignedGladiator' },
+      { type: 'increaseStrength', value: 1, target: 'plannedGladiators' },
+      { type: 'increaseAgility', value: 1, target: 'plannedGladiators' },
+      { type: 'increaseDefense', value: 1, target: 'plannedGladiators' },
     ],
   },
   {
@@ -125,7 +125,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.strengthDoctrine.name',
     descriptionKey: 'policies.strengthDoctrine.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseStrength', value: 1, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseStrength', value: 1, target: 'plannedGladiators' }],
   },
   {
     id: 'agilityDoctrine',
@@ -133,7 +133,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.agilityDoctrine.name',
     descriptionKey: 'policies.agilityDoctrine.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseAgility', value: 1, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseAgility', value: 1, target: 'plannedGladiators' }],
   },
   {
     id: 'defensiveDoctrine',
@@ -141,7 +141,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.defensiveDoctrine.name',
     descriptionKey: 'policies.defensiveDoctrine.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseDefense', value: 1, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseDefense', value: 1, target: 'plannedGladiators' }],
   },
   {
     id: 'brutalDiscipline',
@@ -150,8 +150,8 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     descriptionKey: 'policies.brutalDiscipline.description',
     requiredBuildingLevel: 2,
     effects: [
-      { type: 'increaseStrength', value: 2, target: 'assignedGladiator' },
-      { type: 'decreaseMorale', value: 2, target: 'assignedGladiator' },
+      { type: 'increaseStrength', value: 2, target: 'plannedGladiators' },
+      { type: 'decreaseMorale', value: 2, target: 'plannedGladiators' },
     ],
   },
   {
@@ -160,7 +160,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.quietEvenings.name',
     descriptionKey: 'policies.quietEvenings.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseMorale', value: 3, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseMorale', value: 3, target: 'plannedGladiators' }],
   },
   {
     id: 'gamesAndSongs',
@@ -168,7 +168,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.gamesAndSongs.name',
     descriptionKey: 'policies.gamesAndSongs.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseMorale', value: 5, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseMorale', value: 5, target: 'plannedGladiators' }],
     cost: 25,
   },
   {
@@ -186,7 +186,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.basicCare.name',
     descriptionKey: 'policies.basicCare.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseHealth', value: 3, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseHealth', value: 3, target: 'plannedGladiators' }],
   },
   {
     id: 'preventiveCare',
@@ -203,7 +203,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.intensiveTreatment.name',
     descriptionKey: 'policies.intensiveTreatment.description',
     requiredBuildingLevel: 2,
-    effects: [{ type: 'increaseHealth', value: 8, target: 'assignedGladiator' }],
+    effects: [{ type: 'increaseHealth', value: 8, target: 'plannedGladiators' }],
     cost: 70,
   },
 ];

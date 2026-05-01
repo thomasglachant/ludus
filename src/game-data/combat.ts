@@ -3,9 +3,6 @@ import { GAME_BALANCE } from './balance';
 
 export const ARENA_REWARDS: Record<ArenaRank, number> = GAME_BALANCE.arena.rewards;
 
-export const ARENA_PARTICIPATION_REWARDS: Record<ArenaRank, number> =
-  GAME_BALANCE.arena.participationRewards;
-
 export const ARENA_VICTORY_ODDS_REWARD_MULTIPLIER = GAME_BALANCE.arena.victoryOddsRewardMultiplier;
 
 export const ARENA_PUBLIC_STAKE_MODIFIER_SPREAD = GAME_BALANCE.arena.publicStakeModifierSpread;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BUILDING_IDS } from '../../game-data/buildings';
+import { BUILDING_DEFINITIONS, BUILDING_IDS } from '../../game-data/buildings';
 import { INITIAL_TREASURY } from '../../game-data/economy';
 import { getLudusGladiatorCapacity } from '../ludus/capacity';
 import { CURRENT_SCHEMA_VERSION, createInitialSave } from './create-initial-save';
@@ -19,17 +19,34 @@ describe('createInitialSave', () => {
       year: 1,
       week: 1,
       dayOfWeek: 'monday',
-      hour: 8,
-      minute: 0,
-      speed: 1,
+      phase: 'planning',
     });
     for (const buildingId of BUILDING_IDS) {
       expect(save.buildings[buildingId]).toMatchObject({
         id: buildingId,
-        isPurchased: true,
-        level: 1,
+        isPurchased: BUILDING_DEFINITIONS[buildingId].startsPurchased,
+        level: BUILDING_DEFINITIONS[buildingId].startsAtLevel,
       });
     }
+    expect(save.ludus).toMatchObject({
+      glory: 0,
+      security: 50,
+      happiness: 65,
+      rebellion: 0,
+      gameStatus: 'active',
+    });
+    expect(save.economy.ledgerEntries).toEqual([]);
+    expect(save.economy.currentWeekSummary.net).toBe(0);
+    expect(save.economy.weeklyProjection.net).not.toBe(0);
+    expect(save.staff.members.length).toBeGreaterThan(0);
+    expect(save.staff.marketCandidates.length).toBeGreaterThan(0);
+    expect(save.buildings.trainingGround.staffAssignmentIds).toContain('staff-initial-trainer');
+    expect(save.buildings.canteen.staffAssignmentIds).toContain('staff-initial-slave');
+    expect(save.buildings.guardBarracks.staffAssignmentIds).toContain('staff-initial-guard');
+    expect(save.buildings.trainingGround.efficiency).toBe(110);
+    expect(save.buildings.canteen.efficiency).toBe(108);
+    expect(save.buildings.guardBarracks.efficiency).toBe(106);
+    expect(save.planning.days.monday.gladiatorTimePoints.training).toBeGreaterThan(0);
     expect(save.buildings.canteen.configuration).toBeUndefined();
     expect(save.buildings.canteen.selectedPolicyId).toBeUndefined();
     expect(save.buildings.dormitory.configuration).toBeUndefined();
@@ -46,7 +63,7 @@ describe('createInitialSave', () => {
       selectedPolicyId: 'basicCare',
     });
     expect(save.map).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 6,
       gridId: 'default-ludus-grid',
     });
     expect(save.map.placements.some((placement) => placement.definitionId === 'domus')).toBe(true);

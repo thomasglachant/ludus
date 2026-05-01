@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ARENA_PARTICIPATION_REWARDS,
   ARENA_PUBLIC_STAKE_MODIFIER_SPREAD,
   ARENA_REWARDS,
   ARENA_VICTORY_ODDS_REWARD_MULTIPLIER,
@@ -17,7 +16,6 @@ import {
   getArenaRank,
   resolveArenaDay,
   resolveCombat,
-  synchronizeArena,
 } from './combat-actions';
 
 function createTestSave() {
@@ -90,18 +88,17 @@ describe('combat actions', () => {
     });
   });
 
-  it('calculates arena rewards from participation, odds and public stake', () => {
+  it('calculates arena rewards from victory, odds and public stake', () => {
     const reward = calculateArenaCombatReward('gold1', 1.8, () => 0.5);
-    const expectedParticipationReward = ARENA_PARTICIPATION_REWARDS.gold1;
     const expectedVictoryReward = Math.round(
       ARENA_REWARDS.gold1 * ARENA_VICTORY_ODDS_REWARD_MULTIPLIER * 1.8,
     );
 
     expect(reward).toEqual({
-      totalReward: expectedParticipationReward + expectedVictoryReward,
-      winnerReward: expectedParticipationReward + expectedVictoryReward,
-      loserReward: expectedParticipationReward,
-      participationReward: expectedParticipationReward,
+      totalReward: expectedVictoryReward,
+      winnerReward: expectedVictoryReward,
+      loserReward: 0,
+      participationReward: 0,
       victoryReward: expectedVictoryReward,
       publicStakeModifier: 0,
       playerDecimalOdds: 1.8,
@@ -114,7 +111,6 @@ describe('combat actions', () => {
     const playerChance = calculateProjectedWinChance(combat.gladiator, combat.opponent);
     const playerDecimalOdds = calculateDecimalOdds(playerChance);
     const opponentDecimalOdds = calculateDecimalOdds(1 - playerChance);
-    const expectedParticipationReward = ARENA_PARTICIPATION_REWARDS.bronze3;
     const expectedVictoryReward = Math.max(
       0,
       Math.round(
@@ -122,7 +118,7 @@ describe('combat actions', () => {
           ARENA_PUBLIC_STAKE_MODIFIER_SPREAD,
       ),
     );
-    const expectedWinnerReward = expectedParticipationReward + expectedVictoryReward;
+    const expectedWinnerReward = expectedVictoryReward;
 
     expect(combat.turns.length).toBeGreaterThan(0);
     expect(combat.turns[0]).toMatchObject({
@@ -132,8 +128,8 @@ describe('combat actions', () => {
     expect(combat.reward).toEqual({
       totalReward: expectedWinnerReward,
       winnerReward: expectedWinnerReward,
-      loserReward: expectedParticipationReward,
-      participationReward: expectedParticipationReward,
+      loserReward: 0,
+      participationReward: 0,
       victoryReward: expectedVictoryReward,
       publicStakeModifier: -ARENA_PUBLIC_STAKE_MODIFIER_SPREAD,
       playerDecimalOdds,
@@ -191,6 +187,12 @@ describe('combat actions', () => {
     expect(resolved.ludus.treasury).toBe(
       save.ludus.treasury + resolved.arena.resolvedCombats[0].reward.winnerReward,
     );
+    expect(resolved.economy.ledgerEntries[0]).toMatchObject({
+      amount: resolved.arena.resolvedCombats[0].reward.winnerReward,
+      category: 'arena',
+      kind: 'income',
+      labelKey: 'finance.ledger.arenaReward',
+    });
     expect(resolved.ludus.reputation).toBe(gladiator.reputation);
   });
 
@@ -225,7 +227,7 @@ describe('combat actions', () => {
     expect(resolved.gladiators[0].wins + resolved.gladiators[0].losses).toBe(0);
   });
 
-  it('grants the participation reward and applies loss consequences when the player loses', () => {
+  it('applies loss consequences without a participation reward', () => {
     const save = withSundayArena(createTestSave(), [
       createGladiator({
         strength: 3,
@@ -266,16 +268,5 @@ describe('combat actions', () => {
     expect(combat.consequence.didPlayerWin).toBe(false);
     expect(combat.consequence.reputationChange).toBe(-3);
     expect(gladiator.reputation).toBe(17);
-  });
-
-  it('keeps arena inactive outside Sunday', () => {
-    const save = {
-      ...createTestSave(),
-      gladiators: [createGladiator()],
-    };
-    const synchronized = synchronizeArena(save, () => 0);
-
-    expect(synchronized.arena.isArenaDayActive).toBe(false);
-    expect(synchronized.arena.resolvedCombats).toEqual([]);
   });
 });

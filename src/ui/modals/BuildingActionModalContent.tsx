@@ -24,6 +24,15 @@ const effectIcons: Record<BuildingEffectType, GameIconName> = {
   increaseEnergy: 'energy',
   increaseHealth: 'health',
   increaseMorale: 'morale',
+  increaseReputation: 'reputation',
+  increaseGlory: 'victory',
+  increaseSecurity: 'defense',
+  increaseHappiness: 'morale',
+  decreaseRebellion: 'warning',
+  increaseIncome: 'treasury',
+  reduceExpense: 'treasury',
+  increaseProduction: 'workforce',
+  increaseStaffEfficiency: 'workforce',
   increaseStrength: 'strength',
   reduceInjuryRisk: 'defense',
 };
@@ -86,7 +95,6 @@ export function BuildingActionModalContent({
                   <GameIcon name={effectIcon} size={19} />
                   <span className="building-action-modal__effect-label">
                     {t(`buildingEffectNames.${effect.type}`)}
-                    {effect.isPerHour ? <small>{t('buildingEffects.perHour')}</small> : null}
                   </span>
                   <span>{getEffectValue(effect, effect.currentValue, t)}</span>
                   <GameIcon color="currentColor" name="arrowRight" size={16} />

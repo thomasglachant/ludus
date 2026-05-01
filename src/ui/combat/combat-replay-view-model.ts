@@ -91,13 +91,15 @@ function getTurnHealthState(combat: CombatState, visibleTurns: CombatTurn[]): Co
 }
 
 function createCombatantViewModel(
-  gladiator: Pick<Gladiator, 'id' | 'name' | 'visualIdentity'>,
+  gladiator: Pick<Gladiator, 'id' | 'name' | 'strength' | 'agility' | 'defense' | 'visualIdentity'>,
   side: CombatantSide,
   health: number,
   energy: number,
   morale: number,
 ): CombatantViewModel {
-  const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity);
+  const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, {
+    skillProfile: gladiator,
+  });
 
   return {
     energy: clampPercent(energy),

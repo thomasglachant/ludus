@@ -14,7 +14,7 @@ The player owns and develops a gladiator school. They buy and train gladiators, 
 The dramatic rhythm is weekly management followed by Sunday arena resolution:
 
 - plan the week;
-- manage routines and exceptions;
+- manage shared allocations and exceptions;
 - react to events and warnings;
 - improve buildings and gladiators;
 - prepare the roster for uncertain arena opponents;
@@ -25,15 +25,15 @@ The dramatic rhythm is weekly management followed by Sunday arena resolution:
 
 ### Management
 
-The player makes strategic decisions instead of manually moving every gladiator every few in-game hours. Weekly objectives, recommendations and automation should handle routine behavior, while the player focuses on priorities, risks and exceptions.
+The player makes strategic decisions instead of managing per-gladiator routines. The weekly plan, recommendations and alerts should handle routine pressure, while the player focuses on priorities, risks and exceptions.
 
 ### Gladiator Identity
 
-Gladiators are not anonymous resources. They have stats, gauges, traits, records, reputation, visual identity, routines and combat outcomes. The UI should support memorable portraits and visible map sprites.
+Gladiators are not anonymous resources. They have stats, gauges, traits, records, reputation, visual identity and combat outcomes. The UI should support memorable portraits and strong arena presentation.
 
 ### Progression
 
-The ludus grows through future optional building purchases, level upgrades, improvements, policies, better routines, stronger gladiators, reputation and access to harder arena ranks.
+The ludus grows through future optional building purchases, level upgrades, improvements, policies, better weekly planning, stronger gladiators, reputation and access to harder arena ranks.
 
 ### Buildings
 

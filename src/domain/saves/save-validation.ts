@@ -1,24 +1,54 @@
+import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/building-activities';
 import { BUILDING_IDS } from '../../game-data/buildings';
+import { isStaffVisualIdForType } from '../../game-data/staff-visuals';
+import { updateBuildingEfficiencies } from '../buildings/building-staffing';
+import { createInitialEconomyState, updateCurrentWeekSummary } from '../economy/economy-actions';
+import { createInitialStaffState, synchronizeStaffAssignments } from '../staff/staff-actions';
+import { createDefaultWeeklyPlan } from '../weekly-simulation/weekly-simulation-actions';
 import {
   createInitialLudusMapState,
   LUDUS_MAP_STATE_SCHEMA_VERSION,
 } from '../../game-data/map-layout';
-import { DAYS_OF_WEEK, SUPPORTED_GAME_SPEEDS } from '../../game-data/time';
+import { DAYS_OF_WEEK } from '../../game-data/time';
 import type { BuildingId } from '../buildings/types';
 import type { ArenaDayState, CombatState } from '../combat/types';
+import type {
+  ActiveLoan,
+  EconomyLedgerEntry,
+  EconomyState,
+  WeeklyProjection,
+} from '../economy/types';
 import type { GameEvent, LaunchedGameEventRecord } from '../events/types';
-import type { Gladiator, GladiatorLocationId } from '../gladiators/types';
+import type { Gladiator } from '../gladiators/types';
 import type { MarketGladiator } from '../market/types';
-import type { GameAlert, GladiatorRoutine } from '../planning/types';
+import type {
+  DailyPlan,
+  DailyPlanActivity,
+  DailyPlanBuildingActivitySelections,
+  DailyPlanPoints,
+  DailySimulationSummary,
+  GameAlert,
+  WeeklyReport,
+} from '../planning/types';
+import type {
+  StaffAssignment,
+  StaffMarketCandidate,
+  StaffMember,
+  StaffState,
+  StaffType,
+} from '../staff/types';
+import type { DayOfWeek } from '../time/types';
 import type { LudusMapPlacement, LudusMapState, LudusMapTileOverride } from '../map/types';
 import type { GameSave } from './types';
 import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
+const legacyRemovedBuildingIds = ['office', 'nobleTraining'] as const;
+const supportedBuildingIds = [...requiredBuildingIds, ...legacyRemovedBuildingIds];
 const dayOfWeeks = [...DAYS_OF_WEEK];
-const gameSpeeds = [...SUPPORTED_GAME_SPEEDS];
-const legacySupportedSchemaVersions = [1, 2, 3, 4, 5, 6, 7, CURRENT_SCHEMA_VERSION];
-const locationIds = [...requiredBuildingIds, 'arena'];
+const legacySupportedSchemaVersions = [CURRENT_SCHEMA_VERSION];
+const gamePhases = ['planning', 'simulation', 'event', 'arena', 'report', 'gameOver'];
+const gameStatuses = ['active', 'lost'];
 const mapPlacementKinds = ['building', 'prop', 'road', 'wall'];
 const arenaRanks = [
   'bronze3',
@@ -43,29 +73,67 @@ const gladiatorTraits = [
   'rivalrous',
   'stoic',
 ];
-const weeklyObjectives = [
-  'balanced',
-  'trainStrength',
-  'trainAgility',
-  'trainDefense',
-  'recovery',
-  'moraleBoost',
-  'protectChampion',
-  'prepareForSale',
-];
-const legacyWeeklyObjectives = [...weeklyObjectives, 'fightPreparation'];
-const trainingIntensities = ['light', 'normal', 'hard', 'brutal'];
 const alertSeverities = ['info', 'warning', 'critical'];
 const eventStatuses = ['pending', 'resolved', 'expired'];
+const dailyPlanActivities: DailyPlanActivity[] = [
+  'training',
+  'meals',
+  'sleep',
+  'leisure',
+  'care',
+  'contracts',
+  'production',
+  'security',
+  'maintenance',
+  'events',
+];
+const economyEntryKinds = ['income', 'expense'];
+const economyCategories = [
+  'arena',
+  'contracts',
+  'production',
+  'market',
+  'staff',
+  'maintenance',
+  'food',
+  'medicine',
+  'loan',
+  'event',
+  'building',
+  'other',
+];
+const loanIds = ['smallLoan', 'businessLoan', 'patronLoan'];
+const staffTypes = ['slave', 'guard', 'trainer'];
+const legacyRemovedBuildingActivities = [
+  {
+    activity: 'maintenance',
+    id: 'office.profitForecasting',
+    replacementId: 'domus.profitForecasting',
+  },
+  {
+    activity: 'contracts',
+    id: 'office.championshipBooking',
+    replacementId: 'domus.championshipBooking',
+  },
+  {
+    activity: 'contracts',
+    id: 'nobleTraining.patronSessions',
+    replacementId: 'trainingGround.nobleTraining',
+  },
+] as const;
 const eventConsequenceKinds = ['certain', 'chance', 'oneOf'];
 const eventEffectTypes = [
   'changeTreasury',
   'changeLudusReputation',
+  'changeLudusGlory',
+  'changeLudusSecurity',
+  'changeLudusHappiness',
+  'changeLudusRebellion',
   'removeGladiator',
+  'releaseAllGladiators',
   'changeGladiatorHealth',
   'changeGladiatorEnergy',
   'changeGladiatorMorale',
-  'changeGladiatorSatiety',
   'changeGladiatorStat',
 ];
 const eventStatFields = ['strength', 'agility', 'defense'];
@@ -82,6 +150,10 @@ function hasNumber(value: Record<string, unknown>, key: string) {
   return typeof value[key] === 'number' && Number.isFinite(value[key]);
 }
 
+function hasNonNegativeNumber(value: Record<string, unknown>, key: string) {
+  return hasNumber(value, key) && (value[key] as number) >= 0;
+}
+
 function hasBoolean(value: Record<string, unknown>, key: string) {
   return typeof value[key] === 'boolean';
 }
@@ -94,28 +166,44 @@ function hasOptionalString(value: Record<string, unknown>, key: string) {
   return value[key] === undefined || typeof value[key] === 'string';
 }
 
-function hasStringFrom(value: Record<string, unknown>, key: string, allowedValues: string[]) {
+function hasStringFrom(
+  value: Record<string, unknown>,
+  key: string,
+  allowedValues: readonly string[],
+) {
   return typeof value[key] === 'string' && allowedValues.includes(value[key]);
 }
 
-function isStringFrom(value: unknown, allowedValues: string[]) {
+function isStringFrom(value: unknown, allowedValues: readonly string[]) {
   return typeof value === 'string' && allowedValues.includes(value);
 }
 
-function hasNumberFrom(value: Record<string, unknown>, key: string, allowedValues: number[]) {
+function hasNumberFrom(
+  value: Record<string, unknown>,
+  key: string,
+  allowedValues: readonly number[],
+) {
   return typeof value[key] === 'number' && allowedValues.includes(value[key]);
 }
 
-function isLocationId(value: unknown): value is GladiatorLocationId {
-  return typeof value === 'string' && locationIds.includes(value);
+function isBuildingId(value: unknown): value is BuildingId {
+  return isStringFrom(value, requiredBuildingIds);
+}
+
+function isOptionalBuildingId(value: unknown): value is BuildingId | undefined {
+  return value === undefined || isBuildingId(value);
+}
+
+function isSupportedBuildingId(value: unknown) {
+  return isStringFrom(value, supportedBuildingIds);
+}
+
+function isStringArray(value: unknown) {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
 }
 
 function isGridCoord(value: unknown) {
   return isRecord(value) && hasNumber(value, 'column') && hasNumber(value, 'row');
-}
-
-function isOptionalLocationId(value: unknown) {
-  return value === undefined || isLocationId(value);
 }
 
 function isStringNumberRecord(value: unknown) {
@@ -173,33 +261,11 @@ function isBuildingState(value: unknown, buildingId: BuildingId) {
     hasBoolean(value, 'isPurchased') &&
     hasNumber(value, 'level') &&
     hasArray(value, 'purchasedImprovementIds') &&
+    hasArray(value, 'purchasedSkillIds') &&
+    hasArray(value, 'staffAssignmentIds') &&
+    hasNumber(value, 'efficiency') &&
     hasOptionalString(value, 'selectedPolicyId') &&
     (value.configuration === undefined || isRecord(value.configuration))
-  );
-}
-
-function isGladiatorMapMovement(value: unknown) {
-  return (
-    isRecord(value) &&
-    isLocationId(value.currentLocation) &&
-    isLocationId(value.targetLocation) &&
-    hasString(value, 'activity') &&
-    hasNumber(value, 'movementStartedAt') &&
-    hasNumber(value, 'movementDuration') &&
-    (value.minutesPerTile === undefined || typeof value.minutesPerTile === 'number') &&
-    (value.route === undefined || (Array.isArray(value.route) && value.route.every(isGridCoord))) &&
-    (value.tileSchedule === undefined ||
-      (Array.isArray(value.tileSchedule) &&
-        value.tileSchedule.every(isMapMovementTileScheduleEntry)))
-  );
-}
-
-function isMapMovementTileScheduleEntry(value: unknown) {
-  return (
-    isRecord(value) &&
-    isGridCoord(value.coord) &&
-    hasNumber(value, 'arrivalStamp') &&
-    hasNumber(value, 'departureStamp')
   );
 }
 
@@ -210,6 +276,15 @@ function isGladiatorTrainingPlan(value: unknown, gladiatorId: string) {
     hasNumber(value, 'strength') &&
     hasNumber(value, 'agility') &&
     hasNumber(value, 'defense')
+  );
+}
+
+function isGladiatorWeeklyInjury(value: unknown) {
+  return (
+    isRecord(value) &&
+    hasStringFrom(value, 'reason', ['training', 'combat', 'event']) &&
+    hasNumber(value, 'year') &&
+    hasNumber(value, 'week')
   );
 }
 
@@ -233,14 +308,9 @@ function isGladiator(value: unknown): value is Gladiator {
     hasNumber(value, 'losses') &&
     Array.isArray(value.traits) &&
     value.traits.every((trait) => isStringFrom(trait, gladiatorTraits)) &&
-    isOptionalLocationId(value.currentLocationId) &&
-    (value.currentBuildingId === undefined ||
-      isStringFrom(value.currentBuildingId, requiredBuildingIds)) &&
-    (value.currentActivityId === undefined || typeof value.currentActivityId === 'string') &&
-    (value.currentTaskStartedAt === undefined || typeof value.currentTaskStartedAt === 'number') &&
-    (value.mapMovement === undefined || isGladiatorMapMovement(value.mapMovement)) &&
     (value.trainingPlan === undefined ||
       isGladiatorTrainingPlan(value.trainingPlan, value.id as string)) &&
+    (value.weeklyInjury === undefined || isGladiatorWeeklyInjury(value.weeklyInjury)) &&
     (value.visualIdentity === undefined || isRecord(value.visualIdentity))
   );
 }
@@ -254,10 +324,7 @@ function isTimeState(value: unknown) {
     hasNumber(value, 'year') &&
     hasNumber(value, 'week') &&
     hasStringFrom(value, 'dayOfWeek', dayOfWeeks) &&
-    hasNumber(value, 'hour') &&
-    hasNumber(value, 'minute') &&
-    hasNumberFrom(value, 'speed', gameSpeeds) &&
-    hasBoolean(value, 'isPaused')
+    hasStringFrom(value, 'phase', gamePhases)
   );
 }
 
@@ -358,18 +425,6 @@ function isArenaState(value: unknown) {
   );
 }
 
-function isPlanningRoutine(value: unknown): value is GladiatorRoutine {
-  return (
-    isRecord(value) &&
-    hasString(value, 'gladiatorId') &&
-    hasStringFrom(value, 'objective', legacyWeeklyObjectives) &&
-    hasStringFrom(value, 'intensity', trainingIntensities) &&
-    hasBoolean(value, 'allowAutomaticAssignment') &&
-    (value.lockedBuildingId === undefined ||
-      isStringFrom(value.lockedBuildingId, requiredBuildingIds))
-  );
-}
-
 function isGameAlert(value: unknown): value is GameAlert {
   return (
     isRecord(value) &&
@@ -383,15 +438,228 @@ function isGameAlert(value: unknown): value is GameAlert {
   );
 }
 
+function isDailyPlanPoints(value: unknown): value is DailyPlanPoints {
+  return (
+    isRecord(value) &&
+    dailyPlanActivities.every((activity) => hasNonNegativeNumber(value, activity)) &&
+    Object.keys(value).every((key) => isStringFrom(key, dailyPlanActivities))
+  );
+}
+
+function isBuildingActivitySelections(
+  value: unknown,
+): value is DailyPlanBuildingActivitySelections {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return Object.entries(value).every(([activity, activityId]) => {
+    if (!isStringFrom(activity, dailyPlanActivities) || typeof activityId !== 'string') {
+      return false;
+    }
+
+    const isCurrentActivitySelection = BUILDING_ACTIVITY_DEFINITIONS.some(
+      (definition) => definition.id === activityId && definition.activity === activity,
+    );
+    const isLegacyActivitySelection = legacyRemovedBuildingActivities.some(
+      (definition) => definition.id === activityId && definition.activity === activity,
+    );
+
+    return isCurrentActivitySelection || isLegacyActivitySelection;
+  });
+}
+
+function isDailyPlan(value: unknown, dayOfWeek: DayOfWeek): value is DailyPlan {
+  return (
+    isRecord(value) &&
+    value.dayOfWeek === dayOfWeek &&
+    isDailyPlanPoints(value.gladiatorTimePoints) &&
+    isDailyPlanPoints(value.laborPoints) &&
+    isDailyPlanPoints(value.adminPoints) &&
+    (value.buildingActivitySelections === undefined ||
+      isBuildingActivitySelections(value.buildingActivitySelections))
+  );
+}
+
+function isDailyPlansRecord(value: unknown) {
+  return (
+    isRecord(value) &&
+    dayOfWeeks.every((dayOfWeek) => isDailyPlan(value[dayOfWeek], dayOfWeek)) &&
+    Object.keys(value).every((key) => isStringFrom(key, dayOfWeeks))
+  );
+}
+
+function isDailySimulationSummary(value: unknown): value is DailySimulationSummary {
+  return (
+    isRecord(value) &&
+    hasStringFrom(value, 'dayOfWeek', dayOfWeeks) &&
+    hasNumber(value, 'treasuryDelta') &&
+    hasNumber(value, 'reputationDelta') &&
+    hasNumber(value, 'gloryDelta') &&
+    hasNumber(value, 'happinessDelta') &&
+    hasNumber(value, 'securityDelta') &&
+    hasNumber(value, 'rebellionDelta') &&
+    isStringArray(value.injuredGladiatorIds) &&
+    isStringArray(value.eventIds)
+  );
+}
+
+function isWeeklyReport(value: unknown): value is WeeklyReport {
+  return (
+    isRecord(value) &&
+    hasString(value, 'id') &&
+    hasNumber(value, 'year') &&
+    hasNumber(value, 'week') &&
+    Array.isArray(value.days) &&
+    value.days.every(isDailySimulationSummary) &&
+    hasNumber(value, 'treasuryDelta') &&
+    hasNumber(value, 'reputationDelta') &&
+    hasNumber(value, 'gloryDelta') &&
+    hasNumber(value, 'happinessDelta') &&
+    hasNumber(value, 'securityDelta') &&
+    hasNumber(value, 'rebellionDelta') &&
+    hasNonNegativeNumber(value, 'injuries')
+  );
+}
+
 function isPlanningState(value: unknown) {
   return (
     isRecord(value) &&
     hasNumber(value, 'week') &&
     hasNumber(value, 'year') &&
-    Array.isArray(value.routines) &&
+    isDailyPlansRecord(value.days) &&
+    Array.isArray(value.reports) &&
+    value.reports.every(isWeeklyReport) &&
     Array.isArray(value.alerts) &&
-    value.routines.every(isPlanningRoutine) &&
     value.alerts.every(isGameAlert)
+  );
+}
+
+function isEconomyCategoryTotals(value: unknown) {
+  return (
+    isRecord(value) &&
+    Object.entries(value).every(
+      ([category, amount]) =>
+        isStringFrom(category, economyCategories) &&
+        typeof amount === 'number' &&
+        Number.isFinite(amount) &&
+        amount >= 0,
+    )
+  );
+}
+
+function isWeeklyProjection(value: unknown): value is WeeklyProjection {
+  return (
+    isRecord(value) &&
+    isEconomyCategoryTotals(value.incomeByCategory) &&
+    isEconomyCategoryTotals(value.expenseByCategory) &&
+    hasNumber(value, 'net')
+  );
+}
+
+function isEconomyLedgerEntry(value: unknown): value is EconomyLedgerEntry {
+  return (
+    isRecord(value) &&
+    hasString(value, 'id') &&
+    hasNumber(value, 'year') &&
+    hasNumber(value, 'week') &&
+    hasStringFrom(value, 'dayOfWeek', dayOfWeeks) &&
+    hasStringFrom(value, 'kind', economyEntryKinds) &&
+    hasStringFrom(value, 'category', economyCategories) &&
+    hasNonNegativeNumber(value, 'amount') &&
+    hasString(value, 'labelKey') &&
+    isOptionalBuildingId(value.buildingId) &&
+    hasOptionalString(value, 'relatedId')
+  );
+}
+
+function isActiveLoan(value: unknown): value is ActiveLoan {
+  return (
+    isRecord(value) &&
+    hasString(value, 'id') &&
+    hasStringFrom(value, 'definitionId', loanIds) &&
+    hasNonNegativeNumber(value, 'principal') &&
+    hasNonNegativeNumber(value, 'remainingBalance') &&
+    hasNonNegativeNumber(value, 'weeklyPayment') &&
+    hasNonNegativeNumber(value, 'remainingWeeks') &&
+    hasNumber(value, 'startedYear') &&
+    hasNumber(value, 'startedWeek')
+  );
+}
+
+function isEconomyState(value: unknown): value is EconomyState {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.ledgerEntries) &&
+    value.ledgerEntries.every(isEconomyLedgerEntry) &&
+    Array.isArray(value.activeLoans) &&
+    value.activeLoans.every(isActiveLoan) &&
+    (value.currentWeekSummary === undefined || isWeeklyProjection(value.currentWeekSummary)) &&
+    isWeeklyProjection(value.weeklyProjection)
+  );
+}
+
+function normalizeEconomyState(economyState?: EconomyState): EconomyState {
+  const initialEconomyState = createInitialEconomyState();
+
+  if (!economyState) {
+    return initialEconomyState;
+  }
+
+  return {
+    ...economyState,
+    currentWeekSummary: economyState.currentWeekSummary ?? initialEconomyState.currentWeekSummary,
+    weeklyProjection: economyState.weeklyProjection ?? initialEconomyState.weeklyProjection,
+  };
+}
+
+function isStaffBuildingExperience(value: unknown) {
+  return (
+    isRecord(value) &&
+    Object.entries(value).every(
+      ([buildingId, experience]) =>
+        isStringFrom(buildingId, supportedBuildingIds) &&
+        typeof experience === 'number' &&
+        Number.isFinite(experience) &&
+        experience >= 0,
+    )
+  );
+}
+
+function isStaffMember(value: unknown): value is StaffMember {
+  return (
+    isRecord(value) &&
+    hasString(value, 'id') &&
+    hasString(value, 'name') &&
+    hasStringFrom(value, 'type', staffTypes) &&
+    hasString(value, 'visualId') &&
+    typeof value.visualId === 'string' &&
+    isStaffVisualIdForType(value.type as StaffType, value.visualId) &&
+    hasNonNegativeNumber(value, 'weeklyWage') &&
+    isStaffBuildingExperience(value.buildingExperience) &&
+    (value.assignedBuildingId === undefined || isSupportedBuildingId(value.assignedBuildingId))
+  );
+}
+
+function isStaffMarketCandidate(value: unknown): value is StaffMarketCandidate {
+  return isRecord(value) && isStaffMember(value) && hasNonNegativeNumber(value, 'price');
+}
+
+function isStaffAssignment(value: unknown): value is StaffAssignment {
+  return (
+    isRecord(value) && isSupportedBuildingId(value.buildingId) && isStringArray(value.staffIds)
+  );
+}
+
+function isStaffState(value: unknown): value is StaffState {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.members) &&
+    value.members.every(isStaffMember) &&
+    Array.isArray(value.assignments) &&
+    value.assignments.every(isStaffAssignment) &&
+    Array.isArray(value.marketCandidates) &&
+    value.marketCandidates.every(isStaffMarketCandidate)
   );
 }
 
@@ -412,6 +680,10 @@ function isGameEventEffect(value: unknown) {
 
   if (effectType === 'removeGladiator') {
     return hasString(value, 'gladiatorId');
+  }
+
+  if (effectType === 'releaseAllGladiators') {
+    return true;
   }
 
   if (effectType.startsWith('changeGladiator')) {
@@ -560,7 +832,12 @@ function isSupportedGameSave(value: unknown): value is GameSave {
   if (
     !isRecord(value.ludus) ||
     !hasNumber(value.ludus, 'treasury') ||
-    !hasNumber(value.ludus, 'reputation')
+    !hasNumber(value.ludus, 'reputation') ||
+    !hasNumber(value.ludus, 'glory') ||
+    !hasNumber(value.ludus, 'security') ||
+    !hasNumber(value.ludus, 'happiness') ||
+    !hasNumber(value.ludus, 'rebellion') ||
+    !hasStringFrom(value.ludus, 'gameStatus', gameStatuses)
   ) {
     return false;
   }
@@ -569,7 +846,11 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     return false;
   }
 
-  if (value.schemaVersion === CURRENT_SCHEMA_VERSION && !isMapState(value.map)) {
+  if (
+    value.schemaVersion === CURRENT_SCHEMA_VERSION &&
+    value.map !== undefined &&
+    !isRecord(value.map)
+  ) {
     return false;
   }
 
@@ -583,6 +864,8 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     requiredBuildingIds.every((buildingId) => isBuildingState(buildings[buildingId], buildingId)) &&
     Array.isArray(value.gladiators) &&
     value.gladiators.every(isGladiator) &&
+    isEconomyState(value.economy) &&
+    isStaffState(value.staff) &&
     isMarketState(value.market) &&
     isArenaState(value.arena) &&
     isPlanningState(value.planning) &&
@@ -616,6 +899,9 @@ function normalizeBuilding(
 ): GameSave['buildings'][BuildingId] {
   const normalizedBuilding = {
     ...building,
+    efficiency: building.efficiency ?? (building.isPurchased ? 100 : 0),
+    purchasedSkillIds: building.purchasedSkillIds ?? [],
+    staffAssignmentIds: building.staffAssignmentIds ?? [],
     purchasedImprovementIds: normalizePurchasedImprovementIds(
       building.id,
       building.purchasedImprovementIds,
@@ -656,49 +942,29 @@ function stripLegacyGladiatorFields(gladiator: Gladiator): Gladiator {
   const gladiatorWithoutClass = { ...gladiator } as Gladiator & {
     classId?: unknown;
     satiety?: unknown;
+    currentLocationId?: unknown;
+    currentBuildingId?: unknown;
+    currentActivityId?: unknown;
+    currentTaskStartedAt?: unknown;
+    mapMovement?: unknown;
   };
   delete gladiatorWithoutClass.classId;
   delete gladiatorWithoutClass.satiety;
+  delete gladiatorWithoutClass.currentLocationId;
+  delete gladiatorWithoutClass.currentBuildingId;
+  delete gladiatorWithoutClass.currentActivityId;
+  delete gladiatorWithoutClass.currentTaskStartedAt;
+  delete gladiatorWithoutClass.mapMovement;
 
   return {
     ...gladiatorWithoutClass,
+    weeklyInjury: gladiator.weeklyInjury,
     visualIdentity: normalizeVisualIdentity(gladiatorWithoutClass.visualIdentity),
   };
 }
 
 function normalizeGladiator(gladiator: Gladiator): Gladiator {
-  const strippedGladiator = stripLegacyGladiatorFields(gladiator);
-  const movement = strippedGladiator.mapMovement;
-
-  if (movement) {
-    return {
-      ...strippedGladiator,
-      currentLocationId: undefined,
-      currentBuildingId: undefined,
-      mapMovement: {
-        ...movement,
-        currentLocation: isLocationId(movement.currentLocation)
-          ? movement.currentLocation
-          : (strippedGladiator.currentBuildingId ?? 'domus'),
-        targetLocation: isLocationId(movement.targetLocation)
-          ? movement.targetLocation
-          : (strippedGladiator.currentBuildingId ?? 'domus'),
-      },
-    };
-  }
-
-  const currentLocationId = isLocationId(strippedGladiator.currentLocationId)
-    ? strippedGladiator.currentLocationId
-    : strippedGladiator.currentBuildingId;
-
-  return {
-    ...strippedGladiator,
-    currentLocationId,
-    currentBuildingId:
-      currentLocationId && requiredBuildingIds.includes(currentLocationId as BuildingId)
-        ? (currentLocationId as BuildingId)
-        : undefined,
-  };
+  return stripLegacyGladiatorFields(gladiator);
 }
 
 function normalizeCombatState<TCombat extends GameSave['arena']['resolvedCombats'][number]>(
@@ -716,20 +982,123 @@ function normalizeCombatState<TCombat extends GameSave['arena']['resolvedCombats
   } as TCombat;
 }
 
-function normalizePlanningRoutine(routine: GladiatorRoutine): GladiatorRoutine {
-  const routineWithoutStrategy = { ...routine } as GladiatorRoutine & { combatStrategy?: unknown };
-  delete routineWithoutStrategy.combatStrategy;
-  const legacyObjective = (routine as { objective: string }).objective;
+function normalizeBuildingActivitySelections(
+  buildingActivitySelections: unknown,
+): DailyPlanBuildingActivitySelections {
+  if (!isBuildingActivitySelections(buildingActivitySelections)) {
+    return {};
+  }
+
+  const supportedSelections = buildingActivitySelections as Record<string, string>;
+
+  return Object.fromEntries(
+    Object.entries(supportedSelections).flatMap(([activity, activityId]) => {
+      const currentDefinition = BUILDING_ACTIVITY_DEFINITIONS.find(
+        (definition) => definition.id === activityId && definition.activity === activity,
+      );
+
+      if (currentDefinition) {
+        return [[activity, activityId]];
+      }
+
+      const legacyDefinition = legacyRemovedBuildingActivities.find(
+        (definition) => definition.id === activityId && definition.activity === activity,
+      );
+      const replacementDefinition = legacyDefinition
+        ? BUILDING_ACTIVITY_DEFINITIONS.find(
+            (definition) =>
+              definition.id === legacyDefinition.replacementId && definition.activity === activity,
+          )
+        : undefined;
+
+      return replacementDefinition ? [[activity, replacementDefinition.id]] : [];
+    }),
+  ) as DailyPlanBuildingActivitySelections;
+}
+
+function normalizeDailyPlan(dayPlan: unknown, fallbackPlan: DailyPlan): DailyPlan {
+  if (!isRecord(dayPlan)) {
+    return fallbackPlan;
+  }
 
   return {
-    ...routineWithoutStrategy,
-    objective:
-      legacyObjective === 'fightPreparation' ? 'balanced' : routineWithoutStrategy.objective,
+    dayOfWeek: fallbackPlan.dayOfWeek,
+    gladiatorTimePoints: isDailyPlanPoints(dayPlan.gladiatorTimePoints)
+      ? dayPlan.gladiatorTimePoints
+      : fallbackPlan.gladiatorTimePoints,
+    laborPoints: isDailyPlanPoints(dayPlan.laborPoints)
+      ? dayPlan.laborPoints
+      : fallbackPlan.laborPoints,
+    adminPoints: isDailyPlanPoints(dayPlan.adminPoints)
+      ? dayPlan.adminPoints
+      : fallbackPlan.adminPoints,
+    buildingActivitySelections: normalizeBuildingActivitySelections(
+      dayPlan.buildingActivitySelections,
+    ),
+  };
+}
+
+function normalizeDailyPlans(
+  dailyPlans: unknown,
+  fallbackPlans: Record<DayOfWeek, DailyPlan>,
+): Record<DayOfWeek, DailyPlan> {
+  if (!isRecord(dailyPlans)) {
+    return fallbackPlans;
+  }
+
+  return Object.fromEntries(
+    dayOfWeeks.map((dayOfWeek) => [
+      dayOfWeek,
+      normalizeDailyPlan(dailyPlans[dayOfWeek], fallbackPlans[dayOfWeek]),
+    ]),
+  ) as Record<DayOfWeek, DailyPlan>;
+}
+
+function normalizeBuildingExperience(buildingExperience: StaffMember['buildingExperience']) {
+  return Object.fromEntries(
+    Object.entries(buildingExperience).filter(([buildingId]) => isBuildingId(buildingId)),
+  ) as StaffMember['buildingExperience'];
+}
+
+function normalizeStaffMember<TStaffMember extends StaffMember>(
+  staffMember: TStaffMember,
+): TStaffMember {
+  const normalizedStaffMember = {
+    ...staffMember,
+    buildingExperience: normalizeBuildingExperience(staffMember.buildingExperience),
+  } as TStaffMember & { assignedBuildingId?: unknown };
+
+  if (!isOptionalBuildingId(normalizedStaffMember.assignedBuildingId)) {
+    delete normalizedStaffMember.assignedBuildingId;
+  }
+
+  return normalizedStaffMember as TStaffMember;
+}
+
+function normalizeStaffAssignments(assignments: StaffAssignment[]) {
+  return assignments.filter((assignment) => isBuildingId(assignment.buildingId));
+}
+
+function normalizeStaffState(staffState?: StaffState): StaffState {
+  const initialStaffState = createInitialStaffState();
+
+  if (!staffState) {
+    return initialStaffState;
+  }
+
+  return {
+    ...staffState,
+    assignments: normalizeStaffAssignments(staffState.assignments ?? []),
+    marketCandidates: (staffState.marketCandidates ?? initialStaffState.marketCandidates).map(
+      normalizeStaffMember,
+    ),
+    members: (staffState.members ?? initialStaffState.members).map(normalizeStaffMember),
   };
 }
 
 export function normalizeGameSave(save: GameSave): GameSave {
   const saveWithOptionalMap = save as GameSave & { gameId?: unknown; map?: unknown };
+  const defaultWeeklyPlan = createDefaultWeeklyPlan(save.time.year, save.time.week);
   const normalizedSave: GameSave & { contracts?: unknown; settings?: unknown } = {
     ...save,
     schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -739,9 +1108,26 @@ export function normalizeGameSave(save: GameSave): GameSave {
       ludusName: save.player.ludusName,
       isCloudUser: save.player.isCloudUser,
     },
+    ludus: {
+      treasury: save.ludus.treasury,
+      reputation: save.ludus.reputation,
+      glory: save.ludus.glory ?? 0,
+      security: save.ludus.security ?? 50,
+      happiness: save.ludus.happiness ?? 65,
+      rebellion: save.ludus.rebellion ?? 0,
+      gameStatus: save.ludus.gameStatus ?? 'active',
+    },
+    time: {
+      year: save.time.year,
+      week: save.time.week,
+      dayOfWeek: save.time.dayOfWeek,
+      phase: save.time.phase ?? 'planning',
+    },
     map: normalizeMapState(saveWithOptionalMap.map),
     buildings: normalizeBuildings(save.buildings),
     gladiators: save.gladiators.map(normalizeGladiator),
+    economy: normalizeEconomyState(save.economy),
+    staff: normalizeStaffState(save.staff),
     market: {
       ...save.market,
       availableGladiators: save.market.availableGladiators.map((gladiator) => ({
@@ -754,8 +1140,11 @@ export function normalizeGameSave(save: GameSave): GameSave {
       resolvedCombats: save.arena.resolvedCombats.map(normalizeCombatState),
     },
     planning: {
-      ...save.planning,
-      routines: save.planning.routines.map(normalizePlanningRoutine),
+      year: save.planning.year,
+      week: save.planning.week,
+      days: normalizeDailyPlans(save.planning.days, defaultWeeklyPlan.days),
+      reports: save.planning.reports ?? [],
+      alerts: save.planning.alerts ?? [],
     },
     events: {
       pendingEvents: [],
@@ -769,7 +1158,9 @@ export function normalizeGameSave(save: GameSave): GameSave {
   delete (normalizedSave.arena as GameSave['arena'] & { betting?: unknown }).betting;
   delete (normalizedSave.arena as GameSave['arena'] & { pendingCombats?: unknown }).pendingCombats;
 
-  return normalizedSave;
+  return updateBuildingEfficiencies(
+    synchronizeStaffAssignments(updateCurrentWeekSummary(normalizedSave)),
+  );
 }
 
 export function parseGameSave(value: string): GameSave | null {

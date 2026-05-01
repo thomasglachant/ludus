@@ -1,30 +1,46 @@
 import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../../game-data/building-improvements';
+import { BUILDING_SKILLS } from '../../game-data/building-skills';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
+import {
+  addLedgerEntry,
+  createLedgerEntry,
+  updateCurrentWeekSummary,
+} from '../economy/economy-actions';
+import { updateBuildingEfficiencies } from './building-staffing';
+import {
+  findBuildingPurchaseLevelDefinition,
+  getBuildingPurchaseTargetLevel,
+} from './building-unlocks';
 import type { GameSave } from '../saves/types';
 import type {
   BuildingId,
   BuildingImprovementDefinition,
   BuildingLevelDefinition,
   BuildingPolicyDefinition,
+  BuildingSkillDefinition,
 } from './types';
 
 export type BuildingActionFailureReason =
   | 'alreadyPurchased'
   | 'alreadyPurchasedImprovement'
+  | 'alreadyPurchasedSkill'
   | 'alreadySelectedPolicy'
   | 'insufficientTreasury'
   | 'missingBuildingLevel'
   | 'missingDomusLevel'
   | 'missingImprovementPrerequisite'
+  | 'missingSkillPrerequisite'
   | 'notPurchased'
   | 'unavailableImprovement'
   | 'unavailableLevel'
-  | 'unavailablePolicy';
+  | 'unavailablePolicy'
+  | 'unavailableSkill';
 
 export interface BuildingActionValidation {
   isAllowed: boolean;
   cost: number;
   missingImprovementIds?: string[];
+  missingSkillIds?: string[];
   requiredBuildingLevel?: number;
   targetLevel?: number;
   reason?: BuildingActionFailureReason;
@@ -61,6 +77,13 @@ function findBuildingPolicy(
   );
 }
 
+function findBuildingSkill(
+  buildingId: BuildingId,
+  skillId: string,
+): BuildingSkillDefinition | undefined {
+  return BUILDING_SKILLS.find((skill) => skill.buildingId === buildingId && skill.id === skillId);
+}
+
 function validateTreasury(save: GameSave, cost: number): BuildingActionValidation | null {
   if (save.ludus.treasury < cost) {
     return {
@@ -90,6 +113,34 @@ function validateDomusLevel(
   return null;
 }
 
+function recordBuildingExpense(
+  save: GameSave,
+  buildingId: BuildingId,
+  amount: number,
+  labelKey: string,
+  relatedId: string = buildingId,
+) {
+  const saveWithEfficiencies = updateBuildingEfficiencies(save);
+
+  if (amount <= 0) {
+    return updateCurrentWeekSummary(saveWithEfficiencies);
+  }
+
+  return updateCurrentWeekSummary(
+    addLedgerEntry(
+      saveWithEfficiencies,
+      createLedgerEntry(saveWithEfficiencies, {
+        kind: 'expense',
+        category: 'building',
+        amount,
+        labelKey,
+        buildingId,
+        relatedId,
+      }),
+    ),
+  );
+}
+
 export function validateBuildingPurchase(
   save: GameSave,
   buildingId: BuildingId,
@@ -104,8 +155,8 @@ export function validateBuildingPurchase(
     };
   }
 
-  const targetLevel = BUILDING_DEFINITIONS[buildingId].startsAtLevel || 1;
-  const levelDefinition = findBuildingLevel(buildingId, targetLevel);
+  const targetLevel = getBuildingPurchaseTargetLevel(buildingId);
+  const levelDefinition = findBuildingPurchaseLevelDefinition(buildingId);
 
   if (!levelDefinition) {
     return {
@@ -303,6 +354,72 @@ export function validateBuildingPolicySelection(
   };
 }
 
+export function validateBuildingSkillPurchase(
+  save: GameSave,
+  buildingId: BuildingId,
+  skillId: string,
+): BuildingActionValidation {
+  const building = save.buildings[buildingId];
+  const skill = findBuildingSkill(buildingId, skillId);
+
+  if (!skill) {
+    return {
+      isAllowed: false,
+      cost: 0,
+      reason: 'unavailableSkill',
+    };
+  }
+
+  if (!building.isPurchased) {
+    return {
+      isAllowed: false,
+      cost: skill.cost,
+      reason: 'notPurchased',
+    };
+  }
+
+  if (building.level < skill.requiredBuildingLevel) {
+    return {
+      isAllowed: false,
+      cost: skill.cost,
+      reason: 'missingBuildingLevel',
+      requiredBuildingLevel: skill.requiredBuildingLevel,
+    };
+  }
+
+  if (building.purchasedSkillIds.includes(skill.id)) {
+    return {
+      isAllowed: false,
+      cost: skill.cost,
+      reason: 'alreadyPurchasedSkill',
+    };
+  }
+
+  const missingSkillIds = (skill.requiredSkillIds ?? []).filter(
+    (requiredSkillId) => !building.purchasedSkillIds.includes(requiredSkillId),
+  );
+
+  if (missingSkillIds.length > 0) {
+    return {
+      isAllowed: false,
+      cost: skill.cost,
+      reason: 'missingSkillPrerequisite',
+      missingSkillIds,
+    };
+  }
+
+  const treasuryValidation = validateTreasury(save, skill.cost);
+
+  if (treasuryValidation) {
+    return treasuryValidation;
+  }
+
+  return {
+    isAllowed: true,
+    cost: skill.cost,
+  };
+}
+
 export function purchaseBuilding(save: GameSave, buildingId: BuildingId): BuildingActionResult {
   const validation = validateBuildingPurchase(save, buildingId);
 
@@ -312,21 +429,22 @@ export function purchaseBuilding(save: GameSave, buildingId: BuildingId): Buildi
 
   return {
     validation,
-    save: {
-      ...save,
-      ludus: {
-        ...save.ludus,
-        treasury: save.ludus.treasury - validation.cost,
-      },
-      buildings: {
-        ...save.buildings,
-        [buildingId]: {
-          ...save.buildings[buildingId],
-          isPurchased: true,
-          level: validation.targetLevel,
+    save: recordBuildingExpense(
+      {
+        ...save,
+        buildings: {
+          ...save.buildings,
+          [buildingId]: {
+            ...save.buildings[buildingId],
+            isPurchased: true,
+            level: validation.targetLevel,
+          },
         },
       },
-    },
+      buildingId,
+      validation.cost,
+      'finance.ledger.buildingPurchase',
+    ),
   };
 }
 
@@ -339,20 +457,21 @@ export function upgradeBuilding(save: GameSave, buildingId: BuildingId): Buildin
 
   return {
     validation,
-    save: {
-      ...save,
-      ludus: {
-        ...save.ludus,
-        treasury: save.ludus.treasury - validation.cost,
-      },
-      buildings: {
-        ...save.buildings,
-        [buildingId]: {
-          ...save.buildings[buildingId],
-          level: validation.targetLevel,
+    save: recordBuildingExpense(
+      {
+        ...save,
+        buildings: {
+          ...save.buildings,
+          [buildingId]: {
+            ...save.buildings[buildingId],
+            level: validation.targetLevel,
+          },
         },
       },
-    },
+      buildingId,
+      validation.cost,
+      'finance.ledger.buildingUpgrade',
+    ),
   };
 }
 
@@ -369,23 +488,25 @@ export function purchaseBuildingImprovement(
 
   return {
     validation,
-    save: {
-      ...save,
-      ludus: {
-        ...save.ludus,
-        treasury: save.ludus.treasury - validation.cost,
-      },
-      buildings: {
-        ...save.buildings,
-        [buildingId]: {
-          ...save.buildings[buildingId],
-          purchasedImprovementIds: [
-            ...save.buildings[buildingId].purchasedImprovementIds,
-            improvementId,
-          ],
+    save: recordBuildingExpense(
+      {
+        ...save,
+        buildings: {
+          ...save.buildings,
+          [buildingId]: {
+            ...save.buildings[buildingId],
+            purchasedImprovementIds: [
+              ...save.buildings[buildingId].purchasedImprovementIds,
+              improvementId,
+            ],
+          },
         },
       },
-    },
+      buildingId,
+      validation.cost,
+      'finance.ledger.buildingImprovement',
+      improvementId,
+    ),
   };
 }
 
@@ -402,19 +523,53 @@ export function selectBuildingPolicy(
 
   return {
     validation,
-    save: {
-      ...save,
-      ludus: {
-        ...save.ludus,
-        treasury: save.ludus.treasury - validation.cost,
-      },
-      buildings: {
-        ...save.buildings,
-        [buildingId]: {
-          ...save.buildings[buildingId],
-          selectedPolicyId: policyId,
+    save: recordBuildingExpense(
+      {
+        ...save,
+        buildings: {
+          ...save.buildings,
+          [buildingId]: {
+            ...save.buildings[buildingId],
+            selectedPolicyId: policyId,
+          },
         },
       },
-    },
+      buildingId,
+      validation.cost,
+      'finance.ledger.buildingPolicy',
+      policyId,
+    ),
+  };
+}
+
+export function purchaseBuildingSkill(
+  save: GameSave,
+  buildingId: BuildingId,
+  skillId: string,
+): BuildingActionResult {
+  const validation = validateBuildingSkillPurchase(save, buildingId, skillId);
+
+  if (!validation.isAllowed) {
+    return { save, validation };
+  }
+
+  return {
+    validation,
+    save: recordBuildingExpense(
+      {
+        ...save,
+        buildings: {
+          ...save.buildings,
+          [buildingId]: {
+            ...save.buildings[buildingId],
+            purchasedSkillIds: [...save.buildings[buildingId].purchasedSkillIds, skillId],
+          },
+        },
+      },
+      buildingId,
+      validation.cost,
+      'finance.ledger.buildingSkill',
+      skillId,
+    ),
   };
 }

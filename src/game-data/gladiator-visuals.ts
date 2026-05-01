@@ -1,5 +1,14 @@
-import type { GladiatorVisualIdentity } from '../domain/gladiators/types';
-import { createGladiatorVisualVariantSet } from './gladiator-visual-variants';
+import { inferGladiatorClassId } from '../domain/gladiators/skills';
+import type {
+  GladiatorClassId,
+  GladiatorSkillProfile,
+  GladiatorVisualIdentity,
+} from '../domain/gladiators/types';
+import {
+  createGladiatorVisualVariantSet,
+  type GladiatorClothingStyle,
+  type GladiatorVisualVariantSet,
+} from './gladiator-visual-variants';
 import {
   getGladiatorCombatAnimationDefinitionById,
   getGladiatorMapAnimationDefinitionById,
@@ -10,8 +19,9 @@ import {
   type GladiatorMapAnimationId,
 } from './gladiator-animations';
 import {
-  PRODUCTION_VISUAL_ASSET_MANIFEST,
   getFallbackGladiatorAssetSet,
+  getGladiatorClassPortraitAssetPath,
+  getGladiatorClassVisualAssetId,
   getGladiatorAssetSet,
   GLADIATOR_VISUAL_ASSET_IDS,
 } from './visual-assets';
@@ -29,10 +39,42 @@ export interface GladiatorAnimationAsset<
   spritesheetPath?: string;
 }
 
+export interface GladiatorVisualIdentityOptions {
+  classId?: GladiatorClassId;
+  skillProfile?: GladiatorSkillProfile;
+}
+
 function getStableIndex(seed: string, length: number) {
   const total = Array.from(seed).reduce((value, character) => value + character.charCodeAt(0), 0);
 
   return total % length;
+}
+
+function getArmorStyle(clothingStyle: GladiatorClothingStyle) {
+  if (clothingStyle === 'bronzeCuirass') {
+    return 'bronze';
+  }
+
+  if (clothingStyle === 'leatherHarness') {
+    return 'leather';
+  }
+
+  return clothingStyle;
+}
+
+function getHairStyle(variants: GladiatorVisualVariantSet) {
+  return variants.headwearStyle === 'none' ? variants.hairAndBeardStyle : variants.headwearStyle;
+}
+
+function getPaletteId(variants: GladiatorVisualVariantSet) {
+  return `${variants.clothingColor}-${variants.skinTone}`;
+}
+
+function resolveClassId(options?: GladiatorVisualIdentityOptions) {
+  return (
+    options?.classId ??
+    (options?.skillProfile ? inferGladiatorClassId(options.skillProfile) : undefined)
+  );
 }
 
 function getFrameNames(frameKey: GladiatorFrameKey, count: number) {
@@ -89,34 +131,59 @@ function createAnimationAsset<
   };
 }
 
-export function createGladiatorVisualIdentity(seed: string): GladiatorVisualIdentity {
-  const assetId =
-    GLADIATOR_VISUAL_ASSET_IDS[getStableIndex(seed, GLADIATOR_VISUAL_ASSET_IDS.length)];
-  const assetSet = getGladiatorAssetSet(assetId) ?? getFallbackGladiatorAssetSet();
-  const variants = createGladiatorVisualVariantSet(seed);
-
+function createVisualIdentity(
+  assetId: string,
+  manifestAssetSet: GladiatorAssetSet | undefined,
+  variants: GladiatorVisualVariantSet,
+  classId?: GladiatorClassId,
+): GladiatorVisualIdentity {
   return {
+    classId,
     portraitAssetId: assetId,
     spriteAssetId: assetId,
-    paletteId: assetSet.paletteId,
-    bodyType: assetSet.bodyType,
-    hairStyle: assetSet.hairStyle,
-    armorStyle: assetSet.armorStyle,
-    clothingStyle: assetSet.clothingStyle ?? variants.clothingStyle,
-    clothingColor: assetSet.clothingColor ?? variants.clothingColor,
-    hairAndBeardStyle: assetSet.hairAndBeardStyle ?? variants.hairAndBeardStyle,
-    headwearStyle: assetSet.headwearStyle ?? variants.headwearStyle,
-    bodyBuildStyle: assetSet.bodyBuildStyle ?? variants.bodyBuildStyle,
-    skinTone: assetSet.skinTone ?? variants.skinTone,
-    markingStyle: assetSet.markingStyle ?? variants.markingStyle,
+    paletteId: manifestAssetSet?.paletteId ?? getPaletteId(variants),
+    bodyType: manifestAssetSet?.bodyType ?? variants.bodyBuildStyle,
+    hairStyle: manifestAssetSet?.hairStyle ?? getHairStyle(variants),
+    armorStyle: manifestAssetSet?.armorStyle ?? getArmorStyle(variants.clothingStyle),
+    clothingStyle: manifestAssetSet?.clothingStyle ?? variants.clothingStyle,
+    clothingColor: manifestAssetSet?.clothingColor ?? variants.clothingColor,
+    hairAndBeardStyle: manifestAssetSet?.hairAndBeardStyle ?? variants.hairAndBeardStyle,
+    headwearStyle: manifestAssetSet?.headwearStyle ?? variants.headwearStyle,
+    bodyBuildStyle: manifestAssetSet?.bodyBuildStyle ?? variants.bodyBuildStyle,
+    skinTone: manifestAssetSet?.skinTone ?? variants.skinTone,
+    markingStyle: manifestAssetSet?.markingStyle ?? variants.markingStyle,
   };
+}
+
+export function createGladiatorVisualIdentity(
+  seed: string,
+  options?: GladiatorVisualIdentityOptions,
+): GladiatorVisualIdentity {
+  const classId = resolveClassId(options);
+  const visualAssetId = classId
+    ? getGladiatorClassVisualAssetId(classId)
+    : GLADIATOR_VISUAL_ASSET_IDS[getStableIndex(seed, GLADIATOR_VISUAL_ASSET_IDS.length)];
+  const assetSet = getGladiatorAssetSet(visualAssetId);
+  const variants = createGladiatorVisualVariantSet(seed, classId);
+
+  return createVisualIdentity(visualAssetId, assetSet, variants, classId);
 }
 
 export function getGladiatorVisualIdentity(
   seed: string,
   visualIdentity?: GladiatorVisualIdentity,
+  options?: GladiatorVisualIdentityOptions,
 ): GladiatorVisualIdentity {
-  return visualIdentity ?? createGladiatorVisualIdentity(seed);
+  const classId = resolveClassId(options);
+
+  if (!classId) {
+    return visualIdentity ?? createGladiatorVisualIdentity(seed);
+  }
+
+  return createGladiatorVisualIdentity(seed, {
+    classId,
+    skillProfile: options?.skillProfile,
+  });
 }
 
 function getGeneratedPortraitAssetSet(visualIdentity: GladiatorVisualIdentity) {
@@ -129,24 +196,28 @@ function getGeneratedPortraitAssetSet(visualIdentity: GladiatorVisualIdentity) {
 function getGeneratedSpriteAssetSet(visualIdentity: GladiatorVisualIdentity) {
   return (
     getGladiatorAssetSet(visualIdentity.spriteAssetId) ??
-    getGladiatorAssetSet(visualIdentity.portraitAssetId)
+    getGladiatorAssetSet(visualIdentity.portraitAssetId) ??
+    getFallbackGladiatorAssetSet(visualIdentity.classId)
   );
 }
 
 function getProductionSpriteAssetSet(visualIdentity: GladiatorVisualIdentity) {
-  const productionGladiators = PRODUCTION_VISUAL_ASSET_MANIFEST.gladiators;
-
   return (
-    productionGladiators[visualIdentity.spriteAssetId] ??
-    productionGladiators[visualIdentity.portraitAssetId] ??
-    productionGladiators[Object.keys(productionGladiators)[0]]
+    getGladiatorAssetSet(visualIdentity.spriteAssetId) ??
+    getGladiatorAssetSet(visualIdentity.portraitAssetId) ??
+    getFallbackGladiatorAssetSet(visualIdentity.classId)
   );
 }
 
 export function getGladiatorPortraitAssetPath(visualIdentity: GladiatorVisualIdentity) {
+  const classPortraitPath = visualIdentity.classId
+    ? getGladiatorClassPortraitAssetPath(visualIdentity.classId)
+    : undefined;
+
   return (
     getGeneratedPortraitAssetSet(visualIdentity)?.portrait ??
-    getFallbackGladiatorAssetSet().portrait
+    classPortraitPath ??
+    getFallbackGladiatorAssetSet(visualIdentity.classId).portrait
   );
 }
 

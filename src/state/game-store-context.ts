@@ -1,11 +1,13 @@
 import { createContext, useContext } from 'react';
 import type {
   BuildingId,
+  DailyPlanBuildingActivitySelectionUpdate,
+  DailyPlanUpdate,
   DemoSaveId,
   GameSave,
   GameSaveMetadata,
-  GladiatorRoutineUpdate,
   LanguageCode,
+  LoanId,
 } from '../domain/types';
 
 export interface NewGameInput {
@@ -30,22 +32,27 @@ export interface GameStoreValue {
   resetActiveDemo(): Promise<void>;
   saveCurrentGame(): Promise<void>;
   changeLanguage(language: LanguageCode): Promise<void>;
-  setGamePaused(isPaused: boolean): void;
   purchaseBuilding(buildingId: BuildingId): void;
   purchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
+  purchaseBuildingSkill(buildingId: BuildingId, skillId: string): void;
   selectBuildingPolicy(buildingId: BuildingId, policyId: string): void;
   upgradeBuilding(buildingId: BuildingId): void;
   buyMarketGladiator(candidateId: string): void;
   sellGladiator(gladiatorId: string): void;
-  updateGladiatorRoutine(gladiatorId: string, update: GladiatorRoutineUpdate): void;
-  setAutomaticAssignment(gladiatorId: string, allowAutomaticAssignment: boolean): void;
-  setManualBuildingOverride(gladiatorId: string, buildingId?: BuildingId): void;
+  buyMarketStaff(candidateId: string): void;
+  sellStaff(staffId: string): void;
   applyPlanningRecommendations(): void;
+  updateDailyPlan(update: DailyPlanUpdate): void;
+  updateDailyPlanBuildingActivitySelection(update: DailyPlanBuildingActivitySelectionUpdate): void;
   resolveGameEventChoice(eventId: string, choiceId: string): void;
   triggerDebugDailyEvent(definitionId: string): void;
   adjustDebugTreasury(amount: number): void;
   markArenaCombatPresented(combatId: string): void;
   completeSundayArenaDay(): void;
+  advanceWeekStep(): void;
+  takeLoan(loanId: LoanId): void;
+  buyoutLoan(loanInstanceId: string): void;
+  assignStaffToBuilding(staffId: string, buildingId?: BuildingId): void;
   clearError(): void;
 }
 

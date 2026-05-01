@@ -1,9 +1,15 @@
 import { GAME_BALANCE } from '../../game-data/balance';
-import type { Gladiator } from './types';
+import type { Gladiator, GladiatorClassId, GladiatorSkillProfile } from './types';
 
 export const GLADIATOR_SKILL_NAMES = GAME_BALANCE.gladiators.skills.names;
 
 export type GladiatorSkillName = (typeof GLADIATOR_SKILL_NAMES)[number];
+
+export const GLADIATOR_CLASS_BY_DOMINANT_SKILL = {
+  strength: 'murmillo',
+  agility: 'retiarius',
+  defense: 'secutor',
+} as const satisfies Record<GladiatorSkillName, GladiatorClassId>;
 
 const SKILL_MINIMUM = GAME_BALANCE.gladiators.skills.minimum;
 const SKILL_MAXIMUM = GAME_BALANCE.gladiators.skills.maximum;
@@ -18,6 +24,19 @@ export function getEffectiveSkillValue(value: number) {
 
 export function getGladiatorEffectiveSkill(gladiator: Gladiator, skill: GladiatorSkillName) {
   return getEffectiveSkillValue(gladiator[skill]);
+}
+
+export function inferGladiatorClassId(skillProfile: GladiatorSkillProfile): GladiatorClassId {
+  const [firstSkill, ...remainingSkills] = GLADIATOR_SKILL_NAMES;
+  const dominantSkill = remainingSkills.reduce<GladiatorSkillName>(
+    (bestSkill, skill) =>
+      getEffectiveSkillValue(skillProfile[skill]) > getEffectiveSkillValue(skillProfile[bestSkill])
+        ? skill
+        : bestSkill,
+    firstSkill,
+  );
+
+  return GLADIATOR_CLASS_BY_DOMINANT_SKILL[dominantSkill];
 }
 
 export function getSkillTrainingProgress(value: number) {

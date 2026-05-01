@@ -3,6 +3,11 @@ import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals
 import { GAME_BALANCE } from '../../game-data/balance';
 import { MARKET_CONFIG } from '../../game-data/market';
 import { getAvailableLudusGladiatorPlaces } from '../ludus/capacity';
+import {
+  addLedgerEntry,
+  createLedgerEntry,
+  updateCurrentWeekSummary,
+} from '../economy/economy-actions';
 import { getGladiatorEffectiveSkill } from '../gladiators/skills';
 import type { Gladiator } from '../gladiators/types';
 import { synchronizePlanning } from '../planning/planning-actions';
@@ -15,7 +20,7 @@ export type MarketActionFailureReason =
   | 'candidateNotFound'
   | 'gladiatorNotFound'
   | 'insufficientTreasury'
-  | 'noAvailableBed';
+  | 'noAvailablePlace';
 
 export interface MarketActionValidation {
   isAllowed: boolean;
@@ -109,7 +114,7 @@ export function generateMarketGladiators(
           pickIndex(GAME_BALANCE.market.generatedTraitPool.length, random)
         ],
       ],
-      visualIdentity: createGladiatorVisualIdentity(id),
+      visualIdentity: createGladiatorVisualIdentity(id, { skillProfile: stats }),
     };
 
     return {
@@ -153,7 +158,7 @@ export function validateMarketPurchase(
       isAllowed: false,
       cost: candidate.price,
       saleValue: 0,
-      reason: 'noAvailableBed',
+      reason: 'noAvailablePlace',
     };
   }
 
@@ -210,31 +215,33 @@ export function buyMarketGladiator(save: GameSave, candidateId: string): MarketA
     wins: candidate.wins,
     losses: candidate.losses,
     traits: candidate.traits,
-    currentLocationId: candidate.currentLocationId ?? candidate.currentBuildingId ?? 'domus',
-    currentBuildingId: candidate.currentBuildingId ?? 'domus',
-    currentActivityId: candidate.currentActivityId,
     trainingPlan: candidate.trainingPlan,
     visualIdentity: candidate.visualIdentity,
   };
 
-  const nextSave = {
-    ...save,
-    ludus: {
-      ...save.ludus,
-      treasury: save.ludus.treasury - candidate.price,
+  const nextSave = addLedgerEntry(
+    {
+      ...save,
+      gladiators: [...save.gladiators, gladiator],
+      market: {
+        ...save.market,
+        availableGladiators: save.market.availableGladiators.filter(
+          (marketGladiator) => marketGladiator.id !== candidateId,
+        ),
+      },
     },
-    gladiators: [...save.gladiators, gladiator],
-    market: {
-      ...save.market,
-      availableGladiators: save.market.availableGladiators.filter(
-        (marketGladiator) => marketGladiator.id !== candidateId,
-      ),
-    },
-  };
+    createLedgerEntry(save, {
+      kind: 'expense',
+      category: 'market',
+      amount: candidate.price,
+      labelKey: 'finance.ledger.gladiatorPurchase',
+      relatedId: candidate.id,
+    }),
+  );
 
   return {
     validation,
-    save: synchronizePlanning(nextSave),
+    save: synchronizePlanning(updateCurrentWeekSummary(nextSave)),
   };
 }
 
@@ -264,22 +271,26 @@ export function sellGladiator(save: GameSave, gladiatorId: string): MarketAction
     return { save, validation };
   }
 
-  const nextSave = {
-    ...save,
-    ludus: {
-      ...save.ludus,
-      treasury: save.ludus.treasury + validation.saleValue,
+  const nextSave = addLedgerEntry(
+    {
+      ...save,
+      gladiators: save.gladiators.filter((gladiator) => gladiator.id !== gladiatorId),
+      planning: {
+        ...save.planning,
+        alerts: save.planning.alerts.filter((alert) => alert.gladiatorId !== gladiatorId),
+      },
     },
-    gladiators: save.gladiators.filter((gladiator) => gladiator.id !== gladiatorId),
-    planning: {
-      ...save.planning,
-      routines: save.planning.routines.filter((routine) => routine.gladiatorId !== gladiatorId),
-      alerts: save.planning.alerts.filter((alert) => alert.gladiatorId !== gladiatorId),
-    },
-  };
+    createLedgerEntry(save, {
+      kind: 'income',
+      category: 'market',
+      amount: validation.saleValue,
+      labelKey: 'finance.ledger.gladiatorSale',
+      relatedId: gladiatorId,
+    }),
+  );
 
   return {
     validation,
-    save: synchronizePlanning(nextSave),
+    save: synchronizePlanning(updateCurrentWeekSummary(nextSave)),
   };
 }

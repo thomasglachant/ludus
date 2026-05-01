@@ -1,5 +1,3 @@
-import type { BuildingId } from '../domain/buildings/types';
-import type { Gladiator } from '../domain/gladiators/types';
 import type { CombatFrameKey, MapFrameKey } from './visual-assets';
 
 export type GladiatorMapAnimationId =
@@ -91,15 +89,6 @@ function createCombatAnimationDefinition(
   };
 }
 
-const animationStateByBuilding: Record<BuildingId, GladiatorMapAnimationId> = {
-  domus: 'walk',
-  canteen: 'eat',
-  dormitory: 'rest',
-  trainingGround: 'train',
-  pleasureHall: 'celebrate',
-  infirmary: 'heal',
-};
-
 export const GLADIATOR_MAP_ANIMATION_DEFINITIONS: Record<
   GladiatorMapAnimationId,
   GladiatorMapAnimationDefinition
@@ -133,14 +122,6 @@ export const GLADIATOR_COMBAT_ANIMATION_DEFINITIONS: Record<
     fallbackFrameKey: 'combat-idle',
   }),
 };
-
-export function getGladiatorMapAnimationDefinition(gladiator: Gladiator) {
-  const state = gladiator.currentBuildingId
-    ? animationStateByBuilding[gladiator.currentBuildingId]
-    : 'idle';
-
-  return GLADIATOR_MAP_ANIMATION_DEFINITIONS[state];
-}
 
 export function getGladiatorMapAnimationDefinitionById(animationId: GladiatorMapAnimationId) {
   return GLADIATOR_MAP_ANIMATION_DEFINITIONS[animationId];

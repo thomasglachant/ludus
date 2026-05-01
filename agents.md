@@ -27,6 +27,7 @@ Useful commands: `npm run build`, `npm run lint`, `npm run test`.
 - Preserve the Roman pixel-art direction: dark bronze/stone HUDs, parchment panels, warm countryside map, visible buildings, portraits, sprites and theatrical arena combat.
 - Debug/dashboard UI may exist only behind `VITE_ENABLE_DEBUG_UI=true` or `/dev/debug-dashboard`.
 - Map layout, visuals, assets and time-of-day themes must remain data-driven through `src/game-data` or adjacent visual data modules.
+- Before regenerating the ludus map, load the constraints in `docs/03_product/ART_DIRECTION.md#map-regeneration-constraints`.
 - Do not reintroduce the removed 1-to-10 building budget system.
 - Weekly objectives, recommendations and alerts should reduce micromanagement while keeping manual overrides possible.
 

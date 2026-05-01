@@ -1,122 +1,15 @@
 .game-shell {
-  --shell-top: 86px;
-  --shell-bottom: 166px;
+  --shell-top: 92px;
+  --shell-bottom: 86px;
   position: relative;
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   width: 100%;
   height: 100vh;
   overflow: hidden;
   background:
-    linear-gradient(180deg, #263f52 0, transparent 28%),
-    linear-gradient(135deg, rgba(143, 63, 44, 0.2), rgba(74, 104, 72, 0.2)), #7b8e61;
-}
-
-.left-navigation-rail {
-  z-index: 18;
-  display: flex;
-  grid-column: 1;
-  grid-row: 2;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  padding: 14px 10px;
-  border-right: 2px solid rgba(72, 51, 36, 0.48);
-  background: rgba(92, 64, 45, 0.72);
-  box-shadow: 8px 0 18px rgba(36, 27, 20, 0.16);
-}
-
-.left-navigation-rail button {
-  position: relative;
-  display: grid;
-  width: 54px;
-  min-height: 54px;
-  padding: 6px;
-  place-items: center;
-  background: #e7c98a;
-}
-
-.left-navigation-rail button span {
-  position: absolute;
-  left: 64px;
-  min-width: max-content;
-  padding: 5px 8px;
-  border-radius: 8px;
-  background: rgba(44, 31, 23, 0.86);
-  color: #fff3cf;
-  font-size: 0.78rem;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(-4px);
-  transition:
-    opacity 120ms ease,
-    transform 120ms ease;
-}
-
-.left-navigation-rail button:hover span,
-.left-navigation-rail button:focus-visible span {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.left-navigation-rail button.is-selected {
-  border-color: #f0c26d;
-  background: #b55339;
-  color: #fff7df;
-}
-
-.game-shell__map-stage {
-  position: relative;
-  grid-column: 2;
-  grid-row: 2;
-  min-width: 0;
-  min-height: 0;
-}
-
-@media (max-width: 760px) {
-  .game-shell {
-    --shell-bottom: 210px;
-    grid-template-columns: 1fr;
-  }
-
-  .left-navigation-rail {
-    position: absolute;
-    right: 10px;
-    bottom: calc(var(--shell-bottom) + 12px);
-    left: 10px;
-    z-index: 24;
-    display: grid;
-    grid-auto-columns: 52px;
-    grid-auto-flow: column;
-    grid-column: auto;
-    grid-row: auto;
-    justify-content: center;
-    padding: 8px;
-    border: 1px solid rgba(240, 194, 109, 0.28);
-    border-radius: 8px;
-  }
-
-  .left-navigation-rail button span {
-    display: none;
-  }
-
-  .game-shell__map-stage {
-    grid-column: 1;
-  }
-}
-
-.left-navigation-rail button:focus-visible {
-  outline: 3px solid rgba(214, 163, 74, 0.44);
-  outline-offset: 2px;
-}
-
-.game-shell {
-  --shell-top: 88px;
-  --shell-bottom: 186px;
-  background:
     linear-gradient(180deg, rgba(21, 17, 13, 0.64) 0, transparent 22%),
-    radial-gradient(circle at 58% 38%, rgba(214, 163, 74, 0.08), transparent 28rem),
     linear-gradient(135deg, #536b45, #9d8b58 54%, #684c34);
 }
 
@@ -131,95 +24,24 @@
   pointer-events: none;
 }
 
-.left-navigation-rail {
-  position: relative;
-}
-
-.left-navigation-rail button {
-  border: 1px solid rgba(180, 122, 51, 0.62);
-  border-radius: 6px;
-  background:
-    linear-gradient(180deg, rgba(240, 223, 184, 0.98), rgba(181, 133, 65, 0.98)), var(--parchment);
-  color: #2e2118;
-  box-shadow:
-    inset 0 -3px 0 rgba(70, 45, 25, 0.2),
-    0 8px 16px rgba(11, 8, 6, 0.22);
-}
-
-.left-navigation-rail button:hover {
-  border-color: var(--gold);
-  filter: brightness(1.07);
-}
-
-.left-navigation-rail {
-  border-right: 2px solid rgba(214, 163, 74, 0.38);
-  background:
-    linear-gradient(180deg, rgba(42, 33, 24, 0.88), rgba(21, 17, 13, 0.92)), var(--obsidian-raised);
-  box-shadow:
-    inset -1px 0 0 rgba(255, 246, 222, 0.05),
-    9px 0 20px rgba(8, 6, 4, 0.28);
-}
-
-.left-navigation-rail button {
-  width: 52px;
-  min-height: 52px;
-  background:
-    linear-gradient(180deg, rgba(58, 50, 40, 0.98), rgba(32, 26, 20, 0.98)), var(--obsidian-soft);
-  color: #e9d39d;
-}
-
-.left-navigation-rail button svg {
-  color: #f3c977;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.44));
-}
-
-.left-navigation-rail button.is-selected {
-  border-color: var(--gold);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--red-primary), #d6a34a 16%),
-      var(--red-primary)
-    ),
-    var(--red-primary);
-  color: #fff6dc;
-}
-
 .game-shell__map-stage {
+  position: relative;
   z-index: 1;
-}
-
-.game-shell {
-  --shell-top: 92px;
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
 }
 
 @media (max-width: 1180px) {
   .game-shell {
-    --shell-top: 142px;
-  }
-}
-
-@media (max-width: 760px) {
-  .game-shell {
-    --shell-top: 214px;
-  }
-}
-
-@media (max-width: 1120px) {
-  .game-shell {
-    --shell-top: 178px;
+    --shell-top: 140px;
   }
 }
 
 @media (max-width: 760px) {
   .game-shell {
     --shell-top: 206px;
-  }
-
-  .left-navigation-rail {
-    border: 1px solid rgba(214, 163, 74, 0.36);
-    background:
-      linear-gradient(180deg, rgba(42, 33, 24, 0.92), rgba(21, 17, 13, 0.92)),
-      var(--obsidian-raised);
+    --shell-bottom: 104px;
   }
 }

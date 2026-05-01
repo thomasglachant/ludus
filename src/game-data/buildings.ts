@@ -1,6 +1,7 @@
 import type {
   BuildingConfiguration,
   BuildingDefinition,
+  BuildingEffect,
   BuildingId,
 } from '../domain/buildings/types';
 import { calculateBuildingUpgradeCost } from './building-levels';
@@ -8,12 +9,60 @@ import { GAME_BALANCE } from './balance';
 
 export const BUILDING_IDS = [
   'domus',
+  'trainingGround',
   'canteen',
   'dormitory',
-  'trainingGround',
-  'pleasureHall',
   'infirmary',
+  'guardBarracks',
+  'farm',
+  'pleasureHall',
+  'exhibitionGrounds',
+  'armory',
+  'bookmakerOffice',
+  'banquetHall',
+  'forgeWorkshop',
 ] as const satisfies BuildingId[];
+
+function createLevel(level: number, requiredDomusLevel: number, effects: BuildingEffect[] = []) {
+  return {
+    level,
+    upgradeCost: level === 1 ? undefined : calculateBuildingUpgradeCost(level),
+    requiredDomusLevel,
+    effects,
+  };
+}
+
+function createOptionalBuilding(
+  id: BuildingId,
+  purchaseCost: number,
+  requiredDomusLevel: number,
+  effects: BuildingEffect[] = [],
+  staffType?: BuildingDefinition['staffType'],
+): BuildingDefinition {
+  return {
+    id,
+    nameKey: `buildings.${id}.name`,
+    descriptionKey: `buildings.${id}.description`,
+    startsPurchased: false,
+    startsAtLevel: 1,
+    staffType,
+    requiredStaffByLevel: {
+      1: staffType ? 1 : 0,
+      2: staffType ? 2 : 0,
+      3: staffType ? 3 : 0,
+      4: staffType ? 4 : 0,
+      5: staffType ? 5 : 0,
+    },
+    levels: [
+      { ...createLevel(1, requiredDomusLevel, effects), purchaseCost },
+      createLevel(2, requiredDomusLevel),
+      createLevel(3, Math.max(requiredDomusLevel, 3)),
+      createLevel(4, Math.max(requiredDomusLevel, 4)),
+      createLevel(5, Math.max(requiredDomusLevel, 5)),
+    ],
+    improvementIds: [],
+  };
+}
 
 export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
   domus: {
@@ -23,79 +72,99 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     startsPurchased: true,
     startsAtLevel: 1,
     levels: [
+      createLevel(1, 1, [
+        {
+          type: 'increaseCapacity',
+          value: GAME_BALANCE.buildings.levelEffects.domus[1].capacity,
+          target: 'ludus',
+        },
+      ]),
+      createLevel(2, 1, [
+        {
+          type: 'increaseCapacity',
+          value: GAME_BALANCE.buildings.levelEffects.domus[2].capacity,
+          target: 'ludus',
+        },
+      ]),
+      createLevel(3, 2, [
+        {
+          type: 'increaseCapacity',
+          value: GAME_BALANCE.buildings.levelEffects.domus[3].capacity,
+          target: 'ludus',
+        },
+      ]),
+      createLevel(4, 3, [
+        {
+          type: 'increaseCapacity',
+          value: GAME_BALANCE.buildings.levelEffects.domus[4].capacity,
+          target: 'ludus',
+        },
+      ]),
+      createLevel(5, 4, [
+        {
+          type: 'increaseCapacity',
+          value: GAME_BALANCE.buildings.levelEffects.domus[5].capacity,
+          target: 'ludus',
+        },
+      ]),
+      createLevel(6, 5, [
+        {
+          type: 'increaseCapacity',
+          value: GAME_BALANCE.buildings.levelEffects.domus[6].capacity,
+          target: 'ludus',
+        },
+      ]),
+    ],
+    improvementIds: [],
+  },
+  trainingGround: {
+    id: 'trainingGround',
+    nameKey: 'buildings.trainingGround.name',
+    descriptionKey: 'buildings.trainingGround.description',
+    startsPurchased: true,
+    startsAtLevel: 1,
+    staffType: 'trainer',
+    requiredStaffByLevel: { 1: 1, 2: 1, 3: 2, 4: 2, 5: 3 },
+    levels: [
       {
         level: 1,
+        purchaseCost: 180,
         requiredDomusLevel: 1,
         effects: [
           {
-            type: 'increaseCapacity',
-            value: GAME_BALANCE.buildings.levelEffects.domus[1].capacity,
-            target: 'ludus',
+            type: 'increaseStrength',
+            value: GAME_BALANCE.buildings.levelEffects.trainingGround[1].skillProgressPerPoint,
+            target: 'plannedGladiators',
+          },
+          {
+            type: 'decreaseEnergy',
+            value: GAME_BALANCE.buildings.levelEffects.trainingGround[1].energyCostPerPoint,
+            target: 'plannedGladiators',
           },
         ],
       },
       {
         level: 2,
         upgradeCost: calculateBuildingUpgradeCost(2),
-        requiredDomusLevel: 1,
-        effects: [
-          {
-            type: 'increaseCapacity',
-            value: GAME_BALANCE.buildings.levelEffects.domus[2].capacity,
-            target: 'ludus',
-          },
-        ],
-      },
-      {
-        level: 3,
-        upgradeCost: calculateBuildingUpgradeCost(3),
         requiredDomusLevel: 2,
         effects: [
           {
-            type: 'increaseCapacity',
-            value: GAME_BALANCE.buildings.levelEffects.domus[3].capacity,
-            target: 'ludus',
+            type: 'increaseStrength',
+            value: GAME_BALANCE.buildings.levelEffects.trainingGround[2].skillProgressPerPoint,
+            target: 'plannedGladiators',
           },
-        ],
-      },
-      {
-        level: 4,
-        upgradeCost: calculateBuildingUpgradeCost(4),
-        requiredDomusLevel: 3,
-        effects: [
           {
-            type: 'increaseCapacity',
-            value: GAME_BALANCE.buildings.levelEffects.domus[4].capacity,
-            target: 'ludus',
+            type: 'decreaseEnergy',
+            value: GAME_BALANCE.buildings.levelEffects.trainingGround[2].energyCostPerPoint,
+            target: 'plannedGladiators',
           },
         ],
       },
-      {
-        level: 5,
-        upgradeCost: calculateBuildingUpgradeCost(5),
-        requiredDomusLevel: 4,
-        effects: [
-          {
-            type: 'increaseCapacity',
-            value: GAME_BALANCE.buildings.levelEffects.domus[5].capacity,
-            target: 'ludus',
-          },
-        ],
-      },
-      {
-        level: 6,
-        upgradeCost: calculateBuildingUpgradeCost(6),
-        requiredDomusLevel: 5,
-        effects: [
-          {
-            type: 'increaseCapacity',
-            value: GAME_BALANCE.buildings.levelEffects.domus[6].capacity,
-            target: 'ludus',
-          },
-        ],
-      },
+      createLevel(3, 3, [{ type: 'increaseGlory', value: 2, target: 'ludus' }]),
+      createLevel(4, 4, [{ type: 'reduceInjuryRisk', value: 4, target: 'allGladiators' }]),
+      createLevel(5, 5, [{ type: 'increaseStaffEfficiency', value: 5, target: 'ludus' }]),
     ],
-    improvementIds: [],
+    improvementIds: ['sparringRing', 'advancedDoctoreTools'],
   },
   canteen: {
     id: 'canteen',
@@ -103,19 +172,19 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     descriptionKey: 'buildings.canteen.description',
     startsPurchased: true,
     startsAtLevel: 1,
+    staffType: 'slave',
+    requiredStaffByLevel: { 1: 1, 2: 1, 3: 2, 4: 2, 5: 3 },
     levels: [
-      {
-        level: 1,
-        purchaseCost: 120,
-        requiredDomusLevel: 1,
-        effects: [],
-      },
+      { level: 1, purchaseCost: 120, requiredDomusLevel: 1, effects: [] },
       {
         level: 2,
         upgradeCost: calculateBuildingUpgradeCost(2),
         requiredDomusLevel: 2,
         effects: [],
       },
+      createLevel(3, 3, [{ type: 'increaseHappiness', value: 2, target: 'ludus' }]),
+      createLevel(4, 4, [{ type: 'reduceExpense', value: 5, target: 'ludus' }]),
+      createLevel(5, 5, [{ type: 'increaseProduction', value: 5, target: 'ludus' }]),
     ],
     improvementIds: [],
   },
@@ -125,6 +194,8 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     descriptionKey: 'buildings.dormitory.description',
     startsPurchased: true,
     startsAtLevel: 1,
+    staffType: 'slave',
+    requiredStaffByLevel: { 1: 1, 2: 1, 3: 2, 4: 2, 5: 3 },
     levels: [
       {
         level: 1,
@@ -133,9 +204,8 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         effects: [
           {
             type: 'increaseEnergy',
-            value: GAME_BALANCE.buildings.levelEffects.dormitory[1].energyPerHour,
-            perHour: true,
-            target: 'assignedGladiator',
+            value: GAME_BALANCE.buildings.levelEffects.dormitory[1].energyPerPoint,
+            target: 'plannedGladiators',
           },
         ],
       },
@@ -146,98 +216,16 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         effects: [
           {
             type: 'increaseEnergy',
-            value: GAME_BALANCE.buildings.levelEffects.dormitory[2].energyPerHour,
-            perHour: true,
-            target: 'assignedGladiator',
+            value: GAME_BALANCE.buildings.levelEffects.dormitory[2].energyPerPoint,
+            target: 'plannedGladiators',
           },
         ],
       },
+      createLevel(3, 3, [{ type: 'increaseHappiness', value: 2, target: 'ludus' }]),
+      createLevel(4, 4, [{ type: 'decreaseRebellion', value: 2, target: 'ludus' }]),
+      createLevel(5, 5, [{ type: 'increaseStaffEfficiency', value: 5, target: 'ludus' }]),
     ],
     improvementIds: ['strawBeds', 'woodenBeds', 'quietQuarters'],
-  },
-  trainingGround: {
-    id: 'trainingGround',
-    nameKey: 'buildings.trainingGround.name',
-    descriptionKey: 'buildings.trainingGround.description',
-    startsPurchased: true,
-    startsAtLevel: 1,
-    levels: [
-      {
-        level: 1,
-        purchaseCost: 180,
-        requiredDomusLevel: 1,
-        effects: [
-          {
-            type: 'increaseStrength',
-            value: GAME_BALANCE.buildings.levelEffects.trainingGround[1].skillProgressPerHour,
-            perHour: true,
-            target: 'assignedGladiator',
-          },
-          {
-            type: 'decreaseEnergy',
-            value: GAME_BALANCE.buildings.levelEffects.trainingGround[1].energyCostPerHour,
-            perHour: true,
-            target: 'assignedGladiator',
-          },
-        ],
-      },
-      {
-        level: 2,
-        upgradeCost: calculateBuildingUpgradeCost(2),
-        requiredDomusLevel: 2,
-        effects: [
-          {
-            type: 'increaseStrength',
-            value: GAME_BALANCE.buildings.levelEffects.trainingGround[2].skillProgressPerHour,
-            perHour: true,
-            target: 'assignedGladiator',
-          },
-          {
-            type: 'decreaseEnergy',
-            value: GAME_BALANCE.buildings.levelEffects.trainingGround[2].energyCostPerHour,
-            perHour: true,
-            target: 'assignedGladiator',
-          },
-        ],
-      },
-    ],
-    improvementIds: ['sparringRing', 'advancedDoctoreTools'],
-  },
-  pleasureHall: {
-    id: 'pleasureHall',
-    nameKey: 'buildings.pleasureHall.name',
-    descriptionKey: 'buildings.pleasureHall.description',
-    startsPurchased: true,
-    startsAtLevel: 1,
-    levels: [
-      {
-        level: 1,
-        purchaseCost: 160,
-        requiredDomusLevel: 1,
-        effects: [
-          {
-            type: 'increaseMorale',
-            value: GAME_BALANCE.buildings.levelEffects.pleasureHall[1].moralePerHour,
-            perHour: true,
-            target: 'assignedGladiator',
-          },
-        ],
-      },
-      {
-        level: 2,
-        upgradeCost: calculateBuildingUpgradeCost(2),
-        requiredDomusLevel: 2,
-        effects: [
-          {
-            type: 'increaseMorale',
-            value: GAME_BALANCE.buildings.levelEffects.pleasureHall[2].moralePerHour,
-            perHour: true,
-            target: 'assignedGladiator',
-          },
-        ],
-      },
-    ],
-    improvementIds: ['gameTables', 'musicians', 'privateRooms'],
   },
   infirmary: {
     id: 'infirmary',
@@ -245,6 +233,8 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     descriptionKey: 'buildings.infirmary.description',
     startsPurchased: true,
     startsAtLevel: 1,
+    staffType: 'slave',
+    requiredStaffByLevel: { 1: 1, 2: 1, 3: 2, 4: 2, 5: 3 },
     levels: [
       {
         level: 1,
@@ -253,9 +243,8 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         effects: [
           {
             type: 'increaseHealth',
-            value: GAME_BALANCE.buildings.levelEffects.infirmary[1].healthPerHour,
-            perHour: true,
-            target: 'assignedGladiator',
+            value: GAME_BALANCE.buildings.levelEffects.infirmary[1].healthPerPoint,
+            target: 'plannedGladiators',
           },
         ],
       },
@@ -266,9 +255,8 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         effects: [
           {
             type: 'increaseHealth',
-            value: GAME_BALANCE.buildings.levelEffects.infirmary[2].healthPerHour,
-            perHour: true,
-            target: 'assignedGladiator',
+            value: GAME_BALANCE.buildings.levelEffects.infirmary[2].healthPerPoint,
+            target: 'plannedGladiators',
           },
           {
             type: 'reduceInjuryRisk',
@@ -277,9 +265,81 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
           },
         ],
       },
+      createLevel(3, 3, [{ type: 'reduceInjuryRisk', value: 6, target: 'allGladiators' }]),
+      createLevel(4, 4, [{ type: 'increaseHappiness', value: 2, target: 'ludus' }]),
+      createLevel(5, 5, [{ type: 'increaseStaffEfficiency', value: 5, target: 'ludus' }]),
     ],
     improvementIds: ['cleanBandages', 'herbalStock', 'surgicalTools'],
   },
+  guardBarracks: {
+    ...createOptionalBuilding(
+      'guardBarracks',
+      220,
+      1,
+      [{ type: 'increaseSecurity', value: 10, target: 'ludus' }],
+      'guard',
+    ),
+    startsPurchased: true,
+  },
+  farm: createOptionalBuilding(
+    'farm',
+    300,
+    2,
+    [{ type: 'increaseProduction', value: 10, target: 'ludus' }],
+    'slave',
+  ),
+  pleasureHall: {
+    ...createOptionalBuilding(
+      'pleasureHall',
+      160,
+      2,
+      [{ type: 'increaseMorale', value: 5, target: 'plannedGladiators' }],
+      'slave',
+    ),
+    startsPurchased: false,
+    improvementIds: ['gameTables', 'musicians', 'privateRooms'],
+  },
+  exhibitionGrounds: createOptionalBuilding(
+    'exhibitionGrounds',
+    450,
+    3,
+    [
+      { type: 'increaseIncome', value: 15, target: 'ludus' },
+      { type: 'increaseGlory', value: 2, target: 'ludus' },
+    ],
+    'slave',
+  ),
+  armory: createOptionalBuilding(
+    'armory',
+    420,
+    3,
+    [{ type: 'reduceInjuryRisk', value: 4, target: 'allGladiators' }],
+    'slave',
+  ),
+  bookmakerOffice: createOptionalBuilding(
+    'bookmakerOffice',
+    650,
+    4,
+    [{ type: 'increaseIncome', value: 25, target: 'ludus' }],
+    'slave',
+  ),
+  banquetHall: createOptionalBuilding(
+    'banquetHall',
+    700,
+    4,
+    [
+      { type: 'increaseHappiness', value: 3, target: 'ludus' },
+      { type: 'increaseReputation' as BuildingEffect['type'], value: 3, target: 'ludus' },
+    ],
+    'slave',
+  ),
+  forgeWorkshop: createOptionalBuilding(
+    'forgeWorkshop',
+    850,
+    5,
+    [{ type: 'increaseProduction', value: 25, target: 'ludus' }],
+    'slave',
+  ),
 };
 
 export const INITIAL_BUILDING_CONFIGURATIONS: Partial<Record<BuildingId, BuildingConfiguration>> = {

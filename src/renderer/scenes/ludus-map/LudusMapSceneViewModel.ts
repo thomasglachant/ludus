@@ -1,13 +1,10 @@
 import type { MapLocationId } from '../../../game-data/map-layout';
 import type { MapDecorationStyle } from '../../../game-data/decorations';
 import type { MapGroundId, MapTerrainId } from '../../../domain/map/types';
-import type {
-  GladiatorMapAnimationDefinition,
-  GladiatorMapAnimationId,
-} from '../../../game-data/gladiator-animations';
 import type { TimeOfDayPhase } from '../../../game-data/time-of-day';
 
 export type LudusMapSceneLocationKind = 'building' | 'external';
+export type LudusMapSceneOwnershipStatus = 'owned' | 'available' | 'locked';
 
 export interface LudusMapScenePointViewModel {
   id?: string;
@@ -49,13 +46,18 @@ export interface LudusMapSceneLocationViewModel {
   label: string;
   labelTitle: string;
   labelSubtitle: string;
+  labelDetail: string;
+  accessibilityLabel: string;
   labelLevel: number;
   x: number;
   y: number;
   width: number;
   height: number;
   isOwned: boolean;
+  ownershipStatus: LudusMapSceneOwnershipStatus;
   level: number;
+  purchaseCost?: number;
+  requiredDomusLevel?: number;
   activitySlots: LudusMapScenePointViewModel[];
   entrancePosition: LudusMapScenePointViewModel;
   exteriorAssetPath?: string;
@@ -65,40 +67,6 @@ export interface LudusMapSceneLocationViewModel {
   hitArea: LudusMapSceneRectViewModel;
   labelPosition: LudusMapScenePointViewModel;
   sortY: number;
-}
-
-export interface LudusMapSceneGladiatorViewModel {
-  id: string;
-  name: string;
-  queuedFrom: {
-    x: number;
-    y: number;
-  };
-  from: {
-    x: number;
-    y: number;
-  };
-  to: {
-    x: number;
-    y: number;
-  };
-  routePoints: {
-    x: number;
-    y: number;
-  }[];
-  routeSchedule: {
-    x: number;
-    y: number;
-    arrivalStamp: number;
-    departureStamp: number;
-  }[];
-  movementStartedAt: number;
-  movementDuration: number;
-  animation: GladiatorMapAnimationDefinition;
-  animationId: GladiatorMapAnimationId;
-  fallbackFramePaths: string[];
-  frameNames: string[];
-  spritesheetAtlasPath?: string;
 }
 
 export interface LudusMapScenePathViewModel {
@@ -166,9 +134,6 @@ export interface LudusMapSceneViewModel {
   height: number;
   timeOfDayPhase: TimeOfDayPhase;
   selectedLocationId?: MapLocationId;
-  currentGameMinute: number;
-  gameMinutesPerRealMillisecond: number;
-  animationSpeedMultiplier: number;
   reducedMotion: boolean;
   defaultCamera: {
     x: number;
@@ -187,5 +152,4 @@ export interface LudusMapSceneViewModel {
   decorations: LudusMapSceneDecorationViewModel[];
   ambientElements: LudusMapSceneAmbientElementViewModel[];
   locations: LudusMapSceneLocationViewModel[];
-  gladiators: LudusMapSceneGladiatorViewModel[];
 }

@@ -1,5 +1,4 @@
 import { createInitialSave } from '../domain/saves/create-initial-save';
-import { PROGRESSION_CONFIG } from '../game-data/progression';
 import type { GameSave, GameSaveMetadata } from '../domain/types';
 import { createId } from '../utils/id';
 import { SaveNotFoundError } from './save-provider';
@@ -33,7 +32,7 @@ export class SaveService {
   }
 
   async loadLocalSave(saveId: string): Promise<GameSave> {
-    return this.withDefaultResumeSpeed(await this.localSaveProvider.loadSave(saveId));
+    return this.localSaveProvider.loadSave(saveId);
   }
 
   async loadLatestLocalSaveForGame(gameId: string): Promise<GameSave> {
@@ -62,7 +61,7 @@ export class SaveService {
   async updateLocalSave(save: GameSave): Promise<GameSave> {
     const updatedSave = this.withUpdatedAt(save);
 
-    await this.localSaveProvider.updateSave(this.withDefaultResumeSpeed(updatedSave));
+    await this.localSaveProvider.updateSave(updatedSave);
 
     return updatedSave;
   }
@@ -83,7 +82,7 @@ export class SaveService {
       },
     };
 
-    await this.localSaveProvider.createSave(this.withDefaultResumeSpeed(localSave));
+    await this.localSaveProvider.createSave(localSave);
 
     return localSave;
   }
@@ -107,11 +106,9 @@ export class SaveService {
       },
     };
 
-    const normalizedSave = this.withDefaultResumeSpeed(localSave);
+    await this.localSaveProvider.createSave(localSave);
 
-    await this.localSaveProvider.createSave(normalizedSave);
-
-    return normalizedSave;
+    return localSave;
   }
 
   async deleteLocalSave(saveId: string): Promise<void> {
@@ -123,13 +120,13 @@ export class SaveService {
   }
 
   async loadCloudSave(saveId: string): Promise<GameSave> {
-    return this.withDefaultResumeSpeed(await this.cloudSaveProvider.loadSave(saveId));
+    return this.cloudSaveProvider.loadSave(saveId);
   }
 
   async createCloudSave(save: GameSave): Promise<GameSave> {
     const cloudSave = this.asCloudSave(save);
 
-    await this.cloudSaveProvider.createSave(this.withDefaultResumeSpeed(cloudSave));
+    await this.cloudSaveProvider.createSave(cloudSave);
 
     return cloudSave;
   }
@@ -137,7 +134,7 @@ export class SaveService {
   async updateCloudSave(save: GameSave): Promise<GameSave> {
     const cloudSave = this.asCloudSave(this.withUpdatedAt(save));
 
-    await this.cloudSaveProvider.updateSave(this.withDefaultResumeSpeed(cloudSave));
+    await this.cloudSaveProvider.updateSave(cloudSave);
 
     return cloudSave;
   }
@@ -162,17 +159,6 @@ export class SaveService {
     return {
       ...save,
       updatedAt: new Date().toISOString(),
-    };
-  }
-
-  private withDefaultResumeSpeed(save: GameSave): GameSave {
-    return {
-      ...save,
-      time: {
-        ...save.time,
-        speed: PROGRESSION_CONFIG.initialSpeed,
-        isPaused: PROGRESSION_CONFIG.initialIsPaused,
-      },
     };
   }
 

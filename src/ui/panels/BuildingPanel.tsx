@@ -1,7 +1,11 @@
 import { useState } from 'react';
+import { getRequiredStaffCount } from '../../domain/buildings/building-staffing';
 import type { BuildingId, GameSave } from '../../domain/types';
+import { validateStaffAssignment } from '../../domain/staff/staff-actions';
+import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { useUiStore } from '../../state/ui-store-context';
 import {
+  Badge,
   EffectList,
   EmptyState,
   CostSummary,
@@ -13,11 +17,13 @@ import {
 } from '../components/shared';
 import { BuildingActionModalContent } from '../modals/BuildingActionModalContent';
 import { GameIcon } from '../icons/GameIcon';
-import { GladiatorPortrait } from '../roster/GladiatorPortrait';
+import { getLedgerEntryAmount, getLedgerEntryMeta } from '../formatters/ledger';
 import { formatMoneyAmount } from '../formatters/money';
+import { StaffPortrait } from '../staff/StaffPortrait';
 import {
+  type BuildingPanelViewModel,
   createBuildingPanelViewModel,
-  createDormitoryCapacityViewModel,
+  createLudusCapacityViewModel,
 } from '../view-models/building-panel-view-model';
 
 interface BuildingPanelProps {
@@ -26,18 +32,66 @@ interface BuildingPanelProps {
   onClose(): void;
   onPurchaseBuilding(buildingId: BuildingId): void;
   onPurchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
+  onPurchaseBuildingSkill(buildingId: BuildingId, skillId: string): void;
+  onAssignStaffToBuilding(staffId: string, buildingId?: BuildingId): void;
   onSelectBuildingPolicy(buildingId: BuildingId, policyId: string): void;
   onUpgradeBuilding(buildingId: BuildingId): void;
 }
 
-type BuildingPanelTab = 'overview' | 'improvements' | 'policy' | 'gladiators';
+type BuildingPanelTab =
+  | 'overview'
+  | 'staff'
+  | 'skills'
+  | 'activities'
+  | 'ledger'
+  | 'improvements'
+  | 'policy';
 
 const tabs: { id: BuildingPanelTab; labelKey: string }[] = [
   { id: 'overview', labelKey: 'buildingPanel.tabs.overview' },
+  { id: 'staff', labelKey: 'buildingPanel.tabs.staff' },
+  { id: 'skills', labelKey: 'buildingPanel.tabs.skills' },
+  { id: 'activities', labelKey: 'buildingPanel.tabs.activities' },
+  { id: 'ledger', labelKey: 'buildingPanel.tabs.ledger' },
   { id: 'improvements', labelKey: 'buildingPanel.tabs.improvements' },
   { id: 'policy', labelKey: 'buildingPanel.tabs.policy' },
-  { id: 'gladiators', labelKey: 'buildingPanel.tabs.gladiators' },
 ];
+
+type BuildingPanelSkill = BuildingPanelViewModel['skills'][number];
+type BuildingSkillState = 'purchased' | 'available' | 'locked';
+
+function getBuildingSkillState(skill: BuildingPanelSkill): BuildingSkillState {
+  if (skill.isPurchased) {
+    return 'purchased';
+  }
+
+  return skill.canPurchase ? 'available' : 'locked';
+}
+
+function getBuildingSkillStateLabelKey(state: BuildingSkillState) {
+  return `buildingPanel.skillState.${state}`;
+}
+
+function getBuildingSkillStateBadgeTone(state: BuildingSkillState) {
+  if (state === 'purchased') {
+    return 'success';
+  }
+
+  return state === 'available' ? 'warning' : 'neutral';
+}
+
+function groupBuildingSkillsByTier(skills: BuildingPanelViewModel['skills']) {
+  return Array.from(
+    skills.reduce<Map<number, BuildingPanelSkill[]>>((groups, skill) => {
+      const tierSkills = groups.get(skill.tier) ?? [];
+
+      tierSkills.push(skill);
+      groups.set(skill.tier, tierSkills);
+
+      return groups;
+    }, new Map()),
+  ).sort(([leftTier], [rightTier]) => leftTier - rightTier);
+}
 
 export function BuildingPanel({
   save,
@@ -45,14 +99,27 @@ export function BuildingPanel({
   onClose,
   onPurchaseBuilding,
   onPurchaseBuildingImprovement,
+  onPurchaseBuildingSkill,
+  onAssignStaffToBuilding,
   onSelectBuildingPolicy,
   onUpgradeBuilding,
 }: BuildingPanelProps) {
   const { openConfirmModal, t } = useUiStore();
   const [activeTab, setActiveTab] = useState<BuildingPanelTab>('overview');
   const viewModel = createBuildingPanelViewModel(save, buildingId, t);
-  const dormitoryCapacity =
-    buildingId === 'dormitory' ? createDormitoryCapacityViewModel(save) : null;
+  const ludusCapacity = buildingId === 'dormitory' ? createLudusCapacityViewModel(save) : null;
+  const requiredStaffCount = getRequiredStaffCount(save, buildingId);
+  const assignedStaffCount = save.buildings[buildingId].staffAssignmentIds.length;
+  const hasStaffRequirement = requiredStaffCount > 0;
+  const buildingLedgerEntries = save.economy.ledgerEntries.filter(
+    (entry) => entry.buildingId === buildingId,
+  );
+  const skillTiers = groupBuildingSkillsByTier(viewModel.skills);
+  const purchasedSkillCount = viewModel.skills.filter((skill) => skill.isPurchased).length;
+  const availableSkillCount = viewModel.skills.filter(
+    (skill) => !skill.isPurchased && skill.canPurchase,
+  ).length;
+  const lockedSkillCount = viewModel.skills.length - purchasedSkillCount - availableSkillCount;
 
   const requestBuildingAction = () => {
     const actionPreview = viewModel.action.preview;
@@ -129,6 +196,21 @@ export function BuildingPanel({
     });
   };
 
+  const requestSkillPurchase = (skill: (typeof viewModel.skills)[number]) => {
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: 'buildingPanel.purchaseSkill',
+      messageKey: 'buildingPanel.confirmSkillPurchase.message',
+      messageParams: {
+        cost: formatMoneyAmount(skill.cost),
+        skill: t(skill.nameKey, { name: skill.name }),
+      },
+      onConfirm: () => onPurchaseBuildingSkill(buildingId, skill.id),
+      testId: 'building-skill-purchase-confirm-dialog',
+      titleKey: 'buildingPanel.confirmSkillPurchase.title',
+    });
+  };
+
   return (
     <PanelShell
       descriptionKey={viewModel.descriptionKey}
@@ -158,22 +240,46 @@ export function BuildingPanel({
                   ? t('buildings.purchaseCost', { cost: formatMoneyAmount(viewModel.action.cost) })
                   : t('buildings.maxLevel'),
               },
+              {
+                labelKey: 'buildingPanel.efficiency',
+                value: `${save.buildings[buildingId].efficiency}%`,
+              },
+              ...(hasStaffRequirement
+                ? [
+                    {
+                      labelKey: 'staff.assignmentCapacity',
+                      value: t('staff.assignmentCapacityValue', {
+                        current: assignedStaffCount,
+                        required: requiredStaffCount,
+                      }),
+                    },
+                  ]
+                : []),
             ]}
           />
+          {hasStaffRequirement && assignedStaffCount < requiredStaffCount ? (
+            <NoticeBox tone="warning">
+              {t('buildingPanel.staffShortageWarning', {
+                current: assignedStaffCount,
+                efficiency: save.buildings[buildingId].efficiency,
+                required: requiredStaffCount,
+              })}
+            </NoticeBox>
+          ) : null}
           <SectionCard titleKey="buildings.currentEffects">
             <EffectList effects={viewModel.effects} />
           </SectionCard>
-          {dormitoryCapacity ? (
-            <SectionCard titleKey="dormitoryBeds.title">
+          {ludusCapacity ? (
+            <SectionCard titleKey="ludusCapacity.title">
               <MetricList
                 items={[
                   {
-                    labelKey: 'dormitoryBeds.usedCapacity',
-                    value: `${dormitoryCapacity.usedBeds}/${dormitoryCapacity.capacity}`,
+                    labelKey: 'ludusCapacity.usedCapacity',
+                    value: `${ludusCapacity.usedPlaces}/${ludusCapacity.capacity}`,
                   },
                   {
-                    labelKey: 'dormitoryBeds.availableCapacity',
-                    value: dormitoryCapacity.availableBeds,
+                    labelKey: 'ludusCapacity.availableCapacity',
+                    value: ludusCapacity.availablePlaces,
                   },
                 ]}
               />
@@ -250,6 +356,333 @@ export function BuildingPanel({
           )}
         </div>
       ) : null}
+      {activeTab === 'staff' ? (
+        <div className="context-panel__section">
+          <MetricList
+            items={[
+              {
+                labelKey: 'staff.assignmentCapacity',
+                value: t('staff.assignmentCapacityValue', {
+                  current: assignedStaffCount,
+                  required: requiredStaffCount,
+                }),
+              },
+            ]}
+          />
+          <div className="context-panel__list">
+            {save.staff.members.length > 0 ? (
+              save.staff.members.map((staffMember) => {
+                const isAssignedHere = staffMember.assignedBuildingId === buildingId;
+                const validation = validateStaffAssignment(save, staffMember.id, buildingId);
+                const assignedBuildingName = staffMember.assignedBuildingId
+                  ? t(BUILDING_DEFINITIONS[staffMember.assignedBuildingId].nameKey)
+                  : t('staff.unassigned');
+
+                return (
+                  <SectionCard
+                    className={['staff-card', isAssignedHere ? 'is-selected' : '']
+                      .filter(Boolean)
+                      .join(' ')}
+                    key={staffMember.id}
+                  >
+                    <StaffPortrait staffMember={staffMember} />
+                    <div className="staff-card__body">
+                      <strong>{staffMember.name}</strong>
+                      <MetricList
+                        columns={3}
+                        items={[
+                          { labelKey: 'staff.type', value: t(`staff.types.${staffMember.type}`) },
+                          {
+                            labelKey: 'staff.weeklyWage',
+                            value: formatMoneyAmount(staffMember.weeklyWage),
+                          },
+                          {
+                            labelKey: 'staff.experience',
+                            value: staffMember.buildingExperience[buildingId] ?? 0,
+                          },
+                          { labelKey: 'staff.assignment', value: assignedBuildingName },
+                        ]}
+                      />
+                      {!isAssignedHere && validation.reason ? (
+                        <NoticeBox tone="warning">
+                          {t(`staff.assignmentValidation.${validation.reason}`)}
+                        </NoticeBox>
+                      ) : null}
+                      <div className="context-panel__actions">
+                        {isAssignedHere ? (
+                          <button
+                            type="button"
+                            onClick={() => onAssignStaffToBuilding(staffMember.id)}
+                          >
+                            <GameIcon name="check" size={17} />
+                            <span>{t('staff.unassign')}</span>
+                          </button>
+                        ) : (
+                          <button
+                            disabled={!validation.isAllowed}
+                            type="button"
+                            onClick={() => onAssignStaffToBuilding(staffMember.id, buildingId)}
+                          >
+                            <GameIcon name="workforce" size={17} />
+                            <span>{t('staff.assignHere')}</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </SectionCard>
+                );
+              })
+            ) : (
+              <EmptyState messageKey="staff.empty" />
+            )}
+          </div>
+        </div>
+      ) : null}
+      {activeTab === 'skills' ? (
+        <div className="building-skill-tree">
+          {viewModel.skills.length > 0 ? (
+            <>
+              <SectionCard className="building-skill-tree__summary">
+                <MetricList
+                  columns={3}
+                  items={[
+                    {
+                      labelKey: 'buildingPanel.skillState.purchased',
+                      value: purchasedSkillCount,
+                    },
+                    {
+                      labelKey: 'buildingPanel.skillState.available',
+                      value: availableSkillCount,
+                    },
+                    {
+                      labelKey: 'buildingPanel.skillState.locked',
+                      value: lockedSkillCount,
+                    },
+                  ]}
+                />
+              </SectionCard>
+              {skillTiers.map(([tier, skills]) => {
+                const tierPurchasedCount = skills.filter((skill) => skill.isPurchased).length;
+                const tierTitleId = `building-skill-tree-tier-${buildingId}-${tier}`;
+
+                return (
+                  <section
+                    aria-labelledby={tierTitleId}
+                    className="building-skill-tree__tier"
+                    key={tier}
+                  >
+                    <div className="building-skill-tree__tier-header">
+                      <h3 id={tierTitleId}>{t('buildingPanel.skillTierTitle', { tier })}</h3>
+                      <span>
+                        {t('buildingPanel.skillTierProgress', {
+                          purchased: tierPurchasedCount,
+                          total: skills.length,
+                        })}
+                      </span>
+                    </div>
+                    <div className="building-skill-tree__nodes">
+                      {skills.map((skill) => {
+                        const skillState = getBuildingSkillState(skill);
+                        const requiredLevelIsMet = viewModel.level >= skill.requiredBuildingLevel;
+                        const requiredSkillsAreMet =
+                          skillState !== 'locked' ||
+                          skill.validationMessageKey !==
+                            'buildings.validation.missingSkillPrerequisite';
+
+                        return (
+                          <SectionCard
+                            className={`building-skill-tree__node building-skill-tree__node--${skillState}`}
+                            key={skill.id}
+                          >
+                            <div className="building-skill-tree__node-header">
+                              <div className="building-skill-tree__node-title">
+                                <strong>{t(skill.nameKey, { name: skill.name })}</strong>
+                                <span>{t(skill.descriptionKey, { name: skill.name })}</span>
+                              </div>
+                              <Badge
+                                label={t(getBuildingSkillStateLabelKey(skillState))}
+                                tone={getBuildingSkillStateBadgeTone(skillState)}
+                              />
+                            </div>
+                            <MetricList
+                              columns={3}
+                              items={[
+                                { labelKey: 'buildingPanel.skillTier', value: skill.tier },
+                                {
+                                  labelKey: 'buildingPanel.skillCost',
+                                  value: formatMoneyAmount(skill.cost),
+                                },
+                                {
+                                  labelKey: 'buildingPanel.requiredSkills',
+                                  value: skill.requiredSkillNames.length,
+                                },
+                              ]}
+                            />
+                            <div className="building-skill-tree__details">
+                              <div className="building-skill-tree__detail-block">
+                                <strong>{t('buildingPanel.skillPrerequisites')}</strong>
+                                <ul className="building-skill-tree__requirement-list">
+                                  <li
+                                    className={
+                                      requiredLevelIsMet
+                                        ? 'building-skill-tree__requirement building-skill-tree__requirement--met'
+                                        : 'building-skill-tree__requirement building-skill-tree__requirement--missing'
+                                    }
+                                  >
+                                    <GameIcon
+                                      name={requiredLevelIsMet ? 'check' : 'warning'}
+                                      size={14}
+                                    />
+                                    <span>
+                                      {t('buildingPanel.skillRequiredLevelValue', {
+                                        level: skill.requiredBuildingLevel,
+                                      })}
+                                    </span>
+                                  </li>
+                                  {skill.requiredSkillNames.length > 0 ? (
+                                    skill.requiredSkillNames.map((requiredSkillName) => (
+                                      <li
+                                        className={
+                                          requiredSkillsAreMet
+                                            ? 'building-skill-tree__requirement building-skill-tree__requirement--met'
+                                            : 'building-skill-tree__requirement building-skill-tree__requirement--missing'
+                                        }
+                                        key={requiredSkillName}
+                                      >
+                                        <GameIcon
+                                          name={requiredSkillsAreMet ? 'check' : 'warning'}
+                                          size={14}
+                                        />
+                                        <span>{requiredSkillName}</span>
+                                      </li>
+                                    ))
+                                  ) : (
+                                    <li className="building-skill-tree__requirement building-skill-tree__requirement--met">
+                                      <GameIcon name="check" size={14} />
+                                      <span>{t('buildingPanel.skillNoRequiredSkills')}</span>
+                                    </li>
+                                  )}
+                                </ul>
+                              </div>
+                              <div className="building-skill-tree__detail-block">
+                                <strong>{t('buildingPanel.skillUnlockedActivities')}</strong>
+                                {skill.unlockedActivities.length > 0 ? (
+                                  <ul className="building-skill-tree__activity-list">
+                                    {skill.unlockedActivities.map((activity) => (
+                                      <li key={activity.id}>
+                                        <GameIcon
+                                          name={skill.isPurchased ? 'check' : 'arrowRight'}
+                                          size={14}
+                                        />
+                                        <span>{activity.name}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <p className="building-skill-tree__empty">
+                                    {t('buildingPanel.skillNoUnlockedActivities')}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <EffectList effects={skill.effects} />
+                            {skill.validationMessageKey ? (
+                              <NoticeBox tone={skill.isPurchased ? 'info' : 'warning'}>
+                                {t(skill.validationMessageKey, skill.validationMessageParams)}
+                              </NoticeBox>
+                            ) : null}
+                            <div className="context-panel__actions">
+                              <button
+                                disabled={!skill.canPurchase}
+                                type="button"
+                                onClick={() => requestSkillPurchase(skill)}
+                              >
+                                <GameIcon name="hammer" size={17} />
+                                <span>{t(skill.actionLabelKey)}</span>
+                              </button>
+                            </div>
+                          </SectionCard>
+                        );
+                      })}
+                    </div>
+                  </section>
+                );
+              })}
+            </>
+          ) : (
+            <EmptyState messageKey="buildingPanel.noSkills" />
+          )}
+        </div>
+      ) : null}
+      {activeTab === 'activities' ? (
+        <div className="context-panel__list">
+          {viewModel.activities.length > 0 ? (
+            viewModel.activities.map((activity) => (
+              <SectionCard
+                className={activity.isUnlocked ? 'is-selected' : 'is-locked'}
+                key={activity.id}
+                testId={`building-activity-${activity.id}`}
+              >
+                <div className="building-activity-card__header">
+                  <strong>{activity.name}</strong>
+                  <Badge
+                    label={t(
+                      activity.isUnlocked
+                        ? 'buildingPanel.activityUnlocked'
+                        : 'buildingPanel.activityLocked',
+                    )}
+                    tone={activity.isUnlocked ? 'success' : 'warning'}
+                  />
+                </div>
+                <span>{activity.description}</span>
+                <MetricList
+                  columns={3}
+                  items={[
+                    {
+                      labelKey: 'buildingPanel.activitySourceSkill',
+                      value: activity.sourceSkillName,
+                    },
+                    { labelKey: 'buildingPanel.skillTier', value: activity.tier },
+                    {
+                      labelKey: 'buildingPanel.requiredLevel',
+                      value: t('common.level', { level: activity.requiredBuildingLevel }),
+                    },
+                  ]}
+                />
+                <NoticeBox tone={activity.isUnlocked ? 'info' : 'warning'}>
+                  {t(
+                    activity.isUnlocked
+                      ? 'buildingPanel.activityUnlockedBySkill'
+                      : 'buildingPanel.activityLockedBySkill',
+                    { skill: activity.sourceSkillName },
+                  )}
+                </NoticeBox>
+              </SectionCard>
+            ))
+          ) : (
+            <EmptyState messageKey="buildingPanel.noSkillActivities" />
+          )}
+        </div>
+      ) : null}
+      {activeTab === 'ledger' ? (
+        <div className="context-panel__list">
+          {buildingLedgerEntries.length > 0 ? (
+            buildingLedgerEntries.slice(0, 8).map((entry) => (
+              <SectionCard className={`finance-entry finance-entry--${entry.kind}`} key={entry.id}>
+                <div className="finance-entry__main">
+                  <strong>{t(entry.labelKey)}</strong>
+                  <span>{getLedgerEntryMeta(entry, t)}</span>
+                </div>
+                <strong className="finance-entry__amount">
+                  {formatMoneyAmount(getLedgerEntryAmount(entry))}
+                </strong>
+              </SectionCard>
+            ))
+          ) : (
+            <EmptyState messageKey="buildingPanel.noBuildingLedger" />
+          )}
+        </div>
+      ) : null}
       {activeTab === 'policy' ? (
         <div className="context-panel__list">
           {viewModel.policies.length > 0 ? (
@@ -302,28 +735,6 @@ export function BuildingPanel({
             ))
           ) : (
             <EmptyState messageKey="buildingPanel.noPolicies" />
-          )}
-        </div>
-      ) : null}
-      {activeTab === 'gladiators' ? (
-        <div className="context-panel__list">
-          {viewModel.assignedGladiators.length > 0 ? (
-            viewModel.assignedGladiators.map((assignedGladiator) => {
-              const gladiator = save.gladiators.find(
-                (candidate) => candidate.id === assignedGladiator.id,
-              );
-
-              return (
-                <SectionCard className="context-panel__portrait-row" key={assignedGladiator.id}>
-                  {gladiator ? <GladiatorPortrait gladiator={gladiator} size="small" /> : null}
-                  <span className="context-panel__identity-stack">
-                    <strong>{assignedGladiator.name}</strong>
-                  </span>
-                </SectionCard>
-              );
-            })
-          ) : (
-            <EmptyState messageKey="buildings.noAssignedGladiators" />
           )}
         </div>
       ) : null}

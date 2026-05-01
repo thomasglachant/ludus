@@ -92,13 +92,13 @@ describe('demo save definitions', () => {
       expect(getLudusGladiatorCapacity(save)).toBeGreaterThanOrEqual(save.gladiators.length);
       for (const buildingId of BUILDING_IDS) {
         expect(save.buildings[buildingId]).toMatchObject({
-          isPurchased: true,
+          id: buildingId,
         });
-        expect(save.buildings[buildingId].level).toBeGreaterThanOrEqual(1);
+        expect(save.buildings[buildingId].level).toBeGreaterThanOrEqual(
+          save.buildings[buildingId].isPurchased ? 1 : 0,
+        );
       }
       expect(save.market.availableGladiators).toHaveLength(5);
-      expect(save.time.speed).toBe(0);
-      expect(save.time.isPaused).toBe(true);
 
       for (const gladiator of [...save.gladiators, ...save.market.availableGladiators]) {
         expect(gladiator.strength).toBeGreaterThanOrEqual(0);
@@ -128,10 +128,7 @@ describe('demo save definitions', () => {
       year: 1,
       week: 1,
       dayOfWeek: 'monday',
-      hour: 8,
-      minute: 0,
-      speed: 0,
-      isPaused: true,
+      phase: 'planning',
     });
     expect(early?.save.gladiators).toHaveLength(3);
     expect(early?.save.market.availableGladiators).toHaveLength(5);
@@ -141,10 +138,7 @@ describe('demo save definitions', () => {
       year: 2,
       week: 4,
       dayOfWeek: 'thursday',
-      hour: 16,
-      minute: 0,
-      speed: 0,
-      isPaused: true,
+      phase: 'planning',
     });
     expect(mid?.save.gladiators).toHaveLength(4);
     expect(mid?.save.arena.resolvedCombats).toHaveLength(0);
@@ -153,10 +147,7 @@ describe('demo save definitions', () => {
       year: 5,
       week: 7,
       dayOfWeek: 'saturday',
-      hour: 23,
-      minute: 0,
-      speed: 0,
-      isPaused: true,
+      phase: 'planning',
     });
     expect(advanced?.save.gladiators).toHaveLength(6);
     expect(advanced?.save.arena.resolvedCombats).toHaveLength(0);

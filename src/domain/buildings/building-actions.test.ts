@@ -6,11 +6,13 @@ import type { GameSave } from '../saves/types';
 import {
   purchaseBuilding,
   purchaseBuildingImprovement,
+  purchaseBuildingSkill,
   selectBuildingPolicy,
   upgradeBuilding,
   validateBuildingImprovementPurchase,
   validateBuildingPolicySelection,
   validateBuildingPurchase,
+  validateBuildingSkillPurchase,
   validateBuildingUpgrade,
 } from './building-actions';
 import { getLudusGladiatorCapacity } from '../ludus/capacity';
@@ -50,14 +52,25 @@ describe('building actions', () => {
     expect(result.save.buildings.canteen).toMatchObject({
       isPurchased: true,
       level: 1,
+      efficiency: 108,
     });
     expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 120);
+    expect(result.save.economy.ledgerEntries[0]).toMatchObject({
+      amount: 120,
+      buildingId: 'canteen',
+      category: 'building',
+      kind: 'expense',
+      labelKey: 'finance.ledger.buildingPurchase',
+    });
   });
 
   it('prevents purchasing an already purchased building', () => {
     const save = createTestSave();
+    const purchasedBuildingIds = BUILDING_IDS.filter(
+      (buildingId) => save.buildings[buildingId].isPurchased,
+    );
 
-    for (const buildingId of BUILDING_IDS) {
+    for (const buildingId of purchasedBuildingIds) {
       expect(validateBuildingPurchase(save, buildingId)).toMatchObject({
         isAllowed: false,
         reason: 'alreadyPurchased',
@@ -70,6 +83,7 @@ describe('building actions', () => {
       {
         ...createTestSave(),
         ludus: {
+          ...createTestSave().ludus,
           treasury: 10,
           reputation: 0,
         },
@@ -96,12 +110,73 @@ describe('building actions', () => {
     });
     expect(result.save.buildings.domus.level).toBe(2);
     expect(result.save.ludus.treasury).toBe(save.ludus.treasury - calculateBuildingUpgradeCost(2));
+    expect(result.save.economy.ledgerEntries[0]).toMatchObject({
+      amount: calculateBuildingUpgradeCost(2),
+      buildingId: 'domus',
+      category: 'building',
+      kind: 'expense',
+      labelKey: 'finance.ledger.buildingUpgrade',
+    });
+  });
+
+  it('updates efficiency immediately after purchasing an unstaffed building', () => {
+    const save = {
+      ...createTestSave(),
+      ludus: {
+        ...createTestSave().ludus,
+        treasury: 2_000,
+      },
+      buildings: {
+        ...createTestSave().buildings,
+        domus: {
+          ...createTestSave().buildings.domus,
+          level: 3,
+        },
+      },
+    };
+    const result = purchaseBuilding(save, 'farm');
+
+    expect(result.validation).toMatchObject({ isAllowed: true });
+    expect(result.save.buildings.farm).toMatchObject({
+      isPurchased: true,
+      level: 1,
+      efficiency: 25,
+    });
+  });
+
+  it('updates efficiency immediately after changing building staff requirements', () => {
+    const save = {
+      ...createTestSave(),
+      ludus: {
+        ...createTestSave().ludus,
+        treasury: 2_000,
+      },
+      buildings: {
+        ...createTestSave().buildings,
+        domus: {
+          ...createTestSave().buildings.domus,
+          level: 3,
+        },
+        trainingGround: {
+          ...createTestSave().buildings.trainingGround,
+          level: 2,
+        },
+      },
+    };
+    const result = upgradeBuilding(save, 'trainingGround');
+
+    expect(result.validation).toMatchObject({
+      isAllowed: true,
+      targetLevel: 3,
+    });
+    expect(result.save.buildings.trainingGround.efficiency).toBe(60);
   });
 
   it('gates non-domus upgrades behind the required Domus level', () => {
     const save = {
       ...createTestSave(),
       ludus: {
+        ...createTestSave().ludus,
         treasury: 1_000,
         reputation: 0,
       },
@@ -126,6 +201,14 @@ describe('building actions', () => {
     });
     expect(result.save.buildings.dormitory.purchasedImprovementIds).toContain('strawBeds');
     expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 70);
+    expect(result.save.economy.ledgerEntries[0]).toMatchObject({
+      amount: 70,
+      buildingId: 'dormitory',
+      category: 'building',
+      kind: 'expense',
+      labelKey: 'finance.ledger.buildingImprovement',
+      relatedId: 'strawBeds',
+    });
   });
 
   it('prevents an improvement purchase when the building level is too low', () => {
@@ -166,6 +249,50 @@ describe('building actions', () => {
     });
   });
 
+  it('purchases a building skill when requirements are met', () => {
+    const save = createTestSave();
+    const result = purchaseBuildingSkill(save, 'domus', 'domus.ledger-room');
+
+    expect(result.validation).toMatchObject({
+      isAllowed: true,
+      cost: 90,
+    });
+    expect(result.save.buildings.domus.purchasedSkillIds).toContain('domus.ledger-room');
+    expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 90);
+    expect(result.save.economy.ledgerEntries[0]).toMatchObject({
+      amount: 90,
+      buildingId: 'domus',
+      category: 'building',
+      kind: 'expense',
+      labelKey: 'finance.ledger.buildingSkill',
+      relatedId: 'domus.ledger-room',
+    });
+  });
+
+  it('prevents a building skill purchase when prerequisites are missing', () => {
+    const validation = validateBuildingSkillPurchase(
+      createTestSave(),
+      'domus',
+      'domus.steward-desk',
+    );
+
+    expect(validation).toMatchObject({
+      isAllowed: false,
+      reason: 'missingSkillPrerequisite',
+      missingSkillIds: ['domus.ledger-room', 'domus.contract-shelf', 'domus.staff-registry'],
+    });
+  });
+
+  it('prevents buying the same building skill twice', () => {
+    const save = purchaseBuildingSkill(createTestSave(), 'domus', 'domus.ledger-room').save;
+    const validation = validateBuildingSkillPurchase(save, 'domus', 'domus.ledger-room');
+
+    expect(validation).toMatchObject({
+      isAllowed: false,
+      reason: 'alreadyPurchasedSkill',
+    });
+  });
+
   it('does not let dormitory improvements change Domus-governed capacity', () => {
     const save = createTestSave();
     const result = purchaseBuildingImprovement(save, 'dormitory', 'strawBeds');
@@ -175,7 +302,17 @@ describe('building actions', () => {
   });
 
   it('selects a building policy and pays its selection cost', () => {
-    const save = createTestSave();
+    const save = {
+      ...createTestSave(),
+      buildings: {
+        ...createTestSave().buildings,
+        pleasureHall: {
+          ...createTestSave().buildings.pleasureHall,
+          isPurchased: true,
+          level: 2,
+        },
+      },
+    };
     const result = selectBuildingPolicy(save, 'pleasureHall', 'gamesAndSongs');
 
     expect(result.validation).toMatchObject({
@@ -184,6 +321,14 @@ describe('building actions', () => {
     });
     expect(result.save.buildings.pleasureHall.selectedPolicyId).toBe('gamesAndSongs');
     expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 25);
+    expect(result.save.economy.ledgerEntries[0]).toMatchObject({
+      amount: 25,
+      buildingId: 'pleasureHall',
+      category: 'building',
+      kind: 'expense',
+      labelKey: 'finance.ledger.buildingPolicy',
+      relatedId: 'gamesAndSongs',
+    });
   });
 
   it('prevents selecting a policy above the current building level', () => {

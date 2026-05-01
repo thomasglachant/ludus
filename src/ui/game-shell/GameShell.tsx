@@ -1,11 +1,10 @@
-import { lazy, Suspense, useCallback, useState } from 'react';
+import { lazy, Suspense, useCallback } from 'react';
 import type { MapLocationDefinition } from '../../game-data/map-layout';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 import { TopHud } from '../hud/TopHud';
-import { BottomGladiatorRoster } from '../roster/BottomGladiatorRoster';
+import { BottomNavigationBar } from '../navigation/BottomNavigationBar';
 import type { ContextPanelKind } from './game-shell-types';
-import { LeftNavigationRail } from './LeftNavigationRail';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
 import { DebugOverlay } from '../debug/DebugOverlay';
 
@@ -16,14 +15,16 @@ const PixiLudusMap = lazy(() =>
 );
 
 export function GameShell() {
-  const { currentSave, errorKey, isLoading, saveNoticeKey, setGamePaused } = useGameStore();
+  const { currentSave, errorKey, isLoading, saveNoticeKey } = useGameStore();
   const { activeModal, navigate, openModal, t } = useUiStore();
-  const [selectedGladiatorId, setSelectedGladiatorId] = useState<string | null>(null);
 
   const activePanelKind: ContextPanelKind | null =
     activeModal?.kind === 'building' ||
     activeModal?.kind === 'gladiator' ||
     activeModal?.kind === 'weeklyPlanning' ||
+    activeModal?.kind === 'buildingsList' ||
+    activeModal?.kind === 'gladiatorsList' ||
+    activeModal?.kind === 'finance' ||
     activeModal?.kind === 'events' ||
     activeModal?.kind === 'market' ||
     activeModal?.kind === 'arena'
@@ -69,7 +70,6 @@ export function GameShell() {
 
   const selectGladiator = useCallback(
     (gladiatorId: string) => {
-      setSelectedGladiatorId(gladiatorId);
       openModal({ gladiatorId, kind: 'gladiator' });
     },
     [openModal],
@@ -92,18 +92,19 @@ export function GameShell() {
         onOpenMenu={() => {
           openModal({ kind: 'gameMenu' });
         }}
-        onPauseToggle={setGamePaused}
+        onOpenFinance={() => {
+          openModal({ kind: 'finance' });
+        }}
       />
-      <LeftNavigationRail activePanelKind={activePanelKind} onOpenPanel={openPanel} />
       <main className="game-shell__map-stage">
         <Suspense fallback={<p className="empty-state">{t('common.loading')}</p>}>
           <PixiLudusMap save={currentSave} onLocationSelect={selectLocation} />
         </Suspense>
       </main>
-      <BottomGladiatorRoster
+      <BottomNavigationBar
+        activePanelKind={activePanelKind}
         save={currentSave}
-        selectedGladiatorId={selectedGladiatorId ?? undefined}
-        onSelectGladiator={selectGladiator}
+        onOpenPanel={openPanel}
       />
       <ToastAndAlertLayer
         errorKey={errorKey}

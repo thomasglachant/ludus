@@ -3,8 +3,15 @@ export type BuildingId =
   | 'canteen'
   | 'dormitory'
   | 'trainingGround'
+  | 'guardBarracks'
+  | 'farm'
   | 'pleasureHall'
-  | 'infirmary';
+  | 'infirmary'
+  | 'exhibitionGrounds'
+  | 'armory'
+  | 'bookmakerOffice'
+  | 'banquetHall'
+  | 'forgeWorkshop';
 
 export interface BuildingState {
   id: BuildingId;
@@ -12,6 +19,9 @@ export interface BuildingState {
   level: number;
   configuration?: BuildingConfiguration;
   purchasedImprovementIds: string[];
+  purchasedSkillIds: string[];
+  staffAssignmentIds: string[];
+  efficiency: number;
   selectedPolicyId?: string;
 }
 
@@ -43,9 +53,47 @@ export interface BuildingDefinition {
   descriptionKey: string;
   startsPurchased: boolean;
   startsAtLevel: number;
+  staffType?: 'slave' | 'guard' | 'trainer';
+  requiredStaffByLevel?: Record<number, number>;
   levels: BuildingLevelDefinition[];
   improvementIds: string[];
 }
+
+export interface BuildingSkillDefinition {
+  id: string;
+  buildingId: BuildingId;
+  tier: number;
+  name: string;
+  nameKey: string;
+  descriptionKey: string;
+  cost: number;
+  requiredBuildingLevel: number;
+  requiredSkillIds?: string[];
+  effects: BuildingEffect[];
+  unlockedActivities?: BuildingActivityId[];
+}
+
+export type BuildingActivityId =
+  | 'trainingGround.nobleTraining'
+  | 'trainingGround.soldierTraining'
+  | 'trainingGround.publicDrill'
+  | 'canteen.supplyContracts'
+  | 'canteen.festivalCatering'
+  | 'guardBarracks.nightWatch'
+  | 'guardBarracks.rebellionProtocol'
+  | 'pleasureHall.grandEntertainment'
+  | 'domus.profitForecasting'
+  | 'domus.championshipBooking'
+  | 'farm.marketSurplus'
+  | 'farm.exportContracts'
+  | 'exhibitionGrounds.localExhibitions'
+  | 'exhibitionGrounds.grandSpectacle'
+  | 'bookmakerOffice.publicOdds'
+  | 'bookmakerOffice.championshipBook'
+  | 'banquetHall.nobleDinner'
+  | 'banquetHall.grandFeast'
+  | 'forgeWorkshop.weaponContracts'
+  | 'forgeWorkshop.legionContract';
 
 export interface BuildingLevelDefinition {
   level: number;
@@ -86,11 +134,19 @@ export type BuildingEffectType =
   | 'decreaseEnergy'
   | 'decreaseMorale'
   | 'increaseCapacity'
-  | 'reduceInjuryRisk';
+  | 'reduceInjuryRisk'
+  | 'increaseReputation'
+  | 'increaseGlory'
+  | 'increaseSecurity'
+  | 'increaseHappiness'
+  | 'decreaseRebellion'
+  | 'increaseIncome'
+  | 'reduceExpense'
+  | 'increaseProduction'
+  | 'increaseStaffEfficiency';
 
 export interface BuildingEffect {
   type: BuildingEffectType;
   value: number;
-  perHour?: boolean;
-  target?: 'assignedGladiator' | 'allGladiators' | 'ludus';
+  target?: 'plannedGladiators' | 'allGladiators' | 'ludus';
 }

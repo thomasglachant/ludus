@@ -2,6 +2,7 @@ import {
   validateBuildingImprovementPurchase,
   validateBuildingPolicySelection,
   validateBuildingPurchase,
+  validateBuildingSkillPurchase,
   validateBuildingUpgrade,
 } from '../../domain/buildings/building-actions';
 import { getActiveBuildingEffects } from '../../domain/buildings/building-effects';
@@ -16,7 +17,9 @@ import type {
   BuildingId,
   GameSave,
 } from '../../domain/types';
+import { getBuildingActivityDefinitions } from '../../game-data/building-activities';
 import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../../game-data/building-improvements';
+import { BUILDING_SKILLS } from '../../game-data/building-skills';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
@@ -24,7 +27,6 @@ type Translate = (key: string, params?: Record<string, string | number>) => stri
 export interface BuildingActionEffectPreview {
   currentValue: number | null;
   id: string;
-  isPerHour: boolean;
   nextValue: number | null;
   type: BuildingEffectType;
 }
@@ -33,6 +35,19 @@ export interface BuildingActionPreview {
   currentLevel: number;
   effects: BuildingActionEffectPreview[];
   nextLevel: number;
+}
+
+export interface BuildingPanelUnlockedActivityViewModel {
+  id: string;
+  name: string;
+}
+
+export interface BuildingPanelActivityViewModel extends BuildingPanelUnlockedActivityViewModel {
+  description: string;
+  isUnlocked: boolean;
+  requiredBuildingLevel: number;
+  sourceSkillName: string;
+  tier: number;
 }
 
 export interface BuildingPanelViewModel {
@@ -45,10 +60,6 @@ export interface BuildingPanelViewModel {
     validationMessageKey: string | null;
     validationMessageParams: Record<string, string | number>;
   };
-  assignedGladiators: {
-    id: string;
-    name: string;
-  }[];
   descriptionKey: string;
   effects: string[];
   improvements: {
@@ -81,13 +92,31 @@ export interface BuildingPanelViewModel {
     validationMessageKey: string | null;
     validationMessageParams: Record<string, string | number>;
   }[];
+  skills: {
+    actionLabelKey: string;
+    canPurchase: boolean;
+    cost: number;
+    descriptionKey: string;
+    effects: string[];
+    id: string;
+    isPurchased: boolean;
+    name: string;
+    nameKey: string;
+    requiredBuildingLevel: number;
+    requiredSkillNames: string[];
+    tier: number;
+    unlockedActivities: BuildingPanelUnlockedActivityViewModel[];
+    validationMessageKey: string | null;
+    validationMessageParams: Record<string, string | number>;
+  }[];
+  activities: BuildingPanelActivityViewModel[];
   statusKey: string;
 }
 
-export interface DormitoryCapacityViewModel {
-  availableBeds: number;
+export interface LudusCapacityViewModel {
+  availablePlaces: number;
   capacity: number;
-  usedBeds: number;
+  usedPlaces: number;
 }
 
 function getBuildingActionMessageKey(validation: BuildingActionValidation) {
@@ -105,7 +134,9 @@ function getBuildingActionMessageParams(validation: BuildingActionValidation) {
     missing:
       validation.missingImprovementIds && validation.missingImprovementIds.length > 0
         ? validation.missingImprovementIds.join(', ')
-        : '',
+        : validation.missingSkillIds && validation.missingSkillIds.length > 0
+          ? validation.missingSkillIds.join(', ')
+          : '',
   };
 }
 
@@ -115,14 +146,12 @@ function formatBuildingEffects(effects: BuildingEffect[], t: Translate) {
   }
 
   return effects.map((effect) => {
-    const effectText = t(`buildingEffects.${effect.type}`, { value: effect.value });
-
-    return effect.perHour ? `${effectText} ${t('buildingEffects.perHour')}` : effectText;
+    return t(`buildingEffects.${effect.type}`, { value: effect.value });
   });
 }
 
 function getEffectPreviewId(effect: BuildingEffect) {
-  return [effect.type, effect.target ?? 'default', effect.perHour ? 'perHour' : 'flat'].join('-');
+  return [effect.type, effect.target ?? 'default'].join('-');
 }
 
 function createEffectPreviewMap(effects: BuildingEffect[]) {
@@ -157,11 +186,14 @@ function createActionEffectPreviews(
     return {
       currentValue: currentEffect?.value ?? null,
       id,
-      isPerHour: Boolean(effect.perHour),
       nextValue: nextEffect?.value ?? null,
       type: effect.type,
     };
   });
+}
+
+function formatSkillName(skill: { name: string; nameKey: string }, t: Translate): string {
+  return t(skill.nameKey, { name: skill.name });
 }
 
 export function createBuildingPanelViewModel(
@@ -192,6 +224,37 @@ export function createBuildingPanelViewModel(
         nextLevel: targetLevel,
       }
     : null;
+  const buildingSkills = BUILDING_SKILLS.filter((skill) => skill.buildingId === buildingId);
+  const buildingActivities = getBuildingActivityDefinitions(buildingId);
+  const getActivityLabel = (activityId: string, sourceSkillName: string) => {
+    const activityDefinition = buildingActivities.find((activity) => activity.id === activityId);
+
+    return {
+      description: activityDefinition
+        ? t(activityDefinition.descriptionKey)
+        : t('buildingPanel.activityDescription', { skill: sourceSkillName }),
+      name: activityDefinition
+        ? t(activityDefinition.nameKey)
+        : t('buildingPanel.activityName', { skill: sourceSkillName }),
+    };
+  };
+  const activities = buildingSkills.flatMap((skill) => {
+    const sourceSkillName = formatSkillName(skill, t);
+
+    return (skill.unlockedActivities ?? []).map((activityId) => {
+      const activityLabel = getActivityLabel(activityId, sourceSkillName);
+
+      return {
+        description: activityLabel.description,
+        id: activityId,
+        isUnlocked: building.purchasedSkillIds.includes(skill.id),
+        name: activityLabel.name,
+        requiredBuildingLevel: skill.requiredBuildingLevel,
+        sourceSkillName,
+        tier: skill.tier,
+      };
+    });
+  });
 
   return {
     action: {
@@ -203,12 +266,6 @@ export function createBuildingPanelViewModel(
       validationMessageKey: getBuildingActionMessageKey(actionValidation),
       validationMessageParams: getBuildingActionMessageParams(actionValidation),
     },
-    assignedGladiators: save.gladiators
-      .filter((gladiator) => gladiator.currentBuildingId === buildingId)
-      .map((gladiator) => ({
-        id: gladiator.id,
-        name: gladiator.name,
-      })),
     descriptionKey: definition.descriptionKey,
     effects: formatBuildingEffects(getActiveBuildingEffects(save, buildingId), t),
     improvements: BUILDING_IMPROVEMENTS.filter(
@@ -267,14 +324,52 @@ export function createBuildingPanelViewModel(
         };
       },
     ),
+    skills: buildingSkills.map((skill) => {
+      const validation = validateBuildingSkillPurchase(save, buildingId, skill.id);
+      const isPurchased = building.purchasedSkillIds.includes(skill.id);
+      const requiredSkillNames = (skill.requiredSkillIds ?? []).map((requiredSkillId) => {
+        const requiredSkill = buildingSkills.find((candidate) => candidate.id === requiredSkillId);
+
+        return requiredSkill ? formatSkillName(requiredSkill, t) : requiredSkillId;
+      });
+
+      return {
+        actionLabelKey: isPurchased ? 'common.purchased' : 'buildingPanel.purchaseSkill',
+        canPurchase: validation.isAllowed,
+        cost: skill.cost,
+        descriptionKey: skill.descriptionKey,
+        effects: formatBuildingEffects(skill.effects, t),
+        id: skill.id,
+        isPurchased,
+        name: skill.name,
+        nameKey: skill.nameKey,
+        requiredBuildingLevel: skill.requiredBuildingLevel,
+        requiredSkillNames,
+        tier: skill.tier,
+        unlockedActivities: (skill.unlockedActivities ?? []).map((activityId) => {
+          const activityLabel = getActivityLabel(activityId, formatSkillName(skill, t));
+
+          return {
+            id: activityId,
+            name: activityLabel.name,
+          };
+        }),
+        validationMessageKey: getBuildingActionMessageKey(validation),
+        validationMessageParams: {
+          ...getBuildingActionMessageParams(validation),
+          missing: requiredSkillNames.join(', '),
+        },
+      };
+    }),
+    activities,
     statusKey: building.isPurchased ? 'common.purchased' : 'common.notPurchased',
   };
 }
 
-export function createDormitoryCapacityViewModel(save: GameSave): DormitoryCapacityViewModel {
+export function createLudusCapacityViewModel(save: GameSave): LudusCapacityViewModel {
   return {
-    availableBeds: getAvailableLudusGladiatorPlaces(save),
+    availablePlaces: getAvailableLudusGladiatorPlaces(save),
     capacity: getLudusGladiatorCapacity(save),
-    usedBeds: save.gladiators.length,
+    usedPlaces: save.gladiators.length,
   };
 }

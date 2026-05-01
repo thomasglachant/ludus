@@ -20,10 +20,6 @@ const save = createDemoSave({
     year,
     week,
     dayOfWeek: createdAtDay,
-    hour: 23,
-    minute: 0,
-    speed: 0,
-    isPaused: true,
   },
   buildings: {
     domus: createPurchasedBuilding({
@@ -82,8 +78,6 @@ const save = createDemoSave({
       wins: 34,
       losses: 6,
       traits: ['crowdFavorite', 'stoic'],
-      currentBuildingId: 'pleasureHall',
-      weeklyObjective: 'protectChampion',
     },
     {
       id: 'glad-demo-adv-severus',
@@ -99,8 +93,6 @@ const save = createDemoSave({
       wins: 25,
       losses: 8,
       traits: ['brave'],
-      currentBuildingId: 'trainingGround',
-      weeklyObjective: 'balanced',
     },
     {
       id: 'glad-demo-adv-cassian',
@@ -116,8 +108,6 @@ const save = createDemoSave({
       wins: 18,
       losses: 5,
       traits: ['ambitious'],
-      currentBuildingId: 'trainingGround',
-      weeklyObjective: 'trainAgility',
     },
     {
       id: 'glad-demo-adv-brutus',
@@ -133,9 +123,6 @@ const save = createDemoSave({
       wins: 20,
       losses: 11,
       traits: ['disciplined'],
-      currentBuildingId: 'dormitory',
-      weeklyObjective: 'recovery',
-      intensity: 'light',
     },
     {
       id: 'glad-demo-adv-nasica',
@@ -151,8 +138,6 @@ const save = createDemoSave({
       wins: 13,
       losses: 6,
       traits: ['stoic'],
-      currentBuildingId: 'trainingGround',
-      weeklyObjective: 'trainDefense',
     },
     {
       id: 'glad-demo-adv-syrianus',
@@ -168,8 +153,6 @@ const save = createDemoSave({
       wins: 9,
       losses: 7,
       traits: ['rivalrous'],
-      currentBuildingId: 'dormitory',
-      weeklyObjective: 'recovery',
     },
   ],
   market: [

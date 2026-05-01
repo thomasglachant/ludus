@@ -3,27 +3,45 @@ import {
   validateMarketPurchase,
   type MarketActionValidation,
 } from '../../domain/market/market-actions';
-import type { GameSave, Gladiator, MarketGladiator } from '../../domain/types';
+import { getLudusStaffCapacity } from '../../domain/ludus/capacity';
+import {
+  calculateStaffSaleValue,
+  validateStaffMarketPurchase,
+} from '../../domain/staff/staff-actions';
+import type {
+  GameSave,
+  Gladiator,
+  MarketGladiator,
+  StaffMarketCandidate,
+  StaffMember,
+} from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { CTAButton } from '../components/CTAButton';
-import { EmptyState } from '../components/shared';
+import { EmptyState, MetricList, SectionCard } from '../components/shared';
 import { formatMoneyAmount } from '../formatters/money';
 import { GladiatorSummary } from '../gladiators/GladiatorSummary';
 import { GameIcon } from '../icons/GameIcon';
+import { StaffPortrait } from '../staff/StaffPortrait';
 
 interface MarketContentProps {
   save: GameSave;
   onBuy(candidate: MarketGladiator): void;
+  onBuyStaff(candidate: StaffMarketCandidate): void;
   onSell(gladiator: Gladiator): void;
+  onSellStaff(staffMember: StaffMember): void;
 }
 
 function getMarketValidationMessageKey(validation: MarketActionValidation) {
-  if (validation.reason === 'noAvailableBed') {
+  if (validation.reason === 'noAvailablePlace') {
     return null;
   }
 
   return validation.reason ? `market.validation.${validation.reason}` : null;
+}
+
+function getStaffValidationMessageKey(reason?: string) {
+  return reason ? `market.validation.${reason}` : null;
 }
 
 function MarketCandidateCard({
@@ -107,8 +125,95 @@ function OwnedGladiatorCard({
   );
 }
 
-export function MarketContent({ save, onBuy, onSell }: MarketContentProps) {
+function StaffCandidateCard({
+  candidate,
+  onBuyStaff,
+  save,
+}: {
+  candidate: StaffMarketCandidate;
+  onBuyStaff(candidate: StaffMarketCandidate): void;
+  save: GameSave;
+}) {
   const { t } = useUiStore();
+  const validation = validateStaffMarketPurchase(save, candidate.id);
+  const validationMessageKey = getStaffValidationMessageKey(validation.reason);
+
+  return (
+    <SectionCard className="staff-card" testId={`market-staff-candidate-${candidate.id}`}>
+      <StaffPortrait staffMember={candidate} />
+      <div className="staff-card__body">
+        <strong>{candidate.name}</strong>
+        <MetricList
+          columns={3}
+          items={[
+            { labelKey: 'staff.type', value: t(`staff.types.${candidate.type}`) },
+            { labelKey: 'market.priceLabel', value: formatMoneyAmount(candidate.price) },
+            { labelKey: 'staff.weeklyWage', value: formatMoneyAmount(candidate.weeklyWage) },
+          ]}
+        />
+        {validationMessageKey ? (
+          <p className="market-gladiator-summary__warning">{t(validationMessageKey)}</p>
+        ) : null}
+        <div className="market-gladiator-summary__footer">
+          <CTAButton
+            data-testid={`market-buy-staff-${candidate.id}`}
+            disabled={!validation.isAllowed}
+            onClick={() => onBuyStaff(candidate)}
+          >
+            <GameIcon color="#fff9e7" name="shoppingCart" size={18} />
+            <span>{t('market.buy')}</span>
+          </CTAButton>
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
+
+function OwnedStaffCard({
+  onSellStaff,
+  staffMember,
+}: {
+  onSellStaff(staffMember: StaffMember): void;
+  staffMember: StaffMember;
+}) {
+  const { t } = useUiStore();
+  const formattedSaleValue = formatMoneyAmount(calculateStaffSaleValue(staffMember));
+
+  return (
+    <SectionCard className="staff-card" testId={`market-owned-staff-${staffMember.id}`}>
+      <StaffPortrait staffMember={staffMember} />
+      <div className="staff-card__body">
+        <strong>{staffMember.name}</strong>
+        <MetricList
+          columns={3}
+          items={[
+            { labelKey: 'staff.type', value: t(`staff.types.${staffMember.type}`) },
+            { labelKey: 'market.saleValueLabel', value: formattedSaleValue },
+            { labelKey: 'staff.weeklyWage', value: formatMoneyAmount(staffMember.weeklyWage) },
+          ]}
+        />
+        <div className="market-gladiator-summary__footer">
+          <ActionButton
+            icon={<GameIcon name="userMinus" size={18} />}
+            label={t('market.sell')}
+            testId={`market-sell-staff-${staffMember.id}`}
+            onClick={() => onSellStaff(staffMember)}
+          />
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
+
+export function MarketContent({
+  save,
+  onBuy,
+  onBuyStaff,
+  onSell,
+  onSellStaff,
+}: MarketContentProps) {
+  const { t } = useUiStore();
+  const staffCapacity = getLudusStaffCapacity(save);
 
   return (
     <div className="market-content">
@@ -139,6 +244,58 @@ export function MarketContent({ save, onBuy, onSell }: MarketContentProps) {
           </div>
         ) : (
           <EmptyState messageKey="market.noOwnedGladiators" testId="market-empty-owned" />
+        )}
+      </section>
+      <section className="market-candidates" data-testid="market-staff-candidates-section">
+        <h2>{t('market.availableStaff')}</h2>
+        <MetricList
+          columns={2}
+          items={[
+            {
+              labelKey: 'staff.capacity',
+              value: t('staff.capacityValue', {
+                current: save.staff.members.length,
+                maximum: staffCapacity,
+              }),
+            },
+            {
+              labelKey: 'staff.capacitySource',
+              value: t('staff.capacitySourceValue', { level: save.buildings.domus.level }),
+            },
+          ]}
+        />
+        {save.staff.marketCandidates.length > 0 ? (
+          <div className="context-panel__list">
+            {save.staff.marketCandidates.map((candidate) => (
+              <StaffCandidateCard
+                candidate={candidate}
+                key={candidate.id}
+                save={save}
+                onBuyStaff={onBuyStaff}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            messageKey="market.noStaffCandidates"
+            testId="market-empty-staff-candidates"
+          />
+        )}
+      </section>
+      <section className="market-candidates" data-testid="market-owned-staff-section">
+        <h2>{t('market.ownedStaff')}</h2>
+        {save.staff.members.length > 0 ? (
+          <div className="context-panel__list">
+            {save.staff.members.map((staffMember) => (
+              <OwnedStaffCard
+                key={staffMember.id}
+                staffMember={staffMember}
+                onSellStaff={onSellStaff}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState messageKey="market.noOwnedStaff" testId="market-empty-owned-staff" />
         )}
       </section>
     </div>

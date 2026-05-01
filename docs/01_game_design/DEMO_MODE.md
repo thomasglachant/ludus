@@ -8,7 +8,7 @@ Demo mode is useful for:
 
 - testing the map-first player interface;
 - testing building visuals at different progression levels;
-- testing portrait-based gladiator rosters;
+- testing portrait-based gladiator lists;
 - testing centered feature modals;
 - testing time-of-day themes;
 - testing market and arena external locations;
@@ -82,14 +82,14 @@ Purpose: validate the first playable state after the player has recruited a smal
 
 Expected state:
 
-- Year 1, Week 1, Monday, day phase, paused;
+- Year 1, Week 1, Monday, planning phase;
 - treasury 850 and low ludus reputation;
 - all base buildings purchased, with Domus level 3 for the three-gladiator roster;
-- Dormitory level 1 focused on recovery rather than purchasable beds;
-- 3 owned beginner gladiators with stable portraits, sprites, objectives and building assignments;
+- Dormitory level 1 focused on recovery while Domus controls roster capacity;
+- 3 owned beginner gladiators with stable portraits and combat visual identities;
 - 5 predefined market candidates;
 - no active Sunday combats;
-- simple map state and low UI density.
+- simple map state, dawn map theme and low UI density.
 
 ### Mid Demo
 
@@ -99,12 +99,13 @@ Purpose: validate normal progression.
 
 Expected state:
 
-- Year 2, Week 4, Thursday, day phase, paused;
+- Year 2, Week 4, Thursday, planning phase;
 - 4 owned gladiators;
 - all base buildings purchased, with levels around 3 or 4;
 - Domus capacity large enough for the roster and market test purchases;
 - 5 predefined market candidates;
 - active weekly planning recommendations;
+- day map theme;
 - at least one contextual alert.
 
 ### Advanced Demo
@@ -115,15 +116,15 @@ Purpose: validate dense UI and late-progression visual states.
 
 Expected state:
 
-- Year 5, Week 7, Saturday, dusk phase, paused;
+- Year 5, Week 7, Saturday, planning phase;
 - 6 owned gladiators;
 - all base buildings purchased at level 6 with full improvement coverage where available;
 - Domus capacity at the maximum roster size;
 - 5 predefined market candidates;
 - multiple active alerts;
-- dusk or night visual coverage.
+- dusk map theme and late-progression visual coverage.
 
-The advanced demo must verify that the bottom gladiator roster remains readable with 6 gladiators and that Playwright can advance from Saturday evening into the Sunday arena state without relying on random setup.
+The advanced demo must verify that the gladiator list panel remains readable with 6 gladiators and that Playwright can advance from Saturday planning into the Sunday arena state without relying on random setup.
 
 ## Visual Requirements
 
@@ -132,7 +133,7 @@ Demo saves must be useful for UI and visual testing.
 Each demo gladiator must include a stable visual identity:
 
 - portrait asset id;
-- sprite asset id;
+- combat sprite asset id;
 - optional palette or variation metadata.
 
 ```ts
@@ -158,9 +159,9 @@ Demo saves should help test:
 - map layout;
 - building visuals;
 - gladiator portraits;
-- gladiator map sprites;
+- combat sprite references;
 - centered feature modals;
-- time-of-day themes;
+- time-of-day themes derived from saved day and macro phase;
 - market and arena external locations;
 - Playwright selectors.
 
@@ -211,7 +212,7 @@ Stable `data-testid` values should exist for:
 - top HUD;
 - ludus map;
 - building locations;
-- gladiator roster;
+- gladiator list panel;
 - gladiator portrait cards;
 - modal host;
 - market location;
@@ -260,8 +261,8 @@ Future browser smoke tests may cover:
 - each demo route blocked when disabled;
 - each demo route loads when enabled;
 - early, mid and advanced map states render;
-- portrait-based roster renders;
-- advanced demo remains readable with 6 gladiators;
+- portrait-based gladiator list renders;
+- advanced demo gladiator list remains readable with 6 gladiators;
 - feature modals can open from stable selectors.
 
 ## Acceptance Criteria
@@ -273,10 +274,10 @@ Demo mode is valid when:
 - three demo templates are available: `demo-early-ludus`, `demo-mid-ludus` and `demo-advanced-ludus`;
 - demo templates start local saves with stable game state;
 - demo gladiators have portraits;
-- demo gladiators have map sprite references;
+- demo gladiators have combat sprite references;
 - demo buildings appear on the map;
 - Playwright can open each demo directly;
-- the advanced demo can test UI density with 6 gladiators;
+- the advanced demo can test panel density with 6 gladiators;
 - demo templates are static and deterministic;
 - loading a demo template creates a normal local save copy;
 - saving a demo-derived local save does not mutate the template;

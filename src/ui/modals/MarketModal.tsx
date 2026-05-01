@@ -1,5 +1,10 @@
 import { getAvailableLudusGladiatorPlaces } from '../../domain/ludus/capacity';
-import type { Gladiator, MarketGladiator } from '../../domain/types';
+import type {
+  Gladiator,
+  MarketGladiator,
+  StaffMarketCandidate,
+  StaffMember,
+} from '../../domain/types';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 import { UserAlert } from '../components/UserAlert';
@@ -13,7 +18,8 @@ interface MarketModalProps {
 }
 
 export function MarketModal({ onBack, onClose }: MarketModalProps) {
-  const { buyMarketGladiator, currentSave, sellGladiator } = useGameStore();
+  const { buyMarketGladiator, buyMarketStaff, currentSave, sellGladiator, sellStaff } =
+    useGameStore();
   const { openConfirmModal, t } = useUiStore();
 
   if (!currentSave) {
@@ -45,6 +51,31 @@ export function MarketModal({ onBack, onClose }: MarketModalProps) {
       titleKey: 'market.sellConfirmationTitle',
     });
   };
+  const requestBuyStaff = (candidate: StaffMarketCandidate) => {
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: 'market.buy',
+      messageKey: 'market.buyStaffConfirmation',
+      messageParams: {
+        name: candidate.name,
+        price: formatMoneyAmount(candidate.price),
+      },
+      onConfirm: () => buyMarketStaff(candidate.id),
+      testId: 'market-buy-staff-confirm-dialog',
+      titleKey: 'market.buyConfirmationTitle',
+    });
+  };
+  const requestSellStaff = (staffMember: StaffMember) => {
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: 'market.sell',
+      messageKey: 'market.sellStaffConfirmation',
+      messageParams: { name: staffMember.name },
+      onConfirm: () => sellStaff(staffMember.id),
+      testId: 'market-sell-staff-confirm-dialog',
+      titleKey: 'market.sellConfirmationTitle',
+    });
+  };
   const isLudusFull = getAvailableLudusGladiatorPlaces(currentSave) <= 0;
 
   return (
@@ -65,7 +96,13 @@ export function MarketModal({ onBack, onClose }: MarketModalProps) {
         />
       ) : null}
       <p className="market-modal__subtitle">{t('market.subtitle')}</p>
-      <MarketContent save={currentSave} onBuy={requestBuy} onSell={requestSell} />
+      <MarketContent
+        save={currentSave}
+        onBuy={requestBuy}
+        onBuyStaff={requestBuyStaff}
+        onSell={requestSell}
+        onSellStaff={requestSellStaff}
+      />
     </AppModal>
   );
 }

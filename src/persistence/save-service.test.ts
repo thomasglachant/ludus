@@ -28,10 +28,7 @@ describe('SaveService demo saves', () => {
     expect(localSave.saveId).not.toBe('demo-early-ludus');
     expect(localSave.gameId).not.toBe(demoSave.gameId);
     expect(localSave.metadata).toEqual({ demoSaveId: 'demo-early-ludus' });
-    expect(localSave.time).toMatchObject({
-      speed: 1,
-      isPaused: false,
-    });
+    expect(localSave.time).toMatchObject(demoSave.time);
     await expect(service.listLocalSaves()).resolves.toHaveLength(1);
 
     const updatedSave = await service.updateLocalSave({
@@ -40,11 +37,6 @@ describe('SaveService demo saves', () => {
         ...localSave.ludus,
         treasury: 2,
       },
-      time: {
-        ...localSave.time,
-        speed: 4,
-        isPaused: true,
-      },
     });
 
     await expect(service.loadLocalSave(localSave.saveId)).resolves.toMatchObject({
@@ -52,10 +44,7 @@ describe('SaveService demo saves', () => {
         treasury: 2,
       },
       saveId: localSave.saveId,
-      time: {
-        speed: 1,
-        isPaused: false,
-      },
+      time: localSave.time,
       updatedAt: updatedSave.updatedAt,
     });
   });
@@ -102,7 +91,7 @@ describe('SaveService demo saves', () => {
     });
   });
 
-  it('does not persist the current game speed when saving an existing game as a copy', async () => {
+  it('preserves macro time when saving an existing game as a copy', async () => {
     const service = new SaveService(
       new LocalSaveProvider(),
       new CloudSaveProvider(),
@@ -115,16 +104,19 @@ describe('SaveService demo saves', () => {
       ...originalSave,
       time: {
         ...originalSave.time,
-        speed: 8,
-        isPaused: true,
+        week: 3,
+        dayOfWeek: 'friday',
       },
     });
 
-    expect(copiedSave.time.speed).toBe(8);
+    expect(copiedSave.time).toMatchObject({
+      week: 3,
+      dayOfWeek: 'friday',
+    });
     await expect(service.loadLocalSave(copiedSave.saveId)).resolves.toMatchObject({
       time: {
-        speed: 1,
-        isPaused: false,
+        week: 3,
+        dayOfWeek: 'friday',
       },
     });
   });

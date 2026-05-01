@@ -4,10 +4,20 @@ import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 export type ImpactIndicatorKind = Extract<
   GameIconName,
-  'treasury' | 'reputation' | 'health' | 'energy' | 'morale' | 'strength' | 'agility' | 'defense'
+  | 'treasury'
+  | 'reputation'
+  | 'health'
+  | 'energy'
+  | 'morale'
+  | 'strength'
+  | 'agility'
+  | 'defense'
+  | 'victory'
+  | 'warning'
 >;
 
 export type ImpactIndicatorSize = 'md' | 'sm';
+export type ImpactIndicatorTone = 'negative' | 'neutral' | 'positive';
 
 interface ImpactIndicatorBaseProps {
   chancePercent?: number;
@@ -19,6 +29,7 @@ type ImpactIndicatorProps =
       amount: number;
       kind: ImpactIndicatorKind;
       label: string;
+      tone?: ImpactIndicatorTone;
     })
   | (ImpactIndicatorBaseProps & {
       text: string;
@@ -42,7 +53,7 @@ export function ImpactIndicator(props: ImpactIndicatorProps) {
     );
   }
 
-  const tone = props.amount >= 0 ? 'positive' : 'negative';
+  const tone = props.tone ?? (props.amount >= 0 ? 'positive' : 'negative');
 
   return (
     <span className={getImpactIndicatorClassName(props, `impact-indicator--${tone}`)}>

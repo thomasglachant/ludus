@@ -1,9 +1,5 @@
 import { GAME_BALANCE } from './balance';
 
-export const WEEKLY_OBJECTIVES = GAME_BALANCE.planning.weeklyObjectives;
-
-export const TRAINING_INTENSITIES = GAME_BALANCE.planning.trainingIntensities;
-
 export const PLANNING_THRESHOLDS = {
   criticalHealth: GAME_BALANCE.planning.thresholds.criticalHealth,
   lowHealth: GAME_BALANCE.planning.thresholds.lowHealth,
@@ -13,5 +9,3 @@ export const PLANNING_THRESHOLDS = {
   lowMorale: GAME_BALANCE.planning.thresholds.lowMorale,
   primaryNeedReassignment: GAME_BALANCE.planning.thresholds.primaryNeedReassignment,
 } as const;
-
-export const DEFAULT_ROUTINE_CONFIG = GAME_BALANCE.planning.defaultRoutine;

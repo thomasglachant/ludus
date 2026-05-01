@@ -7,10 +7,17 @@ import {
   type DailyEventOutcomeDefinition,
 } from '../../game-data/events';
 import { GAME_BALANCE } from '../../game-data/balance';
+import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/building-activities';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
+import type { BuildingActivityId } from '../buildings/types';
+import {
+  addLedgerEntry,
+  createLedgerEntry,
+  updateCurrentWeekSummary,
+} from '../economy/economy-actions';
 import type { Gladiator } from '../gladiators/types';
 import { addSkillLevels } from '../gladiators/skills';
-import { synchronizePlanning } from '../planning/planning-actions';
+import type { DailyPlan, DailyPlanActivity } from '../planning/types';
 import type { GameSave } from '../saves/types';
 import type {
   GameEvent,
@@ -120,17 +127,32 @@ function isSameEventDay(save: GameSave, event: GameEvent) {
   );
 }
 
-function isDailyEventWindow(time: GameSave['time']) {
-  return (
-    time.hour >= EVENT_CONFIG.dailyEventStartHour && time.hour < EVENT_CONFIG.dailyEventEndHour
-  );
-}
-
 function canDailyEventOccur(save: GameSave, random: RandomSource) {
   return random() < EVENT_CONFIG.dailyEventProbabilityByDay[save.time.dayOfWeek];
 }
 
 function canUseDefinition(save: GameSave, definition: DailyEventDefinition) {
+  if (
+    definition.requiredLudus?.rebellionAtLeast !== undefined &&
+    save.ludus.rebellion < definition.requiredLudus.rebellionAtLeast
+  ) {
+    return false;
+  }
+
+  if (
+    definition.requiredLudus?.happinessAtMost !== undefined &&
+    save.ludus.happiness > definition.requiredLudus.happinessAtMost
+  ) {
+    return false;
+  }
+
+  if (
+    definition.requiredLudus?.securityAtMost !== undefined &&
+    save.ludus.security > definition.requiredLudus.securityAtMost
+  ) {
+    return false;
+  }
+
   if (!definition.gladiatorSelector) {
     return true;
   }
@@ -142,6 +164,53 @@ function canUseDefinition(save: GameSave, definition: DailyEventDefinition) {
   }
 
   return save.gladiators.length > 0;
+}
+
+function getPlannedActivityPoints(plan: DailyPlan, activity: DailyPlanActivity) {
+  return (
+    plan.gladiatorTimePoints[activity] + plan.laborPoints[activity] + plan.adminPoints[activity]
+  );
+}
+
+function getSelectedBuildingActivity(plan: DailyPlan, activityId: BuildingActivityId) {
+  const definition = BUILDING_ACTIVITY_DEFINITIONS.find((activity) => activity.id === activityId);
+
+  if (!definition || plan.buildingActivitySelections[definition.activity] !== activityId) {
+    return null;
+  }
+
+  return definition;
+}
+
+function canUseDefinitionForPlan(definition: DailyEventDefinition, plan?: DailyPlan) {
+  const hasActivityTriggers =
+    definition.triggerActivities !== undefined && definition.triggerActivities.length > 0;
+  const hasBuildingActivityTriggers =
+    definition.triggerBuildingActivities !== undefined &&
+    definition.triggerBuildingActivities.length > 0;
+
+  if (!hasActivityTriggers && !hasBuildingActivityTriggers) {
+    return true;
+  }
+
+  if (!plan) {
+    return false;
+  }
+
+  const activityMatches =
+    !hasActivityTriggers ||
+    definition.triggerActivities?.some((activity) => getPlannedActivityPoints(plan, activity) > 0);
+  const buildingActivityMatches =
+    !hasBuildingActivityTriggers ||
+    definition.triggerBuildingActivities?.some((activityId) => {
+      const selectedActivity = getSelectedBuildingActivity(plan, activityId);
+
+      return selectedActivity
+        ? getPlannedActivityPoints(plan, selectedActivity.activity) > 0
+        : false;
+    });
+
+  return Boolean(activityMatches && buildingActivityMatches);
 }
 
 function selectGladiator(
@@ -197,6 +266,11 @@ function resolveEffectTemplate(
       return gladiatorId ? { type: 'removeGladiator', gladiatorId } : null;
     case 'changeTreasury':
     case 'changeLudusReputation':
+    case 'changeLudusGlory':
+    case 'changeLudusSecurity':
+    case 'changeLudusHappiness':
+    case 'changeLudusRebellion':
+    case 'releaseAllGladiators':
       return template;
   }
 }
@@ -299,16 +373,25 @@ function addLaunchedEventRecord(
   );
 }
 
-function createDailyEvent(save: GameSave, random: RandomSource): GameEvent | null {
+function createDailyEvent(
+  save: GameSave,
+  random: RandomSource,
+  plan?: DailyPlan,
+): GameEvent | null {
   const availableDefinitions = DAILY_EVENT_DEFINITIONS.filter(
-    (definition) => canUseDefinition(save, definition) && !isDefinitionOnCooldown(save, definition),
+    (definition) =>
+      canUseDefinition(save, definition) &&
+      canUseDefinitionForPlan(definition, plan) &&
+      !isDefinitionOnCooldown(save, definition),
   );
 
   if (availableDefinitions.length === 0) {
     return null;
   }
 
-  const definition = pickWeightedDefinition(availableDefinitions, random);
+  const definition =
+    availableDefinitions.find((candidate) => candidate.priority === 'critical') ??
+    pickWeightedDefinition(availableDefinitions, random);
 
   if (!definition) {
     return null;
@@ -317,18 +400,101 @@ function createDailyEvent(save: GameSave, random: RandomSource): GameEvent | nul
   return createDailyEventFromDefinition(save, definition, random);
 }
 
-function applyEventEffect(save: GameSave, effect: GameEventEffect): GameSave {
-  if (effect.type === 'changeTreasury') {
-    return {
+function getCurrentWeekEventCount(save: GameSave) {
+  return save.events.launchedEvents.filter(
+    (launch) =>
+      launch.launchedAtYear === save.time.year && launch.launchedAtWeek === save.time.week,
+  ).length;
+}
+
+function hasEventForCurrentDay(save: GameSave, pendingEvents = save.events.pendingEvents) {
+  return (
+    pendingEvents.length > 0 ||
+    save.events.resolvedEvents.some((event) => isSameEventDay(save, event)) ||
+    save.events.launchedEvents.some((launch) => isSameLaunchDay(save, launch))
+  );
+}
+
+export function synchronizeMacroEvents(
+  save: GameSave,
+  plan: DailyPlan,
+  random: RandomSource = Math.random,
+): { save: GameSave; createdEventIds: string[] } {
+  const expiredEvents = save.events.pendingEvents
+    .filter((event) => !isSameEventDay(save, event))
+    .map((event) => ({
+      ...event,
+      status: 'expired' as const,
+    }));
+  const pendingEvents = save.events.pendingEvents.filter((event) => isSameEventDay(save, event));
+  const weeklyEventCount = getCurrentWeekEventCount(save);
+  const canCreateEvent =
+    save.gladiators.length > 0 &&
+    save.time.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek &&
+    weeklyEventCount < EVENT_CONFIG.maxEventsPerWeek &&
+    pendingEvents.length < EVENT_CONFIG.maxEventsPerDay &&
+    !hasEventForCurrentDay(save, pendingEvents) &&
+    canDailyEventOccur(save, random);
+  const createdEvent = canCreateEvent ? createDailyEvent(save, random, plan) : null;
+  const nextPendingEvents = createdEvent ? [...pendingEvents, createdEvent] : pendingEvents;
+  const nextLaunchedEvents = createdEvent
+    ? addLaunchedEventRecord(save.events.launchedEvents, createdEvent)
+    : save.events.launchedEvents;
+
+  return {
+    save: {
       ...save,
-      ludus: {
-        ...save.ludus,
-        treasury: Math.max(
-          GAME_BALANCE.economy.minimumTreasury,
-          save.ludus.treasury + effect.amount,
+      events: {
+        pendingEvents: nextPendingEvents,
+        resolvedEvents: [...expiredEvents, ...save.events.resolvedEvents].slice(
+          0,
+          EVENT_CONFIG.resolvedEventHistoryLimit,
         ),
+        launchedEvents: nextLaunchedEvents,
       },
-    };
+    },
+    createdEventIds: createdEvent ? [createdEvent.id] : [],
+  };
+}
+
+function applyTreasuryEventEffect(
+  save: GameSave,
+  effect: Extract<GameEventEffect, { type: 'changeTreasury' }>,
+  labelKey: string,
+): GameSave {
+  if (effect.amount === 0) {
+    return save;
+  }
+
+  const nextSave = updateCurrentWeekSummary(
+    addLedgerEntry(
+      save,
+      createLedgerEntry(save, {
+        kind: effect.amount > 0 ? 'income' : 'expense',
+        category: 'event',
+        amount: Math.abs(effect.amount),
+        labelKey,
+      }),
+    ),
+  );
+  const isLost = nextSave.ludus.treasury <= GAME_BALANCE.macroSimulation.gameOverTreasuryThreshold;
+
+  return {
+    ...nextSave,
+    ludus: {
+      ...nextSave.ludus,
+      gameStatus: isLost ? 'lost' : nextSave.ludus.gameStatus,
+    },
+    time: {
+      ...nextSave.time,
+      phase: isLost ? 'gameOver' : nextSave.time.phase,
+    },
+  };
+}
+
+function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: string): GameSave {
+  if (effect.type === 'changeTreasury') {
+    return applyTreasuryEventEffect(save, effect, labelKey);
   }
 
   if (effect.type === 'changeLudusReputation') {
@@ -344,16 +510,64 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect): GameSave {
     };
   }
 
+  if (effect.type === 'changeLudusGlory') {
+    return {
+      ...save,
+      ludus: {
+        ...save.ludus,
+        glory: Math.max(0, save.ludus.glory + effect.amount),
+      },
+    };
+  }
+
+  if (effect.type === 'changeLudusSecurity') {
+    return {
+      ...save,
+      ludus: {
+        ...save.ludus,
+        security: clamp(save.ludus.security + effect.amount, 0, 100),
+      },
+    };
+  }
+
+  if (effect.type === 'changeLudusHappiness') {
+    return {
+      ...save,
+      ludus: {
+        ...save.ludus,
+        happiness: clamp(save.ludus.happiness + effect.amount, 0, 100),
+      },
+    };
+  }
+
+  if (effect.type === 'changeLudusRebellion') {
+    return {
+      ...save,
+      ludus: {
+        ...save.ludus,
+        rebellion: clamp(save.ludus.rebellion + effect.amount, 0, 100),
+      },
+    };
+  }
+
   if (effect.type === 'removeGladiator') {
     return {
       ...save,
       gladiators: save.gladiators.filter((gladiator) => gladiator.id !== effect.gladiatorId),
       planning: {
         ...save.planning,
-        routines: save.planning.routines.filter(
-          (routine) => routine.gladiatorId !== effect.gladiatorId,
-        ),
         alerts: save.planning.alerts.filter((alert) => alert.gladiatorId !== effect.gladiatorId),
+      },
+    };
+  }
+
+  if (effect.type === 'releaseAllGladiators') {
+    return {
+      ...save,
+      gladiators: [],
+      planning: {
+        ...save.planning,
+        alerts: [],
       },
     };
   }
@@ -395,9 +609,9 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect): GameSave {
   };
 }
 
-function applyOutcomeEffects(save: GameSave, outcome: GameEventOutcome) {
+function applyOutcomeEffects(save: GameSave, outcome: GameEventOutcome, labelKey: string) {
   return (outcome.effects ?? []).reduce(
-    (updatedSave, effect) => applyEventEffect(updatedSave, effect),
+    (updatedSave, effect) => applyEventEffect(updatedSave, effect, labelKey),
     save,
   );
 }
@@ -416,12 +630,13 @@ function applyEventConsequence(
   save: GameSave,
   consequence: GameEventConsequence,
   random: RandomSource,
+  labelKey: string,
 ): { save: GameSave; resolvedOutcomeIds: string[] } {
   switch (consequence.kind) {
     case 'certain':
       return {
         save: consequence.effects.reduce(
-          (updatedSave, effect) => applyEventEffect(updatedSave, effect),
+          (updatedSave, effect) => applyEventEffect(updatedSave, effect, labelKey),
           save,
         ),
         resolvedOutcomeIds: [],
@@ -432,7 +647,7 @@ function applyEventConsequence(
       }
 
       return {
-        save: applyOutcomeEffects(save, consequence),
+        save: applyOutcomeEffects(save, consequence, labelKey),
         resolvedOutcomeIds: [consequence.id],
       };
     case 'oneOf': {
@@ -443,7 +658,7 @@ function applyEventConsequence(
       }
 
       return {
-        save: applyOutcomeEffects(save, selectedOutcome),
+        save: applyOutcomeEffects(save, selectedOutcome, labelKey),
         resolvedOutcomeIds: [selectedOutcome.id],
       };
     }
@@ -454,10 +669,11 @@ function applyEventConsequences(
   save: GameSave,
   consequences: GameEventConsequence[],
   random: RandomSource,
+  labelKey: string,
 ) {
   return consequences.reduce(
     (result, consequence) => {
-      const nextResult = applyEventConsequence(result.save, consequence, random);
+      const nextResult = applyEventConsequence(result.save, consequence, random, labelKey);
 
       return {
         save: nextResult.save,
@@ -466,52 +682,6 @@ function applyEventConsequences(
     },
     { save, resolvedOutcomeIds: [] as string[] },
   );
-}
-
-export function synchronizeEvents(save: GameSave, random: RandomSource = Math.random): GameSave {
-  const expiredEvents = save.events.pendingEvents
-    .filter((event) => !isSameEventDay(save, event))
-    .map((event) => ({
-      ...event,
-      status: 'expired' as const,
-    }));
-  const pendingEvents = save.events.pendingEvents.filter((event) => isSameEventDay(save, event));
-  const hasEventForCurrentDay =
-    pendingEvents.length > 0 ||
-    save.events.resolvedEvents.some((event) => isSameEventDay(save, event)) ||
-    save.events.launchedEvents.some((launch) => isSameLaunchDay(save, launch));
-  const weeklyEventCount = save.events.launchedEvents.filter(
-    (launch) =>
-      launch.launchedAtYear === save.time.year && launch.launchedAtWeek === save.time.week,
-  ).length;
-  const canCreateEvent =
-    save.gladiators.length > 0 &&
-    save.time.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek &&
-    isDailyEventWindow(save.time) &&
-    weeklyEventCount < EVENT_CONFIG.maxEventsPerWeek &&
-    !hasEventForCurrentDay;
-  const createdEvent =
-    canCreateEvent &&
-    pendingEvents.length < EVENT_CONFIG.maxEventsPerDay &&
-    canDailyEventOccur(save, random)
-      ? createDailyEvent(save, random)
-      : null;
-  const nextPendingEvents = createdEvent ? [...pendingEvents, createdEvent] : pendingEvents;
-  const nextLaunchedEvents = createdEvent
-    ? addLaunchedEventRecord(save.events.launchedEvents, createdEvent)
-    : save.events.launchedEvents;
-
-  return {
-    ...save,
-    events: {
-      pendingEvents: nextPendingEvents,
-      resolvedEvents: [...expiredEvents, ...save.events.resolvedEvents].slice(
-        0,
-        EVENT_CONFIG.resolvedEventHistoryLimit,
-      ),
-      launchedEvents: nextLaunchedEvents,
-    },
-  };
 }
 
 export function triggerDebugDailyEvent(
@@ -576,7 +746,12 @@ export function resolveGameEventChoice(
     };
   }
 
-  const consequenceResult = applyEventConsequences(save, choice.consequences, random);
+  const consequenceResult = applyEventConsequences(
+    save,
+    choice.consequences,
+    random,
+    event.titleKey,
+  );
   const resolvedEvent: GameEvent = {
     ...event,
     status: 'resolved',
@@ -591,8 +766,17 @@ export function resolveGameEventChoice(
     validation: {
       isAllowed: true,
     },
-    save: synchronizePlanning({
+    save: {
       ...consequenceResult.save,
+      time: {
+        ...consequenceResult.save.time,
+        phase:
+          consequenceResult.save.ludus.gameStatus === 'lost'
+            ? 'gameOver'
+            : consequenceResult.save.time.phase === 'event'
+              ? 'planning'
+              : consequenceResult.save.time.phase,
+      },
       events: {
         pendingEvents: consequenceResult.save.events.pendingEvents.filter(
           (candidate) => candidate.id !== eventId,
@@ -603,6 +787,6 @@ export function resolveGameEventChoice(
         ),
         launchedEvents: consequenceResult.save.events.launchedEvents,
       },
-    }),
+    },
   };
 }

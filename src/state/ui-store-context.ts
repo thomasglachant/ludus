@@ -76,6 +76,18 @@ export interface WeeklyPlanningModalRequest {
   kind: 'weeklyPlanning';
 }
 
+export interface BuildingsListModalRequest {
+  kind: 'buildingsList';
+}
+
+export interface GladiatorsListModalRequest {
+  kind: 'gladiatorsList';
+}
+
+export interface FinanceModalRequest {
+  kind: 'finance';
+}
+
 export interface EventsModalRequest {
   kind: 'events';
 }
@@ -95,6 +107,9 @@ export type UiModalRequest =
   | BuildingModalRequest
   | GladiatorModalRequest
   | WeeklyPlanningModalRequest
+  | BuildingsListModalRequest
+  | GladiatorsListModalRequest
+  | FinanceModalRequest
   | EventsModalRequest
   | ArenaModalRequest;
 

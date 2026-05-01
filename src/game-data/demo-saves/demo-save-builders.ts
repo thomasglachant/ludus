@@ -1,5 +1,12 @@
 import { synchronizePlanning } from '../../domain/planning/planning-actions';
 import { CURRENT_SCHEMA_VERSION } from '../../domain/saves/create-initial-save';
+import { createInitialBuildings } from '../../domain/buildings/initial-buildings';
+import { createInitialEconomyState } from '../../domain/economy/economy-actions';
+import { createInitialStaffState } from '../../domain/staff/staff-actions';
+import {
+  createDefaultWeeklyPlan,
+  synchronizeEconomyProjection,
+} from '../../domain/weekly-simulation/weekly-simulation-actions';
 import { createInitialLudusMapState } from '../map-layout';
 import { getGladiatorVisualIdentity } from '../gladiator-visuals';
 import type {
@@ -8,42 +15,46 @@ import type {
   DemoSaveId,
   GameSave,
   Gladiator,
-  GladiatorRoutine,
   MarketGladiator,
 } from '../../domain/types';
 
 export const DEMO_CREATED_AT = '2026-01-01T00:00:00.000Z';
 export const DEMO_UPDATED_AT = '2026-01-01T00:00:00.000Z';
 
-export type DemoGladiatorInput = Gladiator & {
-  weeklyObjective: GladiatorRoutine['objective'];
-  intensity?: GladiatorRoutine['intensity'];
-};
+export type DemoGladiatorInput = Gladiator;
 
 interface DemoSaveInput {
   id: DemoSaveId;
   ludusName: string;
-  ludus: GameSave['ludus'];
-  time: GameSave['time'];
-  buildings: Record<BuildingId, BuildingState>;
+  ludus: Pick<GameSave['ludus'], 'treasury' | 'reputation'> & Partial<GameSave['ludus']>;
+  time: Pick<GameSave['time'], 'year' | 'week' | 'dayOfWeek'> & Partial<GameSave['time']>;
+  buildings: Partial<Record<BuildingId, BuildingState>>;
   gladiators: DemoGladiatorInput[];
   market: MarketGladiator[];
 }
 
 export function createPurchasedBuilding(
-  building: Omit<BuildingState, 'isPurchased' | 'purchasedImprovementIds'> & {
-    purchasedImprovementIds?: string[];
-  },
+  building: Pick<BuildingState, 'id' | 'level'> &
+    Partial<Omit<BuildingState, 'id' | 'isPurchased' | 'level'>>,
 ): BuildingState {
   return {
     ...building,
     isPurchased: true,
+    efficiency: building.efficiency ?? 100,
     purchasedImprovementIds: building.purchasedImprovementIds ?? [],
+    purchasedSkillIds: building.purchasedSkillIds ?? [],
+    staffAssignmentIds: building.staffAssignmentIds ?? [],
   };
 }
 
 export function createDemoSave(input: DemoSaveInput): GameSave {
   const gladiators = input.gladiators.map<Gladiator>((gladiator) => {
+    const skillProfile = {
+      strength: gladiator.strength,
+      agility: gladiator.agility,
+      defense: gladiator.defense,
+    };
+
     return {
       id: gladiator.id,
       name: gladiator.name,
@@ -58,21 +69,21 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       wins: gladiator.wins,
       losses: gladiator.losses,
       traits: gladiator.traits,
-      currentLocationId: gladiator.currentLocationId ?? gladiator.currentBuildingId,
-      currentBuildingId: gladiator.currentBuildingId,
-      currentActivityId: gladiator.currentActivityId,
-      currentTaskStartedAt: gladiator.currentTaskStartedAt,
       trainingPlan: gladiator.trainingPlan,
-      visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity),
+      visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, {
+        skillProfile,
+      }),
     };
   });
-  const routines = input.gladiators.map<GladiatorRoutine>((gladiator) => ({
-    gladiatorId: gladiator.id,
-    objective: gladiator.weeklyObjective,
-    intensity: gladiator.intensity ?? 'normal',
-    allowAutomaticAssignment: true,
-  }));
   const marketGladiators = input.market.map(createMarketGladiator);
+  const time: GameSave['time'] = {
+    phase: 'planning',
+    ...input.time,
+  };
+  const buildings = {
+    ...createInitialBuildings(),
+    ...input.buildings,
+  };
   const baseSave: GameSave = {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     gameId: input.id,
@@ -83,26 +94,30 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       ludusName: input.ludusName,
       isCloudUser: false,
     },
-    ludus: input.ludus,
-    time: input.time,
+    ludus: {
+      glory: 0,
+      security: 50,
+      happiness: 65,
+      rebellion: 0,
+      gameStatus: 'active',
+      ...input.ludus,
+    },
+    time,
     map: createInitialLudusMapState(),
-    buildings: input.buildings,
+    buildings,
     gladiators,
+    economy: createInitialEconomyState(),
+    staff: createInitialStaffState(),
     market: {
-      year: input.time.year,
-      week: input.time.week,
+      year: time.year,
+      week: time.week,
       availableGladiators: marketGladiators,
     },
     arena: {
       resolvedCombats: [],
       isArenaDayActive: false,
     },
-    planning: {
-      year: input.time.year,
-      week: input.time.week,
-      routines,
-      alerts: [],
-    },
+    planning: createDefaultWeeklyPlan(time.year, time.week),
     events: {
       pendingEvents: [],
       resolvedEvents: [],
@@ -113,15 +128,23 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     },
   };
 
-  return synchronizePlanning(baseSave, DEMO_UPDATED_AT);
+  return synchronizeEconomyProjection(synchronizePlanning(baseSave, DEMO_UPDATED_AT));
 }
 
 export function createMarketGladiator(gladiator: Gladiator & { price: number }): MarketGladiator {
+  const skillProfile = {
+    strength: gladiator.strength,
+    agility: gladiator.agility,
+    defense: gladiator.defense,
+  };
+
   return {
     ...gladiator,
     health: 100,
     energy: 100,
     morale: 100,
-    visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity),
+    visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, {
+      skillProfile,
+    }),
   };
 }

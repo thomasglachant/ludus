@@ -1,11 +1,7 @@
 import { getEffectiveSkillValue } from '../../domain/gladiators/skills';
-import {
-  getPlanningRecommendation,
-  getRoutineForGladiator,
-} from '../../domain/planning/planning-actions';
-import type { GameSave, Gladiator, GladiatorLocationId } from '../../domain/types';
+import { getPlanningRecommendation } from '../../domain/planning/planning-actions';
+import type { GameSave, Gladiator } from '../../domain/types';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
-import { getMapLocation } from '../../game-data/map-layout';
 import { useUiStore } from '../../state/ui-store-context';
 import { PanelShell } from '../components/shared';
 import { formatNumber } from '../formatters/number';
@@ -48,32 +44,9 @@ function getCurrentArenaRecord(save: GameSave, gladiator: Gladiator) {
   };
 }
 
-function getLocationName(
-  t: (key: string, params?: Record<string, string | number>) => string,
-  locationId?: GladiatorLocationId,
-) {
-  if (!locationId) {
-    return t('weeklyPlan.noAssignment');
-  }
-
-  const location = getMapLocation(locationId);
-
-  return location ? t(location.nameKey) : t('weeklyPlan.noAssignment');
-}
-
 export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDetailPanelProps) {
   const { t } = useUiStore();
-  const routine = getRoutineForGladiator(save, gladiator.id);
-  const recommendation = getPlanningRecommendation(save, gladiator, routine);
-  const currentLocationName = getLocationName(
-    t,
-    gladiator.currentLocationId ?? gladiator.currentBuildingId,
-  );
-  const currentAssignmentName = gladiator.mapMovement
-    ? t('gladiatorPanel.movingTo', {
-        location: getLocationName(t, gladiator.mapMovement.targetLocation),
-      })
-    : currentLocationName;
+  const recommendation = getPlanningRecommendation(save, gladiator);
   const recommendedBuildingName = recommendation.buildingId
     ? t(BUILDING_DEFINITIONS[recommendation.buildingId].nameKey)
     : t('weeklyPlan.noAssignment');
@@ -116,37 +89,16 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
           </h2>
           <dl>
             <div>
-              <dt>{t('weeklyPlan.objective')}</dt>
-              <dd>{t(`weeklyPlan.objectives.${routine.objective}`)}</dd>
-            </div>
-            <div>
-              <dt>{t('weeklyPlan.intensity')}</dt>
-              <dd>{t(`weeklyPlan.intensities.${routine.intensity}`)}</dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="gladiator-info-panel">
-          <h2>
-            <GameIcon name="assignment" size={18} />
-            {t('gladiatorPanel.assignment')}
-          </h2>
-          <dl>
-            <div>
-              <dt>{t('gladiatorPanel.currentAssignment')}</dt>
-              <dd>{currentAssignmentName}</dd>
-            </div>
-            <div>
               <dt>{t('weeklyPlan.suggestedAssignment')}</dt>
-              <dd>{recommendedBuildingName}</dd>
+              <dd>
+                {recommendation.isAvailable
+                  ? recommendedBuildingName
+                  : t('weeklyPlan.buildingUnavailable')}
+              </dd>
             </div>
             <div>
-              <dt>{t('weeklyPlan.automaticAssignment')}</dt>
-              <dd>
-                {routine.allowAutomaticAssignment
-                  ? t('common.enabled')
-                  : t('weeklyPlan.manualOverride')}
-              </dd>
+              <dt>{t('weeklyPlan.recommendedFocus')}</dt>
+              <dd>{t(recommendation.reasonKey)}</dd>
             </div>
           </dl>
         </section>

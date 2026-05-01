@@ -1,16 +1,18 @@
-import type { Gladiator } from '../../domain/types';
+import type { Gladiator, GladiatorSkillProfile } from '../../domain/types';
 import {
   getGladiatorPortraitAssetPath,
   getGladiatorVisualIdentity,
 } from '../../game-data/gladiator-visuals';
 
 interface GladiatorPortraitProps {
-  gladiator: Pick<Gladiator, 'id' | 'name' | 'visualIdentity'>;
+  gladiator: Pick<Gladiator, 'id' | 'name' | 'visualIdentity'> & GladiatorSkillProfile;
   size?: 'small' | 'medium' | 'large';
 }
 
 export function GladiatorPortrait({ gladiator, size = 'medium' }: GladiatorPortraitProps) {
-  const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity);
+  const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, {
+    skillProfile: gladiator,
+  });
   const portraitAssetPath = getGladiatorPortraitAssetPath(visualIdentity);
 
   return (

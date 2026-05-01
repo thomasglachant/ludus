@@ -1,28 +1,20 @@
 import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../../game-data/building-improvements';
+import { BUILDING_SKILLS } from '../../game-data/building-skills';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
-import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
 import type { BuildingEffect, BuildingId } from './types';
 
 interface BuildingEffectFilter {
-  includeHourly?: boolean;
-  includeNonHourly?: boolean;
   target?: BuildingEffect['target'];
   type?: BuildingEffect['type'];
 }
 
+interface BuildingEffectSumOptions {
+  scaleByEfficiency?: boolean;
+}
+
 function matchesFilter(effect: BuildingEffect, filter: BuildingEffectFilter = {}) {
-  const includeHourly = filter.includeHourly ?? true;
-  const includeNonHourly = filter.includeNonHourly ?? true;
-  const target = effect.target ?? 'assignedGladiator';
-
-  if (effect.perHour && !includeHourly) {
-    return false;
-  }
-
-  if (!effect.perHour && !includeNonHourly) {
-    return false;
-  }
+  const target = effect.target ?? 'plannedGladiators';
 
   if (filter.target && target !== filter.target) {
     return false;
@@ -87,6 +79,18 @@ export function getSelectedBuildingPolicyEffects(save: GameSave, buildingId: Bui
   );
 }
 
+export function getPurchasedBuildingSkillEffects(save: GameSave, buildingId: BuildingId) {
+  const building = save.buildings[buildingId];
+
+  if (!building.isPurchased) {
+    return [];
+  }
+
+  return BUILDING_SKILLS.filter(
+    (skill) => skill.buildingId === buildingId && building.purchasedSkillIds.includes(skill.id),
+  ).flatMap((skill) => skill.effects);
+}
+
 export function getActiveBuildingEffects(
   save: GameSave,
   buildingId: BuildingId,
@@ -96,22 +100,34 @@ export function getActiveBuildingEffects(
     ...getCurrentBuildingLevelEffects(save, buildingId),
     ...getPurchasedBuildingImprovementEffects(save, buildingId),
     ...getSelectedBuildingPolicyEffects(save, buildingId),
+    ...getPurchasedBuildingSkillEffects(save, buildingId),
   ].filter((effect) => matchesFilter(effect, filter));
 }
 
-export function getHourlyBuildingEffects(save: GameSave, buildingId: BuildingId) {
-  return getActiveBuildingEffects(save, buildingId, {
-    includeHourly: true,
-    includeNonHourly: false,
-  });
+export function sumActiveBuildingEffectValues(
+  save: GameSave,
+  filter: BuildingEffectFilter = {},
+  options: BuildingEffectSumOptions = {},
+) {
+  const scaleByEfficiency = options.scaleByEfficiency ?? true;
+
+  return Object.values(save.buildings).reduce((total, building) => {
+    const efficiencyMultiplier = scaleByEfficiency ? building.efficiency / 100 : 1;
+
+    return (
+      total +
+      getActiveBuildingEffects(save, building.id, filter).reduce(
+        (buildingTotal, effect) => buildingTotal + effect.value * efficiencyMultiplier,
+        0,
+      )
+    );
+  }, 0);
 }
 
 export function getPurchasedDormitoryImprovementCapacityBonus(save: GameSave) {
   return sumEffectValues(
     getPurchasedBuildingImprovementEffects(save, 'dormitory').filter((effect) =>
       matchesFilter(effect, {
-        includeHourly: false,
-        includeNonHourly: true,
         target: 'ludus',
         type: 'increaseCapacity',
       }),
@@ -119,23 +135,13 @@ export function getPurchasedDormitoryImprovementCapacityBonus(save: GameSave) {
   );
 }
 
-export function getGladiatorInjuryRiskReduction(save: GameSave, gladiator: Gladiator) {
-  const assignedBuildingEffects = gladiator.currentBuildingId
-    ? getActiveBuildingEffects(save, gladiator.currentBuildingId, {
-        includeHourly: false,
-        includeNonHourly: true,
-        target: 'assignedGladiator',
-        type: 'reduceInjuryRisk',
-      })
-    : [];
+export function getGlobalGladiatorInjuryRiskReduction(save: GameSave) {
   const globalEffects = Object.values(save.buildings).flatMap((building) =>
     getActiveBuildingEffects(save, building.id, {
-      includeHourly: false,
-      includeNonHourly: true,
       target: 'allGladiators',
       type: 'reduceInjuryRisk',
     }),
   );
 
-  return sumEffectValues([...assignedBuildingEffects, ...globalEffects]);
+  return sumEffectValues(globalEffects);
 }

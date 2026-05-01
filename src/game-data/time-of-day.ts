@@ -1,5 +1,3 @@
-import { TIME_CONFIG } from './time';
-
 export type TimeOfDayPhase = 'dawn' | 'day' | 'dusk' | 'night';
 
 export interface TimeOfDayVisualTheme {
@@ -12,13 +10,10 @@ export interface TimeOfDayVisualTheme {
   shadowColor: string;
   spriteBrightness: number;
   buildingLightOpacity: number;
-  ambientSpeedMultiplier?: number;
 }
 
 export interface TimeOfDayDefinition {
   phase: TimeOfDayPhase;
-  startHour: number;
-  endHour: number;
   overlayClassName: string;
   visualTheme: TimeOfDayVisualTheme;
 }
@@ -26,8 +21,6 @@ export interface TimeOfDayDefinition {
 export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
   {
     phase: 'dawn',
-    startHour: TIME_CONFIG.dawnStartHour,
-    endHour: TIME_CONFIG.dayStartHour,
     overlayClassName: 'ludus-map__viewport--dawn',
     visualTheme: {
       skyColor: '#d99a79',
@@ -39,13 +32,10 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       shadowColor: '#5d3c38',
       spriteBrightness: 1.04,
       buildingLightOpacity: 0.08,
-      ambientSpeedMultiplier: 0.85,
     },
   },
   {
     phase: 'day',
-    startHour: TIME_CONFIG.dayStartHour,
-    endHour: TIME_CONFIG.duskStartHour,
     overlayClassName: 'ludus-map__viewport--day',
     visualTheme: {
       skyColor: '#91b9c8',
@@ -57,13 +47,10 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       shadowColor: '#4f3a28',
       spriteBrightness: 1,
       buildingLightOpacity: 0,
-      ambientSpeedMultiplier: 1,
     },
   },
   {
     phase: 'dusk',
-    startHour: TIME_CONFIG.duskStartHour,
-    endHour: TIME_CONFIG.nightStartHour,
     overlayClassName: 'ludus-map__viewport--dusk',
     visualTheme: {
       skyColor: '#7b526d',
@@ -75,13 +62,10 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       shadowColor: '#3d2632',
       spriteBrightness: 0.92,
       buildingLightOpacity: 0.16,
-      ambientSpeedMultiplier: 0.75,
     },
   },
   {
     phase: 'night',
-    startHour: TIME_CONFIG.nightStartHour,
-    endHour: TIME_CONFIG.dawnStartHour,
     overlayClassName: 'ludus-map__viewport--night',
     visualTheme: {
       skyColor: '#17283d',
@@ -93,30 +77,11 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
       shadowColor: '#0d1828',
       spriteBrightness: 0.82,
       buildingLightOpacity: 0.3,
-      ambientSpeedMultiplier: 0.55,
     },
   },
 ];
 
-export function getTimeOfDayPhase(hour: number): TimeOfDayPhase {
-  if (hour >= TIME_CONFIG.dawnStartHour && hour < TIME_CONFIG.dayStartHour) {
-    return 'dawn';
-  }
-
-  if (hour >= TIME_CONFIG.dayStartHour && hour < TIME_CONFIG.duskStartHour) {
-    return 'day';
-  }
-
-  if (hour >= TIME_CONFIG.duskStartHour && hour < TIME_CONFIG.nightStartHour) {
-    return 'dusk';
-  }
-
-  return 'night';
-}
-
-export function getTimeOfDayDefinition(hour: number) {
-  const phase = getTimeOfDayPhase(hour);
-
+export function getTimeOfDayDefinition(phase: TimeOfDayPhase = 'day') {
   return (
     TIME_OF_DAY_DEFINITIONS.find((definition) => definition.phase === phase) ??
     TIME_OF_DAY_DEFINITIONS[1]

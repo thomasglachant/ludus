@@ -1,3 +1,5 @@
+import type { GladiatorClassId } from '../domain/gladiators/types';
+
 export const GLADIATOR_VISUAL_VARIANT_LIMIT = 10;
 
 export const GLADIATOR_CLOTHING_STYLES = [
@@ -62,6 +64,36 @@ export interface GladiatorVisualVariantSet {
   markingStyle: GladiatorMarkingStyle;
 }
 
+export const GLADIATOR_CLASS_VISUAL_VARIANTS = {
+  murmillo: {
+    clothingStyle: 'bronzeCuirass',
+    clothingColor: 'madderRed',
+    hairAndBeardStyle: 'cropped',
+    headwearStyle: 'bronzeGalea',
+    bodyBuildStyle: 'broad',
+    skinTone: 'bronze',
+    markingStyle: 'browScar',
+  },
+  retiarius: {
+    clothingStyle: 'linenTunic',
+    clothingColor: 'linenWhite',
+    hairAndBeardStyle: 'curly',
+    headwearStyle: 'none',
+    bodyBuildStyle: 'lean',
+    skinTone: 'tan',
+    markingStyle: 'cheekScar',
+  },
+  secutor: {
+    clothingStyle: 'paddedManica',
+    clothingColor: 'indigo',
+    hairAndBeardStyle: 'shaved',
+    headwearStyle: 'ironMask',
+    bodyBuildStyle: 'stocky',
+    skinTone: 'umber',
+    markingStyle: 'arenaDust',
+  },
+} as const satisfies Record<GladiatorClassId, GladiatorVisualVariantSet>;
+
 export const GLADIATOR_VISUAL_VARIANTS = {
   clothingStyles: GLADIATOR_CLOTHING_STYLES,
   clothingColors: GLADIATOR_CLOTHING_COLORS,
@@ -89,8 +121,11 @@ function pickVariant<T extends readonly string[]>(
   return variants[getStableIndex(seed, variants.length, salt)];
 }
 
-export function createGladiatorVisualVariantSet(seed: string): GladiatorVisualVariantSet {
-  return {
+export function createGladiatorVisualVariantSet(
+  seed: string,
+  classId?: GladiatorClassId,
+): GladiatorVisualVariantSet {
+  const seededVariants = {
     clothingStyle: pickVariant(GLADIATOR_CLOTHING_STYLES, seed, 'clothing-style'),
     clothingColor: pickVariant(GLADIATOR_CLOTHING_COLORS, seed, 'clothing-color'),
     hairAndBeardStyle: pickVariant(GLADIATOR_HAIR_AND_BEARD_STYLES, seed, 'hair-beard'),
@@ -99,4 +134,8 @@ export function createGladiatorVisualVariantSet(seed: string): GladiatorVisualVa
     skinTone: pickVariant(GLADIATOR_SKIN_TONES, seed, 'skin-tone'),
     markingStyle: pickVariant(GLADIATOR_MARKING_STYLES, seed, 'marking'),
   };
+
+  return classId
+    ? { ...seededVariants, ...GLADIATOR_CLASS_VISUAL_VARIANTS[classId] }
+    : seededVariants;
 }

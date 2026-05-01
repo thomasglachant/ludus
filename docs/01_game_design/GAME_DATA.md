@@ -2,26 +2,40 @@
 
 ## Role
 
-This document describes the current gameplay data, balance values and tunable rules implemented in the codebase.
+This document describes current gameplay data and tunable rules implemented in the codebase.
 
-Implementation balance constants live in `src/game-data/balance.ts` under `GAME_BALANCE`. When a current balance value changes, update both `GAME_BALANCE` and this document so design intent and implementation stay aligned.
-
-React components must not hardcode balancing values or gameplay formulas. Domain, state, UI, persistence and renderer modules should consume game data or pure domain helpers.
-
-Large content tables such as event definitions, building definitions, demo saves and visual layout data may stay in dedicated `src/game-data` modules. Reusable numeric tuning values should still come from `GAME_BALANCE` when they are expected to be adjusted during balancing.
+Numeric balance values live in `src/game-data/balance.ts` under `GAME_BALANCE`. Larger content tables live in dedicated modules such as `buildings.ts`, `building-skills.ts`, `economy.ts`, demo saves and map layout data.
 
 ## Economy
 
 Currency: denarius.
 
-The ludus money reserve is named `treasury` in code.
+The ludus money reserve is named `treasury`.
 
 ```ts
 GAME_BALANCE.economy.initialTreasury = 500;
 GAME_BALANCE.economy.initialReputation = 0;
 ```
 
-## Time and Progression
+Loans are defined in `src/game-data/economy.ts`:
+
+| Loan           | Domus level | Amount | Weekly payment | Duration |
+| -------------- | ----------: | -----: | -------------: | -------: |
+| `smallLoan`    |           1 |    500 |             65 | 10 weeks |
+| `businessLoan` |           2 |   1400 |            145 | 12 weeks |
+| `patronLoan`   |           4 |   3500 |            260 | 18 weeks |
+
+Weekly loan repayment is resolved during the Sunday week step.
+
+## Progression and Time
+
+The target game phase model is macro-based:
+
+```ts
+type GamePhase = 'planning' | 'simulation' | 'event' | 'arena' | 'report' | 'gameOver';
+```
+
+Current initial progression:
 
 ```ts
 GAME_BALANCE.progression = {
@@ -29,413 +43,158 @@ GAME_BALANCE.progression = {
   startingYear: 1,
   startingWeek: 1,
   startingDayOfWeek: 'monday',
-  startingHour: 8,
-  startingMinute: 0,
-  initialSpeed: 1,
-  initialIsPaused: false,
 };
 ```
 
-```ts
-GAME_BALANCE.time.gameSpeeds = [0, 1];
-GAME_BALANCE.time.supportedGameSpeeds = [0, 1, 4, 8, 16, 32, 48];
-```
+The normal ludus loop is resolved through daily and weekly macro actions. Hour, minute, pause and speed values are no longer save data.
+
+## Macro Simulation
 
 ```ts
-GAME_BALANCE.time.realMillisecondsPerGameHour = 5_000;
-GAME_BALANCE.time.minutesPerHour = 60;
-GAME_BALANCE.time.hoursPerDay = 24;
-GAME_BALANCE.time.wakeUpHour = 6;
-GAME_BALANCE.time.sleepStartHour = 22;
-GAME_BALANCE.time.minimumTaskMinutes = 144;
+GAME_BALANCE.macroSimulation = {
+  baseDailyGladiatorPoints: 12,
+  baseDailyLaborPoints: 8,
+  baseDailyAdminPoints: 6,
+  minimumMealPoints: 2,
+  idealMealPoints: 3,
+  maximumMealBonusPoints: 4,
+  minimumSleepPoints: 3,
+  idealSleepPoints: 4,
+  maximumSleepBonusPoints: 5,
+  insufficientFoodPenalty: 6,
+  insufficientSleepPenalty: 8,
+  heavyScheduleHappinessPenalty: 2,
+  trainingInjuryChancePerPoint: 0.015,
+  physicalActivityHealthThreshold: 55,
+  contractIncomePerPoint: 12,
+  productionIncomePerPoint: 8,
+  maintenanceCostPerBuilding: 7,
+  staffExperiencePerAssignedDay: 1,
+  maximumStaffExperienceBonusPercent: 20,
+  targetGuardRatio: 0.5,
+  securityPerGuard: 12,
+  rebellionPressureHappinessThreshold: 40,
+  rebellionPressureSecurityThreshold: 45,
+  rebellionPressureDailyIncrease: 8,
+  rebellionCalmDailyReduction: 4,
+  rebellionCriticalThreshold: 80,
+  gameOverTreasuryThreshold: -1000,
+};
 ```
-
-Days of week:
-
-- `monday`;
-- `tuesday`;
-- `wednesday`;
-- `thursday`;
-- `friday`;
-- `saturday`;
-- `sunday`.
 
 ## Buildings
 
-### Building IDs
+Current `BuildingId` values:
 
 ```ts
-export type BuildingId =
+type BuildingId =
   | 'domus'
+  | 'trainingGround'
   | 'canteen'
   | 'dormitory'
-  | 'trainingGround'
+  | 'infirmary'
+  | 'guardBarracks'
+  | 'farm'
   | 'pleasureHall'
-  | 'infirmary';
+  | 'exhibitionGrounds'
+  | 'armory'
+  | 'bookmakerOffice'
+  | 'banquetHall'
+  | 'forgeWorkshop';
 ```
 
-### Building State
+Initial owned buildings:
 
-Buildings must not include a generic `budget` property.
+- `domus`;
+- `trainingGround`;
+- `canteen`;
+- `dormitory`;
+- `infirmary`;
+- `guardBarracks`.
 
-```ts
-export interface BuildingState {
-  id: BuildingId;
-  isPurchased: boolean;
-  level: number;
-  configuration?: BuildingConfiguration;
-  purchasedImprovementIds: string[];
-  selectedPolicyId?: string;
-}
-```
+Other buildings start as map-ready future purchases with Domus requirements and purchase costs.
 
-### Initial Building State
+Buildings must not include a generic `budget` property. They now track:
 
-All base buildings start purchased at level 1:
+- `purchasedSkillIds`;
+- `staffAssignmentIds`;
+- `efficiency`.
 
-- `domus`: purchased, level 1.
-- `canteen`: purchased, level 1, no active effect.
-- `dormitory`: purchased, level 1.
-- `trainingGround`: purchased, level 1, default policy `balancedTraining`.
-- `pleasureHall`: purchased, level 1, default policy `quietEvenings`.
-- `infirmary`: purchased, level 1, default policy `basicCare`.
+## Building Skills
 
-The Domus level is the source of truth for owned gladiator capacity. Each Domus level grants one roster place, capped at 6.
+`src/game-data/building-skills.ts` generates 20 skills for each building from the design skill lists.
 
-### Purchase and Upgrade Values
+Tree rule:
 
-Current building definitions include levels 1 and 2 for most buildings. Domus includes levels 1 through 6 because it drives global ludus capacity.
+- 4 tiers;
+- 5 skills per tier;
+- tier 2 requires the first three tier 1 skills;
+- tier 3 requires the first tier 2 key skill and building level 3;
+- tier 4 requires the first tier 3 key skill and building level 5.
 
-| Building        | Starts purchased | Level 1 purchase | Level 1 effect                                               | Level 2 requirement | Level 2 effect                                         |
-| --------------- | ---------------- | ---------------: | ------------------------------------------------------------ | ------------------- | ------------------------------------------------------ |
-| Domus           | Yes              |              n/a | `increaseCapacity +1` for `ludus`                            | Domus level 1       | `increaseCapacity +2` for `ludus`                      |
-| Canteen         | Yes              |              120 | No active effect                                             | Domus level 2       | No active effect                                       |
-| Dormitory       | Yes              |              140 | `increaseEnergy +5` per hour                                 | Domus level 2       | `increaseEnergy +7` per hour                           |
-| Training Ground | Yes              |              180 | `increaseStrength +1` per hour, `decreaseEnergy +4` per hour | Domus level 2       | `increaseStrength +2`, `decreaseEnergy +4` per hour    |
-| Pleasure Hall   | Yes              |              160 | `increaseMorale +5` per hour                                 | Domus level 2       | `increaseMorale +7` per hour                           |
-| Infirmary       | Yes              |              200 | `increaseHealth +5` per hour                                 | Domus level 2       | `increaseHealth +7` per hour and `reduceInjuryRisk +5` |
+Skill effects currently map to the building's primary macro purpose, such as income, production, happiness, security, injury risk, glory or expense reduction.
 
-### Upgrade Cost Formula
+Some skills also expose `unlockedActivities` ids from `src/game-data/building-activities.ts`. These ids use the owning building prefix and are meant for building-specific macro planning options. They are not standalone balance knobs; any resulting simulation benefit should still come from the activity definition, purchased skill state, explicit daily plan selection and current building efficiency.
 
-```ts
-upgradeCost = Math.round(baseCost * growthFactor ** (targetLevel - 1));
-```
+Daily simulation applies active macro effects from levels, improvements, policies and skills. Effect values are scaled by `BuildingState.efficiency`, so a building operating at 75% staff efficiency only contributes 75% of its building-driven macro benefit.
+
+## Staff
+
+Initial staff:
+
+- one trainer assigned to `trainingGround`;
+- one slave assigned to `canteen`;
+- one guard assigned to `guardBarracks`.
+
+The staff market generates slave, guard and trainer candidates each week. Buying staff moves a candidate into `staff.members`, selling staff removes assignments and returns a calculated sale value. Staff and gladiator market transactions are recorded in the economy ledger.
 
 ```ts
-GAME_BALANCE.buildings.upgradeCost = {
-  baseCost: 150,
-  growthFactor: 2.2,
+GAME_BALANCE.staffMarket.availableStaffCount = 4;
+GAME_BALANCE.staffMarket.typePool = ['slave', 'slave', 'guard', 'trainer'];
+GAME_BALANCE.staffMarket.weeklyWageByType = {
+  slave: 0,
+  guard: 32,
+  trainer: 48,
 };
 ```
 
-### Ludus Capacity
+Staff type rules:
 
-The player cannot buy individual beds. Capacity comes only from the Domus level:
+- slaves can work anywhere;
+- guards only work in `guardBarracks`;
+- trainers only work in `trainingGround`.
 
-- Domus level 1 allows 1 owned gladiator.
-- Each Domus upgrade adds 1 owned gladiator slot.
-- Capacity is capped at 6 gladiators.
+Experience in an assigned building grows by `staffExperiencePerAssignedDay` and contributes up to a 20% efficiency bonus.
 
-```ts
-GAME_BALANCE.buildings.capacity = {
-  minimumGladiators: 1,
-  maximumGladiators: 6,
-};
-```
+Staff assignments are mirrored in `StaffState.assignments` and `BuildingState.staffAssignmentIds`. Simulation efficiency reads `requiredStaffByLevel` from `BUILDING_DEFINITIONS`; buildings without staff requirements remain fully efficient when purchased.
 
-Capacity formula:
+Staff capacity is governed by Domus level:
 
 ```ts
-capacity = Math.min(Math.max(domusLevel, minimumGladiators), maximumGladiators);
+GAME_BALANCE.buildings.capacity.minimumStaff = 3;
+GAME_BALANCE.buildings.capacity.staffPerDomusLevel = 3;
+GAME_BALANCE.buildings.capacity.maximumStaff = 18;
 ```
 
-Dormitory upgrades and improvements can improve recovery, but they do not increase roster capacity.
-
-## Building Improvements
-
-Improvements are one of the main replacements for the removed budget system.
-
-Improvement effects are permanent or contextual unless an effect explicitly declares `perHour: true`. Current improvement data has no hourly effects.
-
-| ID                     | Building        | Cost | Required level | Required improvements | Effects                                  |
-| ---------------------- | --------------- | ---: | -------------: | --------------------- | ---------------------------------------- |
-| `strawBeds`            | Dormitory       |   70 |              1 | n/a                   | `increaseEnergy +1` assigned gladiator   |
-| `woodenBeds`           | Dormitory       |  130 |              1 | `strawBeds`           | `increaseEnergy +2` assigned gladiator   |
-| `quietQuarters`        | Dormitory       |  150 |              1 | n/a                   | `increaseMorale +1` assigned gladiator   |
-| `sparringRing`         | Training Ground |  160 |              1 | n/a                   | `increaseAgility +1` assigned gladiator  |
-| `advancedDoctoreTools` | Training Ground |  220 |              2 | n/a                   | `reduceInjuryRisk +3` assigned gladiator |
-| `gameTables`           | Pleasure Hall   |   90 |              1 | n/a                   | `increaseMorale +2` assigned gladiator   |
-| `musicians`            | Pleasure Hall   |  160 |              1 | n/a                   | `increaseMorale +1` all gladiators       |
-| `privateRooms`         | Pleasure Hall   |  210 |              2 | n/a                   | `increaseMorale +3` assigned gladiator   |
-| `cleanBandages`        | Infirmary       |  100 |              1 | n/a                   | `increaseHealth +2` assigned gladiator   |
-| `herbalStock`          | Infirmary       |  150 |              1 | n/a                   | `increaseHealth +1` all gladiators       |
-| `surgicalTools`        | Infirmary       |  240 |              2 | n/a                   | `reduceInjuryRisk +8` all gladiators     |
-
-## Weekly Policies
-
-Policies are explicit weekly choices, not hidden numeric budgets.
-
-Policy `cost` is a selection cost paid immediately when the player changes to that policy. The cost is not a recurring hourly or daily budget. Selecting the already active policy is a no-op and does not charge treasury.
-
-Policy effects are permanent or contextual unless an effect explicitly declares `perHour: true`. Current policy data has no hourly effects.
-
-| ID                   | Building        | Required level | Cost | Effects                                                                              |
-| -------------------- | --------------- | -------------: | ---: | ------------------------------------------------------------------------------------ |
-| `balancedTraining`   | Training Ground |              1 |  n/a | `increaseStrength +1`, `increaseAgility +1`, `increaseDefense +1` assigned gladiator |
-| `strengthDoctrine`   | Training Ground |              1 |  n/a | `increaseStrength +1` assigned gladiator                                             |
-| `agilityDoctrine`    | Training Ground |              1 |  n/a | `increaseAgility +1` assigned gladiator                                              |
-| `defensiveDoctrine`  | Training Ground |              1 |  n/a | `increaseDefense +1` assigned gladiator                                              |
-| `brutalDiscipline`   | Training Ground |              2 |  n/a | `increaseStrength +2`, `decreaseMorale +2` assigned gladiator                        |
-| `quietEvenings`      | Pleasure Hall   |              1 |  n/a | `increaseMorale +3` assigned gladiator                                               |
-| `gamesAndSongs`      | Pleasure Hall   |              1 |   25 | `increaseMorale +5` assigned gladiator                                               |
-| `grandEntertainment` | Pleasure Hall   |              2 |   60 | `increaseMorale +8` all gladiators                                                   |
-| `basicCare`          | Infirmary       |              1 |  n/a | `increaseHealth +3` assigned gladiator                                               |
-| `preventiveCare`     | Infirmary       |              1 |   30 | `reduceInjuryRisk +4` all gladiators                                                 |
-| `intensiveTreatment` | Infirmary       |              2 |   70 | `increaseHealth +8` assigned gladiator                                               |
-
-## Building Effect Semantics
-
-Building effects use a shared model across levels, improvements and policies.
-
-```ts
-export interface BuildingEffect {
-  type: BuildingEffectType;
-  value: number;
-  perHour?: boolean;
-  target?: 'assignedGladiator' | 'allGladiators' | 'ludus';
-}
-```
-
-Effect timing convention:
-
-- `perHour: true` means the effect is applied by the hourly game tick.
-- absence of `perHour` means the effect is permanent or contextual and must not be applied by the hourly tick.
-
-Effect target convention:
-
-- `assignedGladiator`: affects gladiators assigned to the building;
-- `allGladiators`: affects the full roster or a roster-wide contextual modifier;
-- `ludus`: affects school-level values such as capacity.
-
-## Market
-
-```ts
-GAME_BALANCE.market = {
-  availableGladiatorCount: 5,
-  minAge: 16,
-  maxAge: 20,
-  totalStatPoints: 20,
-  minGeneratedStat: 1,
-  maxGeneratedStat: 10,
-  basePrice: 100,
-  reputationPriceMultiplier: 5,
-  statPriceMultiplier: 10,
-  saleValueMultiplier: 0.5,
-};
-```
-
-Market price formula:
-
-```ts
-price = basePrice + reputation * reputationPriceMultiplier + totalStats * statPriceMultiplier;
-```
-
-Sale value:
-
-```ts
-saleValue = Math.round(price * saleValueMultiplier);
-```
-
-## Weekly Planning
-
-### Objectives
-
-```ts
-export const WEEKLY_OBJECTIVES = [
-  'balanced',
-  'trainStrength',
-  'trainAgility',
-  'trainDefense',
-  'recovery',
-  'moraleBoost',
-  'protectChampion',
-  'prepareForSale',
-] as const;
-```
-
-### Training Intensities
-
-Gladiator skills store fractional training progress. A gladiator gains one effective visible skill level after `100` training progress points.
-
-Training Ground level effects currently grant:
-
-| Training Ground level | Skill progress per hour | Energy cost per hour |
-| --------------------: | ----------------------: | -------------------: |
-|                     1 |                       1 |                    4 |
-|                     2 |                       2 |                    4 |
-
-```ts
-export const TRAINING_INTENSITIES = ['light', 'normal', 'hard', 'brutal'] as const;
-```
-
-```ts
-export const TRAINING_INTENSITY_EFFECTS = {
-  light: { statMultiplier: 1, energyCostMultiplier: 0.5, moraleCost: 0 },
-  normal: { statMultiplier: 1, energyCostMultiplier: 1, moraleCost: 0 },
-  hard: { statMultiplier: 2, energyCostMultiplier: 1.5, moraleCost: 0 },
-  brutal: { statMultiplier: 3, energyCostMultiplier: 2, moraleCost: 1 },
-} as const;
-```
-
-### Planning Thresholds
-
-```ts
-export const PLANNING_THRESHOLDS = {
-  criticalHealth: 35,
-  lowHealth: 55,
-  criticalEnergy: 30,
-  lowEnergy: 50,
-  criticalMorale: 30,
-  lowMorale: 50,
-  primaryNeedReassignment: 10,
-} as const;
-```
-
-## Arena
-
-### Ranks and Rewards
-
-```ts
-export const ARENA_REWARDS = {
-  bronze3: 80,
-  bronze2: 120,
-  bronze1: 180,
-  silver3: 260,
-  silver2: 380,
-  silver1: 540,
-  gold3: 760,
-  gold2: 1050,
-  gold1: 1400,
-};
-```
-
-`ARENA_REWARDS` is the base victory purse by arena rank. The payout shown to the player is calculated from three pieces: a fixed participation reward by rank, an odds-based victory reward and a public stake modifier that can move the victory reward by -20 to +20 treasury when the combat is generated.
-
-```ts
-winnerReward =
-  participationRewards[rank] +
-  max(
-    0,
-    round(
-      ARENA_REWARDS[rank] * victoryOddsRewardMultiplier * playerDecimalOdds + publicStakeModifier,
-    ),
-  );
-
-loserReward = participationRewards[rank];
-```
-
-### Rank Thresholds
-
-```ts
-export const ARENA_RANK_THRESHOLDS = [
-  { rank: 'bronze3', minimumReputation: 0 },
-  { rank: 'bronze2', minimumReputation: 25 },
-  { rank: 'bronze1', minimumReputation: 50 },
-  { rank: 'silver3', minimumReputation: 100 },
-  { rank: 'silver2', minimumReputation: 150 },
-  { rank: 'silver1', minimumReputation: 225 },
-  { rank: 'gold3', minimumReputation: 325 },
-  { rank: 'gold2', minimumReputation: 450 },
-  { rank: 'gold1', minimumReputation: 600 },
-] as const;
-```
-
-### Combat Constants
-
-```ts
-export const COMBAT_CONFIG = {
-  maxTurns: 40,
-  baseHitChance: 0.65,
-  attackerAgilityHitMultiplier: 0.003,
-  defenderAgilityDodgeMultiplier: 0.002,
-  minHitChance: 0.1,
-  maxHitChance: 0.95,
-  baseDamage: 5,
-  strengthDamageMultiplier: 0.4,
-  defenseReductionMultiplier: 0.2,
-  minDamage: 1,
-  maxDamage: 40,
-  winnerHealthRecoveryRatio: 0.25,
-  loserMinimumHealth: 1,
-  baseEnergyCost: 12,
-  energyCostPerTurn: 0.45,
-  minEnergyCost: 8,
-  maxEnergyCost: 34,
-  winnerMoraleChange: 15,
-  loserMoraleChange: -8,
-  winReputationValue: 10,
-  lossReputationPenalty: 3,
-} as const;
-```
-
-### Opponent Generation
-
-Arena opponents are generated only when the Sunday arena flow starts. Each eligible gladiator receives a same-league opponent for that day's combat.
-
-Opponent combat skills are calculated from the gladiator's effective skills with a random multiplier between `0.8` and `1.2`, then clamped between `3` and `100`.
-
-| Rank      | Opponent reputation |
-| --------- | ------------------: |
-| `bronze3` |                   0 |
-| `bronze2` |                  25 |
-| `bronze1` |                  50 |
-| `silver3` |                 100 |
-| `silver2` |                 150 |
-| `silver1` |                 225 |
-| `gold3`   |                 325 |
-| `gold2`   |                 450 |
-| `gold1`   |                 600 |
-
-### Arena Odds
-
-Decimal odds are calculated from the generated Sunday matchup and stored on the resolved combat reward for both fighters. The current odds config applies a `0.08` house edge and clamps displayed decimal odds to at least `1.1`.
+The staff market rejects purchases when no staff place remains.
 
 ## Events
 
-```ts
-export const EVENT_CONFIG = {
-  dailyEventStartHour: 10,
-  maxEventsPerDay: 1,
-  maxEventsPerWeek: 3,
-  defaultSelectionWeightPercent: 100,
-  defaultCooldownWeeks: 4,
-  launchedEventHistoryLimit: 128,
-  injuredHealthThreshold: 80,
-  resolvedEventHistoryLimit: 12,
-} as const;
-```
+`src/game-data/events.ts` defines daily event content. Events may set `triggerActivities`; those definitions can only appear when the matching daily plan activity has at least one allocated point. Definitions without `triggerActivities` are global ludus events and remain eligible through the normal probability, cooldown and weekly-limit rules.
 
-Daily event choices use a single `consequences` list:
+Events may also set `triggerBuildingActivities` with ids from `src/game-data/building-activities.ts`. Those definitions require the matching specialized activity to be selected in `DailyPlan.buildingActivitySelections` and require allocated points in the parent activity bucket.
 
-- `kind: 'certain'`: all listed effects always apply;
-- `kind: 'chance'`: the listed effect or text has an independent probability;
-- `kind: 'oneOf'`: exactly one listed outcome is selected, and outcome chances must total 100.
+`rebellionCrisis` is a critical global event unlocked by high rebellion. Critical definitions are selected before the normal weighted event pool.
 
-The save stores `events.launchedEvents` with the event definition id and game launch date. This history is persisted even though pending/resolved event queues are cleared on save normalization, allowing cooldowns to survive reloads.
+## Arena Rewards
 
-## Time-of-Day Visuals
+Arena rewards no longer include a participation payout.
 
-```ts
-export type TimeOfDayPhase = 'dawn' | 'day' | 'dusk' | 'night';
-```
+`calculateArenaCombatReward` returns:
 
-Current hour mapping:
+- `participationReward = 0`;
+- `loserReward = 0`;
+- `winnerReward = victoryReward`;
+- `totalReward = victoryReward`.
 
-- `dawn`: 06:00 to 08:00;
-- `day`: 08:00 to 21:00;
-- `dusk`: 21:00 to 22:00;
-- `night`: 22:00 to 06:00.
-
-The player-facing HUD presents these phases as a day-night cycle gauge instead of an exact clock. Hour and minute values remain internal timing data for rules that still need precise advancement.
-
-Visual themes are defined in `src/game-data/time-of-day.ts` with sky, terrain, overlay, light, shadow and sprite brightness values.
+The victory reward still uses arena rank, decimal odds and public stake modifier.

@@ -1,8 +1,7 @@
-import type { BuildingId } from '../domain/buildings/types';
 import type { ArenaRank } from '../domain/combat/types';
 import type { GladiatorTrait } from '../domain/gladiators/types';
-import type { GladiatorWeeklyObjective, TrainingIntensity } from '../domain/planning/types';
-import type { DayOfWeek, GameSpeed } from '../domain/time/types';
+import type { StaffType } from '../domain/staff/types';
+import type { DayOfWeek } from '../domain/time/types';
 
 export const GAME_BALANCE = {
   economy: {
@@ -25,21 +24,9 @@ export const GAME_BALANCE = {
     startingWeek: 1,
     // Weekday used when a new save starts.
     startingDayOfWeek: 'monday' satisfies DayOfWeek,
-    // Hour used when a new save starts.
-    startingHour: 8,
-    // Minute used when a new save starts.
-    startingMinute: 0,
-    // Default time speed used by new saves and resumed copied saves.
-    initialSpeed: 1 satisfies GameSpeed,
-    // Pause flag used by new saves and resumed copied saves.
-    initialIsPaused: false,
   },
 
   time: {
-    // Game speeds exposed by the player time controls.
-    gameSpeeds: [0, 1] as const satisfies readonly GameSpeed[],
-    // Game speeds accepted by save validation, including internal fast-forward values.
-    supportedGameSpeeds: [0, 1, 4, 8, 16, 32, 48] as const satisfies readonly GameSpeed[],
     // Ordered weekdays used by time progression and weekly systems.
     daysOfWeek: [
       // First playable weekday of a new week.
@@ -57,37 +44,6 @@ export const GAME_BALANCE = {
       // Arena day and final weekday of a new week.
       'sunday',
     ] as const satisfies readonly DayOfWeek[],
-    // Real milliseconds required for one game hour at x1 speed.
-    realMillisecondsPerGameHour: 5_000,
-    // Number of in-game minutes in one in-game hour.
-    minutesPerHour: 60,
-    // Number of in-game hours in one in-game day.
-    hoursPerDay: 24,
-    // Hour at which dawn lighting starts.
-    dawnStartHour: 6,
-    // Hour at which day lighting starts.
-    dayStartHour: 8,
-    // Hour at which dusk lighting starts.
-    duskStartHour: 21,
-    // Hour at which night lighting starts.
-    nightStartHour: 22,
-    // Hour at which the next-day fast-forward stops before dawn routines resume.
-    nextDayAdvanceTargetHour: 5,
-    // Minute at which the next-day fast-forward stops before dawn routines resume.
-    nextDayAdvanceTargetMinute: 45,
-    // Hour at which gladiators wake up after night sleep.
-    wakeUpHour: 6,
-    // Minute at which gladiators wake up after night sleep.
-    wakeUpMinute: 30,
-    // Hour at which night sleep begins.
-    sleepStartHour: 22,
-    // Minimum time a gladiator remains on a task before auto reassignment.
-    minimumTaskMinutes: 144,
-  },
-
-  map: {
-    // In-game minutes spent by gladiators when walking from one grid cell to the next.
-    movementMinutesPerTile: 1,
   },
 
   gladiators: {
@@ -139,46 +95,6 @@ export const GAME_BALANCE = {
     },
   },
 
-  training: {
-    intensityEffects: {
-      light: {
-        // Skill progress multiplier for light training.
-        statMultiplier: 1,
-        // Energy cost multiplier for light training.
-        energyCostMultiplier: 0.5,
-        // Morale cost per training hour for light training.
-        moraleCost: 0,
-      },
-      normal: {
-        // Skill progress multiplier for normal training.
-        statMultiplier: 1,
-        // Energy cost multiplier for normal training.
-        energyCostMultiplier: 1,
-        // Morale cost per training hour for normal training.
-        moraleCost: 0,
-      },
-      hard: {
-        // Skill progress multiplier for hard training.
-        statMultiplier: 2,
-        // Energy cost multiplier for hard training.
-        energyCostMultiplier: 1.5,
-        // Morale cost per training hour for hard training.
-        moraleCost: 0,
-      },
-      brutal: {
-        // Skill progress multiplier for brutal training.
-        statMultiplier: 3,
-        // Energy cost multiplier for brutal training.
-        energyCostMultiplier: 2,
-        // Morale cost per training hour for brutal training.
-        moraleCost: 1,
-      },
-    } as const satisfies Record<
-      TrainingIntensity,
-      { statMultiplier: number; energyCostMultiplier: number; moraleCost: number }
-    >,
-  },
-
   buildings: {
     upgradeCost: {
       // Base denarii cost used by the generic building upgrade formula.
@@ -191,6 +107,12 @@ export const GAME_BALANCE = {
       minimumGladiators: 1,
       // Maximum owned gladiator capacity granted by Domus progression.
       maximumGladiators: 6,
+      // Minimum staff capacity when Domus is available.
+      minimumStaff: 3,
+      // Maximum staff capacity granted by Domus progression.
+      maximumStaff: 18,
+      // Staff places granted per Domus level.
+      staffPerDomusLevel: 3,
     },
     levelEffects: {
       domus: {
@@ -208,68 +130,73 @@ export const GAME_BALANCE = {
         6: { capacity: 6 },
       },
       dormitory: {
-        // Energy restored per hour by Dormitory level 1.
-        1: { energyPerHour: 5 },
-        // Energy restored per hour by Dormitory level 2.
-        2: { energyPerHour: 7 },
+        // Energy support granted by Dormitory level 1.
+        1: { energyPerPoint: 5 },
+        // Energy support granted by Dormitory level 2.
+        2: { energyPerPoint: 7 },
       },
       trainingGround: {
         1: {
-          // Skill progress points gained per training hour at Training Ground level 1.
-          skillProgressPerHour: 1,
-          // Energy spent per training hour at Training Ground level 1.
-          energyCostPerHour: 4,
+          // Skill progress support granted by Training Ground level 1.
+          skillProgressPerPoint: 1,
+          // Energy cost pressure applied by Training Ground level 1.
+          energyCostPerPoint: 4,
         },
         2: {
-          // Skill progress points gained per training hour at Training Ground level 2.
-          skillProgressPerHour: 2,
-          // Energy spent per training hour at Training Ground level 2.
-          energyCostPerHour: 4,
+          // Skill progress support granted by Training Ground level 2.
+          skillProgressPerPoint: 2,
+          // Energy cost pressure applied by Training Ground level 2.
+          energyCostPerPoint: 4,
         },
       },
       pleasureHall: {
-        // Morale restored per hour by Pleasure Hall level 1.
-        1: { moralePerHour: 5 },
-        // Morale restored per hour by Pleasure Hall level 2.
-        2: { moralePerHour: 7 },
+        // Morale support granted by Pleasure Hall level 1.
+        1: { moralePerPoint: 5 },
+        // Morale support granted by Pleasure Hall level 2.
+        2: { moralePerPoint: 7 },
       },
       infirmary: {
-        // Health restored per hour by Infirmary level 1.
-        1: { healthPerHour: 10 },
+        // Health support granted by Infirmary level 1.
+        1: { healthPerPoint: 10 },
         2: {
-          // Health restored per hour by Infirmary level 2.
-          healthPerHour: 10,
+          // Health support granted by Infirmary level 2.
+          healthPerPoint: 10,
           // Injury-risk reduction granted by Infirmary level 2.
           injuryRiskReduction: 5,
         },
       },
     },
-    activityNeedsPerHour: {
-      domus: {
-        // Morale change per hour while assigned to Domus.
-        morale: 0,
-      },
-      canteen: {
-        // The Canteen is temporarily neutral until its redesigned food loop lands.
-        morale: 0,
-      },
-      dormitory: {
-        // Morale change per hour while assigned to Dormitory.
-        morale: 0,
-      },
-      trainingGround: {
-        // Morale change per hour while assigned to Training Ground.
-        morale: -4,
-      },
-      pleasureHall: {
-        // Morale change per hour while assigned to Pleasure Hall.
-        morale: 0,
-      },
-      infirmary: {
-        // Morale change per hour while assigned to Infirmary.
-        morale: -3,
-      },
-    } as const satisfies Record<BuildingId, { morale: number }>,
+  },
+
+  macroSimulation: {
+    baseDailyGladiatorPoints: 12,
+    baseDailyLaborPoints: 8,
+    baseDailyAdminPoints: 6,
+    minimumMealPoints: 2,
+    idealMealPoints: 3,
+    maximumMealBonusPoints: 4,
+    minimumSleepPoints: 3,
+    idealSleepPoints: 4,
+    maximumSleepBonusPoints: 5,
+    trainingInjuryChancePerPoint: 0.015,
+    // Health below this value blocks physical training and gladiator contract participation.
+    physicalActivityHealthThreshold: 55,
+    heavyScheduleHappinessPenalty: 2,
+    insufficientFoodPenalty: 6,
+    insufficientSleepPenalty: 8,
+    contractIncomePerPoint: 12,
+    productionIncomePerPoint: 8,
+    maintenanceCostPerBuilding: 7,
+    staffExperiencePerAssignedDay: 1,
+    maximumStaffExperienceBonusPercent: 20,
+    targetGuardRatio: 0.5,
+    securityPerGuard: 12,
+    rebellionPressureHappinessThreshold: 40,
+    rebellionPressureSecurityThreshold: 45,
+    rebellionPressureDailyIncrease: 8,
+    rebellionCalmDailyReduction: 4,
+    rebellionCriticalThreshold: 80,
+    gameOverTreasuryThreshold: -1000,
   },
 
   market: {
@@ -316,6 +243,27 @@ export const GAME_BALANCE = {
     ] as const satisfies readonly GladiatorTrait[],
   },
 
+  staffMarket: {
+    // Number of staff candidates offered by the market each week.
+    availableStaffCount: 4,
+    // Candidate type rotation used by weekly staff market generation.
+    typePool: ['slave', 'slave', 'guard', 'trainer'] as const satisfies readonly StaffType[],
+    basePriceByType: {
+      slave: 85,
+      guard: 150,
+      trainer: 220,
+    } as const satisfies Record<StaffType, number>,
+    weeklyWageByType: {
+      slave: 0,
+      guard: 32,
+      trainer: 48,
+    } as const satisfies Record<StaffType, number>,
+    // Minimum starting building experience assigned to generated staff.
+    minGeneratedExperience: 2,
+    // Maximum starting building experience assigned to generated staff.
+    maxGeneratedExperience: 10,
+  },
+
   arena: {
     // Weekday on which arena fights happen.
     dayOfWeek: 'sunday' satisfies DayOfWeek,
@@ -345,27 +293,6 @@ export const GAME_BALANCE = {
       gold2: 1050,
       // Base victory reward for the highest gold rank.
       gold1: 1400,
-    } as const satisfies Record<ArenaRank, number>,
-    // Fixed participation bonus paid by arena rank.
-    participationRewards: {
-      // Participation reward for the lowest bronze rank.
-      bronze3: 20,
-      // Participation reward for the middle bronze rank.
-      bronze2: 30,
-      // Participation reward for the highest bronze rank.
-      bronze1: 45,
-      // Participation reward for the lowest silver rank.
-      silver3: 65,
-      // Participation reward for the middle silver rank.
-      silver2: 95,
-      // Participation reward for the highest silver rank.
-      silver1: 135,
-      // Participation reward for the lowest gold rank.
-      gold3: 190,
-      // Participation reward for the middle gold rank.
-      gold2: 260,
-      // Participation reward for the highest gold rank.
-      gold1: 350,
     } as const satisfies Record<ArenaRank, number>,
     // Fraction of the rank base reward multiplied by decimal odds to create the victory bonus.
     victoryOddsRewardMultiplier: 0.42,
@@ -549,36 +476,6 @@ export const GAME_BALANCE = {
   },
 
   planning: {
-    // Weekly objectives available in the planning UI.
-    weeklyObjectives: [
-      // Balanced objective for general training.
-      'balanced',
-      // Objective focused on strength training.
-      'trainStrength',
-      // Objective focused on agility training.
-      'trainAgility',
-      // Objective focused on defense training.
-      'trainDefense',
-      // Objective focused on recovery.
-      'recovery',
-      // Objective focused on morale support.
-      'moraleBoost',
-      // Objective focused on protecting a strong gladiator.
-      'protectChampion',
-      // Objective focused on improving sale conditions.
-      'prepareForSale',
-    ] as const satisfies readonly GladiatorWeeklyObjective[],
-    // Training intensities available in the planning UI.
-    trainingIntensities: [
-      // Lowest training intensity.
-      'light',
-      // Baseline training intensity.
-      'normal',
-      // High training intensity.
-      'hard',
-      // Highest training intensity.
-      'brutal',
-    ] as const satisfies readonly TrainingIntensity[],
     thresholds: {
       // Health value at or below which health is critical.
       criticalHealth: 35,
@@ -592,24 +489,12 @@ export const GAME_BALANCE = {
       criticalMorale: 30,
       // Morale value at or below which morale is low.
       lowMorale: 50,
-      // Primary need value at or below which automatic assignment changes activity.
+      // Primary need value used by macro planning recommendations.
       primaryNeedReassignment: 10,
-    },
-    defaultRoutine: {
-      // Weekly objective assigned to new gladiator routines.
-      objective: 'balanced' satisfies GladiatorWeeklyObjective,
-      // Training intensity assigned to new gladiator routines.
-      intensity: 'normal' satisfies TrainingIntensity,
-      // Whether new routines allow automatic building assignment.
-      allowAutomaticAssignment: true,
     },
   },
 
   events: {
-    // First hour at which a daily event may appear.
-    dailyEventStartHour: 10,
-    // Hour at which daily events stop appearing.
-    dailyEventEndHour: 19,
     // Maximum pending events generated on a single day.
     maxEventsPerDay: 1,
     // Maximum generated events during a single week.

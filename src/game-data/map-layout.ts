@@ -18,8 +18,15 @@ export type MapLocationStyle =
   | 'canteen'
   | 'dormitory'
   | 'trainingGround'
+  | 'guardBarracks'
+  | 'farm'
   | 'pleasureHall'
   | 'infirmary'
+  | 'exhibitionGrounds'
+  | 'armory'
+  | 'bookmakerOffice'
+  | 'banquetHall'
+  | 'forgeWorkshop'
   | 'market'
   | 'arena';
 export type MapTerrainZoneKind = 'compoundGround' | 'countryside';
@@ -118,18 +125,19 @@ export interface LudusMapDefinition {
   initialPlacements: LudusMapPlacement[];
 }
 
-export const LUDUS_MAP_STATE_SCHEMA_VERSION = 1;
+export const LUDUS_MAP_STATE_SCHEMA_VERSION = 6;
 
 const CELL_SIZE = 48;
 const CONTENT_MARGIN_CELLS = 10;
-const GRID_COLUMNS = 76;
-const GRID_ROWS = 58;
+const GRID_COLUMNS = 94;
+const GRID_ROWS = 79;
+const GATE_COLUMNS = [38, 39] as const;
 
 const COMPOUND_GRID_RECT: MapGridRect = {
-  column: 9 + CONTENT_MARGIN_CELLS,
-  row: 5 + CONTENT_MARGIN_CELLS,
-  columns: 36,
-  rows: 28,
+  column: 12 + CONTENT_MARGIN_CELLS,
+  row: 6 + CONTENT_MARGIN_CELLS,
+  columns: 46,
+  rows: 48,
 };
 
 interface LocationGridSpec {
@@ -200,13 +208,13 @@ const LOCATION_GRID_SPECS: Record<MapLocationId, LocationGridSpec> = {
     nameKey: 'buildings.canteen.name',
     descriptionKey: 'buildings.canteen.description',
     style: 'canteen',
-    grid: gridRect(13, 12, 5, 4),
-    entrance: { column: 15, row: 16 },
+    grid: gridRect(26, 38, 5, 4),
+    entrance: { column: 28, row: 42 },
     activitySlots: {
-      'table-left': { column: 14, row: 13 },
-      'table-center': { column: 15, row: 13 },
-      'table-right': { column: 16, row: 13 },
-      hearth: { column: 15, row: 14 },
+      'table-left': { column: 27, row: 39 },
+      'table-center': { column: 28, row: 39 },
+      'table-right': { column: 29, row: 39 },
+      hearth: { column: 28, row: 40 },
     },
     blocksMovement: true,
   },
@@ -215,13 +223,13 @@ const LOCATION_GRID_SPECS: Record<MapLocationId, LocationGridSpec> = {
     nameKey: 'buildings.pleasureHall.name',
     descriptionKey: 'buildings.pleasureHall.description',
     style: 'pleasureHall',
-    grid: gridRect(36, 12, 5, 4),
-    entrance: { column: 38, row: 16 },
+    grid: gridRect(42, 29, 5, 4),
+    entrance: { column: 44, row: 33 },
     activitySlots: {
-      fountain: { column: 37, row: 13 },
-      music: { column: 38, row: 13 },
-      'game-table': { column: 39, row: 13 },
-      garden: { column: 38, row: 14 },
+      fountain: { column: 43, row: 30 },
+      music: { column: 44, row: 30 },
+      'game-table': { column: 45, row: 30 },
+      garden: { column: 44, row: 31 },
     },
     blocksMovement: true,
   },
@@ -230,13 +238,13 @@ const LOCATION_GRID_SPECS: Record<MapLocationId, LocationGridSpec> = {
     nameKey: 'map.locations.arena.name',
     descriptionKey: 'map.locations.arena.description',
     style: 'arena',
-    grid: gridRect(48, 8, 8, 7),
-    entrance: { column: 52, row: 15 },
+    grid: gridRect(72, 52, 8, 7),
+    entrance: { column: 76, row: 59 },
     activitySlots: {
-      'west-gate': { column: 50, row: 13 },
-      'arena-center': { column: 52, row: 11 },
-      'east-stands': { column: 54, row: 11 },
-      entrance: { column: 52, row: 13 },
+      'west-gate': { column: 74, row: 55 },
+      'arena-center': { column: 76, row: 54 },
+      'east-stands': { column: 78, row: 54 },
+      entrance: { column: 76, row: 56 },
     },
     blocksMovement: true,
   },
@@ -245,12 +253,12 @@ const LOCATION_GRID_SPECS: Record<MapLocationId, LocationGridSpec> = {
     nameKey: 'map.locations.market.name',
     descriptionKey: 'map.locations.market.description',
     style: 'market',
-    grid: gridRect(0, 18, 5, 4),
-    entrance: { column: 2, row: 22 },
+    grid: gridRect(1, 55, 5, 4),
+    entrance: { column: 3, row: 59 },
     activitySlots: {
-      recruits: { column: 1, row: 19 },
-      stall: { column: 2, row: 20 },
-      supplies: { column: 3, row: 19 },
+      recruits: { column: 2, row: 56 },
+      stall: { column: 3, row: 57 },
+      supplies: { column: 4, row: 56 },
     },
     blocksMovement: true,
   },
@@ -259,13 +267,13 @@ const LOCATION_GRID_SPECS: Record<MapLocationId, LocationGridSpec> = {
     nameKey: 'buildings.domus.name',
     descriptionKey: 'buildings.domus.description',
     style: 'domus',
-    grid: gridRect(24, 22, 6, 5),
-    entrance: { column: 27, row: 27 },
+    grid: gridRect(27, 29, 6, 5),
+    entrance: { column: 30, row: 34 },
     activitySlots: {
-      'owner-desk': { column: 25, row: 24 },
-      ledger: { column: 27, row: 24 },
-      treasury: { column: 28, row: 24 },
-      shrine: { column: 27, row: 25 },
+      'owner-desk': { column: 28, row: 31 },
+      ledger: { column: 30, row: 31 },
+      treasury: { column: 31, row: 31 },
+      shrine: { column: 30, row: 32 },
     },
     blocksMovement: true,
   },
@@ -274,15 +282,15 @@ const LOCATION_GRID_SPECS: Record<MapLocationId, LocationGridSpec> = {
     nameKey: 'buildings.trainingGround.name',
     descriptionKey: 'buildings.trainingGround.description',
     style: 'trainingGround',
-    grid: gridRect(24, 7, 8, 6),
-    entrance: { column: 28, row: 13 },
+    grid: gridRect(36, 36, 8, 6),
+    entrance: { column: 40, row: 42 },
     activitySlots: {
-      'striking-post': { column: 25, row: 9 },
-      'guard-post': { column: 27, row: 9 },
-      'footwork-ring': { column: 29, row: 9 },
-      weights: { column: 25, row: 11 },
-      'sparring-circle': { column: 27, row: 11 },
-      'agility-rope': { column: 29, row: 11 },
+      'striking-post': { column: 37, row: 38 },
+      'guard-post': { column: 39, row: 38 },
+      'footwork-ring': { column: 41, row: 38 },
+      weights: { column: 37, row: 40 },
+      'sparring-circle': { column: 39, row: 40 },
+      'agility-rope': { column: 41, row: 40 },
     },
     blocksMovement: false,
   },
@@ -291,13 +299,13 @@ const LOCATION_GRID_SPECS: Record<MapLocationId, LocationGridSpec> = {
     nameKey: 'buildings.dormitory.name',
     descriptionKey: 'buildings.dormitory.description',
     style: 'dormitory',
-    grid: gridRect(13, 20, 5, 4),
-    entrance: { column: 15, row: 24 },
+    grid: gridRect(16, 38, 5, 4),
+    entrance: { column: 18, row: 42 },
     activitySlots: {
-      'bed-1': { column: 14, row: 21 },
-      'bed-2': { column: 15, row: 21 },
-      'bed-3': { column: 16, row: 21 },
-      'bed-4': { column: 15, row: 22 },
+      'bed-1': { column: 17, row: 39 },
+      'bed-2': { column: 18, row: 39 },
+      'bed-3': { column: 19, row: 39 },
+      'bed-4': { column: 18, row: 40 },
     },
     blocksMovement: true,
   },
@@ -306,13 +314,111 @@ const LOCATION_GRID_SPECS: Record<MapLocationId, LocationGridSpec> = {
     nameKey: 'buildings.infirmary.name',
     descriptionKey: 'buildings.infirmary.description',
     style: 'infirmary',
-    grid: gridRect(36, 21, 4, 4),
-    entrance: { column: 38, row: 25 },
+    grid: gridRect(52, 38, 4, 4),
+    entrance: { column: 54, row: 42 },
     activitySlots: {
-      'care-bed-1': { column: 37, row: 22 },
-      'care-bed-2': { column: 38, row: 22 },
-      'care-bed-3': { column: 37, row: 23 },
-      'medicine-table': { column: 38, row: 23 },
+      'care-bed-1': { column: 53, row: 39 },
+      'care-bed-2': { column: 54, row: 39 },
+      'care-bed-3': { column: 53, row: 40 },
+      'medicine-table': { column: 54, row: 40 },
+    },
+    blocksMovement: true,
+  },
+  guardBarracks: {
+    kind: 'building',
+    nameKey: 'buildings.guardBarracks.name',
+    descriptionKey: 'buildings.guardBarracks.description',
+    style: 'guardBarracks',
+    grid: gridRect(30, 46, 5, 4),
+    entrance: { column: 32, row: 50 },
+    activitySlots: {
+      roster: { column: 31, row: 47 },
+      gate: { column: 33, row: 47 },
+      watch: { column: 32, row: 48 },
+    },
+    blocksMovement: true,
+  },
+  farm: {
+    kind: 'building',
+    nameKey: 'buildings.farm.name',
+    descriptionKey: 'buildings.farm.description',
+    style: 'farm',
+    grid: gridRect(14, 28, 8, 5),
+    entrance: { column: 18, row: 33 },
+    activitySlots: {
+      grain: { column: 16, row: 29 },
+      olive: { column: 18, row: 29 },
+      barn: { column: 20, row: 31 },
+    },
+    blocksMovement: false,
+  },
+  exhibitionGrounds: {
+    kind: 'building',
+    nameKey: 'buildings.exhibitionGrounds.name',
+    descriptionKey: 'buildings.exhibitionGrounds.description',
+    style: 'exhibitionGrounds',
+    grid: gridRect(14, 16, 7, 6),
+    entrance: { column: 17, row: 22 },
+    activitySlots: {
+      sand: { column: 16, row: 18 },
+      stands: { column: 18, row: 18 },
+      gate: { column: 17, row: 20 },
+    },
+    blocksMovement: false,
+  },
+  armory: {
+    kind: 'building',
+    nameKey: 'buildings.armory.name',
+    descriptionKey: 'buildings.armory.description',
+    style: 'armory',
+    grid: gridRect(27, 18, 5, 4),
+    entrance: { column: 29, row: 22 },
+    activitySlots: {
+      racks: { column: 28, row: 19 },
+      bench: { column: 30, row: 19 },
+      store: { column: 29, row: 20 },
+    },
+    blocksMovement: true,
+  },
+  bookmakerOffice: {
+    kind: 'building',
+    nameKey: 'buildings.bookmakerOffice.name',
+    descriptionKey: 'buildings.bookmakerOffice.description',
+    style: 'bookmakerOffice',
+    grid: gridRect(14, 9, 5, 4),
+    entrance: { column: 16, row: 13 },
+    activitySlots: {
+      odds: { column: 15, row: 10 },
+      clerk: { column: 16, row: 10 },
+      vault: { column: 17, row: 11 },
+    },
+    blocksMovement: true,
+  },
+  banquetHall: {
+    kind: 'building',
+    nameKey: 'buildings.banquetHall.name',
+    descriptionKey: 'buildings.banquetHall.description',
+    style: 'banquetHall',
+    grid: gridRect(25, 8, 6, 5),
+    entrance: { column: 28, row: 13 },
+    activitySlots: {
+      tables: { column: 26, row: 9 },
+      music: { column: 28, row: 9 },
+      wine: { column: 29, row: 11 },
+    },
+    blocksMovement: true,
+  },
+  forgeWorkshop: {
+    kind: 'building',
+    nameKey: 'buildings.forgeWorkshop.name',
+    descriptionKey: 'buildings.forgeWorkshop.description',
+    style: 'forgeWorkshop',
+    grid: gridRect(43, 8, 6, 5),
+    entrance: { column: 46, row: 13 },
+    activitySlots: {
+      anvil: { column: 44, row: 9 },
+      furnace: { column: 46, row: 9 },
+      stock: { column: 47, row: 11 },
     },
     blocksMovement: true,
   },
@@ -347,6 +453,13 @@ const LOCATION_IDS: MapLocationId[] = [
   'trainingGround',
   'dormitory',
   'infirmary',
+  'guardBarracks',
+  'farm',
+  'exhibitionGrounds',
+  'armory',
+  'bookmakerOffice',
+  'banquetHall',
+  'forgeWorkshop',
 ];
 
 function createBuildingObjectDefinitions(): Record<MapLocationId, MapObjectFootprintDefinition> {
@@ -463,10 +576,9 @@ function createWallPlacements(): LudusMapPlacement[] {
   const top = COMPOUND_GRID_RECT.row;
   const bottom = COMPOUND_GRID_RECT.row + COMPOUND_GRID_RECT.rows - 1;
   const gateKeys = new Set(
-    [
-      { column: 26 + CONTENT_MARGIN_CELLS, row: bottom },
-      { column: 27 + CONTENT_MARGIN_CELLS, row: bottom },
-    ].map(getGridCoordKey),
+    GATE_COLUMNS.map((column) =>
+      getGridCoordKey({ column: column + CONTENT_MARGIN_CELLS, row: bottom }),
+    ),
   );
 
   for (let column = left; column <= right; column += 1) {
@@ -491,76 +603,75 @@ function createInitialPlacements(): LudusMapPlacement[] {
   const roads = createRoadPlacements([
     {
       points: [
-        { column: 26, row: GRID_ROWS - CONTENT_MARGIN_CELLS - 1 },
-        { column: 26, row: 30 },
+        { column: GATE_COLUMNS[0], row: GRID_ROWS - CONTENT_MARGIN_CELLS - 1 },
+        { column: GATE_COLUMNS[0], row: 51 },
       ],
     },
     {
       points: [
-        { column: 27, row: GRID_ROWS - CONTENT_MARGIN_CELLS - 1 },
-        { column: 27, row: 28 },
+        { column: GATE_COLUMNS[1], row: GRID_ROWS - CONTENT_MARGIN_CELLS - 1 },
+        { column: GATE_COLUMNS[1], row: 51 },
       ],
     },
     {
       points: [
-        { column: 22, row: 30 },
-        { column: 33, row: 30 },
+        { column: 3, row: 60 },
+        { column: 76, row: 60 },
       ],
     },
     {
       points: [
-        { column: 22, row: 14 },
-        { column: 22, row: 30 },
+        { column: 32, row: 51 },
+        { column: GATE_COLUMNS[1], row: 51 },
       ],
     },
     {
       points: [
-        { column: 33, row: 14 },
-        { column: 33, row: 30 },
+        { column: GATE_COLUMNS[1], row: 51 },
+        { column: GATE_COLUMNS[1], row: 43 },
       ],
     },
     {
       points: [
-        { column: 15, row: 17 },
-        { column: 22, row: 17 },
+        { column: 18, row: 43 },
+        { column: 54, row: 43 },
       ],
     },
     {
       points: [
-        { column: 33, row: 17 },
-        { column: 38, row: 17 },
+        { column: 34, row: 43 },
+        { column: 34, row: 14 },
       ],
     },
     {
       points: [
-        { column: 15, row: 25 },
-        { column: 22, row: 25 },
+        { column: 18, row: 34 },
+        { column: 25, row: 34 },
       ],
     },
     {
       points: [
-        { column: 33, row: 26 },
-        { column: 38, row: 26 },
+        { column: 25, row: 34 },
+        { column: 25, row: 35 },
+        { column: 34, row: 35 },
       ],
     },
     {
       points: [
-        { column: 2, row: 23 },
-        { column: 2, row: 36 },
-        { column: 27, row: 36 },
+        { column: 34, row: 34 },
+        { column: 44, row: 34 },
       ],
     },
     {
       points: [
-        { column: 27, row: 36 },
-        { column: 52, row: 36 },
-        { column: 52, row: 16 },
+        { column: 17, row: 23 },
+        { column: 34, row: 23 },
       ],
     },
     {
       points: [
-        { column: 22, row: 14 },
-        { column: 33, row: 14 },
+        { column: 16, row: 14 },
+        { column: 46, row: 14 },
       ],
     },
   ]);

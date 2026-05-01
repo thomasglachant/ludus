@@ -61,7 +61,12 @@ export interface LaunchedGameEventRecord {
 export type GameEventEffect =
   | { type: 'changeTreasury'; amount: number }
   | { type: 'changeLudusReputation'; amount: number }
+  | { type: 'changeLudusGlory'; amount: number }
+  | { type: 'changeLudusSecurity'; amount: number }
+  | { type: 'changeLudusHappiness'; amount: number }
+  | { type: 'changeLudusRebellion'; amount: number }
   | { type: 'removeGladiator'; gladiatorId: string }
+  | { type: 'releaseAllGladiators' }
   | { type: 'changeGladiatorHealth'; gladiatorId: string; amount: number }
   | { type: 'changeGladiatorEnergy'; gladiatorId: string; amount: number }
   | { type: 'changeGladiatorMorale'; gladiatorId: string; amount: number }

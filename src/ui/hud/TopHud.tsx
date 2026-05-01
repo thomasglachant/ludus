@@ -1,179 +1,18 @@
-import { useEffect, useState } from 'react';
-import type { DayOfWeek, GameSave } from '../../domain/types';
-import { PROGRESSION_CONFIG } from '../../game-data/progression';
-import { DAYS_OF_WEEK, TIME_CONFIG } from '../../game-data/time';
+import type { GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { formatMoneyAmount } from '../formatters/money';
 import { formatNumber } from '../formatters/number';
-import { GameIcon, type GameIconName } from '../icons/GameIcon';
+import { GameIcon } from '../icons/GameIcon';
 
 interface TopHudProps {
   save: GameSave;
+  onOpenFinance(): void;
   onOpenMenu(): void;
-  onPauseToggle(isPaused: boolean): void;
 }
 
-interface DisplayedTime {
-  year: number;
-  week: number;
-  dayOfWeek: DayOfWeek;
-  hour: number;
-  minute: number;
-}
-
-interface ClockBase {
-  key: string;
-  startedAt: number;
-  time: DisplayedTime;
-}
-
-function formatGameClock(hour: number, minute: number) {
-  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-}
-
-function advanceDisplayedTime(time: DisplayedTime, gameMinutes: number): DisplayedTime {
-  if (gameMinutes <= 0) {
-    return time;
-  }
-
-  const minutesPerDay = TIME_CONFIG.hoursPerDay * TIME_CONFIG.minutesPerHour;
-  const currentMinuteOfDay = time.hour * TIME_CONFIG.minutesPerHour + time.minute + gameMinutes;
-  const daysToAdvance = Math.floor(currentMinuteOfDay / minutesPerDay);
-  const nextMinuteOfDay = currentMinuteOfDay % minutesPerDay;
-  const currentDayIndex = DAYS_OF_WEEK.indexOf(time.dayOfWeek);
-  let nextYear = time.year;
-  let nextWeek = time.week;
-  let nextDayIndex = currentDayIndex;
-
-  for (let dayIndex = 0; dayIndex < daysToAdvance; dayIndex += 1) {
-    if (DAYS_OF_WEEK[nextDayIndex] === 'sunday') {
-      nextWeek += 1;
-
-      if (nextWeek > PROGRESSION_CONFIG.weeksPerYear) {
-        nextYear += 1;
-        nextWeek = 1;
-      }
-    }
-
-    nextDayIndex = (nextDayIndex + 1) % DAYS_OF_WEEK.length;
-  }
-
-  return {
-    year: nextYear,
-    week: nextWeek,
-    dayOfWeek: DAYS_OF_WEEK[nextDayIndex],
-    hour: Math.floor(nextMinuteOfDay / TIME_CONFIG.minutesPerHour),
-    minute: nextMinuteOfDay % TIME_CONFIG.minutesPerHour,
-  };
-}
-
-function useSmoothDisplayedTime(save: GameSave): DisplayedTime {
-  const [now, setNow] = useState(Date.now);
-  const baseKey = `${save.time.year}:${save.time.week}:${save.time.dayOfWeek}:${save.time.hour}:${save.time.minute}:${save.time.speed}:${save.time.isPaused}`;
-  const currentSaveTime: DisplayedTime = {
-    year: save.time.year,
-    week: save.time.week,
-    dayOfWeek: save.time.dayOfWeek,
-    hour: save.time.hour,
-    minute: save.time.minute,
-  };
-  const [clockBase, setClockBase] = useState<ClockBase>({
-    key: baseKey,
-    startedAt: now,
-    time: currentSaveTime,
-  });
-
-  useEffect(() => {
-    const gameMinutesPerRealMs = save.time.isPaused
-      ? 0
-      : (save.time.speed * TIME_CONFIG.minutesPerHour) / TIME_CONFIG.realMillisecondsPerGameHour;
-    const nextBase: ClockBase = {
-      key: baseKey,
-      startedAt: Date.now(),
-      time: {
-        year: save.time.year,
-        week: save.time.week,
-        dayOfWeek: save.time.dayOfWeek,
-        hour: save.time.hour,
-        minute: save.time.minute,
-      },
-    };
-    const syncBaseId = window.setTimeout(() => {
-      setClockBase(nextBase);
-      setNow(nextBase.startedAt);
-    }, 0);
-
-    if (gameMinutesPerRealMs <= 0) {
-      return () => window.clearTimeout(syncBaseId);
-    }
-
-    let timeoutId: number | undefined;
-
-    const scheduleNextMinute = () => {
-      const elapsedRealMs = Date.now() - nextBase.startedAt;
-      const displayedGameMinutes = Math.floor(elapsedRealMs * gameMinutesPerRealMs);
-      const nextMinuteAt = nextBase.startedAt + (displayedGameMinutes + 1) / gameMinutesPerRealMs;
-      const nextDelayMs = Math.max(1, Math.ceil(nextMinuteAt - Date.now()));
-
-      timeoutId = window.setTimeout(() => {
-        setNow(Date.now());
-        scheduleNextMinute();
-      }, nextDelayMs);
-    };
-
-    timeoutId = window.setTimeout(
-      () => {
-        setNow(Date.now());
-        scheduleNextMinute();
-      },
-      Math.max(1, Math.ceil(1 / gameMinutesPerRealMs)),
-    );
-
-    return () => {
-      window.clearTimeout(syncBaseId);
-      window.clearTimeout(timeoutId);
-    };
-  }, [
-    baseKey,
-    save.time.dayOfWeek,
-    save.time.hour,
-    save.time.isPaused,
-    save.time.minute,
-    save.time.speed,
-    save.time.week,
-    save.time.year,
-  ]);
-
-  const activeBase =
-    clockBase.key === baseKey
-      ? clockBase
-      : {
-          key: baseKey,
-          startedAt: now,
-          time: currentSaveTime,
-        };
-
-  if (save.time.isPaused || save.time.speed === 0) {
-    return activeBase.time;
-  }
-
-  const elapsedRealMs = now - activeBase.startedAt;
-  const elapsedGameMinutes = Math.floor(
-    (elapsedRealMs * save.time.speed * TIME_CONFIG.minutesPerHour) /
-      TIME_CONFIG.realMillisecondsPerGameHour,
-  );
-
-  return advanceDisplayedTime(activeBase.time, elapsedGameMinutes);
-}
-
-export function TopHud({ onOpenMenu, onPauseToggle, save }: TopHudProps) {
+export function TopHud({ onOpenFinance, onOpenMenu, save }: TopHudProps) {
   const { t } = useUiStore();
-  const displayedTime = useSmoothDisplayedTime(save);
-  const dayLabel = t(`days.${displayedTime.dayOfWeek}`);
-  const timeLabel = formatGameClock(displayedTime.hour, displayedTime.minute);
-  const pauseControl: { iconName: GameIconName; labelKey: string } = save.time.isPaused
-    ? { iconName: 'play', labelKey: 'speed.play' }
-    : { iconName: 'pause', labelKey: 'speed.pause' };
+  const dayLabel = t(`days.${save.time.dayOfWeek}`);
 
   return (
     <header className="top-hud" data-testid="topbar">
@@ -200,46 +39,52 @@ export function TopHud({ onOpenMenu, onPauseToggle, save }: TopHudProps) {
           <span className="top-hud__date-lines">
             <span>{dayLabel}</span>
             <span>
-              <span>{t('topBar.weekShort', { week: displayedTime.week })}</span>
-              <span>{t('topBar.year', { year: displayedTime.year })}</span>
+              <span>{t('topBar.weekShort', { week: save.time.week })}</span>
+              <span>{t('topBar.year', { year: save.time.year })}</span>
             </span>
           </span>
         </div>
-
-        <div className="top-hud__clock" data-testid="topbar-clock">
-          {timeLabel}
-        </div>
-
-        <div className="top-hud__speeds">
-          <button
-            aria-label={t(pauseControl.labelKey)}
-            className={save.time.isPaused ? 'is-selected' : ''}
-            data-testid="time-pause-toggle"
-            type="button"
-            onClick={() => onPauseToggle(!save.time.isPaused)}
-          >
-            <span aria-hidden="true" className="top-hud__control-icon">
-              <GameIcon color="currentColor" name={pauseControl.iconName} size={24} />
-            </span>
-          </button>
+        <div className="top-hud__phase" data-testid="topbar-phase">
+          {t(`gamePhase.${save.time.phase}`)}
         </div>
       </div>
 
       <div className="top-hud__actions">
         <div className="top-hud__resources" aria-label={t('topBar.resources')}>
-          <div className="top-hud__resource" data-testid="topbar-treasury">
+          <button
+            aria-label={t('finance.open')}
+            className="top-hud__resource top-hud__resource--button"
+            data-testid="topbar-treasury"
+            type="button"
+            onClick={onOpenFinance}
+          >
             <span aria-hidden="true" className="top-hud__resource-icon">
               <GameIcon name="treasury" size={28} />
             </span>
             <span className="top-hud__resource-value">
               {formatMoneyAmount(save.ludus.treasury)}
             </span>
-          </div>
+          </button>
           <div className="top-hud__resource" data-testid="topbar-reputation">
             <span aria-hidden="true" className="top-hud__resource-icon">
               <GameIcon name="reputation" size={28} />
             </span>
             <span className="top-hud__resource-value">{formatNumber(save.ludus.reputation)}</span>
+          </div>
+          <div className="top-hud__resource" data-testid="topbar-glory">
+            <span className="top-hud__resource-value">
+              {t('ludus.gloryValue', { value: save.ludus.glory })}
+            </span>
+          </div>
+          <div className="top-hud__resource" data-testid="topbar-happiness">
+            <span className="top-hud__resource-value">
+              {t('ludus.happinessValue', { value: save.ludus.happiness })}
+            </span>
+          </div>
+          <div className="top-hud__resource" data-testid="topbar-security">
+            <span className="top-hud__resource-value">
+              {t('ludus.securityValue', { value: save.ludus.security })}
+            </span>
           </div>
         </div>
 

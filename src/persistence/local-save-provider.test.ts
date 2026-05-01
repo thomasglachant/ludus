@@ -33,7 +33,7 @@ describe('LocalSaveProvider', () => {
     expect(localStorage.getItem('ludus:save:save-local')).not.toContain('settings');
   });
 
-  it('loads old saves without keeping persisted language settings', async () => {
+  it('rejects old saves through the current schema gate', async () => {
     const provider = new LocalSaveProvider();
     const save = createInitialSave({
       ludusName: 'Aquila',
@@ -57,7 +57,7 @@ describe('LocalSaveProvider', () => {
       }),
     );
 
-    await expect(provider.loadSave('save-local')).resolves.toEqual(save);
+    await expect(provider.loadSave('save-local')).rejects.toBeInstanceOf(CorruptedSaveError);
   });
 
   it('does not persist pending or resolved events', async () => {

@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
-import { getAvailableLudusGladiatorPlaces, getLudusGladiatorCapacity } from './capacity';
+import {
+  getAvailableLudusGladiatorPlaces,
+  getAvailableLudusStaffPlaces,
+  getLudusGladiatorCapacity,
+  getLudusStaffCapacity,
+} from './capacity';
 
 function createTestSave() {
   return createInitialSave({
@@ -77,5 +82,17 @@ describe('ludus capacity', () => {
     };
 
     expect(getAvailableLudusGladiatorPlaces(save)).toBe(2);
+  });
+
+  it('uses Domus level for staff capacity', () => {
+    expect(getLudusStaffCapacity(createTestSave())).toBe(3);
+    expect(getLudusStaffCapacity(withDomusLevel(createTestSave(), 4))).toBe(12);
+    expect(getLudusStaffCapacity(withDomusLevel(createTestSave(), 8))).toBe(18);
+  });
+
+  it('reports available staff places from the current staff size', () => {
+    const save = withDomusLevel(createTestSave(), 2);
+
+    expect(getAvailableLudusStaffPlaces(save)).toBe(3);
   });
 });

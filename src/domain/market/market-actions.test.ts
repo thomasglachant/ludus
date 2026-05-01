@@ -95,7 +95,7 @@ describe('market actions', () => {
     );
   });
 
-  it('prevents buying a market gladiator when the free dormitory bed is occupied', () => {
+  it('prevents buying a market gladiator when no ludus place is available', () => {
     const save = {
       ...createTestSave(),
       gladiators: [createOwnedGladiator()],
@@ -106,7 +106,7 @@ describe('market actions', () => {
     expect(getLudusGladiatorCapacity(save)).toBe(1);
     expect(validation).toMatchObject({
       isAllowed: false,
-      reason: 'noAvailableBed',
+      reason: 'noAvailablePlace',
       cost: candidate.price,
     });
   });
@@ -130,6 +130,13 @@ describe('market actions', () => {
     expect(result.save.market.availableGladiators).toHaveLength(
       MARKET_CONFIG.availableGladiatorCount - 1,
     );
+    expect(result.save.economy.ledgerEntries[0]).toMatchObject({
+      amount: candidate.price,
+      category: 'market',
+      kind: 'expense',
+      labelKey: 'finance.ledger.gladiatorPurchase',
+      relatedId: candidate.id,
+    });
   });
 
   it('enforces Domus-governed ludus capacity', () => {
@@ -146,7 +153,7 @@ describe('market actions', () => {
     expect(secondPurchase.gladiators).toHaveLength(2);
     expect(thirdValidation).toMatchObject({
       isAllowed: false,
-      reason: 'noAvailableBed',
+      reason: 'noAvailablePlace',
     });
   });
 
@@ -162,7 +169,7 @@ describe('market actions', () => {
 
     expect(blockedValidation).toMatchObject({
       isAllowed: false,
-      reason: 'noAvailableBed',
+      reason: 'noAvailablePlace',
     });
     expect(getAvailableLudusGladiatorPlaces(expandedSave)).toBe(1);
     expect(result.validation.isAllowed).toBe(true);
@@ -183,5 +190,12 @@ describe('market actions', () => {
     expect(result.save.gladiators).toEqual([]);
     expect(result.save.ludus.treasury).toBe(purchased.ludus.treasury + saleValue);
     expect(getAvailableLudusGladiatorPlaces(result.save)).toBe(1);
+    expect(result.save.economy.ledgerEntries[0]).toMatchObject({
+      amount: saleValue,
+      category: 'market',
+      kind: 'income',
+      labelKey: 'finance.ledger.gladiatorSale',
+      relatedId: candidate.id,
+    });
   });
 });

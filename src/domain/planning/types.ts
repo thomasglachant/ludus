@@ -1,30 +1,64 @@
-import type { BuildingId } from '../buildings/types';
-
-export type GladiatorWeeklyObjective =
-  | 'balanced'
-  | 'trainStrength'
-  | 'trainAgility'
-  | 'trainDefense'
-  | 'recovery'
-  | 'moraleBoost'
-  | 'protectChampion'
-  | 'prepareForSale';
-
-export type TrainingIntensity = 'light' | 'normal' | 'hard' | 'brutal';
-
-export interface GladiatorRoutine {
-  gladiatorId: string;
-  objective: GladiatorWeeklyObjective;
-  intensity: TrainingIntensity;
-  allowAutomaticAssignment: boolean;
-  lockedBuildingId?: BuildingId;
-}
+import type { BuildingActivityId, BuildingId } from '../buildings/types';
+import type { DayOfWeek } from '../time/types';
 
 export interface WeeklyPlanningState {
   week: number;
   year: number;
-  routines: GladiatorRoutine[];
+  days: Record<DayOfWeek, DailyPlan>;
+  reports: WeeklyReport[];
   alerts: GameAlert[];
+}
+
+export type DailyPlanActivity =
+  | 'training'
+  | 'meals'
+  | 'sleep'
+  | 'leisure'
+  | 'care'
+  | 'contracts'
+  | 'production'
+  | 'security'
+  | 'maintenance'
+  | 'events';
+
+export type DailyPlanPoints = Record<DailyPlanActivity, number>;
+
+export type DailyPlanBuildingActivitySelections = Partial<
+  Record<DailyPlanActivity, BuildingActivityId>
+>;
+
+export interface DailyPlan {
+  dayOfWeek: DayOfWeek;
+  gladiatorTimePoints: DailyPlanPoints;
+  laborPoints: DailyPlanPoints;
+  adminPoints: DailyPlanPoints;
+  buildingActivitySelections: DailyPlanBuildingActivitySelections;
+}
+
+export interface DailySimulationSummary {
+  dayOfWeek: DayOfWeek;
+  treasuryDelta: number;
+  reputationDelta: number;
+  gloryDelta: number;
+  happinessDelta: number;
+  securityDelta: number;
+  rebellionDelta: number;
+  injuredGladiatorIds: string[];
+  eventIds: string[];
+}
+
+export interface WeeklyReport {
+  id: string;
+  year: number;
+  week: number;
+  days: DailySimulationSummary[];
+  treasuryDelta: number;
+  reputationDelta: number;
+  gloryDelta: number;
+  happinessDelta: number;
+  securityDelta: number;
+  rebellionDelta: number;
+  injuries: number;
 }
 
 export type AlertSeverity = 'info' | 'warning' | 'critical';

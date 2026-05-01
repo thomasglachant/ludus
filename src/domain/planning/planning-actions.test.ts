@@ -1,15 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { TIME_CONFIG } from '../../game-data/time';
 import type { BuildingId, GameSave, Gladiator } from '../types';
-import { getGameMinuteStamp } from '../gladiators/map-movement';
 import { createInitialSave } from '../saves/create-initial-save';
 import {
   applyPlanningRecommendations,
+  getDailyPlanBucketRemaining,
   getGladiatorPlanningStatuses,
   getPlanningRecommendation,
-  setManualBuildingOverride,
   synchronizePlanning,
-  updateGladiatorRoutine,
+  updateDailyPlan,
+  updateDailyPlanBuildingActivitySelection,
 } from './planning-actions';
 
 function createTestSave() {
@@ -66,17 +65,12 @@ function withPurchasedBuildings(save: GameSave, buildingIds: BuildingId[]): Game
 }
 
 describe('planning actions', () => {
-  it('synchronizes default routines for owned gladiators', () => {
+  it('synchronizes macro planning alerts for owned gladiators', () => {
     const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
 
-    expect(save.planning.routines).toEqual([
-      {
-        gladiatorId: 'gladiator-test',
-        objective: 'balanced',
-        intensity: 'normal',
-        allowAutomaticAssignment: true,
-      },
-    ]);
+    expect(save.planning.alerts).toEqual([]);
+    expect(save.planning.year).toBe(save.time.year);
+    expect(save.planning.week).toBe(save.time.week);
   });
 
   it('generates alerts and planning statuses for owned gladiators', () => {
@@ -93,7 +87,7 @@ describe('planning actions', () => {
     expect(statuses).toHaveLength(1);
     expect(statuses[0]).toMatchObject({
       gladiator: expect.objectContaining({ id: 'gladiator-test' }),
-      routine: expect.objectContaining({ objective: 'balanced' }),
+      recommendation: expect.objectContaining({ buildingId: 'infirmary' }),
     });
     expect(save.planning.alerts).toEqual(
       expect.arrayContaining([
@@ -111,12 +105,11 @@ describe('planning actions', () => {
     );
   });
 
-  it('applies automatic recommendations when the target building is purchased', () => {
+  it('recommends the right building without assigning per-character routine tasks', () => {
     const save = synchronizePlanning(
       withPurchasedBuildings(
         withGladiators(createTestSave(), [
           createGladiator({
-            currentBuildingId: 'domus',
             health: 40,
           }),
         ]),
@@ -129,242 +122,134 @@ describe('planning actions', () => {
       buildingId: 'infirmary',
       isAvailable: true,
     });
-    expect(result.gladiators[0].currentBuildingId).toBeUndefined();
-    expect(result.gladiators[0].mapMovement).toMatchObject({
-      currentLocation: 'domus',
-      targetLocation: 'infirmary',
-      activity: 'balanced',
-    });
-    expect(result.gladiators[0].currentTaskStartedAt).toBe(getGameMinuteStamp(save.time));
+    expect(result.gladiators[0]).toEqual(save.gladiators[0]);
   });
 
-  it('schedules simultaneous automatic departures without sharing the exit tile', () => {
+  it('marks recommendations unavailable when the building is not purchased', () => {
     const save = synchronizePlanning(
-      withPurchasedBuildings(
-        withGladiators(createTestSave(), [
+      withGladiators(
+        {
+          ...createTestSave(),
+          buildings: {
+            ...createTestSave().buildings,
+            infirmary: {
+              ...createTestSave().buildings.infirmary,
+              isPurchased: false,
+            },
+          },
+        },
+        [
           createGladiator({
-            id: 'gladiator-first',
-            currentBuildingId: 'domus',
             health: 40,
           }),
-          createGladiator({
-            id: 'gladiator-second',
-            currentBuildingId: 'domus',
-            health: 40,
-          }),
-        ]),
-        ['infirmary'],
+        ],
       ),
     );
-    const result = applyPlanningRecommendations(save);
-    const firstSchedule = result.gladiators[0].mapMovement?.tileSchedule;
-    const secondSchedule = result.gladiators[1].mapMovement?.tileSchedule;
-
-    expect(firstSchedule?.[0].arrivalStamp).toBe(getGameMinuteStamp(save.time));
-    expect(secondSchedule?.[0].arrivalStamp).toBe(firstSchedule?.[1].arrivalStamp);
-  });
-
-  it('sends gladiators to sleep during the night', () => {
-    const save = synchronizePlanning({
-      ...withGladiators(createTestSave(), [
-        createGladiator({
-          currentBuildingId: 'trainingGround',
-          currentActivityId: 'balanced',
-        }),
-      ]),
-      time: {
-        ...createTestSave().time,
-        hour: TIME_CONFIG.sleepStartHour,
-      },
-    });
-    const result = applyPlanningRecommendations(save);
-
-    expect(result.gladiators[0]).toMatchObject({
-      currentActivityId: 'sleep',
-    });
-    expect(result.gladiators[0].currentBuildingId).toBeUndefined();
-    expect(result.gladiators[0].mapMovement).toMatchObject({
-      targetLocation: 'dormitory',
-    });
-  });
-
-  it('keeps sleeping gladiators in the dormitory before wake up', () => {
-    const save = synchronizePlanning({
-      ...withGladiators(createTestSave(), [
-        createGladiator({
-          currentBuildingId: 'dormitory',
-          currentActivityId: 'sleep',
-          energy: 100,
-        }),
-      ]),
-      time: {
-        ...createTestSave().time,
-        hour: 5,
-      },
-    });
-    const result = applyPlanningRecommendations(save);
-
-    expect(result.gladiators[0]).toMatchObject({
-      currentBuildingId: 'dormitory',
-      currentActivityId: 'sleep',
-    });
-  });
-
-  it('lets rested gladiators resume daytime activities after wake up', () => {
-    const save = synchronizePlanning({
-      ...withGladiators(createTestSave(), [
-        createGladiator({
-          currentBuildingId: 'dormitory',
-          currentActivityId: 'sleep',
-          energy: 100,
-        }),
-      ]),
-      time: {
-        ...createTestSave().time,
-        hour: TIME_CONFIG.wakeUpHour,
-        minute: TIME_CONFIG.wakeUpMinute,
-      },
-    });
-    const result = applyPlanningRecommendations(save);
-
-    expect(result.gladiators[0]).toMatchObject({
-      currentActivityId: 'balanced',
-    });
-    expect(result.gladiators[0].currentBuildingId).toBeUndefined();
-    expect(result.gladiators[0].mapMovement).toMatchObject({
-      targetLocation: 'trainingGround',
-    });
-  });
-
-  it('sends critically tired gladiators to the dormitory during daytime', () => {
-    const save = synchronizePlanning(
-      withGladiators(createTestSave(), [
-        createGladiator({
-          currentBuildingId: 'domus',
-          energy: 10,
-        }),
-      ]),
-    );
-    const result = applyPlanningRecommendations(save);
-
-    expect(result.gladiators[0].currentBuildingId).toBeUndefined();
-    expect(result.gladiators[0].mapMovement).toMatchObject({
-      targetLocation: 'dormitory',
-    });
-  });
-
-  it('keeps automatic gladiators on their current activity above critical needs', () => {
-    const save = synchronizePlanning(
-      withPurchasedBuildings(
-        withGladiators(createTestSave(), [
-          createGladiator({
-            currentBuildingId: 'trainingGround',
-            energy: 11,
-            morale: 11,
-          }),
-        ]),
-        ['canteen', 'dormitory', 'pleasureHall', 'trainingGround'],
-      ),
-    );
-    const result = applyPlanningRecommendations(save);
 
     expect(getPlanningRecommendation(save, save.gladiators[0])).toMatchObject({
-      buildingId: 'trainingGround',
-      isAvailable: true,
-    });
-    expect(result.gladiators[0].currentBuildingId).toBe('trainingGround');
-  });
-
-  it('keeps automatic tasks locked for a minimum duration', () => {
-    const baseSave = createTestSave();
-    const taskStartedAt = getGameMinuteStamp(baseSave.time);
-    const save = synchronizePlanning({
-      ...withPurchasedBuildings(
-        withGladiators(baseSave, [
-          createGladiator({
-            currentBuildingId: 'canteen',
-            currentActivityId: 'balanced',
-            currentTaskStartedAt: taskStartedAt,
-            health: 35,
-          }),
-        ]),
-        ['infirmary'],
-      ),
-      time: {
-        ...baseSave.time,
-        hour: baseSave.time.hour + 1,
-      },
-    });
-    const result = applyPlanningRecommendations(save);
-
-    expect(result.gladiators[0].currentBuildingId).toBe('canteen');
-  });
-
-  it('lets night sleep interrupt a locked task', () => {
-    const baseSave = createTestSave();
-    const save = synchronizePlanning({
-      ...withGladiators(baseSave, [
-        createGladiator({
-          currentBuildingId: 'trainingGround',
-          currentActivityId: 'balanced',
-          currentTaskStartedAt: getGameMinuteStamp({
-            ...baseSave.time,
-            hour: TIME_CONFIG.sleepStartHour,
-          }),
-        }),
-      ]),
-      time: {
-        ...baseSave.time,
-        hour: TIME_CONFIG.sleepStartHour,
-      },
-    });
-    const result = applyPlanningRecommendations(save);
-
-    expect(result.gladiators[0]).toMatchObject({
-      currentActivityId: 'sleep',
-    });
-    expect(result.gladiators[0].currentBuildingId).toBeUndefined();
-    expect(result.gladiators[0].mapMovement).toMatchObject({
-      targetLocation: 'dormitory',
+      buildingId: 'infirmary',
+      isAvailable: false,
     });
   });
 
-  it('allows objective and intensity updates', () => {
-    const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
-    const result = updateGladiatorRoutine(save, 'gladiator-test', {
-      objective: 'trainStrength',
-      intensity: 'hard',
-    });
-
-    expect(result.planning.routines[0]).toMatchObject({
-      objective: 'trainStrength',
-      intensity: 'hard',
-    });
-  });
-
-  it('keeps manual overrides when recommendations are applied', () => {
+  it('uses macro needs before default training recommendations', () => {
     const save = synchronizePlanning(
       withPurchasedBuildings(
         withGladiators(createTestSave(), [
           createGladiator({
-            currentBuildingId: 'domus',
-            health: 40,
+            energy: 10,
+            morale: 10,
           }),
         ]),
-        ['dormitory', 'infirmary'],
+        ['dormitory', 'pleasureHall', 'trainingGround'],
       ),
     );
-    const manualSave = setManualBuildingOverride(save, 'gladiator-test', 'dormitory');
-    const result = applyPlanningRecommendations(manualSave);
 
-    expect(result.planning.routines[0]).toMatchObject({
-      allowAutomaticAssignment: false,
-      lockedBuildingId: 'dormitory',
+    expect(getPlanningRecommendation(save, save.gladiators[0])).toMatchObject({
+      buildingId: 'dormitory',
+      reasonKey: 'weeklyPlan.recommendations.energy',
     });
-    expect(result.gladiators[0].currentBuildingId).toBeUndefined();
-    expect(result.gladiators[0].mapMovement).toMatchObject({
-      targetLocation: 'dormitory',
-      activity: 'manualOverride',
+  });
+
+  it('updates daily macro plan points by activity bucket', () => {
+    const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
+    const result = updateDailyPlan(save, {
+      activity: 'leisure',
+      bucket: 'gladiatorTimePoints',
+      dayOfWeek: 'monday',
+      points: 0.4,
     });
+
+    expect(result.planning.days.monday.gladiatorTimePoints.leisure).toBe(0);
+  });
+
+  it('caps daily macro plan updates to the bucket budget', () => {
+    const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
+    const result = updateDailyPlan(save, {
+      activity: 'training',
+      bucket: 'gladiatorTimePoints',
+      dayOfWeek: 'monday',
+      points: 20,
+    });
+
+    expect(result.planning.days.monday.gladiatorTimePoints.training).toBe(3);
+    expect(getDailyPlanBucketRemaining(result.planning.days.monday, 'gladiatorTimePoints')).toBe(0);
+  });
+
+  it('selects an unlocked building activity for a daily activity', () => {
+    const save = {
+      ...createTestSave(),
+      buildings: {
+        ...createTestSave().buildings,
+        farm: {
+          ...createTestSave().buildings.farm,
+          isPurchased: true,
+          purchasedSkillIds: ['farm.market-surplus'],
+        },
+      },
+    };
+    const result = updateDailyPlanBuildingActivitySelection(save, {
+      activity: 'production',
+      activityId: 'farm.marketSurplus',
+      dayOfWeek: 'monday',
+    });
+
+    expect(result.planning.days.monday.buildingActivitySelections.production).toBe(
+      'farm.marketSurplus',
+    );
+  });
+
+  it('clears or ignores invalid building activity selections', () => {
+    const save = {
+      ...createTestSave(),
+      planning: {
+        ...createTestSave().planning,
+        days: {
+          ...createTestSave().planning.days,
+          monday: {
+            ...createTestSave().planning.days.monday,
+            buildingActivitySelections: {
+              production: 'farm.marketSurplus' as const,
+            },
+          },
+        },
+      },
+    };
+    const invalidResult = updateDailyPlanBuildingActivitySelection(save, {
+      activity: 'production',
+      activityId: 'farm.exportContracts',
+      dayOfWeek: 'monday',
+    });
+    const clearedResult = updateDailyPlanBuildingActivitySelection(save, {
+      activity: 'production',
+      dayOfWeek: 'monday',
+    });
+
+    expect(
+      invalidResult.planning.days.monday.buildingActivitySelections.production,
+    ).toBeUndefined();
+    expect(
+      clearedResult.planning.days.monday.buildingActivitySelections.production,
+    ).toBeUndefined();
   });
 });

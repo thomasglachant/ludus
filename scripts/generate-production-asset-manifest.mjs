@@ -14,6 +14,8 @@ const typescriptManifestPath = join(
   'asset-manifest.production.ts',
 );
 const variantsPath = join(root, 'src', 'game-data', 'gladiator-visual-variants.ts');
+const visualAssetsPath = join(root, 'src', 'game-data', 'visual-assets.ts');
+const buildingsPath = join(root, 'src', 'game-data', 'buildings.ts');
 const generatedAt = '2026-04-28T00:00:00.000Z';
 const checkOnly = process.argv.includes('--check');
 
@@ -34,6 +36,7 @@ const combatFrameKeys = [
   'combat-defeat',
   'combat-victory',
 ];
+const externalMapLocationIds = new Set(['arena', 'market']);
 function toWebPath(path) {
   return `/assets/${relative(publicAssetsRoot, path).split(sep).join('/')}`;
 }
@@ -55,7 +58,9 @@ function listFiles(path) {
 }
 
 function sortObjectEntries(object) {
-  return Object.fromEntries(Object.entries(object).sort(([left], [right]) => left.localeCompare(right)));
+  return Object.fromEntries(
+    Object.entries(object).sort(([left], [right]) => left.localeCompare(right)),
+  );
 }
 
 function readPngSize(path) {
@@ -72,7 +77,9 @@ function readPngSize(path) {
 }
 
 function parseArrayConstant(source, name) {
-  const match = source.match(new RegExp(`export const ${name} = \\[([\\s\\S]*?)\\] as const;`));
+  const match = source.match(
+    new RegExp(`export const ${name} = \\[([\\s\\S]*?)\\] as const(?: satisfies [^;]+)?;`),
+  );
   if (!match) {
     throw new Error(`Missing variant constant: ${name}`);
   }
@@ -89,6 +96,17 @@ function parseNumberConstant(source, name) {
   return Number(match[1]);
 }
 
+function parseObjectStringConstant(source, name) {
+  const match = source.match(new RegExp(`export const ${name} = \\{([\\s\\S]*?)\\} as const`));
+  if (!match) {
+    throw new Error(`Missing object constant: ${name}`);
+  }
+
+  return Object.fromEntries(
+    Array.from(match[1].matchAll(/([A-Za-z0-9_]+): '([^']+)'/g), ([, key, value]) => [key, value]),
+  );
+}
+
 function readVariantConfig() {
   const source = readFileSync(variantsPath, 'utf8');
   return {
@@ -100,6 +118,18 @@ function readVariantConfig() {
     bodyBuildStyles: parseArrayConstant(source, 'GLADIATOR_BODY_BUILD_STYLES'),
     skinTones: parseArrayConstant(source, 'GLADIATOR_SKIN_TONES'),
     markingStyles: parseArrayConstant(source, 'GLADIATOR_MARKING_STYLES'),
+  };
+}
+
+function readClassAssetConfig() {
+  const source = readFileSync(visualAssetsPath, 'utf8');
+
+  return {
+    assetIds: parseObjectStringConstant(source, 'GLADIATOR_CLASS_VISUAL_ASSET_IDS'),
+    fallbackAssetIds: parseObjectStringConstant(
+      source,
+      'GLADIATOR_CLASS_FALLBACK_VISUAL_ASSET_IDS',
+    ),
   };
 }
 
@@ -162,23 +192,29 @@ function buildHomepageManifest() {
   return {
     sourceQuality: 'production',
     backgrounds,
-    ...(existsSync(lastSaveThumbnailPath) ? { lastSaveThumbnail: toWebPath(lastSaveThumbnailPath) } : {}),
+    ...(existsSync(lastSaveThumbnailPath)
+      ? { lastSaveThumbnail: toWebPath(lastSaveThumbnailPath) }
+      : {}),
   };
 }
 
 function buildBuildingManifest() {
+  const activeBuildingIds = new Set(
+    parseArrayConstant(readFileSync(buildingsPath, 'utf8'), 'BUILDING_IDS'),
+  );
   const buildingFiles = listFiles(join(publicAssetsRoot, 'buildings')).filter(
     (path) => extname(path) === '.png',
   );
   const buildings = {};
 
   for (const path of buildingFiles) {
-    const [, buildingId, levelId, partName] = relative(join(publicAssetsRoot, 'buildings'), path)
-      .split(sep)
-      .join('/')
-      .match(/^([^/]+)\/(level-\d+)\/([^/]+)\.png$/) ?? [];
+    const [, buildingId, levelId, partName] =
+      relative(join(publicAssetsRoot, 'buildings'), path)
+        .split(sep)
+        .join('/')
+        .match(/^([^/]+)\/(level-\d+)\/([^/]+)\.png$/) ?? [];
 
-    if (!buildingId || !levelId || !partName) {
+    if (!buildingId || !activeBuildingIds.has(buildingId) || !levelId || !partName) {
       continue;
     }
 
@@ -192,74 +228,151 @@ function buildBuildingManifest() {
     buildings[buildingId][levelId][partName] = toWebPath(path);
   }
 
+  const generatedMapBuildingFiles = listFiles(
+    join(publicAssetsRoot, 'generated', 'map', 'buildings'),
+  ).filter((path) => extname(path) === '.png');
+
+  for (const path of generatedMapBuildingFiles) {
+    const buildingId = relative(join(publicAssetsRoot, 'generated', 'map', 'buildings'), path)
+      .split(sep)
+      .join('/')
+      .replace(/\.png$/, '');
+
+    if (
+      !buildingId ||
+      externalMapLocationIds.has(buildingId) ||
+      !activeBuildingIds.has(buildingId)
+    ) {
+      continue;
+    }
+
+    const size = readPngSize(path);
+    buildings[buildingId] ??= {};
+    buildings[buildingId]['level-1'] ??= {
+      sourceQuality: 'production',
+      width: size.width,
+      height: size.height,
+    };
+    buildings[buildingId]['level-1'].exterior ??= toWebPath(path);
+  }
+
   return sortObjectEntries(
     Object.fromEntries(
-      Object.entries(buildings).map(([buildingId, levels]) => [buildingId, sortObjectEntries(levels)]),
+      Object.entries(buildings).map(([buildingId, levels]) => [
+        buildingId,
+        sortObjectEntries(levels),
+      ]),
     ),
   );
 }
 
 function buildLocationsManifest() {
+  const arenaMapExteriorPath = join(publicAssetsRoot, 'generated', 'map', 'buildings', 'arena.png');
+  const marketMapExteriorPath = join(
+    publicAssetsRoot,
+    'generated',
+    'map',
+    'buildings',
+    'market.png',
+  );
+
   return {
     arena: {
       sourceQuality: 'production',
       combatBackground: '/assets/combat/arena-background.webp',
       crowd: '/assets/combat/arena-crowd.webp',
+      ...(existsSync(arenaMapExteriorPath) ? { mapExterior: toWebPath(arenaMapExteriorPath) } : {}),
+    },
+    market: {
+      sourceQuality: 'production',
+      ...(existsSync(marketMapExteriorPath)
+        ? { mapExterior: toWebPath(marketMapExteriorPath) }
+        : {}),
     },
   };
 }
 
+function buildGladiatorFrames(basePath) {
+  const frames = {};
+  for (const frameKey of mapFrameKeys) {
+    frames[frameKey] = [0, 1]
+      .map((frameIndex) => join(basePath, 'map', `${frameKey}-${frameIndex}.png`))
+      .filter(existsSync)
+      .map(toWebPath);
+  }
+  for (const frameKey of combatFrameKeys) {
+    frames[frameKey] = [0, 1]
+      .map((frameIndex) => join(basePath, 'combat', `${frameKey}-${frameIndex}.png`))
+      .filter(existsSync)
+      .map(toWebPath);
+  }
+
+  return frames;
+}
+
+function buildGladiatorManifestEntry(id, variant) {
+  const basePath = join(publicAssetsRoot, 'gladiators', id);
+
+  if (!existsSync(basePath)) {
+    return null;
+  }
+
+  const frames = buildGladiatorFrames(basePath);
+
+  return [
+    id,
+    {
+      sourceQuality: 'production',
+      portrait: `/assets/gladiators/${id}/portrait.png`,
+      mapSpritesheet: `/assets/gladiators/${id}/map-spritesheet.png`,
+      mapAtlas: `/assets/gladiators/${id}/map-spritesheet.json`,
+      combatSpritesheet: `/assets/gladiators/${id}/combat-spritesheet.png`,
+      combatAtlas: `/assets/gladiators/${id}/combat-spritesheet.json`,
+      frames,
+      ...buildMeta(variant),
+      clothingStyle: variant.clothingStyle,
+      clothingColor: variant.clothingColor,
+      hairAndBeardStyle: variant.hairAndBeardStyle,
+      headwearStyle: variant.headwearStyle,
+      bodyBuildStyle: variant.bodyBuildStyle,
+      skinTone: variant.skinTone,
+      markingStyle: variant.markingStyle,
+    },
+  ];
+}
+
+function getVariantByAssetId(variants, assetId) {
+  const [, variantNumber] = assetId.match(/^gladiator-(\d+)$/) ?? [];
+  const variant = variantNumber ? variants[Number(variantNumber) - 1] : undefined;
+  const fallbackVariant = variant ?? variants[0];
+
+  if (!fallbackVariant) {
+    throw new Error(`Missing fallback variant for class asset: ${assetId}`);
+  }
+
+  return fallbackVariant;
+}
+
 function buildGladiatorManifest() {
   const config = readVariantConfig();
+  const classAssetConfig = readClassAssetConfig();
   const variants = buildVariants(config, config.maxVariantCount);
 
-  return Object.fromEntries(
-    variants.flatMap((variant, index) => {
+  return Object.fromEntries([
+    ...variants.flatMap((variant, index) => {
       const id = variantId(index);
-      const basePath = join(publicAssetsRoot, 'gladiators', id);
+      const entry = buildGladiatorManifestEntry(id, variant);
 
-      if (!existsSync(basePath)) {
-        return [];
-      }
-
-      const frames = {};
-      for (const frameKey of mapFrameKeys) {
-        frames[frameKey] = [0, 1]
-          .map((frameIndex) => join(basePath, 'map', `${frameKey}-${frameIndex}.png`))
-          .filter(existsSync)
-          .map(toWebPath);
-      }
-      for (const frameKey of combatFrameKeys) {
-        frames[frameKey] = [0, 1]
-          .map((frameIndex) => join(basePath, 'combat', `${frameKey}-${frameIndex}.png`))
-          .filter(existsSync)
-          .map(toWebPath);
-      }
-
-      return [
-        [
-          id,
-          {
-            sourceQuality: 'production',
-            portrait: `/assets/gladiators/${id}/portrait.png`,
-            mapSpritesheet: `/assets/gladiators/${id}/map-spritesheet.png`,
-            mapAtlas: `/assets/gladiators/${id}/map-spritesheet.json`,
-            combatSpritesheet: `/assets/gladiators/${id}/combat-spritesheet.png`,
-            combatAtlas: `/assets/gladiators/${id}/combat-spritesheet.json`,
-            frames,
-            ...buildMeta(variant),
-            clothingStyle: variant.clothingStyle,
-            clothingColor: variant.clothingColor,
-            hairAndBeardStyle: variant.hairAndBeardStyle,
-            headwearStyle: variant.headwearStyle,
-            bodyBuildStyle: variant.bodyBuildStyle,
-            skinTone: variant.skinTone,
-            markingStyle: variant.markingStyle,
-          },
-        ],
-      ];
+      return entry ? [entry] : [];
     }),
-  );
+    ...Object.entries(classAssetConfig.assetIds).flatMap(([classId, assetId]) => {
+      const fallbackAssetId = classAssetConfig.fallbackAssetIds[classId];
+      const variant = getVariantByAssetId(variants, fallbackAssetId);
+      const entry = buildGladiatorManifestEntry(assetId, variant);
+
+      return entry ? [entry] : [];
+    }),
+  ]);
 }
 
 function buildUiManifest() {
@@ -343,13 +456,17 @@ async function run() {
       return;
     }
 
-    console.log(`Checked production asset manifest with ${Object.keys(manifest.gladiators).length} gladiators.`);
+    console.log(
+      `Checked production asset manifest with ${Object.keys(manifest.gladiators).length} gladiators.`,
+    );
     return;
   }
 
   writeText(typescriptManifestPath, manifestModule);
 
-  console.log(`Generated production asset manifest with ${Object.keys(manifest.gladiators).length} gladiators.`);
+  console.log(
+    `Generated production asset manifest with ${Object.keys(manifest.gladiators).length} gladiators.`,
+  );
 }
 
 await run();

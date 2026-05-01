@@ -5,6 +5,9 @@ import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { ActionButton } from '../components/ActionButton';
 import { ArenaPanel, EventsPanel } from '../panels/ActivityPanels';
 import { BuildingPanel } from '../panels/BuildingPanel';
+import { BuildingsListPanel } from '../panels/BuildingsListPanel';
+import { FinancePanel } from '../panels/FinancePanel';
+import { GladiatorsListPanel } from '../panels/GladiatorsListPanel';
 import { GladiatorDetailPanel } from '../panels/GladiatorDetailPanel';
 import { WeeklyPlanningPanel } from '../panels/WeeklyPlanningPanel';
 import { AppModal } from './AppModal';
@@ -137,18 +140,24 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
   const {
     applyPlanningRecommendations,
     currentSave,
+    assignStaffToBuilding,
+    advanceWeekStep,
+    buyoutLoan,
     hasUnsavedChanges,
     isLoading,
     isSaving,
     purchaseBuilding,
     purchaseBuildingImprovement,
+    purchaseBuildingSkill,
     resolveGameEventChoice,
     saveCurrentGame,
     selectBuildingPolicy,
-    updateGladiatorRoutine,
+    takeLoan,
+    updateDailyPlan,
+    updateDailyPlanBuildingActivitySelection,
     upgradeBuilding,
   } = useGameStore();
-  const { closeAllModals, navigate } = useUiStore();
+  const { closeAllModals, navigate, openModal } = useUiStore();
   const isDailyEventBlocking = currentSave ? currentSave.events.pendingEvents.length > 0 : false;
 
   const quitToMainMenu = () => {
@@ -203,8 +212,69 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
           onClose={closeAllModals}
           onPurchaseBuilding={purchaseBuilding}
           onPurchaseBuildingImprovement={purchaseBuildingImprovement}
+          onPurchaseBuildingSkill={purchaseBuildingSkill}
+          onAssignStaffToBuilding={assignStaffToBuilding}
           onSelectBuildingPolicy={selectBuildingPolicy}
           onUpgradeBuilding={upgradeBuilding}
+        />
+      </AppModal>
+    );
+  }
+
+  if (modal.kind === 'buildingsList') {
+    return (
+      <AppModal
+        size="xl"
+        testId="buildings-list-modal"
+        titleKey="navigation.buildings"
+        onBack={onBack}
+        onClose={closeAllModals}
+      >
+        <BuildingsListPanel
+          save={currentSave}
+          onClose={closeAllModals}
+          onOpenBuilding={(buildingId) => {
+            openModal({ buildingId, kind: 'building' });
+          }}
+        />
+      </AppModal>
+    );
+  }
+
+  if (modal.kind === 'gladiatorsList') {
+    return (
+      <AppModal
+        size="xl"
+        testId="gladiators-list-modal"
+        titleKey="roster.title"
+        onBack={onBack}
+        onClose={closeAllModals}
+      >
+        <GladiatorsListPanel
+          save={currentSave}
+          onClose={closeAllModals}
+          onOpenGladiator={(gladiatorId) => {
+            openModal({ gladiatorId, kind: 'gladiator' });
+          }}
+        />
+      </AppModal>
+    );
+  }
+
+  if (modal.kind === 'finance') {
+    return (
+      <AppModal
+        size="xl"
+        testId="finance-modal"
+        titleKey="finance.title"
+        onBack={onBack}
+        onClose={closeAllModals}
+      >
+        <FinancePanel
+          save={currentSave}
+          onBuyoutLoan={buyoutLoan}
+          onClose={closeAllModals}
+          onTakeLoan={takeLoan}
         />
       </AppModal>
     );
@@ -237,15 +307,17 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
       <AppModal
         size="xl"
         testId="weekly-planning-modal"
-        titleKey="weeklyPlan.dashboard"
+        titleKey="weeklyPlan.title"
         onBack={onBack}
         onClose={closeAllModals}
       >
         <WeeklyPlanningPanel
           save={currentSave}
+          onAdvanceWeekStep={advanceWeekStep}
           onApplyRecommendations={applyPlanningRecommendations}
           onClose={closeAllModals}
-          onUpdateRoutine={updateGladiatorRoutine}
+          onUpdateDailyPlan={updateDailyPlan}
+          onUpdateBuildingActivitySelection={updateDailyPlanBuildingActivitySelection}
         />
       </AppModal>
     );

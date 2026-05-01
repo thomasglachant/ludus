@@ -45,7 +45,24 @@ function getEventImpactItem(
       kind = 'reputation';
       labelKey = 'ludus.reputation';
       break;
+    case 'changeLudusGlory':
+      kind = 'victory';
+      labelKey = 'ludus.glory';
+      break;
+    case 'changeLudusSecurity':
+      kind = 'defense';
+      labelKey = 'ludus.security';
+      break;
+    case 'changeLudusHappiness':
+      kind = 'morale';
+      labelKey = 'ludus.happiness';
+      break;
+    case 'changeLudusRebellion':
+      kind = 'warning';
+      labelKey = 'ludus.rebellion';
+      break;
     case 'removeGladiator':
+    case 'releaseAllGladiators':
       return undefined;
     case 'changeGladiatorHealth':
       kind = 'health';
@@ -82,7 +99,9 @@ function getEventImpactGroup(
   const impactItems = effects
     .map((effect, index) => getEventImpactItem(effect, t, chancePercent, index))
     .filter((impact): impact is ImpactListItem => Boolean(impact));
-  const textEffects = effects.filter((effect) => effect.type === 'removeGladiator');
+  const textEffects = effects.filter(
+    (effect) => effect.type === 'removeGladiator' || effect.type === 'releaseAllGladiators',
+  );
 
   return (
     <>
@@ -91,7 +110,11 @@ function getEventImpactGroup(
         <ImpactIndicator
           chancePercent={chancePercent}
           key={`${effect.type}-${index}`}
-          text={t('events.outcome.gladiatorLeaves')}
+          text={t(
+            effect.type === 'releaseAllGladiators'
+              ? 'events.outcome.allGladiatorsReleased'
+              : 'events.outcome.gladiatorLeaves',
+          )}
         />
       ))}
     </>

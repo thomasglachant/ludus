@@ -1,7 +1,6 @@
 import {
   ARENA_ODDS_CONFIG,
   ARENA_OPPONENT_CONFIG,
-  ARENA_PARTICIPATION_REWARDS,
   ARENA_PUBLIC_STAKE_MODIFIER_SPREAD,
   ARENA_RANK_THRESHOLDS,
   ARENA_REWARDS,
@@ -12,9 +11,10 @@ import { GAME_BALANCE } from '../../game-data/balance';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
 import {
-  assignGladiatorMapLocation,
-  synchronizeGladiatorMapMovementSchedules,
-} from '../gladiators/map-movement';
+  addLedgerEntry,
+  createLedgerEntry,
+  updateCurrentWeekSummary,
+} from '../economy/economy-actions';
 import { getEffectiveSkillValue, getGladiatorEffectiveSkill } from '../gladiators/skills';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
@@ -30,8 +30,6 @@ interface CombatHealth {
   player: number;
   opponent: number;
 }
-
-const SUNDAY_ARENA_START_HOUR = GAME_BALANCE.arena.startHour;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -71,31 +69,6 @@ function getArenaRankSortIndex(rank: ArenaRank) {
   return rankIndex === -1 ? ARENA_RANK_THRESHOLDS.length : rankIndex;
 }
 
-function isAtArena(gladiator: Gladiator) {
-  return gladiator.currentLocationId === 'arena';
-}
-
-function isMovingToArena(gladiator: Gladiator) {
-  return gladiator.mapMovement?.targetLocation === 'arena';
-}
-
-function sendGladiatorsToArena(save: GameSave): GameSave {
-  const gladiators = save.gladiators.map((gladiator) =>
-    isAtArena(gladiator) || isMovingToArena(gladiator)
-      ? gladiator
-      : assignGladiatorMapLocation(gladiator, 'arena', save.time, 'arenaTravel', save.map),
-  );
-
-  return {
-    ...save,
-    gladiators: synchronizeGladiatorMapMovementSchedules(gladiators, save.map),
-  };
-}
-
-function areAllGladiatorsAtArena(save: GameSave) {
-  return save.gladiators.every((gladiator) => isAtArena(gladiator));
-}
-
 function getParticipantHealth(gladiator: Gladiator) {
   return clamp(
     roundStat(gladiator.health),
@@ -122,7 +95,7 @@ export function calculateArenaCombatReward(
   random: RandomSource = Math.random,
   opponentDecimalOdds?: number,
 ): CombatReward {
-  const participationReward = ARENA_PARTICIPATION_REWARDS[rank];
+  const participationReward = 0;
   const publicStakeModifier = createPublicStakeModifier(random);
   const victoryReward = Math.max(
     0,
@@ -131,12 +104,12 @@ export function calculateArenaCombatReward(
         publicStakeModifier,
     ),
   );
-  const winnerReward = participationReward + victoryReward;
+  const winnerReward = victoryReward;
 
   return {
     totalReward: winnerReward,
     winnerReward,
-    loserReward: participationReward,
+    loserReward: 0,
     participationReward,
     victoryReward,
     publicStakeModifier,
@@ -308,21 +281,27 @@ export function generateOpponent(
   const rank = getArenaRank(gladiator.reputation);
   const nameOffset = pickIndex(GLADIATOR_NAMES.length, random);
   const opponentId = getOpponentId(save, gladiator.id);
+  const age =
+    GAME_BALANCE.combat.opponentGeneration.minAge +
+    pickIndex(
+      GAME_BALANCE.combat.opponentGeneration.maxAge -
+        GAME_BALANCE.combat.opponentGeneration.minAge +
+        1,
+      random,
+    );
+  const skillProfile = {
+    strength: createOpponentStat(gladiator.strength, random),
+    agility: createOpponentStat(gladiator.agility, random),
+    defense: createOpponentStat(gladiator.defense, random),
+  };
 
   return {
     id: opponentId,
     name: GLADIATOR_NAMES[nameOffset],
-    age:
-      GAME_BALANCE.combat.opponentGeneration.minAge +
-      pickIndex(
-        GAME_BALANCE.combat.opponentGeneration.maxAge -
-          GAME_BALANCE.combat.opponentGeneration.minAge +
-          1,
-        random,
-      ),
-    strength: createOpponentStat(gladiator.strength, random),
-    agility: createOpponentStat(gladiator.agility, random),
-    defense: createOpponentStat(gladiator.defense, random),
+    age,
+    strength: skillProfile.strength,
+    agility: skillProfile.agility,
+    defense: skillProfile.defense,
     energy: GAME_BALANCE.gladiators.opponentDefaults.energy,
     health: GAME_BALANCE.gladiators.opponentDefaults.health,
     morale: GAME_BALANCE.gladiators.opponentDefaults.morale,
@@ -330,7 +309,7 @@ export function generateOpponent(
     wins: GAME_BALANCE.gladiators.opponentDefaults.wins,
     losses: GAME_BALANCE.gladiators.opponentDefaults.losses,
     traits: [],
-    visualIdentity: createGladiatorVisualIdentity(opponentId),
+    visualIdentity: createGladiatorVisualIdentity(opponentId, { skillProfile }),
   };
 }
 
@@ -487,11 +466,10 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
     0,
   );
 
-  return {
+  const resolvedSave: GameSave = {
     ...save,
     ludus: {
       ...save.ludus,
-      treasury: save.ludus.treasury + rewardTotal,
       reputation: calculateLudusReputation(gladiators),
     },
     gladiators,
@@ -502,6 +480,22 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
       isArenaDayActive: true,
     },
   };
+
+  if (rewardTotal <= 0) {
+    return updateCurrentWeekSummary(resolvedSave);
+  }
+
+  return updateCurrentWeekSummary(
+    addLedgerEntry(
+      resolvedSave,
+      createLedgerEntry(save, {
+        kind: 'income',
+        category: 'arena',
+        amount: rewardTotal,
+        labelKey: 'finance.ledger.arenaReward',
+      }),
+    ),
+  );
 }
 
 export function startArenaDay(save: GameSave, random: RandomSource = Math.random): GameSave {
@@ -548,52 +542,4 @@ export function markArenaCombatPresented(save: GameSave, combatId: string): Game
       },
     },
   };
-}
-
-export function synchronizeArena(save: GameSave, random: RandomSource = Math.random): GameSave {
-  if (save.arena.arenaDay) {
-    return save;
-  }
-
-  if (save.gladiators.length === 0) {
-    return {
-      ...save,
-      arena: {
-        ...save.arena,
-        arenaDay: undefined,
-        isArenaDayActive: false,
-      },
-    };
-  }
-
-  if (save.time.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek) {
-    return {
-      ...save,
-      arena: {
-        ...save.arena,
-        arenaDay: undefined,
-        isArenaDayActive: false,
-      },
-    };
-  }
-
-  if (save.time.hour < SUNDAY_ARENA_START_HOUR) {
-    return {
-      ...save,
-      arena: {
-        ...save.arena,
-        isArenaDayActive: false,
-      },
-    };
-  }
-
-  if (save.arena.isArenaDayActive) {
-    return save;
-  }
-
-  if (areAllGladiatorsAtArena(save)) {
-    return startArenaDay(save, random);
-  }
-
-  return sendGladiatorsToArena(save);
 }
