@@ -54,7 +54,6 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       energy: gladiator.energy,
       health: gladiator.health,
       morale: gladiator.morale,
-      satiety: gladiator.satiety,
       reputation: gladiator.reputation,
       wins: gladiator.wins,
       losses: gladiator.losses,

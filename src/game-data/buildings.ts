@@ -108,30 +108,16 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         level: 1,
         purchaseCost: 120,
         requiredDomusLevel: 1,
-        effects: [
-          {
-            type: 'increaseSatiety',
-            value: GAME_BALANCE.buildings.levelEffects.canteen[1].satietyPerHour,
-            perHour: true,
-            target: 'assignedGladiator',
-          },
-        ],
+        effects: [],
       },
       {
         level: 2,
         upgradeCost: calculateBuildingUpgradeCost(2),
         requiredDomusLevel: 2,
-        effects: [
-          {
-            type: 'increaseSatiety',
-            value: GAME_BALANCE.buildings.levelEffects.canteen[2].satietyPerHour,
-            perHour: true,
-            target: 'assignedGladiator',
-          },
-        ],
+        effects: [],
       },
     ],
-    improvementIds: ['betterKitchen', 'proteinRations', 'grainStorage'],
+    improvementIds: [],
   },
   dormitory: {
     id: 'dormitory',
@@ -297,14 +283,12 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
 };
 
 export const INITIAL_BUILDING_CONFIGURATIONS: Partial<Record<BuildingId, BuildingConfiguration>> = {
-  canteen: { mealPlanId: 'balancedMeals' },
   trainingGround: { defaultDoctrineId: 'balancedTraining' },
   pleasureHall: { entertainmentPlanId: 'quietEvenings' },
   infirmary: { carePolicyId: 'basicCare' },
 };
 
 export const INITIAL_BUILDING_POLICY_IDS: Partial<Record<BuildingId, string>> = {
-  canteen: 'balancedMeals',
   trainingGround: 'balancedTraining',
   pleasureHall: 'quietEvenings',
   infirmary: 'basicCare',

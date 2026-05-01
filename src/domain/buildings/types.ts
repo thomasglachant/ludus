@@ -16,15 +16,10 @@ export interface BuildingState {
 }
 
 export type BuildingConfiguration =
-  | CanteenConfiguration
   | DormitoryConfiguration
   | TrainingGroundConfiguration
   | PleasureHallConfiguration
   | InfirmaryConfiguration;
-
-export interface CanteenConfiguration {
-  mealPlanId: string;
-}
 
 export interface DormitoryConfiguration {
   purchasedBeds: number;
@@ -82,7 +77,6 @@ export interface BuildingPolicyDefinition {
 }
 
 export type BuildingEffectType =
-  | 'increaseSatiety'
   | 'increaseEnergy'
   | 'increaseHealth'
   | 'increaseMorale'

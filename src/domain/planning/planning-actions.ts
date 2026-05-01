@@ -42,8 +42,6 @@ type GaugeAlertKind =
   | 'lowHealth'
   | 'criticalEnergy'
   | 'lowEnergy'
-  | 'criticalSatiety'
-  | 'lowSatiety'
   | 'criticalMorale'
   | 'lowMorale';
 
@@ -52,8 +50,6 @@ const alertBuildingTargets: Partial<Record<GaugeAlertKind, BuildingId>> = {
   lowHealth: 'infirmary',
   criticalEnergy: 'dormitory',
   lowEnergy: 'dormitory',
-  criticalSatiety: 'canteen',
-  lowSatiety: 'canteen',
   criticalMorale: 'pleasureHall',
   lowMorale: 'pleasureHall',
 };
@@ -247,16 +243,6 @@ export function generatePlanningAlerts(save: GameSave, createdAt = save.updatedA
     addGaugeAlert(
       alerts,
       gladiator,
-      gladiator.satiety,
-      PLANNING_THRESHOLDS.lowSatiety,
-      PLANNING_THRESHOLDS.criticalSatiety,
-      'lowSatiety',
-      'criticalSatiety',
-      createdAt,
-    );
-    addGaugeAlert(
-      alerts,
-      gladiator,
       gladiator.morale,
       PLANNING_THRESHOLDS.lowMorale,
       PLANNING_THRESHOLDS.criticalMorale,
@@ -299,10 +285,6 @@ export function getPlanningRecommendation(
 
   if (gladiator.energy <= PLANNING_THRESHOLDS.primaryNeedReassignment) {
     return getAvailableRecommendation(save, 'dormitory', 'weeklyPlan.recommendations.energy');
-  }
-
-  if (gladiator.satiety <= PLANNING_THRESHOLDS.primaryNeedReassignment) {
-    return getAvailableRecommendation(save, 'canteen', 'weeklyPlan.recommendations.satiety');
   }
 
   if (gladiator.morale <= PLANNING_THRESHOLDS.primaryNeedReassignment) {

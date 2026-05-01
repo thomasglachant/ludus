@@ -88,7 +88,6 @@ export function BottomGladiatorRoster({
                     <Meter label={t('roster.healthShort')} value={gladiator.health} />
                     <Meter label={t('roster.energyShort')} value={gladiator.energy} />
                     <Meter label={t('roster.moraleShort')} value={gladiator.morale} />
-                    <Meter label={t('roster.satietyShort')} value={gladiator.satiety} />
                   </span>
                   <span className="roster-card__footer">
                     {primaryAlert ? (

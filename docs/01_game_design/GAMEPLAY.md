@@ -31,6 +31,12 @@ The player defines priorities and handles exceptions. The game handles routine a
 
 Weekly planning, building policies and alerts open as focused feature flows instead of permanently occupying the main game screen.
 
+## Time Flow
+
+Time runs continuously at the normal pace unless the player pauses. The HUD does not expose manual speed multipliers or a next-day skip.
+
+When every gladiator is sleeping in the dormitory during the night window, the game automatically fast-forwards to the next morning target before daytime routines resume.
+
 ## Removed Mechanic: Building Budgets
 
 The previous 1-to-10 building budget mechanic is removed.
@@ -58,7 +64,7 @@ Paid policies spend treasury when selected. They do not create a hidden recurrin
 
 Examples:
 
-- Canteen: economical meals, balanced meals, rich meals, protein-focused meals.
+- Canteen: currently neutral until its food loop is redesigned.
 - Training Ground: balanced training, strength doctrine, agility doctrine, defense doctrine, brutal discipline.
 - Pleasure Hall: quiet evening, games and songs, grand entertainment.
 - Infirmary: basic care, preventive care, intensive treatment.
@@ -109,7 +115,7 @@ Main actions:
 - intensive training;
 - medical treatment;
 - morale support;
-- final meals and rest;
+- final rest;
 - review alerts.
 
 ### Sunday: Arena
@@ -170,9 +176,8 @@ Automatic assignment uses a simple priority system:
 
 1. If health is critically low, go to the infirmary.
 2. If energy is critically low, go to the dormitory.
-3. If satiety is critically low, go to the canteen.
-4. If morale is critically low, go to the pleasure hall.
-5. Otherwise, follow the weekly objective.
+3. If morale is critically low, go to the pleasure hall.
+4. Otherwise, follow the weekly objective.
 
 Manual override must remain possible.
 

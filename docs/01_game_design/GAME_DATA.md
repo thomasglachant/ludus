@@ -37,7 +37,7 @@ GAME_BALANCE.progression = {
 ```
 
 ```ts
-GAME_BALANCE.time.gameSpeeds = [0, 1, 4];
+GAME_BALANCE.time.gameSpeeds = [0, 1];
 GAME_BALANCE.time.supportedGameSpeeds = [0, 1, 4, 8, 16, 32, 48];
 ```
 
@@ -94,7 +94,7 @@ export interface BuildingState {
 All base buildings start purchased at level 1:
 
 - `domus`: purchased, level 1.
-- `canteen`: purchased, level 1, default policy `balancedMeals`.
+- `canteen`: purchased, level 1, no active effect.
 - `dormitory`: purchased, level 1.
 - `trainingGround`: purchased, level 1, default policy `balancedTraining`.
 - `pleasureHall`: purchased, level 1, default policy `quietEvenings`.
@@ -109,7 +109,7 @@ Current building definitions include levels 1 and 2 for most buildings. Domus in
 | Building        | Starts purchased | Level 1 purchase | Level 1 effect                                               | Level 2 requirement | Level 2 effect                                         |
 | --------------- | ---------------- | ---------------: | ------------------------------------------------------------ | ------------------- | ------------------------------------------------------ |
 | Domus           | Yes              |              n/a | `increaseCapacity +1` for `ludus`                            | Domus level 1       | `increaseCapacity +2` for `ludus`                      |
-| Canteen         | Yes              |              120 | `increaseSatiety +100` per hour for assigned gladiator       | Domus level 2       | `increaseSatiety +100` per hour                        |
+| Canteen         | Yes              |              120 | No active effect                                             | Domus level 2       | No active effect                                       |
 | Dormitory       | Yes              |              140 | `increaseEnergy +5` per hour                                 | Domus level 2       | `increaseEnergy +7` per hour                           |
 | Training Ground | Yes              |              180 | `increaseStrength +1` per hour, `decreaseEnergy +4` per hour | Domus level 2       | `increaseStrength +2`, `decreaseEnergy +4` per hour    |
 | Pleasure Hall   | Yes              |              160 | `increaseMorale +5` per hour                                 | Domus level 2       | `increaseMorale +7` per hour                           |
@@ -159,9 +159,6 @@ Improvement effects are permanent or contextual unless an effect explicitly decl
 
 | ID                     | Building        | Cost | Required level | Required improvements | Effects                                  |
 | ---------------------- | --------------- | ---: | -------------: | --------------------- | ---------------------------------------- |
-| `betterKitchen`        | Canteen         |   90 |              1 | n/a                   | `increaseSatiety +2` assigned gladiator  |
-| `proteinRations`       | Canteen         |  130 |              1 | n/a                   | `increaseStrength +1` assigned gladiator |
-| `grainStorage`         | Canteen         |  110 |              1 | n/a                   | `increaseSatiety +1` all gladiators      |
 | `strawBeds`            | Dormitory       |   70 |              1 | n/a                   | `increaseEnergy +1` assigned gladiator   |
 | `woodenBeds`           | Dormitory       |  130 |              1 | `strawBeds`           | `increaseEnergy +2` assigned gladiator   |
 | `quietQuarters`        | Dormitory       |  150 |              1 | n/a                   | `increaseMorale +1` assigned gladiator   |
@@ -182,23 +179,19 @@ Policy `cost` is a selection cost paid immediately when the player changes to th
 
 Policy effects are permanent or contextual unless an effect explicitly declares `perHour: true`. Current policy data has no hourly effects.
 
-| ID                    | Building        | Required level | Cost | Effects                                                                              |
-| --------------------- | --------------- | -------------: | ---: | ------------------------------------------------------------------------------------ |
-| `economicalMeals`     | Canteen         |              1 |   10 | `increaseSatiety +3`, `decreaseMorale +1` assigned gladiator                         |
-| `balancedMeals`       | Canteen         |              1 |   20 | `increaseSatiety +5` assigned gladiator                                              |
-| `richMeals`           | Canteen         |              1 |   40 | `increaseSatiety +7`, `increaseMorale +1` assigned gladiator                         |
-| `proteinFocusedMeals` | Canteen         |              1 |   30 | `increaseSatiety +4`, `increaseStrength +1` assigned gladiator                       |
-| `balancedTraining`    | Training Ground |              1 |  n/a | `increaseStrength +1`, `increaseAgility +1`, `increaseDefense +1` assigned gladiator |
-| `strengthDoctrine`    | Training Ground |              1 |  n/a | `increaseStrength +1` assigned gladiator                                             |
-| `agilityDoctrine`     | Training Ground |              1 |  n/a | `increaseAgility +1` assigned gladiator                                              |
-| `defensiveDoctrine`   | Training Ground |              1 |  n/a | `increaseDefense +1` assigned gladiator                                              |
-| `brutalDiscipline`    | Training Ground |              2 |  n/a | `increaseStrength +2`, `decreaseMorale +2` assigned gladiator                        |
-| `quietEvenings`       | Pleasure Hall   |              1 |  n/a | `increaseMorale +3` assigned gladiator                                               |
-| `gamesAndSongs`       | Pleasure Hall   |              1 |   25 | `increaseMorale +5` assigned gladiator                                               |
-| `grandEntertainment`  | Pleasure Hall   |              2 |   60 | `increaseMorale +8` all gladiators                                                   |
-| `basicCare`           | Infirmary       |              1 |  n/a | `increaseHealth +3` assigned gladiator                                               |
-| `preventiveCare`      | Infirmary       |              1 |   30 | `reduceInjuryRisk +4` all gladiators                                                 |
-| `intensiveTreatment`  | Infirmary       |              2 |   70 | `increaseHealth +8` assigned gladiator                                               |
+| ID                   | Building        | Required level | Cost | Effects                                                                              |
+| -------------------- | --------------- | -------------: | ---: | ------------------------------------------------------------------------------------ |
+| `balancedTraining`   | Training Ground |              1 |  n/a | `increaseStrength +1`, `increaseAgility +1`, `increaseDefense +1` assigned gladiator |
+| `strengthDoctrine`   | Training Ground |              1 |  n/a | `increaseStrength +1` assigned gladiator                                             |
+| `agilityDoctrine`    | Training Ground |              1 |  n/a | `increaseAgility +1` assigned gladiator                                              |
+| `defensiveDoctrine`  | Training Ground |              1 |  n/a | `increaseDefense +1` assigned gladiator                                              |
+| `brutalDiscipline`   | Training Ground |              2 |  n/a | `increaseStrength +2`, `decreaseMorale +2` assigned gladiator                        |
+| `quietEvenings`      | Pleasure Hall   |              1 |  n/a | `increaseMorale +3` assigned gladiator                                               |
+| `gamesAndSongs`      | Pleasure Hall   |              1 |   25 | `increaseMorale +5` assigned gladiator                                               |
+| `grandEntertainment` | Pleasure Hall   |              2 |   60 | `increaseMorale +8` all gladiators                                                   |
+| `basicCare`          | Infirmary       |              1 |  n/a | `increaseHealth +3` assigned gladiator                                               |
+| `preventiveCare`     | Infirmary       |              1 |   30 | `reduceInjuryRisk +4` all gladiators                                                 |
+| `intensiveTreatment` | Infirmary       |              2 |   70 | `increaseHealth +8` assigned gladiator                                               |
 
 ## Building Effect Semantics
 
@@ -302,8 +295,6 @@ export const PLANNING_THRESHOLDS = {
   lowHealth: 55,
   criticalEnergy: 30,
   lowEnergy: 50,
-  criticalSatiety: 25,
-  lowSatiety: 50,
   criticalMorale: 30,
   lowMorale: 50,
   primaryNeedReassignment: 10,

@@ -69,6 +69,47 @@ describe('save validation', () => {
     ).toBeUndefined();
   });
 
+  it('strips legacy satiety and canteen meal setup during normalization', () => {
+    const save = createTestSave();
+    const legacySave = {
+      ...save,
+      schemaVersion: 7,
+      buildings: {
+        ...save.buildings,
+        canteen: {
+          ...save.buildings.canteen,
+          configuration: { mealPlanId: 'balancedMeals' },
+          purchasedImprovementIds: ['betterKitchen'],
+          selectedPolicyId: 'balancedMeals',
+        },
+      },
+      gladiators: [
+        {
+          id: 'gladiator-test',
+          name: 'Aulus',
+          age: 18,
+          strength: 7,
+          agility: 6,
+          defense: 7,
+          energy: 80,
+          health: 85,
+          morale: 75,
+          satiety: 80,
+          reputation: 0,
+          wins: 0,
+          losses: 0,
+          traits: [],
+        },
+      ],
+    };
+    const parsed = parseGameSave(JSON.stringify(legacySave));
+
+    expect((parsed?.gladiators[0] as { satiety?: unknown } | undefined)?.satiety).toBeUndefined();
+    expect(parsed?.buildings.canteen.configuration).toBeUndefined();
+    expect(parsed?.buildings.canteen.selectedPolicyId).toBeUndefined();
+    expect(parsed?.buildings.canteen.purchasedImprovementIds).toEqual([]);
+  });
+
   it('rejects malformed arena day checkpoints', () => {
     const save = createTestSave();
     const malformedArenaDays = [

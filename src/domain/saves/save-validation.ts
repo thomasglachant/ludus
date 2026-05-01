@@ -17,7 +17,7 @@ import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
 const dayOfWeeks = [...DAYS_OF_WEEK];
 const gameSpeeds = [...SUPPORTED_GAME_SPEEDS];
-const legacySupportedSchemaVersions = [1, 2, 3, 4, 5, 6, CURRENT_SCHEMA_VERSION];
+const legacySupportedSchemaVersions = [1, 2, 3, 4, 5, 6, 7, CURRENT_SCHEMA_VERSION];
 const locationIds = [...requiredBuildingIds, 'arena'];
 const mapPlacementKinds = ['building', 'prop', 'road', 'wall'];
 const arenaRanks = [
@@ -228,7 +228,6 @@ function isGladiator(value: unknown): value is Gladiator {
     hasNumber(value, 'energy') &&
     hasNumber(value, 'health') &&
     hasNumber(value, 'morale') &&
-    hasNumber(value, 'satiety') &&
     hasNumber(value, 'reputation') &&
     hasNumber(value, 'wins') &&
     hasNumber(value, 'losses') &&
@@ -599,21 +598,44 @@ function normalizeMapState(mapState: unknown): LudusMapState {
   return isMapState(mapState) ? mapState : createInitialLudusMapState();
 }
 
-function normalizePurchasedImprovementIds(purchasedImprovementIds: string[]) {
-  return purchasedImprovementIds.filter((improvementId) => improvementId !== 'woodenWeapons');
+const legacyCanteenImprovementIds = new Set(['betterKitchen', 'proteinRations', 'grainStorage']);
+
+function normalizePurchasedImprovementIds(
+  buildingId: BuildingId,
+  purchasedImprovementIds: string[],
+) {
+  return purchasedImprovementIds.filter(
+    (improvementId) =>
+      improvementId !== 'woodenWeapons' &&
+      (buildingId !== 'canteen' || !legacyCanteenImprovementIds.has(improvementId)),
+  );
+}
+
+function normalizeBuilding(
+  building: GameSave['buildings'][BuildingId],
+): GameSave['buildings'][BuildingId] {
+  const normalizedBuilding = {
+    ...building,
+    purchasedImprovementIds: normalizePurchasedImprovementIds(
+      building.id,
+      building.purchasedImprovementIds,
+    ),
+  };
+
+  if (normalizedBuilding.id !== 'canteen') {
+    return normalizedBuilding;
+  }
+
+  const neutralCanteen = { ...normalizedBuilding };
+  delete neutralCanteen.configuration;
+  delete neutralCanteen.selectedPolicyId;
+
+  return neutralCanteen;
 }
 
 function normalizeBuildings(buildings: GameSave['buildings']): GameSave['buildings'] {
   return Object.fromEntries(
-    requiredBuildingIds.map((buildingId) => [
-      buildingId,
-      {
-        ...buildings[buildingId],
-        purchasedImprovementIds: normalizePurchasedImprovementIds(
-          buildings[buildingId].purchasedImprovementIds,
-        ),
-      },
-    ]),
+    requiredBuildingIds.map((buildingId) => [buildingId, normalizeBuilding(buildings[buildingId])]),
   ) as GameSave['buildings'];
 }
 
@@ -633,8 +655,10 @@ function normalizeVisualIdentity(visualIdentity: Gladiator['visualIdentity']) {
 function stripLegacyGladiatorFields(gladiator: Gladiator): Gladiator {
   const gladiatorWithoutClass = { ...gladiator } as Gladiator & {
     classId?: unknown;
+    satiety?: unknown;
   };
   delete gladiatorWithoutClass.classId;
+  delete gladiatorWithoutClass.satiety;
 
   return {
     ...gladiatorWithoutClass,

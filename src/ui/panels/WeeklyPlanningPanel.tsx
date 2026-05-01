@@ -22,10 +22,7 @@ export function WeeklyPlanningPanel({
   const statuses = getGladiatorPlanningStatuses(save);
   const atRiskStatuses = statuses.filter(
     (status) =>
-      status.gladiator.health < 50 ||
-      status.gladiator.energy < 50 ||
-      status.gladiator.morale < 45 ||
-      status.gladiator.satiety < 45,
+      status.gladiator.health < 50 || status.gladiator.energy < 50 || status.gladiator.morale < 45,
   );
 
   return (

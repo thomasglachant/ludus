@@ -22,7 +22,6 @@ export type DailyEventEffectTemplate =
   | { type: 'changeSelectedGladiatorHealth'; amount: number }
   | { type: 'changeSelectedGladiatorEnergy'; amount: number }
   | { type: 'changeSelectedGladiatorMorale'; amount: number }
-  | { type: 'changeSelectedGladiatorSatiety'; amount: number }
   | {
       type: 'changeSelectedGladiatorStat';
       stat: 'strength' | 'agility' | 'defense';
@@ -322,10 +321,7 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
         consequences: [
           {
             kind: 'certain',
-            effects: [
-              { type: 'changeSelectedGladiatorMorale', amount: -9 },
-              { type: 'changeSelectedGladiatorSatiety', amount: -6 },
-            ],
+            effects: [{ type: 'changeSelectedGladiatorMorale', amount: -9 }],
           },
         ],
       },

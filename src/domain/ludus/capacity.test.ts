@@ -68,7 +68,6 @@ describe('ludus capacity', () => {
           energy: 80,
           health: 85,
           morale: 75,
-          satiety: 80,
           reputation: 0,
           wins: 0,
           losses: 0,

@@ -37,7 +37,7 @@ export const GAME_BALANCE = {
 
   time: {
     // Game speeds exposed by the player time controls.
-    gameSpeeds: [0, 1, 4] as const satisfies readonly GameSpeed[],
+    gameSpeeds: [0, 1] as const satisfies readonly GameSpeed[],
     // Game speeds accepted by save validation, including internal fast-forward values.
     supportedGameSpeeds: [0, 1, 4, 8, 16, 32, 48] as const satisfies readonly GameSpeed[],
     // Ordered weekdays used by time progression and weekly systems.
@@ -92,9 +92,9 @@ export const GAME_BALANCE = {
 
   gladiators: {
     gauges: {
-      // Minimum value for health, energy, morale and satiety gauges.
+      // Minimum value for health, energy and morale gauges.
       minimum: 0,
-      // Maximum value for health, energy, morale and satiety gauges.
+      // Maximum value for health, energy and morale gauges.
       maximum: 100,
       // Minimum health used when a combat participant must remain alive.
       minimumAliveHealth: 1,
@@ -118,8 +118,6 @@ export const GAME_BALANCE = {
       energy: 100,
       // Morale assigned to newly generated market gladiators.
       morale: 100,
-      // Satiety assigned to newly generated market gladiators.
-      satiety: 80,
       // Reputation assigned to newly generated market gladiators.
       reputation: 0,
       // Wins assigned to newly generated market gladiators.
@@ -134,8 +132,6 @@ export const GAME_BALANCE = {
       health: 100,
       // Morale assigned to generated arena opponents.
       morale: 75,
-      // Satiety assigned to generated arena opponents.
-      satiety: 80,
       // Wins assigned to generated arena opponents.
       wins: 0,
       // Losses assigned to generated arena opponents.
@@ -211,12 +207,6 @@ export const GAME_BALANCE = {
         // Ludus capacity granted by Domus level 6.
         6: { capacity: 6 },
       },
-      canteen: {
-        // Satiety restored per hour by Canteen level 1.
-        1: { satietyPerHour: 100 },
-        // Satiety restored per hour by Canteen level 2.
-        2: { satietyPerHour: 100 },
-      },
       dormitory: {
         // Energy restored per hour by Dormitory level 1.
         1: { energyPerHour: 5 },
@@ -256,42 +246,30 @@ export const GAME_BALANCE = {
     },
     activityNeedsPerHour: {
       domus: {
-        // Satiety change per hour while assigned to Domus.
-        satiety: -1,
         // Morale change per hour while assigned to Domus.
         morale: 0,
       },
       canteen: {
-        // Satiety change per hour while assigned to Canteen.
-        satiety: 0,
-        // Morale change per hour while assigned to Canteen.
-        morale: 1,
+        // The Canteen is temporarily neutral until its redesigned food loop lands.
+        morale: 0,
       },
       dormitory: {
-        // Satiety change per hour while assigned to Dormitory.
-        satiety: -1,
         // Morale change per hour while assigned to Dormitory.
         morale: 0,
       },
       trainingGround: {
-        // Satiety change per hour while assigned to Training Ground.
-        satiety: -6,
         // Morale change per hour while assigned to Training Ground.
         morale: -4,
       },
       pleasureHall: {
-        // Satiety change per hour while assigned to Pleasure Hall.
-        satiety: -3,
         // Morale change per hour while assigned to Pleasure Hall.
         morale: 0,
       },
       infirmary: {
-        // Satiety change per hour while assigned to Infirmary.
-        satiety: -1,
         // Morale change per hour while assigned to Infirmary.
         morale: -3,
       },
-    } as const satisfies Record<BuildingId, { satiety: number; morale: number }>,
+    } as const satisfies Record<BuildingId, { morale: number }>,
   },
 
   market: {
@@ -610,10 +588,6 @@ export const GAME_BALANCE = {
       criticalEnergy: 30,
       // Energy value at or below which energy is low.
       lowEnergy: 50,
-      // Satiety value at or below which satiety is critical.
-      criticalSatiety: 25,
-      // Satiety value at or below which satiety is low.
-      lowSatiety: 50,
       // Morale value at or below which morale is critical.
       criticalMorale: 30,
       // Morale value at or below which morale is low.

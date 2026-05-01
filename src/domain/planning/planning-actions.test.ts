@@ -31,7 +31,6 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     energy: 80,
     health: 85,
     morale: 75,
-    satiety: 80,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -262,7 +261,6 @@ describe('planning actions', () => {
             currentBuildingId: 'trainingGround',
             energy: 11,
             morale: 11,
-            satiety: 11,
           }),
         ]),
         ['canteen', 'dormitory', 'pleasureHall', 'trainingGround'],
@@ -275,26 +273,6 @@ describe('planning actions', () => {
       isAvailable: true,
     });
     expect(result.gladiators[0].currentBuildingId).toBe('trainingGround');
-  });
-
-  it('sends critically hungry gladiators to the canteen', () => {
-    const save = synchronizePlanning(
-      withPurchasedBuildings(
-        withGladiators(createTestSave(), [
-          createGladiator({
-            currentBuildingId: 'trainingGround',
-            satiety: 10,
-          }),
-        ]),
-        ['canteen', 'trainingGround'],
-      ),
-    );
-    const result = applyPlanningRecommendations(save);
-
-    expect(result.gladiators[0].currentBuildingId).toBeUndefined();
-    expect(result.gladiators[0].mapMovement).toMatchObject({
-      targetLocation: 'canteen',
-    });
   });
 
   it('keeps automatic tasks locked for a minimum duration', () => {

@@ -9,8 +9,6 @@ export const PLANNING_THRESHOLDS = {
   lowHealth: GAME_BALANCE.planning.thresholds.lowHealth,
   criticalEnergy: GAME_BALANCE.planning.thresholds.criticalEnergy,
   lowEnergy: GAME_BALANCE.planning.thresholds.lowEnergy,
-  criticalSatiety: GAME_BALANCE.planning.thresholds.criticalSatiety,
-  lowSatiety: GAME_BALANCE.planning.thresholds.lowSatiety,
   criticalMorale: GAME_BALANCE.planning.thresholds.criticalMorale,
   lowMorale: GAME_BALANCE.planning.thresholds.lowMorale,
   primaryNeedReassignment: GAME_BALANCE.planning.thresholds.primaryNeedReassignment,

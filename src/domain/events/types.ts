@@ -65,7 +65,6 @@ export type GameEventEffect =
   | { type: 'changeGladiatorHealth'; gladiatorId: string; amount: number }
   | { type: 'changeGladiatorEnergy'; gladiatorId: string; amount: number }
   | { type: 'changeGladiatorMorale'; gladiatorId: string; amount: number }
-  | { type: 'changeGladiatorSatiety'; gladiatorId: string; amount: number }
   | {
       type: 'changeGladiatorStat';
       gladiatorId: string;

@@ -20,7 +20,6 @@ const baseGladiator: Gladiator = {
   energy: 80,
   health: 90,
   morale: 70,
-  satiety: 75,
   reputation: 0,
   wins: 0,
   losses: 0,

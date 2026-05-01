@@ -46,7 +46,6 @@ export interface Gladiator {
   energy: number;
   health: number;
   morale: number;
-  satiety: number;
   reputation: number;
   wins: number;
   losses: number;

@@ -35,20 +35,12 @@ export interface EventActionResult {
   validation: EventActionValidation;
 }
 
-type GladiatorNumericField =
-  | 'strength'
-  | 'agility'
-  | 'defense'
-  | 'energy'
-  | 'health'
-  | 'morale'
-  | 'satiety';
+type GladiatorNumericField = 'strength' | 'agility' | 'defense' | 'energy' | 'health' | 'morale';
 
 const eventEffectFieldByType: Partial<Record<GameEventEffect['type'], GladiatorNumericField>> = {
   changeGladiatorHealth: 'health',
   changeGladiatorEnergy: 'energy',
   changeGladiatorMorale: 'morale',
-  changeGladiatorSatiety: 'satiety',
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -191,10 +183,6 @@ function resolveEffectTemplate(
     case 'changeSelectedGladiatorMorale':
       return gladiatorId
         ? { type: 'changeGladiatorMorale', gladiatorId, amount: template.amount }
-        : null;
-    case 'changeSelectedGladiatorSatiety':
-      return gladiatorId
-        ? { type: 'changeGladiatorSatiety', gladiatorId, amount: template.amount }
         : null;
     case 'changeSelectedGladiatorStat':
       return gladiatorId

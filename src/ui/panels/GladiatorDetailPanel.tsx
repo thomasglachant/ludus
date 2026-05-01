@@ -29,9 +29,9 @@ interface SkillChipProps extends StatChipProps {
 }
 
 interface ResourceMeterProps {
-  iconName: Extract<GameIconName, 'energy' | 'health' | 'morale' | 'satiety'>;
+  iconName: Extract<GameIconName, 'energy' | 'health' | 'morale'>;
   label: string;
-  tone: 'health' | 'energy' | 'morale' | 'satiety';
+  tone: 'health' | 'energy' | 'morale';
   value: number;
 }
 
@@ -169,12 +169,6 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
       label: t('market.stats.morale'),
       tone: 'morale' as const,
       value: gladiator.morale,
-    },
-    {
-      iconName: 'satiety' as const,
-      label: t('market.stats.satiety'),
-      tone: 'satiety' as const,
-      value: gladiator.satiety,
     },
   ];
 

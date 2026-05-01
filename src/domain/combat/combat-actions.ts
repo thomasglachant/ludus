@@ -326,7 +326,6 @@ export function generateOpponent(
     energy: GAME_BALANCE.gladiators.opponentDefaults.energy,
     health: GAME_BALANCE.gladiators.opponentDefaults.health,
     morale: GAME_BALANCE.gladiators.opponentDefaults.morale,
-    satiety: GAME_BALANCE.gladiators.opponentDefaults.satiety,
     reputation: ARENA_OPPONENT_CONFIG[rank].reputation,
     wins: GAME_BALANCE.gladiators.opponentDefaults.wins,
     losses: GAME_BALANCE.gladiators.opponentDefaults.losses,

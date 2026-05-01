@@ -5,33 +5,6 @@ import type {
 
 export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
   {
-    id: 'betterKitchen',
-    buildingId: 'canteen',
-    nameKey: 'improvements.betterKitchen.name',
-    descriptionKey: 'improvements.betterKitchen.description',
-    cost: 90,
-    requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseSatiety', value: 2, target: 'assignedGladiator' }],
-  },
-  {
-    id: 'proteinRations',
-    buildingId: 'canteen',
-    nameKey: 'improvements.proteinRations.name',
-    descriptionKey: 'improvements.proteinRations.description',
-    cost: 130,
-    requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseStrength', value: 1, target: 'assignedGladiator' }],
-  },
-  {
-    id: 'grainStorage',
-    buildingId: 'canteen',
-    nameKey: 'improvements.grainStorage.name',
-    descriptionKey: 'improvements.grainStorage.description',
-    cost: 110,
-    requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseSatiety', value: 1, target: 'allGladiators' }],
-  },
-  {
     id: 'strawBeds',
     buildingId: 'dormitory',
     nameKey: 'improvements.strawBeds.name',
@@ -134,51 +107,6 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
 ];
 
 export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
-  {
-    id: 'economicalMeals',
-    buildingId: 'canteen',
-    nameKey: 'policies.economicalMeals.name',
-    descriptionKey: 'policies.economicalMeals.description',
-    requiredBuildingLevel: 1,
-    effects: [
-      { type: 'increaseSatiety', value: 3, target: 'assignedGladiator' },
-      { type: 'decreaseMorale', value: 1, target: 'assignedGladiator' },
-    ],
-    cost: 10,
-  },
-  {
-    id: 'balancedMeals',
-    buildingId: 'canteen',
-    nameKey: 'policies.balancedMeals.name',
-    descriptionKey: 'policies.balancedMeals.description',
-    requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseSatiety', value: 5, target: 'assignedGladiator' }],
-    cost: 20,
-  },
-  {
-    id: 'richMeals',
-    buildingId: 'canteen',
-    nameKey: 'policies.richMeals.name',
-    descriptionKey: 'policies.richMeals.description',
-    requiredBuildingLevel: 1,
-    effects: [
-      { type: 'increaseSatiety', value: 7, target: 'assignedGladiator' },
-      { type: 'increaseMorale', value: 1, target: 'assignedGladiator' },
-    ],
-    cost: 40,
-  },
-  {
-    id: 'proteinFocusedMeals',
-    buildingId: 'canteen',
-    nameKey: 'policies.proteinFocusedMeals.name',
-    descriptionKey: 'policies.proteinFocusedMeals.description',
-    requiredBuildingLevel: 1,
-    effects: [
-      { type: 'increaseSatiety', value: 4, target: 'assignedGladiator' },
-      { type: 'increaseStrength', value: 1, target: 'assignedGladiator' },
-    ],
-    cost: 30,
-  },
   {
     id: 'balancedTraining',
     buildingId: 'trainingGround',

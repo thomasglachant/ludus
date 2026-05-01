@@ -59,10 +59,6 @@ function getEventImpactItem(
       kind = 'morale';
       labelKey = 'roster.moraleShort';
       break;
-    case 'changeGladiatorSatiety':
-      kind = 'satiety';
-      labelKey = 'roster.satietyShort';
-      break;
     case 'changeGladiatorStat':
       kind = effect.stat;
       labelKey = `events.effect.stat.${effect.stat}`;

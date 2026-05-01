@@ -113,8 +113,6 @@ describe('demo save definitions', () => {
         expect(gladiator.energy).toBeLessThanOrEqual(100);
         expect(gladiator.morale).toBeGreaterThanOrEqual(0);
         expect(gladiator.morale).toBeLessThanOrEqual(100);
-        expect(gladiator.satiety).toBeGreaterThanOrEqual(0);
-        expect(gladiator.satiety).toBeLessThanOrEqual(100);
       }
     }
   });

@@ -118,14 +118,14 @@ describe('building actions', () => {
 
   it('purchases a building improvement when requirements are met', () => {
     const save = createTestSave();
-    const result = purchaseBuildingImprovement(save, 'canteen', 'betterKitchen');
+    const result = purchaseBuildingImprovement(save, 'dormitory', 'strawBeds');
 
     expect(result.validation).toMatchObject({
       isAllowed: true,
-      cost: 90,
+      cost: 70,
     });
-    expect(result.save.buildings.canteen.purchasedImprovementIds).toContain('betterKitchen');
-    expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 90);
+    expect(result.save.buildings.dormitory.purchasedImprovementIds).toContain('strawBeds');
+    expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 70);
   });
 
   it('prevents an improvement purchase when the building level is too low', () => {
@@ -157,8 +157,8 @@ describe('building actions', () => {
   });
 
   it('prevents buying the same improvement twice', () => {
-    const save = purchaseBuildingImprovement(createTestSave(), 'canteen', 'betterKitchen').save;
-    const validation = validateBuildingImprovementPurchase(save, 'canteen', 'betterKitchen');
+    const save = purchaseBuildingImprovement(createTestSave(), 'dormitory', 'strawBeds').save;
+    const validation = validateBuildingImprovementPurchase(save, 'dormitory', 'strawBeds');
 
     expect(validation).toMatchObject({
       isAllowed: false,
@@ -176,14 +176,14 @@ describe('building actions', () => {
 
   it('selects a building policy and pays its selection cost', () => {
     const save = createTestSave();
-    const result = selectBuildingPolicy(save, 'canteen', 'richMeals');
+    const result = selectBuildingPolicy(save, 'pleasureHall', 'gamesAndSongs');
 
     expect(result.validation).toMatchObject({
       isAllowed: true,
-      cost: 40,
+      cost: 25,
     });
-    expect(result.save.buildings.canteen.selectedPolicyId).toBe('richMeals');
-    expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 40);
+    expect(result.save.buildings.pleasureHall.selectedPolicyId).toBe('gamesAndSongs');
+    expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 25);
   });
 
   it('prevents selecting a policy above the current building level', () => {

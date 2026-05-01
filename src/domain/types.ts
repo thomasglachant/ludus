@@ -17,7 +17,6 @@ export type {
   BuildingId,
   BuildingState,
   BuildingConfiguration,
-  CanteenConfiguration,
   DormitoryConfiguration,
   TrainingGroundConfiguration,
   PleasureHallConfiguration,

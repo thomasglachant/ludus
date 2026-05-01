@@ -23,7 +23,6 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     energy: 70,
     health: 100,
     morale: 60,
-    satiety: 80,
     reputation: 0,
     wins: 0,
     losses: 0,

@@ -225,7 +225,6 @@ export interface BuildingPolicyDefinition {
 
 ```ts
 export type BuildingEffectType =
-  | 'increaseSatiety'
   | 'increaseEnergy'
   | 'increaseHealth'
   | 'increaseMorale'
@@ -288,7 +287,6 @@ export interface Gladiator {
   energy: number;
   health: number;
   morale: number;
-  satiety: number;
   reputation: number;
   wins: number;
   losses: number;
@@ -551,7 +549,6 @@ export type GameEventEffect =
   | { type: 'changeGladiatorHealth'; gladiatorId: string; amount: number }
   | { type: 'changeGladiatorEnergy'; gladiatorId: string; amount: number }
   | { type: 'changeGladiatorMorale'; gladiatorId: string; amount: number }
-  | { type: 'changeGladiatorSatiety'; gladiatorId: string; amount: number }
   | {
       type: 'changeGladiatorStat';
       gladiatorId: string;

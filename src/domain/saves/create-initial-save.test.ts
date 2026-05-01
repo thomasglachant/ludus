@@ -30,10 +30,8 @@ describe('createInitialSave', () => {
         level: 1,
       });
     }
-    expect(save.buildings.canteen).toMatchObject({
-      configuration: { mealPlanId: 'balancedMeals' },
-      selectedPolicyId: 'balancedMeals',
-    });
+    expect(save.buildings.canteen.configuration).toBeUndefined();
+    expect(save.buildings.canteen.selectedPolicyId).toBeUndefined();
     expect(save.buildings.dormitory.configuration).toBeUndefined();
     expect(save.buildings.trainingGround).toMatchObject({
       configuration: { defaultDoctrineId: 'balancedTraining' },

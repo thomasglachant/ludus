@@ -8,7 +8,7 @@ import {
   advanceToNextDay,
   areAllGladiatorsSleepingInDormitory,
   completeSundayArenaDay,
-  setGameSpeed,
+  setGamePaused,
   tickGame,
 } from './time-actions';
 
@@ -34,7 +34,6 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     energy: 80,
     health: 85,
     morale: 75,
-    satiety: 80,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -110,8 +109,8 @@ describe('time actions', () => {
     });
   });
 
-  it('advances directly to the next day target and restores the selected speed', () => {
-    const save = setGameSpeed(createTestSave(), 4);
+  it('advances directly to the next day target and keeps normal speed', () => {
+    const save = createTestSave();
     const result = advanceToNextDay(save);
 
     expect(result.advancedGameMinutes).toBe(1_305);
@@ -119,7 +118,7 @@ describe('time actions', () => {
       dayOfWeek: 'tuesday',
       hour: 5,
       minute: 45,
-      speed: 4,
+      speed: 1,
       isPaused: false,
     });
   });
@@ -204,7 +203,7 @@ describe('time actions', () => {
   });
 
   it('does not advance while paused', () => {
-    const save = setGameSpeed(createTestSave(), 0);
+    const save = setGamePaused(createTestSave(), true);
     const result = tickGame({
       currentSave: save,
       elapsedRealMilliseconds: 5_000,
@@ -248,22 +247,6 @@ describe('time actions', () => {
       minute: 30,
     });
     expect(result.save.arena.isArenaDayActive).toBe(false);
-  });
-
-  it('uses the selected speed multiplier', () => {
-    const save = setGameSpeed(createTestSave(), 16);
-    const result = tickGame({
-      currentSave: save,
-      elapsedRealMilliseconds: 5_000,
-      speed: save.time.speed,
-    });
-
-    expect(result.advancedGameMinutes).toBe(840);
-    expect(result.save.time).toMatchObject({
-      dayOfWeek: 'monday',
-      hour: 22,
-      minute: 0,
-    });
   });
 
   it('does not trigger Sunday arena combats before the arena start hour', () => {
@@ -460,7 +443,7 @@ describe('time actions', () => {
   });
 
   it('restores energy after the advanced demo arena night', () => {
-    let save = setGameSpeed(demoAdvancedLudus.save, 1);
+    let save = setGamePaused(demoAdvancedLudus.save, false);
 
     for (let tickIndex = 0; tickIndex < 24 && !save.arena.arenaDay; tickIndex += 1) {
       save = tickGame({
@@ -501,13 +484,12 @@ describe('time actions', () => {
     expect(wakeUp.gladiators.every((gladiator) => gladiator.energy === 100)).toBe(true);
   });
 
-  it('applies purchased building effects to assigned gladiators once per game hour', () => {
+  it('leaves assigned gladiators unchanged at the neutral canteen', () => {
     const save: GameSave = {
       ...withPurchasedBuildings(createTestSave(), ['canteen']),
       gladiators: [
         createGladiator({
           currentBuildingId: 'canteen',
-          satiety: 50,
         }),
       ],
     };
@@ -520,29 +502,8 @@ describe('time actions', () => {
     expect(result.appliedEffectHours).toBe(1);
     expect(result.save.gladiators[0]).toMatchObject({
       currentBuildingId: 'canteen',
-      morale: 76,
-      satiety: 100,
+      morale: 75,
     });
-  });
-
-  it('fully restores satiety after one game hour at the canteen', () => {
-    const save: GameSave = {
-      ...withPurchasedBuildings(createTestSave(), ['canteen']),
-      gladiators: [
-        createGladiator({
-          currentBuildingId: 'canteen',
-          satiety: 0,
-        }),
-      ],
-    };
-
-    const result = tickGame({
-      currentSave: save,
-      elapsedRealMilliseconds: 5_000,
-      speed: save.time.speed,
-    });
-
-    expect(result.save.gladiators[0].satiety).toBe(100);
   });
 
   it('restores ten health after one game hour at the infirmary', () => {
@@ -651,41 +612,13 @@ describe('time actions', () => {
     });
   });
 
-  it('ignores permanent building effects during hourly ticks', () => {
-    const save: GameSave = {
-      ...withPurchasedBuildings(createTestSave(), ['canteen']),
-      buildings: {
-        ...createTestSave().buildings,
-        canteen: {
-          ...createTestSave().buildings.canteen,
-          purchasedImprovementIds: ['betterKitchen'],
-          selectedPolicyId: 'richMeals',
-        },
-      },
-      gladiators: [
-        createGladiator({
-          currentBuildingId: 'canteen',
-          satiety: 50,
-        }),
-      ],
-    };
-    const result = tickGame({
-      currentSave: save,
-      elapsedRealMilliseconds: 5_000,
-      speed: save.time.speed,
-    });
-
-    expect(result.save.gladiators[0].satiety).toBe(100);
-  });
-
-  it('drains satiety and morale faster while training', () => {
+  it('drains morale while training', () => {
     const save: GameSave = {
       ...withPurchasedBuildings(createTestSave(), ['trainingGround']),
       gladiators: [
         createGladiator({
           currentBuildingId: 'trainingGround',
           morale: 70,
-          satiety: 80,
         }),
       ],
     };
@@ -698,7 +631,6 @@ describe('time actions', () => {
     expect(result.save.gladiators[0]).toMatchObject({
       currentBuildingId: 'trainingGround',
       morale: 66,
-      satiety: 74,
     });
   });
 
@@ -739,7 +671,6 @@ describe('time actions', () => {
     expect(result.save.gladiators[0]).toMatchObject({
       agility: 6,
       energy: 80,
-      satiety: 79,
     });
     expect(result.save.gladiators[0].currentBuildingId).toBeUndefined();
     expect(result.save.gladiators[0].mapMovement).toMatchObject({

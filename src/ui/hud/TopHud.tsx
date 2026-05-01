@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { DayOfWeek, GameSave, GameSpeed } from '../../domain/types';
+import type { DayOfWeek, GameSave } from '../../domain/types';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { DAYS_OF_WEEK, TIME_CONFIG } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store-context';
@@ -10,19 +10,8 @@ import { GameIcon, type GameIconName } from '../icons/GameIcon';
 interface TopHudProps {
   save: GameSave;
   onOpenMenu(): void;
-  onSpeedChange(speed: GameSpeed): void;
-  onAdvanceToNextDay(): void;
+  onPauseToggle(isPaused: boolean): void;
 }
-
-const TOP_HUD_SPEED_CONTROLS = [
-  { iconName: 'pause', labelKey: 'speed.pause', speed: 0 },
-  { iconName: 'play', labelKey: 'speed.x1', speed: 1 },
-  { iconName: 'speed4', labelKey: 'speed.x4', speed: 4 },
-] as const satisfies ReadonlyArray<{
-  iconName: GameIconName;
-  labelKey: string;
-  speed: GameSpeed;
-}>;
 
 interface DisplayedTime {
   year: number;
@@ -177,11 +166,14 @@ function useSmoothDisplayedTime(save: GameSave): DisplayedTime {
   return advanceDisplayedTime(activeBase.time, elapsedGameMinutes);
 }
 
-export function TopHud({ onAdvanceToNextDay, onOpenMenu, onSpeedChange, save }: TopHudProps) {
+export function TopHud({ onOpenMenu, onPauseToggle, save }: TopHudProps) {
   const { t } = useUiStore();
   const displayedTime = useSmoothDisplayedTime(save);
   const dayLabel = t(`days.${displayedTime.dayOfWeek}`);
   const timeLabel = formatGameClock(displayedTime.hour, displayedTime.minute);
+  const pauseControl: { iconName: GameIconName; labelKey: string } = save.time.isPaused
+    ? { iconName: 'play', labelKey: 'speed.play' }
+    : { iconName: 'pause', labelKey: 'speed.pause' };
 
   return (
     <header className="top-hud" data-testid="topbar">
@@ -219,28 +211,15 @@ export function TopHud({ onAdvanceToNextDay, onOpenMenu, onSpeedChange, save }: 
         </div>
 
         <div className="top-hud__speeds">
-          {TOP_HUD_SPEED_CONTROLS.map((control) => (
-            <button
-              aria-label={t(control.labelKey)}
-              className={save.time.speed === control.speed ? 'is-selected' : ''}
-              data-testid={control.speed === 0 ? 'speed-pause' : `speed-x${control.speed}`}
-              key={control.speed}
-              type="button"
-              onClick={() => onSpeedChange(control.speed)}
-            >
-              <span aria-hidden="true" className="top-hud__control-icon">
-                <GameIcon color="currentColor" name={control.iconName} size={24} />
-              </span>
-            </button>
-          ))}
           <button
-            aria-label={t('speed.nextDay')}
-            data-testid="speed-next-day"
+            aria-label={t(pauseControl.labelKey)}
+            className={save.time.isPaused ? 'is-selected' : ''}
+            data-testid="time-pause-toggle"
             type="button"
-            onClick={onAdvanceToNextDay}
+            onClick={() => onPauseToggle(!save.time.isPaused)}
           >
             <span aria-hidden="true" className="top-hud__control-icon">
-              <GameIcon color="currentColor" name="nextDay" size={24} />
+              <GameIcon color="currentColor" name={pauseControl.iconName} size={24} />
             </span>
           </button>
         </div>

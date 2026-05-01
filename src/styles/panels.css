@@ -741,10 +741,6 @@
   background: linear-gradient(90deg, #2f7041, #70b864);
 }
 
-.gladiator-resource-meter--satiety .gladiator-resource-meter__value {
-  background: linear-gradient(90deg, #267062, #7cc6b0);
-}
-
 .gladiator-info-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -13,7 +13,7 @@ export interface InitialSaveInput {
   createdAt: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 7;
+export const CURRENT_SCHEMA_VERSION = 8;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
   return {

@@ -74,19 +74,11 @@ function expirePendingEvents(save: GameSave): GameSave {
   };
 }
 
-type GladiatorNumericField =
-  | 'strength'
-  | 'agility'
-  | 'defense'
-  | 'energy'
-  | 'health'
-  | 'morale'
-  | 'satiety';
+type GladiatorNumericField = 'strength' | 'agility' | 'defense' | 'energy' | 'health' | 'morale';
 
 type RandomSource = () => number;
 
 const effectFieldByType: Partial<Record<BuildingEffect['type'], GladiatorNumericField>> = {
-  increaseSatiety: 'satiety',
   increaseEnergy: 'energy',
   increaseHealth: 'health',
   increaseMorale: 'morale',
@@ -99,7 +91,7 @@ const effectFieldByType: Partial<Record<BuildingEffect['type'], GladiatorNumeric
 
 const decreasingEffects = new Set<BuildingEffect['type']>(['decreaseEnergy', 'decreaseMorale']);
 const SUNDAY_ARENA_START_HOUR = GAME_BALANCE.arena.startHour;
-const ACTIVITY_NEED_EFFECTS: Record<BuildingId, { satiety: number; morale: number }> =
+const ACTIVITY_NEED_EFFECTS: Record<BuildingId, { morale: number }> =
   GAME_BALANCE.buildings.activityNeedsPerHour;
 
 function clamp(value: number, min: number, max: number) {
@@ -424,13 +416,6 @@ function applyActivityNeedEffects(
 
   return {
     ...gladiator,
-    satiety: roundStat(
-      clamp(
-        gladiator.satiety + effect.satiety * hours,
-        GAME_BALANCE.gladiators.gauges.minimum,
-        GAME_BALANCE.gladiators.gauges.maximum,
-      ),
-    ),
     morale: roundStat(
       clamp(
         gladiator.morale + effect.morale * hours,
@@ -628,13 +613,13 @@ export function advanceGameTime(time: GameTimeState, gameMinutes: number): GameT
   };
 }
 
-export function setGameSpeed(save: GameSave, speed: GameSpeed): GameSave {
+export function setGamePaused(save: GameSave, isPaused: boolean): GameSave {
   return {
     ...save,
     time: {
       ...save.time,
-      speed,
-      isPaused: speed === 0,
+      speed: isPaused ? 0 : PROGRESSION_CONFIG.initialSpeed,
+      isPaused,
     },
   };
 }

@@ -4,7 +4,6 @@ import type {
   DemoSaveId,
   GameSave,
   GameSaveMetadata,
-  GameSpeed,
   GladiatorRoutineUpdate,
   LanguageCode,
 } from '../domain/types';
@@ -31,8 +30,7 @@ export interface GameStoreValue {
   resetActiveDemo(): Promise<void>;
   saveCurrentGame(): Promise<void>;
   changeLanguage(language: LanguageCode): Promise<void>;
-  setGameSpeed(speed: GameSpeed): void;
-  advanceToNextDay(): void;
+  setGamePaused(isPaused: boolean): void;
   purchaseBuilding(buildingId: BuildingId): void;
   purchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
   selectBuildingPolicy(buildingId: BuildingId, policyId: string): void;

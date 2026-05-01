@@ -44,7 +44,7 @@ Target structure:
 
 Elements:
 
-- `TopHud`: day, week, year, day-night cycle gauge, speed controls, pause, treasury, save status, alerts and menu access.
+- `TopHud`: day, week, year, day-night cycle gauge, pause/resume, treasury, save status, alerts and menu access.
 - `LudusMap`: the main interactive visual map and primary screen focus.
 - `LeftNavigationRail`: access to planning, market, arena and menu.
 - `BottomGladiatorRoster`: portrait-based roster for owned gladiators.
@@ -217,7 +217,6 @@ Each card displays:
 - health;
 - energy;
 - morale;
-- satiety;
 - current objective or warning.
 
 Clicking a gladiator should:
@@ -258,7 +257,7 @@ Expected shared primitives:
 - effect lists for building effects, policies, improvements and event choices;
 - cost summaries for purchases, upgrades, market buys and paid actions;
 - badges or status pills for level, ownership, risk, availability and demo state;
-- metric rows or stat lines for compact values such as health, energy, morale, satiety, capacity and treasury;
+- metric rows or stat lines for compact values such as health, energy, morale, capacity and treasury;
 - confirmation dialogs for irreversible, expensive or blocking choices;
 - lightweight form modal layouts for focused interactions that do not need a full screen.
 

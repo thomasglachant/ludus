@@ -25,7 +25,7 @@ import {
   advanceToNextDay as advanceSaveToNextDay,
   areAllGladiatorsSleepingInDormitory,
   completeSundayArenaDay as completeSundayArenaDayAction,
-  setGameSpeed as setSaveGameSpeed,
+  setGamePaused as setSaveGamePaused,
   tickGame,
 } from '../domain/time/time-actions';
 import { getGameMinuteStamp } from '../domain/gladiators/map-movement';
@@ -266,7 +266,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       setHasUnsavedChanges(false);
       setLastSavedAt(resetSave.updatedAt);
       setSaveNoticeKey(null);
-      setCurrentSave(setSaveGameSpeed(resetSave, PROGRESSION_CONFIG.initialSpeed));
+      setCurrentSave(setSaveGamePaused(resetSave, PROGRESSION_CONFIG.initialIsPaused));
       setLocalSaves(await saveService.listLocalSaves());
     } catch {
       setErrorKey('demoMode.loadError');
@@ -327,9 +327,14 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const setGameSpeedAction = useCallback(
-    (speed: GameSpeed) => {
-      applyPlayerChange((save) => setSaveGameSpeed(save, speed));
+  const setGamePausedAction = useCallback(
+    (isPaused: boolean) => {
+      if (isPaused) {
+        nextDayFastForwardRef.current = null;
+        setIsFastForwardingToNextDay(false);
+      }
+
+      applyPlayerChange((save) => setSaveGamePaused(save, isPaused));
     },
     [applyPlayerChange],
   );
@@ -696,6 +701,12 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
           return save;
         }
 
+        if (save.time.isPaused) {
+          nextDayFastForwardRef.current = null;
+          setIsFastForwardingToNextDay(false);
+          return save;
+        }
+
         if (isGameInterrupted(save)) {
           return save;
         }
@@ -845,8 +856,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       resetActiveDemo,
       saveCurrentGame,
       changeLanguage,
-      setGameSpeed: setGameSpeedAction,
-      advanceToNextDay: advanceToNextDayAction,
+      setGamePaused: setGamePausedAction,
       purchaseBuilding: purchaseBuildingAction,
       purchaseBuildingImprovement: purchaseBuildingImprovementAction,
       selectBuildingPolicy: selectBuildingPolicyAction,
@@ -866,7 +876,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     };
   }, [
     adjustDebugTreasury,
-    advanceToNextDayAction,
     applyPlanningRecommendationsAction,
     buyMarketGladiatorAction,
     changeLanguage,
@@ -896,7 +905,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     sellGladiatorAction,
     selectBuildingPolicyAction,
     setAutomaticAssignmentAction,
-    setGameSpeedAction,
+    setGamePausedAction,
     setManualBuildingOverrideAction,
     updateGladiatorRoutineAction,
     upgradeBuildingAction,

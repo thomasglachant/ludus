@@ -4,15 +4,7 @@ import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 export type ImpactIndicatorKind = Extract<
   GameIconName,
-  | 'treasury'
-  | 'reputation'
-  | 'health'
-  | 'energy'
-  | 'morale'
-  | 'satiety'
-  | 'strength'
-  | 'agility'
-  | 'defense'
+  'treasury' | 'reputation' | 'health' | 'energy' | 'morale' | 'strength' | 'agility' | 'defense'
 >;
 
 export type ImpactIndicatorSize = 'md' | 'sm';
