@@ -1,7 +1,7 @@
 import type { CombatState, CombatTurn, GameSave, Gladiator } from '../../domain/types';
 import type { GladiatorVisualIdentity } from '../../domain/gladiators/types';
 import {
-  getGladiatorPortraitAssetPath,
+  getGladiatorAvatarAssetPath,
   getGladiatorVisualIdentity,
 } from '../../game-data/gladiator-visuals';
 import { PRODUCTION_VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
@@ -107,7 +107,7 @@ function createCombatantViewModel(
     id: gladiator.id,
     morale: clampPercent(morale),
     name: gladiator.name,
-    portraitPath: getGladiatorPortraitAssetPath(visualIdentity),
+    portraitPath: getGladiatorAvatarAssetPath(visualIdentity),
     side,
     visualIdentity,
   };

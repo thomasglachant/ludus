@@ -132,6 +132,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     'gladiator-01': {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-01/portrait.png',
+      avatar: '/assets/gladiators/gladiator-01/avatar.png',
       mapSpritesheet: '/assets/gladiators/gladiator-01/map-spritesheet.png',
       mapAtlas: '/assets/gladiators/gladiator-01/map-spritesheet.json',
       combatSpritesheet: '/assets/gladiators/gladiator-01/combat-spritesheet.png',
@@ -205,6 +206,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     'gladiator-02': {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-02/portrait.png',
+      avatar: '/assets/gladiators/gladiator-02/avatar.png',
       mapSpritesheet: '/assets/gladiators/gladiator-02/map-spritesheet.png',
       mapAtlas: '/assets/gladiators/gladiator-02/map-spritesheet.json',
       combatSpritesheet: '/assets/gladiators/gladiator-02/combat-spritesheet.png',
@@ -278,6 +280,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     'gladiator-03': {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-03/portrait.png',
+      avatar: '/assets/gladiators/gladiator-03/avatar.png',
       mapSpritesheet: '/assets/gladiators/gladiator-03/map-spritesheet.png',
       mapAtlas: '/assets/gladiators/gladiator-03/map-spritesheet.json',
       combatSpritesheet: '/assets/gladiators/gladiator-03/combat-spritesheet.png',
@@ -351,6 +354,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     'gladiator-04': {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-04/portrait.png',
+      avatar: '/assets/gladiators/gladiator-04/avatar.png',
       mapSpritesheet: '/assets/gladiators/gladiator-04/map-spritesheet.png',
       mapAtlas: '/assets/gladiators/gladiator-04/map-spritesheet.json',
       combatSpritesheet: '/assets/gladiators/gladiator-04/combat-spritesheet.png',
@@ -424,6 +428,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     'gladiator-05': {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-05/portrait.png',
+      avatar: '/assets/gladiators/gladiator-05/avatar.png',
       mapSpritesheet: '/assets/gladiators/gladiator-05/map-spritesheet.png',
       mapAtlas: '/assets/gladiators/gladiator-05/map-spritesheet.json',
       combatSpritesheet: '/assets/gladiators/gladiator-05/combat-spritesheet.png',
@@ -497,6 +502,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     'gladiator-06': {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-06/portrait.png',
+      avatar: '/assets/gladiators/gladiator-06/avatar.png',
       mapSpritesheet: '/assets/gladiators/gladiator-06/map-spritesheet.png',
       mapAtlas: '/assets/gladiators/gladiator-06/map-spritesheet.json',
       combatSpritesheet: '/assets/gladiators/gladiator-06/combat-spritesheet.png',
@@ -570,6 +576,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     'gladiator-07': {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-07/portrait.png',
+      avatar: '/assets/gladiators/gladiator-07/avatar.png',
       mapSpritesheet: '/assets/gladiators/gladiator-07/map-spritesheet.png',
       mapAtlas: '/assets/gladiators/gladiator-07/map-spritesheet.json',
       combatSpritesheet: '/assets/gladiators/gladiator-07/combat-spritesheet.png',
@@ -643,6 +650,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     'gladiator-08': {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-08/portrait.png',
+      avatar: '/assets/gladiators/gladiator-08/avatar.png',
       mapSpritesheet: '/assets/gladiators/gladiator-08/map-spritesheet.png',
       mapAtlas: '/assets/gladiators/gladiator-08/map-spritesheet.json',
       combatSpritesheet: '/assets/gladiators/gladiator-08/combat-spritesheet.png',
@@ -716,6 +724,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     'gladiator-09': {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-09/portrait.png',
+      avatar: '/assets/gladiators/gladiator-09/avatar.png',
       mapSpritesheet: '/assets/gladiators/gladiator-09/map-spritesheet.png',
       mapAtlas: '/assets/gladiators/gladiator-09/map-spritesheet.json',
       combatSpritesheet: '/assets/gladiators/gladiator-09/combat-spritesheet.png',
@@ -789,6 +798,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     'gladiator-10': {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-10/portrait.png',
+      avatar: '/assets/gladiators/gladiator-10/avatar.png',
       mapSpritesheet: '/assets/gladiators/gladiator-10/map-spritesheet.png',
       mapAtlas: '/assets/gladiators/gladiator-10/map-spritesheet.json',
       combatSpritesheet: '/assets/gladiators/gladiator-10/combat-spritesheet.png',

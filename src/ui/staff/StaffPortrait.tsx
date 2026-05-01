@@ -1,5 +1,5 @@
 import type { StaffMember, StaffVisualId } from '../../domain/types';
-import { getStaffVisualAssetPath } from '../../game-data/staff-visuals';
+import { getStaffAvatarAssetPath } from '../../game-data/staff-visuals';
 
 interface StaffPortraitProps {
   staffMember: Pick<StaffMember, 'name' | 'type' | 'visualId'>;
@@ -7,7 +7,7 @@ interface StaffPortraitProps {
 }
 
 export function StaffPortrait({ staffMember, size = 'medium' }: StaffPortraitProps) {
-  const assetPath = getStaffVisualAssetPath(staffMember.visualId as StaffVisualId);
+  const assetPath = getStaffAvatarAssetPath(staffMember.visualId as StaffVisualId);
 
   return (
     <span

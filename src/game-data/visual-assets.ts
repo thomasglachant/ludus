@@ -53,6 +53,7 @@ export interface BuildingAssetSet {
 export interface GladiatorAssetSet {
   sourceQuality?: VisualAssetSourceQuality;
   portrait: string;
+  avatar?: string;
   mapSpritesheet?: string;
   mapAtlas?: string;
   combatSpritesheet?: string;
@@ -109,9 +110,9 @@ export const GLADIATOR_CLASS_FALLBACK_VISUAL_ASSET_IDS = {
 } as const satisfies Record<GladiatorClassId, string>;
 
 export const GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS = {
-  murmillo: '/assets/gladiators/classes/murmillo.png',
-  retiarius: '/assets/gladiators/classes/retiarius.png',
-  secutor: '/assets/gladiators/classes/secutor.png',
+  murmillo: '/assets/gladiators/classes/murmillo-avatar.png',
+  retiarius: '/assets/gladiators/classes/retiarius-avatar.png',
+  secutor: '/assets/gladiators/classes/secutor-avatar.png',
 } as const satisfies Record<GladiatorClassId, string>;
 
 export function getGladiatorClassVisualAssetId(classId: GladiatorClassId) {

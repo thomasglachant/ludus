@@ -1,6 +1,8 @@
 import {
   Container,
+  FillPattern,
   Graphics,
+  Matrix,
   Rectangle,
   Sprite,
   Text,
@@ -76,6 +78,10 @@ interface LocationDisplay {
   roofSprite: Sprite;
 }
 
+type LudusMapTexturePatterns = Partial<
+  Record<keyof LudusMapSceneViewModel['textures'], FillPattern>
+>;
+
 const ASSET_PATH_SEPARATOR = '\u0000';
 const LUDUS_MAP_LAYER_IDS = [
   'background',
@@ -91,6 +97,7 @@ const LUDUS_MAP_LAYER_IDS = [
   'labels',
 ] as const satisfies readonly LudusMapLayerId[];
 
+const MAP_TEXTURE_PATTERN_SCALE = 0.25;
 const TIME_OF_DAY_THEME_TRANSITION_MILLISECONDS = 2_400;
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -172,6 +179,7 @@ function isAssetPath(assetPath: string | undefined): assetPath is string {
 function collectLudusMapTextureAssetPaths(viewModel: LudusMapSceneViewModel): string[] {
   return Array.from(
     new Set([
+      ...Object.values(viewModel.textures),
       ...viewModel.locations.flatMap((location) =>
         [
           location.exteriorAssetPath,
@@ -189,6 +197,67 @@ function collectLudusMapTextureAssetPaths(viewModel: LudusMapSceneViewModel): st
   );
 }
 
+function isRenderableTexture(texture: Texture | undefined): texture is Texture {
+  return Boolean(texture && texture !== Texture.EMPTY);
+}
+
+function createTexturePattern(texture: Texture | undefined): FillPattern | undefined {
+  if (!isRenderableTexture(texture)) {
+    return undefined;
+  }
+
+  const pattern = new FillPattern(texture, 'repeat');
+
+  pattern.setTransform(new Matrix().scale(MAP_TEXTURE_PATTERN_SCALE, MAP_TEXTURE_PATTERN_SCALE));
+
+  return pattern;
+}
+
+function createLudusMapTexturePatterns(
+  viewModel: LudusMapSceneViewModel,
+  textures: PixiTextureMap,
+): LudusMapTexturePatterns {
+  return {
+    grass: createTexturePattern(textures.get(viewModel.textures.grass)),
+    sand: createTexturePattern(textures.get(viewModel.textures.sand)),
+    stonePath: createTexturePattern(textures.get(viewModel.textures.stonePath)),
+    wallStone: createTexturePattern(textures.get(viewModel.textures.wallStone)),
+  };
+}
+
+function fillRectWithPattern(
+  graphics: Graphics,
+  pattern: FillPattern | undefined,
+  fallback: {
+    alpha?: number;
+    color: number;
+  },
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): void {
+  graphics.rect(x, y, width, height);
+  graphics.fill(pattern ? { alpha: fallback.alpha ?? 1, fill: pattern } : fallback);
+}
+
+function fillRoundRectWithPattern(
+  graphics: Graphics,
+  pattern: FillPattern | undefined,
+  fallback: {
+    alpha?: number;
+    color: number;
+  },
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+): void {
+  graphics.roundRect(x, y, width, height, radius);
+  graphics.fill(pattern ? { alpha: fallback.alpha ?? 1, fill: pattern } : fallback);
+}
+
 function drawFallbackBackground(graphics: Graphics, viewModel: LudusMapSceneViewModel): void {
   graphics.clear();
   graphics.setFillStyle({ color: viewModel.theme.terrainColor });
@@ -201,13 +270,12 @@ function drawViewportTerrainFill(
   viewModel: LudusMapSceneViewModel,
   width: number,
   height: number,
+  grassPattern?: FillPattern,
 ): void {
   const tileSize = Math.max(32, Math.round(viewModel.grid.cellSize * 0.85));
 
   graphics.clear();
-  graphics.setFillStyle({ color: 0x7d8e56, alpha: 1 });
-  graphics.rect(0, 0, width, height);
-  graphics.fill();
+  fillRectWithPattern(graphics, grassPattern, { color: 0x7d8e56, alpha: 1 }, 0, 0, width, height);
 
   for (let row = 0; row < Math.ceil(height / tileSize) + 1; row += 1) {
     for (let column = 0; column < Math.ceil(width / tileSize) + 1; column += 1) {
@@ -248,11 +316,15 @@ function drawViewportLightingOverlay(
   graphics.fill();
 }
 
-function drawTerrainOverlay(graphics: Graphics, viewModel: LudusMapSceneViewModel): void {
+function drawTerrainOverlay(
+  graphics: Graphics,
+  viewModel: LudusMapSceneViewModel,
+  patterns: LudusMapTexturePatterns,
+): void {
   graphics.clear();
 
   for (const tile of viewModel.tiles) {
-    drawTerrainTile(graphics, tile, viewModel);
+    drawTerrainTile(graphics, tile, viewModel, patterns);
   }
 }
 
@@ -260,6 +332,7 @@ function drawTerrainTile(
   graphics: Graphics,
   tile: LudusMapSceneTileViewModel,
   viewModel: LudusMapSceneViewModel,
+  patterns: LudusMapTexturePatterns,
 ): void {
   const terrainColorById = {
     compoundDirt: viewModel.theme.terrainColor,
@@ -270,29 +343,45 @@ function drawTerrainTile(
     courtyard: 0xb98a52,
     packedRoad: 0x8e6d47,
   } satisfies Record<NonNullable<LudusMapSceneTileViewModel['groundId']>, number>;
+  const terrainPatternById = {
+    compoundDirt: patterns.sand,
+    grass: patterns.grass,
+    rock: patterns.wallStone,
+  } satisfies Record<LudusMapSceneTileViewModel['terrainId'], FillPattern | undefined>;
+  const groundPatternById = {
+    courtyard: patterns.sand,
+    packedRoad: patterns.stonePath,
+  } satisfies Record<NonNullable<LudusMapSceneTileViewModel['groundId']>, FillPattern | undefined>;
   const variationAlpha = (tile.column + tile.row) % 2 === 0 ? 0.04 : 0.08;
 
-  graphics.setFillStyle({ color: terrainColorById[tile.terrainId], alpha: 1 });
-  graphics.rect(tile.x, tile.y, tile.width, tile.height);
-  graphics.fill();
+  fillRectWithPattern(
+    graphics,
+    terrainPatternById[tile.terrainId],
+    { color: terrainColorById[tile.terrainId], alpha: 1 },
+    tile.x,
+    tile.y,
+    tile.width,
+    tile.height,
+  );
 
   graphics.setFillStyle({ color: 0xf1d083, alpha: variationAlpha });
   graphics.rect(tile.x + 6, tile.y + 8, tile.width - 12, 4);
   graphics.fill();
 
   if (tile.groundId) {
-    const inset = tile.groundId === 'packedRoad' ? 5 : 2;
-    const alpha = tile.groundId === 'packedRoad' ? 0.9 : 0.18;
+    const inset = tile.groundId === 'packedRoad' ? 4 : 2;
+    const alpha = tile.groundId === 'packedRoad' ? 1 : 0.18;
 
-    graphics.setFillStyle({ color: groundColorById[tile.groundId], alpha });
-    graphics.roundRect(
+    fillRoundRectWithPattern(
+      graphics,
+      groundPatternById[tile.groundId],
+      { color: groundColorById[tile.groundId], alpha },
       tile.x + inset,
       tile.y + inset,
       tile.width - inset * 2,
       tile.height - inset * 2,
       tile.groundId === 'packedRoad' ? 4 : 1,
     );
-    graphics.fill();
   }
 
   graphics.setStrokeStyle({ color: 0x4b3925, width: 1, alpha: 0.08 });
@@ -300,16 +389,27 @@ function drawTerrainTile(
   graphics.stroke();
 }
 
-function drawMapWalls(graphics: Graphics, walls: LudusMapSceneWallViewModel[]): void {
+function drawMapWalls(
+  graphics: Graphics,
+  walls: LudusMapSceneWallViewModel[],
+  wallPattern?: FillPattern,
+): void {
   graphics.clear();
 
   for (const wall of walls) {
     graphics.setFillStyle({ color: 0x1b130e, alpha: 0.24 });
     graphics.rect(wall.x + 5, wall.y + 12, wall.width - 10, wall.height - 8);
     graphics.fill();
-    graphics.setFillStyle({ color: 0x7e6b57, alpha: 0.98 });
-    graphics.roundRect(wall.x + 6, wall.y + 5, wall.width - 12, wall.height - 14, 3);
-    graphics.fill();
+    fillRoundRectWithPattern(
+      graphics,
+      wallPattern,
+      { color: 0x7e6b57, alpha: 0.98 },
+      wall.x + 6,
+      wall.y + 5,
+      wall.width - 12,
+      wall.height - 14,
+      3,
+    );
     graphics.setFillStyle({ color: 0xbfa06a, alpha: 0.62 });
     graphics.rect(wall.x + 10, wall.y + 9, wall.width - 20, 5);
     graphics.fill();
@@ -874,15 +974,16 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     const backgroundTexture = viewModel.theme.backgroundAssetPath
       ? this.textures.get(viewModel.theme.backgroundAssetPath)
       : undefined;
+    const texturePatterns = createLudusMapTexturePatterns(viewModel, this.textures);
 
     drawFallbackBackground(this.backgroundFallback, viewModel);
-    this.drawViewportTerrainFill(viewModel);
+    this.drawViewportTerrainFill(viewModel, texturePatterns);
     this.drawViewportLightingOverlay(viewModel);
     this.backgroundFallback.visible = !backgroundTexture;
     this.backgroundSprite.visible = Boolean(backgroundTexture);
     this.backgroundSprite.texture = backgroundTexture ?? Texture.EMPTY;
     setPixelArtSpriteSize(this.backgroundSprite, viewModel.width, viewModel.height);
-    drawTerrainOverlay(this.terrainOverlay, viewModel);
+    drawTerrainOverlay(this.terrainOverlay, viewModel, texturePatterns);
     this.lightingSystem.reconcile(viewModel);
   }
 
@@ -1045,8 +1146,10 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
   }
 
   private reconcile(viewModel: LudusMapSceneViewModel): void {
+    const texturePatterns = createLudusMapTexturePatterns(viewModel, this.textures);
+
     this.redrawThemeElements(viewModel);
-    drawMapWalls(this.pathGraphics, viewModel.walls);
+    drawMapWalls(this.pathGraphics, viewModel.walls, texturePatterns.wallStone);
     this.reconcileDecorations(viewModel.decorations);
     this.reconcileLocations(viewModel.locations);
     this.ambientAnimationSystem.reconcile(viewModel, this.textures);
@@ -1174,12 +1277,16 @@ export class LudusMapScene implements PixiScene<LudusMapSceneViewModel> {
     ]);
   }
 
-  private drawViewportTerrainFill(viewModel: LudusMapSceneViewModel): void {
+  private drawViewportTerrainFill(
+    viewModel: LudusMapSceneViewModel,
+    texturePatterns: LudusMapTexturePatterns,
+  ): void {
     drawViewportTerrainFill(
       this.viewportTerrainFill,
       viewModel,
       this.app.screen.width,
       this.app.screen.height,
+      texturePatterns.grass,
     );
   }
 

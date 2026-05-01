@@ -3,6 +3,7 @@ import { getPlacementCells } from '../../../domain/map/occupancy';
 import { resolveMapTimeOfDayPhase } from '../../../domain/time/time-of-day-visuals';
 import type { BuildingId, GameSave } from '../../../domain/types';
 import { LUDUS_MAP_AMBIENT_ELEMENTS } from '../../../game-data/map-visuals';
+import { LUDUS_MAP_TEXTURE_ASSET_PATHS } from '../../../game-data/map-textures';
 import { getTimeOfDayDefinition } from '../../../game-data/time-of-day';
 import {
   createInitialLudusMapState,
@@ -171,6 +172,7 @@ export function createLudusMapSceneViewModel(
       buildingLightOpacity: timeOfDay.visualTheme.buildingLightOpacity,
       backgroundAssetPath: undefined,
     },
+    textures: LUDUS_MAP_TEXTURE_ASSET_PATHS,
     grid: {
       columns: LUDUS_MAP_DEFINITION.grid.columns,
       rows: LUDUS_MAP_DEFINITION.grid.rows,

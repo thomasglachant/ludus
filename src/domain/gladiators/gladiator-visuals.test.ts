@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   createGladiatorVisualIdentity,
+  getGladiatorAvatarAssetPath,
   getGladiatorPortraitAssetPath,
   getProductionGladiatorCombatAnimationAsset,
   getGladiatorVisualIdentity,
@@ -51,6 +52,9 @@ describe('gladiator class visuals', () => {
     });
 
     expect(getGladiatorPortraitAssetPath(visualIdentity)).toBe(
+      GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS.retiarius,
+    );
+    expect(getGladiatorAvatarAssetPath(visualIdentity)).toBe(
       GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS.retiarius,
     );
     expect(

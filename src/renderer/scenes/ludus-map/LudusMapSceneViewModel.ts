@@ -1,5 +1,6 @@
 import type { MapLocationId } from '../../../game-data/map-layout';
 import type { MapDecorationStyle } from '../../../game-data/decorations';
+import type { LudusMapTextureId } from '../../../game-data/map-textures';
 import type { MapGroundId, MapTerrainId } from '../../../domain/map/types';
 import type { TimeOfDayPhase } from '../../../game-data/time-of-day';
 
@@ -144,6 +145,7 @@ export interface LudusMapSceneViewModel {
   maxZoom: number;
   zoomPresets: number[];
   theme: LudusMapSceneThemeViewModel;
+  textures: Record<LudusMapTextureId, string>;
   grid: LudusMapSceneGridViewModel;
   tiles: LudusMapSceneTileViewModel[];
   walls: LudusMapSceneWallViewModel[];

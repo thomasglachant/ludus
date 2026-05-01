@@ -312,6 +312,7 @@ function buildGladiatorFrames(basePath) {
 
 function buildGladiatorManifestEntry(id, variant) {
   const basePath = join(publicAssetsRoot, 'gladiators', id);
+  const avatarPath = join(basePath, 'avatar.png');
 
   if (!existsSync(basePath)) {
     return null;
@@ -324,6 +325,7 @@ function buildGladiatorManifestEntry(id, variant) {
     {
       sourceQuality: 'production',
       portrait: `/assets/gladiators/${id}/portrait.png`,
+      ...(existsSync(avatarPath) ? { avatar: toWebPath(avatarPath) } : {}),
       mapSpritesheet: `/assets/gladiators/${id}/map-spritesheet.png`,
       mapAtlas: `/assets/gladiators/${id}/map-spritesheet.json`,
       combatSpritesheet: `/assets/gladiators/${id}/combat-spritesheet.png`,

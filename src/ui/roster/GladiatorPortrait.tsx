@@ -1,6 +1,6 @@
 import type { Gladiator, GladiatorSkillProfile } from '../../domain/types';
 import {
-  getGladiatorPortraitAssetPath,
+  getGladiatorAvatarAssetPath,
   getGladiatorVisualIdentity,
 } from '../../game-data/gladiator-visuals';
 
@@ -13,7 +13,7 @@ export function GladiatorPortrait({ gladiator, size = 'medium' }: GladiatorPortr
   const visualIdentity = getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, {
     skillProfile: gladiator,
   });
-  const portraitAssetPath = getGladiatorPortraitAssetPath(visualIdentity);
+  const avatarAssetPath = getGladiatorAvatarAssetPath(visualIdentity);
 
   return (
     <span
@@ -36,8 +36,8 @@ export function GladiatorPortrait({ gladiator, size = 'medium' }: GladiatorPortr
       data-skin-tone={visualIdentity.skinTone}
       role="img"
     >
-      {portraitAssetPath ? (
-        <img className="gladiator-portrait__asset" src={portraitAssetPath} alt="" />
+      {avatarAssetPath ? (
+        <img className="gladiator-portrait__asset" src={avatarAssetPath} alt="" />
       ) : null}
       <span className="gladiator-portrait__head" />
       <span className="gladiator-portrait__hair" />

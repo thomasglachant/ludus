@@ -20,6 +20,12 @@ export const STAFF_VISUAL_ASSET_PATHS = Object.fromEntries(
     .map((visualId) => [visualId, `/assets/generated/staff/${visualId}.png`]),
 ) as Record<StaffVisualId, string>;
 
+export const STAFF_AVATAR_ASSET_PATHS = Object.fromEntries(
+  Object.values(STAFF_VISUAL_IDS_BY_TYPE)
+    .flat()
+    .map((visualId) => [visualId, `/assets/generated/staff/avatars/${visualId}.png`]),
+) as Record<StaffVisualId, string>;
+
 export function getStaffVisualIdsForType(type: StaffType) {
   return STAFF_VISUAL_IDS_BY_TYPE[type];
 }
@@ -30,4 +36,8 @@ export function isStaffVisualIdForType(type: StaffType, visualId: string) {
 
 export function getStaffVisualAssetPath(visualId: StaffVisualId) {
   return STAFF_VISUAL_ASSET_PATHS[visualId];
+}
+
+export function getStaffAvatarAssetPath(visualId: StaffVisualId) {
+  return STAFF_AVATAR_ASSET_PATHS[visualId] ?? getStaffVisualAssetPath(visualId);
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  getStaffAvatarAssetPath,
   getStaffVisualAssetPath,
   isStaffVisualIdForType,
   STAFF_VISUAL_IDS_BY_TYPE,
@@ -55,6 +56,11 @@ describe('staff actions', () => {
       expect(
         visualIds.every((visualId) =>
           getStaffVisualAssetPath(visualId).startsWith('/assets/generated/staff/'),
+        ),
+      ).toBe(true);
+      expect(
+        visualIds.every((visualId) =>
+          getStaffAvatarAssetPath(visualId).startsWith('/assets/generated/staff/avatars/'),
         ),
       ).toBe(true);
     }

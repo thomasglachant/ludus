@@ -221,6 +221,22 @@ export function getGladiatorPortraitAssetPath(visualIdentity: GladiatorVisualIde
   );
 }
 
+export function getGladiatorAvatarAssetPath(visualIdentity: GladiatorVisualIdentity) {
+  const classAvatarPath = visualIdentity.classId
+    ? getGladiatorClassPortraitAssetPath(visualIdentity.classId)
+    : undefined;
+  const generatedPortraitAssetSet = getGeneratedPortraitAssetSet(visualIdentity);
+  const fallbackAssetSet = getFallbackGladiatorAssetSet(visualIdentity.classId);
+
+  return (
+    generatedPortraitAssetSet?.avatar ??
+    classAvatarPath ??
+    generatedPortraitAssetSet?.portrait ??
+    fallbackAssetSet.avatar ??
+    fallbackAssetSet.portrait
+  );
+}
+
 export function getGladiatorMapAnimationAsset(
   visualIdentity: GladiatorVisualIdentity,
   animation: GladiatorMapAnimationId,
