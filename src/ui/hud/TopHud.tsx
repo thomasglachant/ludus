@@ -1,5 +1,7 @@
 import type { GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
+import { GaugeStatBar } from '../components/GaugeStatBar';
+import { Tooltip } from '../components/Tooltip';
 import { formatMoneyAmount } from '../formatters/money';
 import { formatNumber } from '../formatters/number';
 import { GameIcon } from '../icons/GameIcon';
@@ -10,9 +12,13 @@ interface TopHudProps {
   onOpenMenu(): void;
 }
 
+const TOP_HUD_RESOURCE_ICON_SIZE = 24;
+
 export function TopHud({ onOpenFinance, onOpenMenu, save }: TopHudProps) {
   const { t } = useUiStore();
   const dayLabel = t(`days.${save.time.dayOfWeek}`);
+  const happinessPercent = Math.round(Math.min(100, Math.max(0, save.ludus.happiness)));
+  const securityPercent = Math.round(Math.min(100, Math.max(0, save.ludus.security)));
 
   return (
     <header className="top-hud" data-testid="topbar">
@@ -59,7 +65,7 @@ export function TopHud({ onOpenFinance, onOpenMenu, save }: TopHudProps) {
             onClick={onOpenFinance}
           >
             <span aria-hidden="true" className="top-hud__resource-icon">
-              <GameIcon name="treasury" size={28} />
+              <GameIcon name="treasury" size={TOP_HUD_RESOURCE_ICON_SIZE} />
             </span>
             <span className="top-hud__resource-value">
               {formatMoneyAmount(save.ludus.treasury)}
@@ -67,19 +73,38 @@ export function TopHud({ onOpenFinance, onOpenMenu, save }: TopHudProps) {
           </button>
           <div className="top-hud__resource" data-testid="topbar-reputation">
             <span aria-hidden="true" className="top-hud__resource-icon">
-              <GameIcon name="reputation" size={28} />
+              <GameIcon name="reputation" size={TOP_HUD_RESOURCE_ICON_SIZE} />
             </span>
             <span className="top-hud__resource-value">{formatNumber(save.ludus.reputation)}</span>
           </div>
-          <div className="top-hud__resource" data-testid="topbar-happiness">
-            <span className="top-hud__resource-value">
-              {t('ludus.happinessValue', { value: save.ludus.happiness })}
-            </span>
+          <div
+            className="top-hud__resource top-hud__resource--meter"
+            data-testid="topbar-happiness"
+          >
+            <Tooltip content={`${t('ludus.happiness')} ${happinessPercent}%`}>
+              <GaugeStatBar
+                className="top-hud__gauge"
+                iconClassName="top-hud__resource-icon"
+                iconName="happiness"
+                iconSize={TOP_HUD_RESOURCE_ICON_SIZE}
+                label={t('ludus.happiness')}
+                value={save.ludus.happiness}
+                variant="major"
+              />
+            </Tooltip>
           </div>
-          <div className="top-hud__resource" data-testid="topbar-security">
-            <span className="top-hud__resource-value">
-              {t('ludus.securityValue', { value: save.ludus.security })}
-            </span>
+          <div className="top-hud__resource top-hud__resource--meter" data-testid="topbar-security">
+            <Tooltip content={`${t('ludus.security')} ${securityPercent}%`}>
+              <GaugeStatBar
+                className="top-hud__gauge"
+                iconClassName="top-hud__resource-icon"
+                iconName="security"
+                iconSize={TOP_HUD_RESOURCE_ICON_SIZE}
+                label={t('ludus.security')}
+                value={save.ludus.security}
+                variant="major"
+              />
+            </Tooltip>
           </div>
         </div>
 

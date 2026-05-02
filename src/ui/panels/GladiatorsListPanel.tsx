@@ -24,14 +24,6 @@ export function GladiatorsListPanel({ onClose, onOpenGladiator, save }: Gladiato
       <EntityList emptyMessageKey="ludus.noGladiators">
         {save.gladiators.map((gladiator) => (
           <EntityListRow
-            actions={[
-              {
-                id: 'open',
-                label: t('common.open'),
-                onClick: () => onOpenGladiator(gladiator.id),
-                variant: 'primary',
-              },
-            ]}
             avatar={<GladiatorPortrait gladiator={gladiator} size="small" />}
             info={[
               {

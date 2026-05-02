@@ -122,6 +122,38 @@
   border-left: 1px solid rgba(214, 163, 74, 0.24);
 }
 
+.top-hud__resource--meter {
+  min-width: 144px;
+}
+
+.top-hud__gauge {
+  width: 100%;
+  min-height: 0;
+  grid-template-columns: auto minmax(64px, 1fr);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.top-hud__resource--meter > .tooltip {
+  width: 100%;
+}
+
+.top-hud__gauge.gauge-stat-bar--labeled {
+  grid-template-columns: auto minmax(58px, auto) minmax(62px, 1fr) auto;
+}
+
+.top-hud__gauge strong {
+  display: none;
+}
+
+.top-hud__gauge .gauge-stat-bar__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .top-hud__resource--button {
   cursor: pointer;
   background: transparent;
@@ -136,6 +168,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.top-hud__resource-icon {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+}
+
+.top-hud__resource-icon > svg {
+  width: 100%;
+  height: 100%;
 }
 
 .top-hud__resource-value {
@@ -206,5 +249,9 @@
 
   .top-hud__resource {
     flex: 1 1 120px;
+  }
+
+  .top-hud__resource--meter {
+    flex-basis: 180px;
   }
 }

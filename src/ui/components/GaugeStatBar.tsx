@@ -4,7 +4,9 @@ import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface GaugeStatBarProps {
   className?: string;
+  iconClassName?: string;
   iconName?: GameIconName;
+  iconSize?: number;
   label: string;
   max?: number;
   showLabel?: boolean;
@@ -27,7 +29,9 @@ function getDynamicGaugeColor(ratio: number) {
 
 export function GaugeStatBar({
   className,
+  iconClassName,
   iconName,
+  iconSize,
   label,
   max = 100,
   showLabel = false,
@@ -59,7 +63,11 @@ export function GaugeStatBar({
       style={style}
       title={title}
     >
-      {iconName ? <GameIcon name={iconName} size={variant === 'major' ? 18 : 16} /> : null}
+      {iconName ? (
+        <span className={iconClassName}>
+          <GameIcon name={iconName} size={iconSize ?? (variant === 'major' ? 18 : 16)} />
+        </span>
+      ) : null}
       {showLabel ? <span className="gauge-stat-bar__label">{label}</span> : null}
       <span className="gauge-stat-bar__track" aria-hidden="true">
         <span className="gauge-stat-bar__fill" />
