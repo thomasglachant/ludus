@@ -279,12 +279,7 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
         titleKey="finance.title"
         onClose={closeModal}
       >
-        <FinancePanel
-          save={currentSave}
-          onBuyoutLoan={buyoutLoan}
-          onClose={closeModal}
-          onTakeLoan={takeLoan}
-        />
+        <FinancePanel save={currentSave} onBuyoutLoan={buyoutLoan} onTakeLoan={takeLoan} />
       </AppModal>
     );
   }

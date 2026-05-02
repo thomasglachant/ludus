@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { LOAN_DEFINITIONS } from '../../game-data/economy';
 import type {
   ActiveLoan,
@@ -16,16 +16,33 @@ import {
   getLedgerEntryDateLabel,
 } from '../formatters/ledger';
 import { formatMoneyAmount } from '../formatters/money';
-import { EmptyState, MetricList, NoticeBox, PanelShell, SectionCard } from '../components/shared';
+import { EmptyState, MetricList, NoticeBox, SectionCard } from '../components/shared';
 import { GameIcon } from '../icons/GameIcon';
+import {
+  ModalContentFrame,
+  ModalHeroCard,
+  ModalSection,
+  ModalTabPanel,
+  ModalTabs,
+  type ModalTabItem,
+} from '../modals/ModalContentFrame';
 
 const LEDGER_ENTRY_LIMIT = 14;
 
 interface FinancePanelProps {
   save: GameSave;
   onBuyoutLoan(loanInstanceId: string): void;
-  onClose(): void;
   onTakeLoan(loanId: LoanId): void;
+}
+
+type FinancePanelTab = 'ledger' | 'loans' | 'overview';
+
+function FinanceAvatar() {
+  return (
+    <div className="finance-modal-avatar" aria-hidden="true">
+      <GameIcon name="treasury" size={58} />
+    </div>
+  );
 }
 
 interface FinanceTotals {
@@ -85,8 +102,9 @@ function getBarStyle(percent: number): CSSProperties {
   return { width: `${percent}%` };
 }
 
-export function FinancePanel({ onBuyoutLoan, onClose, onTakeLoan, save }: FinancePanelProps) {
+export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelProps) {
   const { openConfirmModal, t } = useUiStore();
+  const [activeTab, setActiveTab] = useState<FinancePanelTab>('overview');
   const projection = save.economy.weeklyProjection;
   const currentWeekSummary = save.economy.currentWeekSummary;
   const activeLoanDefinitionIds = new Set(
@@ -100,6 +118,11 @@ export function FinancePanel({ onBuyoutLoan, onClose, onTakeLoan, save }: Financ
   const maxProjectionAmount = Math.max(1, projectedWeekTotals.income, projectedWeekTotals.expenses);
   const incomeRows = createProjectionRows(projection.incomeByCategory, maxProjectionAmount);
   const expenseRows = createProjectionRows(projection.expenseByCategory, maxProjectionAmount);
+  const tabItems: ModalTabItem<FinancePanelTab>[] = [
+    { id: 'overview', labelKey: 'finance.tabs.overview' },
+    { count: recentLedgerEntries.length, id: 'ledger', labelKey: 'finance.tabs.ledger' },
+    { count: save.economy.activeLoans.length, id: 'loans', labelKey: 'finance.tabs.loans' },
+  ];
 
   const requestLoan = (loan: (typeof LOAN_DEFINITIONS)[number]) => {
     openConfirmModal({
@@ -134,268 +157,327 @@ export function FinancePanel({ onBuyoutLoan, onClose, onTakeLoan, save }: Financ
   };
 
   return (
-    <PanelShell
-      eyebrowKey="finance.eyebrow"
-      titleKey="finance.title"
-      testId="finance-panel"
-      wide
-      onClose={onClose}
-    >
-      <MetricList
-        columns={3}
-        items={[
-          { labelKey: 'common.treasury', value: formatMoneyAmount(save.ludus.treasury) },
+    <ModalContentFrame className="finance-modal-frame">
+      <ModalHeroCard
+        avatar={<FinanceAvatar />}
+        descriptionKey="finance.description"
+        eyebrowKey="finance.eyebrow"
+        metrics={[
           {
+            iconName: 'treasury',
+            id: 'treasury',
+            labelKey: 'common.treasury',
+            value: formatMoneyAmount(save.ludus.treasury),
+          },
+          {
+            iconName: 'weeklyPlanning',
+            id: 'projected-treasury',
             labelKey: 'finance.projectedTreasuryAfterWeek',
+            tone: projectedTreasury >= save.ludus.treasury ? 'positive' : 'warning',
             value: formatMoneyAmount(projectedTreasury),
           },
-          { labelKey: 'finance.activeLoans', value: save.economy.activeLoans.length },
           {
-            labelKey: 'finance.activeLoanBalance',
-            value: formatMoneyAmount(activeLoanTotals.remainingBalance),
+            iconName: 'treasury',
+            id: 'projected-net',
+            labelKey: 'finance.projectedNet',
+            tone: projectedWeekTotals.net >= 0 ? 'positive' : 'danger',
+            value: formatMoneyAmount(projectedWeekTotals.net),
           },
           {
-            labelKey: 'finance.weeklyDebtService',
-            value: formatMoneyAmount(activeLoanTotals.weeklyPayment),
+            iconName: 'warning',
+            id: 'active-loans',
+            labelKey: 'finance.activeLoans',
+            tone: save.economy.activeLoans.length > 0 ? 'warning' : 'neutral',
+            value: save.economy.activeLoans.length,
           },
         ]}
+        titleKey="finance.title"
       />
-      <div className="finance-report-grid">
-        <SectionCard titleKey="finance.currentWeekReportTitle">
-          <MetricList
-            columns={3}
-            items={[
-              {
-                labelKey: 'finance.reportIncome',
-                value: formatMoneyAmount(currentWeekTotals.income),
-              },
-              {
-                labelKey: 'finance.reportExpenses',
-                value: formatMoneyAmount(currentWeekTotals.expenses),
-              },
-              { labelKey: 'finance.reportNet', value: formatMoneyAmount(currentWeekTotals.net) },
-            ]}
-          />
-        </SectionCard>
-        <SectionCard titleKey="finance.weeklyProjectionTitle">
-          <MetricList
-            columns={3}
-            items={[
-              {
-                labelKey: 'finance.projectedIncome',
-                value: formatMoneyAmount(projectedWeekTotals.income),
-              },
-              {
-                labelKey: 'finance.projectedExpenses',
-                value: formatMoneyAmount(projectedWeekTotals.expenses),
-              },
-              {
-                labelKey: 'finance.projectedNet',
-                value: formatMoneyAmount(projectedWeekTotals.net),
-              },
-            ]}
-          />
-        </SectionCard>
-      </div>
-      <div className="finance-chart-grid">
-        <SectionCard titleKey="finance.incomeChartTitle">
-          {incomeRows.length > 0 ? (
-            <div className="finance-chart-list">
-              {incomeRows.map((row) => (
-                <article className="finance-chart-row" key={row.category}>
-                  <span>{t(`finance.categories.${row.category}`)}</span>
-                  <strong>{formatMoneyAmount(row.amount)}</strong>
-                  <div className="finance-chart-row__track">
-                    <span
-                      className="finance-chart-row__bar finance-chart-row__bar--income"
-                      style={getBarStyle(row.percent)}
-                    />
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <EmptyState messageKey="finance.noProjection" />
-          )}
-        </SectionCard>
-        <SectionCard titleKey="finance.expenseChartTitle">
-          {expenseRows.length > 0 ? (
-            <div className="finance-chart-list">
-              {expenseRows.map((row) => (
-                <article className="finance-chart-row" key={row.category}>
-                  <span>{t(`finance.categories.${row.category}`)}</span>
-                  <strong>{formatMoneyAmount(row.amount)}</strong>
-                  <div className="finance-chart-row__track">
-                    <span
-                      className="finance-chart-row__bar finance-chart-row__bar--expense"
-                      style={getBarStyle(row.percent)}
-                    />
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <EmptyState messageKey="finance.noProjection" />
-          )}
-        </SectionCard>
-      </div>
-      <SectionCard titleKey="finance.ledgerTitle">
-        {recentLedgerEntries.length > 0 ? (
-          <div className="finance-ledger">
-            <p className="context-panel__muted">
-              {t('finance.ledgerShowing', { count: recentLedgerEntries.length })}
-            </p>
-            <div className="finance-ledger-list">
-              {recentLedgerEntries.map((entry) => {
-                const context = getLedgerEntryContextLabel(entry, t);
+      <ModalTabs<FinancePanelTab>
+        ariaLabelKey="finance.tabsLabel"
+        items={tabItems}
+        selectedId={activeTab}
+        onSelect={setActiveTab}
+      />
 
-                return (
-                  <article className={`finance-entry finance-entry--${entry.kind}`} key={entry.id}>
-                    <span className={`finance-entry__kind finance-entry__kind--${entry.kind}`}>
-                      {t(`finance.ledgerKind.${entry.kind}`)}
-                    </span>
-                    <div className="finance-entry__main">
-                      <strong>{t(entry.labelKey)}</strong>
-                      {context ? <span>{context}</span> : null}
-                    </div>
-                    <div className="finance-entry__meta">
-                      <span>{getLedgerEntryCategoryLabel(entry, t)}</span>
-                      <span>{getLedgerEntryDateLabel(entry, t)}</span>
-                    </div>
-                    <strong
-                      className={`finance-entry__amount finance-entry__amount--${entry.kind}`}
-                    >
-                      {formatLedgerEntryAmount(entry)}
-                    </strong>
-                  </article>
-                );
-              })}
-            </div>
+      {activeTab === 'overview' ? (
+        <ModalTabPanel>
+          <MetricList
+            columns={3}
+            items={[
+              { labelKey: 'common.treasury', value: formatMoneyAmount(save.ludus.treasury) },
+              {
+                labelKey: 'finance.projectedTreasuryAfterWeek',
+                value: formatMoneyAmount(projectedTreasury),
+              },
+              {
+                labelKey: 'finance.activeLoanBalance',
+                value: formatMoneyAmount(activeLoanTotals.remainingBalance),
+              },
+              {
+                labelKey: 'finance.weeklyDebtService',
+                value: formatMoneyAmount(activeLoanTotals.weeklyPayment),
+              },
+            ]}
+          />
+          <div className="finance-report-grid">
+            <SectionCard titleKey="finance.currentWeekReportTitle">
+              <MetricList
+                columns={3}
+                items={[
+                  {
+                    labelKey: 'finance.reportIncome',
+                    value: formatMoneyAmount(currentWeekTotals.income),
+                  },
+                  {
+                    labelKey: 'finance.reportExpenses',
+                    value: formatMoneyAmount(currentWeekTotals.expenses),
+                  },
+                  {
+                    labelKey: 'finance.reportNet',
+                    value: formatMoneyAmount(currentWeekTotals.net),
+                  },
+                ]}
+              />
+            </SectionCard>
+            <SectionCard titleKey="finance.weeklyProjectionTitle">
+              <MetricList
+                columns={3}
+                items={[
+                  {
+                    labelKey: 'finance.projectedIncome',
+                    value: formatMoneyAmount(projectedWeekTotals.income),
+                  },
+                  {
+                    labelKey: 'finance.projectedExpenses',
+                    value: formatMoneyAmount(projectedWeekTotals.expenses),
+                  },
+                  {
+                    labelKey: 'finance.projectedNet',
+                    value: formatMoneyAmount(projectedWeekTotals.net),
+                  },
+                ]}
+              />
+            </SectionCard>
           </div>
-        ) : (
-          <EmptyState messageKey="finance.noLedger" />
-        )}
-      </SectionCard>
-      <SectionCard titleKey="finance.activeLoansTitle">
-        {save.economy.activeLoans.length > 0 ? (
-          <>
-            <MetricList
-              columns={2}
-              items={[
-                {
-                  labelKey: 'finance.activeLoanBalance',
-                  value: formatMoneyAmount(activeLoanTotals.remainingBalance),
-                },
-                {
-                  labelKey: 'finance.weeklyDebtService',
-                  value: formatMoneyAmount(activeLoanTotals.weeklyPayment),
-                },
-              ]}
-            />
-            <div className="finance-active-loan-grid">
-              {save.economy.activeLoans.map((loan) => {
-                const canBuyout = save.ludus.treasury >= loan.remainingBalance;
+          <div className="finance-chart-grid">
+            <SectionCard titleKey="finance.incomeChartTitle">
+              {incomeRows.length > 0 ? (
+                <div className="finance-chart-list">
+                  {incomeRows.map((row) => (
+                    <article className="finance-chart-row" key={row.category}>
+                      <span>{t(`finance.categories.${row.category}`)}</span>
+                      <strong>{formatMoneyAmount(row.amount)}</strong>
+                      <div className="finance-chart-row__track">
+                        <span
+                          className="finance-chart-row__bar finance-chart-row__bar--income"
+                          style={getBarStyle(row.percent)}
+                        />
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState messageKey="finance.noProjection" />
+              )}
+            </SectionCard>
+            <SectionCard titleKey="finance.expenseChartTitle">
+              {expenseRows.length > 0 ? (
+                <div className="finance-chart-list">
+                  {expenseRows.map((row) => (
+                    <article className="finance-chart-row" key={row.category}>
+                      <span>{t(`finance.categories.${row.category}`)}</span>
+                      <strong>{formatMoneyAmount(row.amount)}</strong>
+                      <div className="finance-chart-row__track">
+                        <span
+                          className="finance-chart-row__bar finance-chart-row__bar--expense"
+                          style={getBarStyle(row.percent)}
+                        />
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState messageKey="finance.noProjection" />
+              )}
+            </SectionCard>
+          </div>
+        </ModalTabPanel>
+      ) : null}
+
+      {activeTab === 'ledger' ? (
+        <ModalTabPanel>
+          <ModalSection titleKey="finance.ledgerTitle">
+            {recentLedgerEntries.length > 0 ? (
+              <div className="finance-ledger">
+                <p className="context-panel__muted">
+                  {t('finance.ledgerShowing', { count: recentLedgerEntries.length })}
+                </p>
+                <div className="finance-ledger-list">
+                  {recentLedgerEntries.map((entry) => {
+                    const context = getLedgerEntryContextLabel(entry, t);
+
+                    return (
+                      <article
+                        className={`finance-entry finance-entry--${entry.kind}`}
+                        key={entry.id}
+                      >
+                        <span className={`finance-entry__kind finance-entry__kind--${entry.kind}`}>
+                          {t(`finance.ledgerKind.${entry.kind}`)}
+                        </span>
+                        <div className="finance-entry__main">
+                          <strong>{t(entry.labelKey)}</strong>
+                          {context ? <span>{context}</span> : null}
+                        </div>
+                        <div className="finance-entry__meta">
+                          <span>{getLedgerEntryCategoryLabel(entry, t)}</span>
+                          <span>{getLedgerEntryDateLabel(entry, t)}</span>
+                        </div>
+                        <strong
+                          className={`finance-entry__amount finance-entry__amount--${entry.kind}`}
+                        >
+                          {formatLedgerEntryAmount(entry)}
+                        </strong>
+                      </article>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <EmptyState messageKey="finance.noLedger" />
+            )}
+          </ModalSection>
+        </ModalTabPanel>
+      ) : null}
+
+      {activeTab === 'loans' ? (
+        <ModalTabPanel>
+          <SectionCard titleKey="finance.activeLoansTitle">
+            {save.economy.activeLoans.length > 0 ? (
+              <>
+                <MetricList
+                  columns={2}
+                  items={[
+                    {
+                      labelKey: 'finance.activeLoanBalance',
+                      value: formatMoneyAmount(activeLoanTotals.remainingBalance),
+                    },
+                    {
+                      labelKey: 'finance.weeklyDebtService',
+                      value: formatMoneyAmount(activeLoanTotals.weeklyPayment),
+                    },
+                  ]}
+                />
+                <div className="finance-active-loan-grid">
+                  {save.economy.activeLoans.map((loan) => {
+                    const canBuyout = save.ludus.treasury >= loan.remainingBalance;
+
+                    return (
+                      <article className="finance-loan-card" key={loan.id}>
+                        <strong>{t(`finance.loans.${loan.definitionId}.name`)}</strong>
+                        <MetricList
+                          columns={3}
+                          items={[
+                            {
+                              labelKey: 'finance.remainingBalance',
+                              value: formatMoneyAmount(loan.remainingBalance),
+                            },
+                            {
+                              labelKey: 'finance.weeklyPayment',
+                              value: formatMoneyAmount(loan.weeklyPayment),
+                            },
+                            { labelKey: 'finance.remainingWeeks', value: loan.remainingWeeks },
+                            {
+                              labelKey: 'finance.loanStarted',
+                              value: t('finance.weekValue', {
+                                week: loan.startedWeek,
+                                year: loan.startedYear,
+                              }),
+                            },
+                          ]}
+                        />
+                        {!canBuyout ? (
+                          <NoticeBox tone="warning">
+                            {t('finance.insufficientTreasuryForBuyout')}
+                          </NoticeBox>
+                        ) : null}
+                        <div className="context-panel__actions">
+                          <CTAButton
+                            disabled={!canBuyout}
+                            type="button"
+                            onClick={() => requestBuyout(loan)}
+                          >
+                            <GameIcon name="check" size={16} />
+                            <span>{t('finance.buyoutLoan')}</span>
+                          </CTAButton>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <EmptyState messageKey="finance.noActiveLoans" />
+            )}
+          </SectionCard>
+          <SectionCard titleKey="finance.loansTitle">
+            <div className="planning-card-grid planning-card-grid--finance-loans">
+              {LOAN_DEFINITIONS.map((loan) => {
+                const isAlreadyActive = activeLoanDefinitionIds.has(loan.id);
+                const hasRequiredDomusLevel = save.buildings.domus.level >= loan.requiredDomusLevel;
+                const canTake = hasRequiredDomusLevel && !isAlreadyActive;
 
                 return (
-                  <article className="finance-loan-card" key={loan.id}>
-                    <strong>{t(`finance.loans.${loan.definitionId}.name`)}</strong>
+                  <article
+                    className="planning-card planning-card--shell finance-loan-offer"
+                    key={loan.id}
+                  >
+                    <strong>{t(loan.labelKey)}</strong>
+                    <span>{t(loan.descriptionKey)}</span>
                     <MetricList
-                      columns={3}
+                      columns={2}
                       items={[
+                        { labelKey: 'finance.loanAmount', value: formatMoneyAmount(loan.amount) },
                         {
-                          labelKey: 'finance.remainingBalance',
-                          value: formatMoneyAmount(loan.remainingBalance),
+                          labelKey: 'finance.totalRepayment',
+                          value: formatMoneyAmount(loan.weeklyPayment * loan.durationWeeks),
                         },
                         {
                           labelKey: 'finance.weeklyPayment',
                           value: formatMoneyAmount(loan.weeklyPayment),
                         },
-                        { labelKey: 'finance.remainingWeeks', value: loan.remainingWeeks },
                         {
-                          labelKey: 'finance.loanStarted',
-                          value: t('finance.weekValue', {
-                            week: loan.startedWeek,
-                            year: loan.startedYear,
-                          }),
+                          labelKey: 'buildings.requiredDomus',
+                          value: t('common.level', { level: loan.requiredDomusLevel }),
                         },
+                        { labelKey: 'finance.duration', value: loan.durationWeeks },
                       ]}
                     />
-                    {!canBuyout ? (
+                    {!hasRequiredDomusLevel ? (
                       <NoticeBox tone="warning">
-                        {t('finance.insufficientTreasuryForBuyout')}
+                        {t('finance.loanLocked', { level: loan.requiredDomusLevel })}
                       </NoticeBox>
+                    ) : null}
+                    {isAlreadyActive ? (
+                      <NoticeBox tone="info">{t('finance.loanAlreadyActive')}</NoticeBox>
                     ) : null}
                     <div className="context-panel__actions">
                       <CTAButton
-                        disabled={!canBuyout}
+                        disabled={!canTake}
                         type="button"
-                        onClick={() => requestBuyout(loan)}
+                        onClick={() => requestLoan(loan)}
                       >
-                        <GameIcon name="check" size={16} />
-                        <span>{t('finance.buyoutLoan')}</span>
+                        <GameIcon name="treasury" size={17} />
+                        <span>{t('finance.takeLoan')}</span>
                       </CTAButton>
                     </div>
                   </article>
                 );
               })}
             </div>
-          </>
-        ) : (
-          <EmptyState messageKey="finance.noActiveLoans" />
-        )}
-      </SectionCard>
-      <SectionCard titleKey="finance.loansTitle">
-        <div className="planning-card-grid planning-card-grid--finance-loans">
-          {LOAN_DEFINITIONS.map((loan) => {
-            const isAlreadyActive = activeLoanDefinitionIds.has(loan.id);
-            const hasRequiredDomusLevel = save.buildings.domus.level >= loan.requiredDomusLevel;
-            const canTake = hasRequiredDomusLevel && !isAlreadyActive;
-
-            return (
-              <article
-                className="planning-card planning-card--shell finance-loan-offer"
-                key={loan.id}
-              >
-                <strong>{t(loan.labelKey)}</strong>
-                <span>{t(loan.descriptionKey)}</span>
-                <MetricList
-                  columns={2}
-                  items={[
-                    { labelKey: 'finance.loanAmount', value: formatMoneyAmount(loan.amount) },
-                    {
-                      labelKey: 'finance.totalRepayment',
-                      value: formatMoneyAmount(loan.weeklyPayment * loan.durationWeeks),
-                    },
-                    {
-                      labelKey: 'finance.weeklyPayment',
-                      value: formatMoneyAmount(loan.weeklyPayment),
-                    },
-                    {
-                      labelKey: 'buildings.requiredDomus',
-                      value: t('common.level', { level: loan.requiredDomusLevel }),
-                    },
-                    { labelKey: 'finance.duration', value: loan.durationWeeks },
-                  ]}
-                />
-                {!hasRequiredDomusLevel ? (
-                  <NoticeBox tone="warning">
-                    {t('finance.loanLocked', { level: loan.requiredDomusLevel })}
-                  </NoticeBox>
-                ) : null}
-                {isAlreadyActive ? (
-                  <NoticeBox tone="info">{t('finance.loanAlreadyActive')}</NoticeBox>
-                ) : null}
-                <div className="context-panel__actions">
-                  <CTAButton disabled={!canTake} type="button" onClick={() => requestLoan(loan)}>
-                    <GameIcon name="treasury" size={17} />
-                    <span>{t('finance.takeLoan')}</span>
-                  </CTAButton>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      </SectionCard>
-    </PanelShell>
+          </SectionCard>
+        </ModalTabPanel>
+      ) : null}
+    </ModalContentFrame>
   );
 }
