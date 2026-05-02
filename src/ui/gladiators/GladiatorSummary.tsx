@@ -11,7 +11,7 @@ import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 type GladiatorSummarySide = 'player' | 'opponent';
 type GladiatorSummaryTone = 'dark' | 'light';
 type SecondaryGladiatorStatKey = 'energy' | 'health' | 'morale';
-type PrimaryGladiatorStatKey = 'strength' | 'agility' | 'defense';
+type PrimaryGladiatorStatKey = 'strength' | 'agility' | 'defense' | 'life';
 
 interface GladiatorSummaryProps {
   children?: ReactNode;
@@ -35,6 +35,7 @@ const PRIMARY_GLADIATOR_STATS: Array<{
   { iconName: 'strength', key: 'strength', labelKey: 'arenaRoute.statStrength' },
   { iconName: 'agility', key: 'agility', labelKey: 'arenaRoute.statAgility' },
   { iconName: 'defense', key: 'defense', labelKey: 'arenaRoute.statDefense' },
+  { iconName: 'health', key: 'life', labelKey: 'market.stats.life' },
 ];
 
 const SECONDARY_GLADIATOR_STATS: Array<{
@@ -161,7 +162,7 @@ export function GladiatorSummary({
             key={stat.key}
             label={t(statLabelKeys?.[stat.key] ?? stat.labelKey)}
             tone={SECONDARY_GLADIATOR_STAT_TONES[stat.key]}
-            value={statValues?.[stat.key] ?? Number(gladiator[stat.key])}
+            value={statValues?.[stat.key] ?? 0}
             variant={tone}
           />
         ))}

@@ -4,9 +4,6 @@ import { formatSignedNumber } from '../formatters/number';
 export interface DayResultsSummaryViewModel {
   totalReward: number;
   reputationChange: number;
-  healthChange: number;
-  energyChange: number;
-  moraleChange: number;
   wins: number;
   losses: number;
 }
@@ -44,18 +41,12 @@ function summarizeCombats(combats: CombatState[]): DayResultsSummaryViewModel {
     (summary, combat) => ({
       totalReward: summary.totalReward + combat.consequence.playerReward,
       reputationChange: summary.reputationChange + combat.consequence.reputationChange,
-      healthChange: summary.healthChange + combat.consequence.healthChange,
-      energyChange: summary.energyChange + combat.consequence.energyChange,
-      moraleChange: summary.moraleChange + combat.consequence.moraleChange,
       wins: summary.wins + (combat.consequence.didPlayerWin ? 1 : 0),
       losses: summary.losses + (combat.consequence.didPlayerWin ? 0 : 1),
     }),
     {
       totalReward: 0,
       reputationChange: 0,
-      healthChange: 0,
-      energyChange: 0,
-      moraleChange: 0,
       wins: 0,
       losses: 0,
     },

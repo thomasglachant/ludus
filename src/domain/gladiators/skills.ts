@@ -9,6 +9,7 @@ export const GLADIATOR_CLASS_BY_DOMINANT_SKILL = {
   strength: 'murmillo',
   agility: 'retiarius',
   defense: 'secutor',
+  life: 'murmillo',
 } as const satisfies Record<GladiatorSkillName, GladiatorClassId>;
 
 const SKILL_MINIMUM = GAME_BALANCE.gladiators.skills.minimum;

@@ -5,6 +5,7 @@ import {
   calculateBuildingEfficiency,
   updateBuildingEfficiencies,
 } from '../buildings/building-staffing';
+import { hasActiveWeeklyInjury } from '../gladiators/injuries';
 import { addSkillTrainingProgress } from '../gladiators/skills';
 import type { Gladiator } from '../gladiators/types';
 import { createMarketState } from '../market/market-actions';
@@ -64,18 +65,12 @@ interface DailyGladiatorResolutionResult {
 
 interface DailyGladiatorModifiers {
   careEfficiency: number;
-  careHealthPerPoint: number;
-  dormitoryEfficiency: number;
   foodEfficiency: number;
   injuryRiskReductionPercent: number;
-  leisureMoralePerPoint: number;
-  leisureEfficiency: number;
-  sleepEnergyPerPoint: number;
   trainingAgilityProgressBonusPercent: number;
   trainingDefenseProgressBonusPercent: number;
-  trainingEnergyCostPerPoint: number;
   trainingEfficiency: number;
-  trainingMoraleCostPerPoint: number;
+  trainingLifeProgressBonusPercent: number;
   trainingStrengthProgressBonusPercent: number;
 }
 
@@ -94,10 +89,6 @@ const dailyActivityDefaults: DailyPlanPoints = {
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value));
-}
-
-function roundStat(value: number) {
-  return Math.round(value);
 }
 
 function createEmptyPoints(): DailyPlanPoints {
@@ -211,15 +202,8 @@ function getPercentMultiplier(percent: number) {
   return Math.max(0, 1 + percent / 100);
 }
 
-function hasActiveWeeklyInjury(gladiator: Gladiator, year: number, week: number) {
-  return gladiator.weeklyInjury?.year === year && gladiator.weeklyInjury.week === week;
-}
-
 function canGladiatorPerformPhysicalActivities(gladiator: Gladiator, year: number, week: number) {
-  return (
-    !hasActiveWeeklyInjury(gladiator, year, week) &&
-    gladiator.health >= GAME_BALANCE.macroSimulation.physicalActivityHealthThreshold
-  );
+  return !hasActiveWeeklyInjury(gladiator, year, week);
 }
 
 function getExpenseMultiplier(reductionPercent: number) {
@@ -306,32 +290,15 @@ function applyDailyGladiatorEffects(
   const trainingPoints = canTrain ? plan.gladiatorTimePoints.training : 0;
   const sleepPoints = plan.gladiatorTimePoints.sleep;
   const mealPoints = plan.gladiatorTimePoints.meals;
-  const leisurePoints = plan.gladiatorTimePoints.leisure;
   const carePoints = plan.gladiatorTimePoints.care;
-  const foodDelta =
+  const insufficientFoodPenalty =
     mealPoints < GAME_BALANCE.macroSimulation.minimumMealPoints
-      ? -GAME_BALANCE.macroSimulation.insufficientFoodPenalty
-      : mealPoints > GAME_BALANCE.macroSimulation.idealMealPoints
-        ? Math.min(
-            mealPoints - GAME_BALANCE.macroSimulation.idealMealPoints,
-            GAME_BALANCE.macroSimulation.maximumMealBonusPoints -
-              GAME_BALANCE.macroSimulation.idealMealPoints,
-          ) *
-          2 *
-          modifiers.foodEfficiency
-        : 0;
-  const sleepDelta =
+      ? GAME_BALANCE.macroSimulation.insufficientFoodPenalty
+      : 0;
+  const insufficientSleepPenalty =
     sleepPoints < GAME_BALANCE.macroSimulation.minimumSleepPoints
-      ? -GAME_BALANCE.macroSimulation.insufficientSleepPenalty
-      : sleepPoints > GAME_BALANCE.macroSimulation.idealSleepPoints
-        ? Math.min(
-            sleepPoints - GAME_BALANCE.macroSimulation.idealSleepPoints,
-            GAME_BALANCE.macroSimulation.maximumSleepBonusPoints -
-              GAME_BALANCE.macroSimulation.idealSleepPoints,
-          ) *
-          3 *
-          modifiers.dormitoryEfficiency
-        : 0;
+      ? GAME_BALANCE.macroSimulation.insufficientSleepPenalty
+      : 0;
   const overtrainingPenalty = Math.max(0, trainingPoints - 4);
   const injuryChance =
     trainingPoints *
@@ -347,9 +314,13 @@ function applyDailyGladiatorEffects(
     skillGain * 0.55 * getPercentMultiplier(modifiers.trainingAgilityProgressBonusPercent);
   const defenseGain =
     skillGain * 0.45 * getPercentMultiplier(modifiers.trainingDefenseProgressBonusPercent);
-  const trainingEnergyCost =
-    trainingPoints * (5 + Math.max(0, modifiers.trainingEnergyCostPerPoint));
-  const trainingMoraleCost = trainingPoints * Math.max(0, modifiers.trainingMoraleCostPerPoint);
+  const lifeGain =
+    skillGain * 0.35 * getPercentMultiplier(modifiers.trainingLifeProgressBonusPercent);
+  const lifePenalty =
+    insufficientFoodPenalty +
+    insufficientSleepPenalty +
+    overtrainingPenalty * 4 +
+    (isInjured ? 16 : 0);
 
   return {
     gladiator: {
@@ -358,38 +329,7 @@ function applyDailyGladiatorEffects(
       strength: addSkillTrainingProgress(gladiator.strength, strengthGain),
       agility: addSkillTrainingProgress(gladiator.agility, agilityGain),
       defense: addSkillTrainingProgress(gladiator.defense, defenseGain),
-      health: roundStat(
-        clamp(
-          gladiator.health +
-            foodDelta +
-            carePoints * (3 * modifiers.careEfficiency + modifiers.careHealthPerPoint) -
-            overtrainingPenalty * 4 -
-            (isInjured ? 24 : 0),
-          GAME_BALANCE.gladiators.gauges.minimumAliveHealth,
-          GAME_BALANCE.gladiators.gauges.maximum,
-        ),
-      ),
-      energy: roundStat(
-        clamp(
-          gladiator.energy +
-            sleepDelta +
-            sleepPoints * (2 * modifiers.dormitoryEfficiency + modifiers.sleepEnergyPerPoint) -
-            trainingEnergyCost,
-          GAME_BALANCE.gladiators.gauges.minimum,
-          GAME_BALANCE.gladiators.gauges.maximum,
-        ),
-      ),
-      morale: roundStat(
-        clamp(
-          gladiator.morale +
-            leisurePoints * (3 * modifiers.leisureEfficiency + modifiers.leisureMoralePerPoint) +
-            foodDelta -
-            overtrainingPenalty * 3 -
-            trainingMoraleCost,
-          GAME_BALANCE.gladiators.gauges.minimum,
-          GAME_BALANCE.gladiators.gauges.maximum,
-        ),
-      ),
+      life: addSkillTrainingProgress(gladiator.life, lifeGain - lifePenalty),
     },
     isInjured,
     isUnavailableForPhysicalActivities: !canTrain || isInjured,
@@ -426,15 +366,10 @@ function resolveDailyPlanInternal(
     calculateBuildingEfficiency(operationalSave, 'trainingGround') * 0.1;
   const modifiers: DailyGladiatorModifiers = {
     careEfficiency: getPurchasedBuildingMaxEfficiency(operationalSave, ['infirmary']),
-    careHealthPerPoint: getPlannedGladiatorsEffectValue(operationalSave, 'increaseHealth'),
-    dormitoryEfficiency: getPurchasedBuildingMaxEfficiency(operationalSave, ['dormitory']),
     foodEfficiency: getPurchasedBuildingMaxEfficiency(operationalSave, ['canteen']),
     injuryRiskReductionPercent:
       getAllGladiatorsEffectValue(operationalSave, 'reduceInjuryRisk') +
       buildingActivityImpact.injuryRiskReductionPercent,
-    leisureEfficiency: getPurchasedBuildingMaxEfficiency(operationalSave, ['pleasureHall']),
-    leisureMoralePerPoint: getPlannedGladiatorsEffectValue(operationalSave, 'increaseMorale'),
-    sleepEnergyPerPoint: getPlannedGladiatorsEffectValue(operationalSave, 'increaseEnergy'),
     trainingAgilityProgressBonusPercent: getPlannedGladiatorsEffectValue(
       operationalSave,
       'increaseAgility',
@@ -443,9 +378,11 @@ function resolveDailyPlanInternal(
       operationalSave,
       'increaseDefense',
     ),
-    trainingEnergyCostPerPoint: getPlannedGladiatorsEffectValue(operationalSave, 'decreaseEnergy'),
     trainingEfficiency,
-    trainingMoraleCostPerPoint: getPlannedGladiatorsEffectValue(operationalSave, 'decreaseMorale'),
+    trainingLifeProgressBonusPercent: getPlannedGladiatorsEffectValue(
+      operationalSave,
+      'increaseLife',
+    ),
     trainingStrengthProgressBonusPercent: getPlannedGladiatorsEffectValue(
       operationalSave,
       'increaseStrength',

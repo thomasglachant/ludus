@@ -59,6 +59,7 @@ function createGeneratedStats(random: RandomSource) {
     strength: stats[0],
     agility: stats[1],
     defense: stats[2],
+    life: stats[3],
   };
 }
 
@@ -72,7 +73,8 @@ export function calculateGladiatorMarketPrice(gladiator: Gladiator) {
   const totalStats =
     getGladiatorEffectiveSkill(gladiator, 'strength') +
     getGladiatorEffectiveSkill(gladiator, 'agility') +
-    getGladiatorEffectiveSkill(gladiator, 'defense');
+    getGladiatorEffectiveSkill(gladiator, 'defense') +
+    getGladiatorEffectiveSkill(gladiator, 'life');
 
   return (
     MARKET_CONFIG.basePrice +
@@ -103,9 +105,7 @@ export function generateMarketGladiators(
       strength: stats.strength,
       agility: stats.agility,
       defense: stats.defense,
-      energy: GAME_BALANCE.gladiators.marketDefaults.energy,
-      health: GAME_BALANCE.gladiators.marketDefaults.health,
-      morale: GAME_BALANCE.gladiators.marketDefaults.morale,
+      life: stats.life,
       reputation,
       wins: GAME_BALANCE.gladiators.marketDefaults.wins,
       losses: GAME_BALANCE.gladiators.marketDefaults.losses,
@@ -208,9 +208,7 @@ export function buyMarketGladiator(save: GameSave, candidateId: string): MarketA
     strength: candidate.strength,
     agility: candidate.agility,
     defense: candidate.defense,
-    energy: candidate.energy,
-    health: candidate.health,
-    morale: candidate.morale,
+    life: candidate.life,
     reputation: candidate.reputation,
     wins: candidate.wins,
     losses: candidate.losses,

@@ -34,21 +34,9 @@ export function GladiatorsListPanel({ onClose, onOpenGladiator, save }: Gladiato
               },
               {
                 iconName: 'health',
-                id: 'health',
-                label: t('roster.healthShort'),
-                value: gladiator.health,
-              },
-              {
-                iconName: 'energy',
-                id: 'energy',
-                label: t('roster.energyShort'),
-                value: gladiator.energy,
-              },
-              {
-                iconName: 'morale',
-                id: 'morale',
-                label: t('roster.moraleShort'),
-                value: gladiator.morale,
+                id: 'life',
+                label: t('roster.lifeShort'),
+                value: Math.floor(gladiator.life),
               },
             ]}
             key={gladiator.id}

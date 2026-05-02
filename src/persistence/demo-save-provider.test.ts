@@ -107,12 +107,12 @@ describe('demo save definitions', () => {
         expect(gladiator.agility).toBeLessThanOrEqual(100);
         expect(gladiator.defense).toBeGreaterThanOrEqual(0);
         expect(gladiator.defense).toBeLessThanOrEqual(100);
-        expect(gladiator.health).toBeGreaterThanOrEqual(0);
-        expect(gladiator.health).toBeLessThanOrEqual(100);
-        expect(gladiator.energy).toBeGreaterThanOrEqual(0);
-        expect(gladiator.energy).toBeLessThanOrEqual(100);
-        expect(gladiator.morale).toBeGreaterThanOrEqual(0);
-        expect(gladiator.morale).toBeLessThanOrEqual(100);
+        expect(gladiator.life).toBeGreaterThanOrEqual(0);
+        expect(gladiator.life).toBeLessThanOrEqual(100);
+        expect(gladiator.life).toBeGreaterThanOrEqual(0);
+        expect(gladiator.life).toBeLessThanOrEqual(100);
+        expect(gladiator.life).toBeGreaterThanOrEqual(0);
+        expect(gladiator.life).toBeLessThanOrEqual(100);
       }
     }
   });

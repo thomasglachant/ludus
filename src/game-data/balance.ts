@@ -48,16 +48,16 @@ export const GAME_BALANCE = {
 
   gladiators: {
     gauges: {
-      // Minimum value for health, energy and morale gauges.
+      // Minimum value for temporary combat gauges.
       minimum: 0,
-      // Maximum value for health, energy and morale gauges.
+      // Maximum value for temporary combat gauges.
       maximum: 100,
       // Minimum health used when a combat participant must remain alive.
       minimumAliveHealth: 1,
     },
     skills: {
       // Skill names that can gain training progress.
-      names: ['strength', 'agility', 'defense'] as const,
+      names: ['strength', 'agility', 'defense', 'life'] as const,
       // Minimum stored skill value.
       minimum: 0,
       // Maximum stored skill value.
@@ -68,12 +68,6 @@ export const GAME_BALANCE = {
       maximumDisplayedProgress: 99,
     },
     marketDefaults: {
-      // Health assigned to newly generated market gladiators.
-      health: 100,
-      // Energy assigned to newly generated market gladiators.
-      energy: 100,
-      // Morale assigned to newly generated market gladiators.
-      morale: 100,
       // Reputation assigned to newly generated market gladiators.
       reputation: 0,
       // Wins assigned to newly generated market gladiators.
@@ -82,12 +76,6 @@ export const GAME_BALANCE = {
       losses: 0,
     },
     opponentDefaults: {
-      // Energy assigned to generated arena opponents.
-      energy: 100,
-      // Health assigned to generated arena opponents.
-      health: 100,
-      // Morale assigned to generated arena opponents.
-      morale: 75,
       // Wins assigned to generated arena opponents.
       wins: 0,
       // Losses assigned to generated arena opponents.
@@ -130,37 +118,35 @@ export const GAME_BALANCE = {
         6: { capacity: 6 },
       },
       dormitory: {
-        // Energy support granted by Dormitory level 1.
-        1: { energyPerPoint: 5 },
-        // Energy support granted by Dormitory level 2.
-        2: { energyPerPoint: 7 },
+        // Ludus happiness support granted by Dormitory level 1.
+        1: { happiness: 2 },
+        // Ludus happiness support granted by Dormitory level 2.
+        2: { happiness: 3 },
       },
       trainingGround: {
         1: {
           // Skill progress support granted by Training Ground level 1.
           skillProgressPerPoint: 1,
-          // Energy cost pressure applied by Training Ground level 1.
-          energyCostPerPoint: 4,
+          // Injury-risk pressure applied by Training Ground level 1.
+          injuryRiskPerPoint: 4,
         },
         2: {
           // Skill progress support granted by Training Ground level 2.
           skillProgressPerPoint: 2,
-          // Energy cost pressure applied by Training Ground level 2.
-          energyCostPerPoint: 4,
+          // Injury-risk pressure applied by Training Ground level 2.
+          injuryRiskPerPoint: 4,
         },
       },
       pleasureHall: {
-        // Morale support granted by Pleasure Hall level 1.
-        1: { moralePerPoint: 5 },
-        // Morale support granted by Pleasure Hall level 2.
-        2: { moralePerPoint: 7 },
+        // Ludus happiness support granted by Pleasure Hall level 1.
+        1: { happiness: 5 },
+        // Ludus happiness support granted by Pleasure Hall level 2.
+        2: { happiness: 7 },
       },
       infirmary: {
-        // Health support granted by Infirmary level 1.
-        1: { healthPerPoint: 10 },
+        // Injury-risk reduction granted by Infirmary level 1.
+        1: { injuryRiskReduction: 4 },
         2: {
-          // Health support granted by Infirmary level 2.
-          healthPerPoint: 10,
           // Injury-risk reduction granted by Infirmary level 2.
           injuryRiskReduction: 5,
         },
@@ -179,8 +165,6 @@ export const GAME_BALANCE = {
     idealSleepPoints: 4,
     maximumSleepBonusPoints: 5,
     trainingInjuryChancePerPoint: 0.015,
-    // Health below this value blocks physical training and gladiator contract participation.
-    physicalActivityHealthThreshold: 55,
     heavyScheduleHappinessPenalty: 2,
     insufficientFoodPenalty: 6,
     insufficientSleepPenalty: 8,
@@ -385,22 +369,20 @@ export const GAME_BALANCE = {
     minDamage: 1,
     // Upper clamp for resolved damage.
     maxDamage: 40,
-    // Portion of lost combat health restored when the player wins.
-    winnerHealthRecoveryRatio: 0.25,
-    // Minimum final health after losing a combat.
-    loserMinimumHealth: 1,
-    // Base energy spent by a fight before turn scaling.
-    baseEnergyCost: 12,
-    // Additional energy spent per combat turn.
-    energyCostPerTurn: 0.45,
-    // Lower clamp for fight energy cost.
-    minEnergyCost: 8,
-    // Upper clamp for fight energy cost.
-    maxEnergyCost: 34,
-    // Morale change applied after a win.
-    winnerMoraleChange: 15,
-    // Morale change applied after a loss.
-    loserMoraleChange: -8,
+    // Base combat health before life aptitude scaling.
+    baseHealth: 40,
+    // Combat health added per life aptitude point.
+    lifeHealthMultiplier: 4,
+    // Base combat energy before aptitude scaling.
+    baseEnergy: 35,
+    // Combat energy added per strength aptitude point.
+    strengthEnergyMultiplier: 1.2,
+    // Combat energy added per agility aptitude point.
+    agilityEnergyMultiplier: 1.6,
+    // Combat energy added per life aptitude point.
+    lifeEnergyMultiplier: 0.8,
+    // Baseline morale used only during combat resolution.
+    baseMorale: 70,
     // Reputation value of each win.
     winReputationValue: 10,
     // Reputation penalty of each loss.
@@ -460,11 +442,11 @@ export const GAME_BALANCE = {
     participantRating: {
       // Strength multiplier used by projected win chance.
       strengthWeight: 1.15,
-      // Health multiplier used by projected win chance.
+      // Combat health multiplier used by projected win chance.
       healthWeight: 0.24,
-      // Energy multiplier used by projected win chance.
+      // Combat energy multiplier used by projected win chance.
       energyWeight: 0.18,
-      // Morale multiplier used by projected win chance.
+      // Combat morale multiplier used by projected win chance.
       moraleWeight: 0.08,
     },
     projectedWinChance: {
@@ -472,25 +454,6 @@ export const GAME_BALANCE = {
       minimum: 0.15,
       // Upper clamp for projected player win chance used by arena odds.
       maximum: 0.85,
-    },
-  },
-
-  planning: {
-    thresholds: {
-      // Health value at or below which health is critical.
-      criticalHealth: 35,
-      // Health value at or below which health is low.
-      lowHealth: 55,
-      // Energy value at or below which energy is critical.
-      criticalEnergy: 30,
-      // Energy value at or below which energy is low.
-      lowEnergy: 50,
-      // Morale value at or below which morale is critical.
-      criticalMorale: 30,
-      // Morale value at or below which morale is low.
-      lowMorale: 50,
-      // Primary need value used by macro planning recommendations.
-      primaryNeedReassignment: 10,
     },
   },
 
@@ -515,8 +478,6 @@ export const GAME_BALANCE = {
       saturday: 0.1,
       sunday: 0,
     } satisfies Record<DayOfWeek, number>,
-    // Health threshold below which a gladiator counts as injured for events.
-    injuredHealthThreshold: 80,
     // Number of resolved or expired events kept in save history.
     resolvedEventHistoryLimit: 12,
   },

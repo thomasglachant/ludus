@@ -16,14 +16,10 @@ interface BuildingActionModalContentProps {
 }
 
 const effectIcons: Record<BuildingEffectType, GameIconName> = {
-  decreaseEnergy: 'energy',
-  decreaseMorale: 'morale',
   increaseAgility: 'agility',
   increaseCapacity: 'capacity',
   increaseDefense: 'defense',
-  increaseEnergy: 'energy',
-  increaseHealth: 'health',
-  increaseMorale: 'morale',
+  increaseLife: 'health',
   increaseReputation: 'reputation',
   increaseSecurity: 'defense',
   increaseHappiness: 'morale',

@@ -35,10 +35,10 @@ describe('building effects', () => {
     ]);
     expect(canteenTierTwoEffects).toEqual([
       { type: 'increaseHappiness', value: 1.5, target: 'ludus' },
-      { type: 'increaseHealth', value: 1.5, target: 'plannedGladiators' },
+      { type: 'increaseLife', value: 1.5, target: 'plannedGladiators' },
       { type: 'increaseIncome', value: 1, target: 'ludus' },
       { type: 'increaseProduction', value: 1, target: 'ludus' },
-      { type: 'increaseMorale', value: 1.5, target: 'plannedGladiators' },
+      { type: 'increaseHappiness', value: 1.5, target: 'ludus' },
     ]);
     expect(BUILDING_SKILLS.find((skill) => skill.id === 'domus.steward-desk')).toMatchObject({
       requiredSkillIds: ['domus.ledger-room', 'domus.contract-shelf', 'domus.staff-registry'],

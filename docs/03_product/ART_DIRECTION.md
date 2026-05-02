@@ -276,9 +276,9 @@ The combat presentation should include:
 
 - a full arena background with crowd and sand;
 - left and right combatant panels;
-- central fighter sprites with health bars;
+- central fighter sprites with combat-only health bars;
 - combat skills, condition, odds and core fighter attributes;
-- visible fatigue/energy feedback;
+- visible fatigue/energy feedback during combat only;
 - combat log progression;
 - result, reward and consequence summary.
 

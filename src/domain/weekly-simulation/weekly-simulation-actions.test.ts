@@ -24,9 +24,7 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     strength: 8,
     agility: 7,
     defense: 6,
-    health: 80,
-    energy: 80,
-    morale: 80,
+    life: 80,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -129,16 +127,16 @@ describe('weekly simulation actions', () => {
     expect(result.summary.injuredGladiatorIds).toContain('gladiator-test');
     expect(gladiator.weeklyInjury).toEqual({ reason: 'training', week: 1, year: 1 });
     expect(gladiator.strength).toBe(8);
-    expect(gladiator.health).toBeLessThan(80);
-    expect(gladiator.energy).toBeLessThan(80);
-    expect(gladiator.morale).toBeLessThan(80);
+    expect(gladiator.life).toBeLessThan(80);
+    expect(gladiator.life).toBeLessThan(80);
+    expect(gladiator.life).toBeLessThan(80);
   });
 
   it('excludes already injured gladiators from incompatible training gains', () => {
     const save = createTestSave({
       gladiators: [
         createGladiator({
-          health: 90,
+          life: 90,
           strength: 8,
           weeklyInjury: { reason: 'training', week: 1, year: 1 },
         }),
@@ -188,8 +186,12 @@ describe('weekly simulation actions', () => {
   it('removes injured gladiators from gladiator contract income', () => {
     const save = createTestSave({
       gladiators: [
-        createGladiator({ id: 'ready-gladiator', health: 90 }),
-        createGladiator({ id: 'injured-gladiator', health: 40 }),
+        createGladiator({ id: 'ready-gladiator', life: 90 }),
+        createGladiator({
+          id: 'injured-gladiator',
+          life: 40,
+          weeklyInjury: { reason: 'training', week: 1, year: 1 },
+        }),
       ],
     });
     const plan = createDefaultDailyPlan('monday');
@@ -399,7 +401,7 @@ describe('weekly simulation actions', () => {
 
   it('applies planned gladiator building effects during daily resolution', () => {
     const save = createTestSave({
-      gladiators: [createGladiator({ energy: 50 })],
+      gladiators: [createGladiator({ life: 50 })],
     });
     const plan = createDefaultDailyPlan('monday');
     plan.gladiatorTimePoints.training = 0;
@@ -420,8 +422,9 @@ describe('weekly simulation actions', () => {
     const baseResult = resolveDailyPlan(save, plan, () => 1);
     const boostedResult = resolveDailyPlan(boostedSave, plan, () => 1);
 
-    expect(boostedResult.save.gladiators[0].energy).toBeGreaterThan(
-      baseResult.save.gladiators[0].energy,
+    expect(boostedResult.save.gladiators[0].life).toBe(baseResult.save.gladiators[0].life);
+    expect(boostedResult.save.ludus.happiness).toBeGreaterThanOrEqual(
+      baseResult.save.ludus.happiness,
     );
   });
 

@@ -137,9 +137,9 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
             target: 'plannedGladiators',
           },
           {
-            type: 'decreaseEnergy',
-            value: GAME_BALANCE.buildings.levelEffects.trainingGround[1].energyCostPerPoint,
-            target: 'plannedGladiators',
+            type: 'reduceInjuryRisk',
+            value: GAME_BALANCE.buildings.levelEffects.trainingGround[1].injuryRiskPerPoint,
+            target: 'allGladiators',
           },
         ],
       },
@@ -154,9 +154,9 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
             target: 'plannedGladiators',
           },
           {
-            type: 'decreaseEnergy',
-            value: GAME_BALANCE.buildings.levelEffects.trainingGround[2].energyCostPerPoint,
-            target: 'plannedGladiators',
+            type: 'reduceInjuryRisk',
+            value: GAME_BALANCE.buildings.levelEffects.trainingGround[2].injuryRiskPerPoint,
+            target: 'allGladiators',
           },
         ],
       },
@@ -203,9 +203,9 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         requiredDomusLevel: 1,
         effects: [
           {
-            type: 'increaseEnergy',
-            value: GAME_BALANCE.buildings.levelEffects.dormitory[1].energyPerPoint,
-            target: 'plannedGladiators',
+            type: 'increaseHappiness',
+            value: GAME_BALANCE.buildings.levelEffects.dormitory[1].happiness,
+            target: 'ludus',
           },
         ],
       },
@@ -215,9 +215,9 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         requiredDomusLevel: 2,
         effects: [
           {
-            type: 'increaseEnergy',
-            value: GAME_BALANCE.buildings.levelEffects.dormitory[2].energyPerPoint,
-            target: 'plannedGladiators',
+            type: 'increaseHappiness',
+            value: GAME_BALANCE.buildings.levelEffects.dormitory[2].happiness,
+            target: 'ludus',
           },
         ],
       },
@@ -242,9 +242,9 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         requiredDomusLevel: 1,
         effects: [
           {
-            type: 'increaseHealth',
-            value: GAME_BALANCE.buildings.levelEffects.infirmary[1].healthPerPoint,
-            target: 'plannedGladiators',
+            type: 'reduceInjuryRisk',
+            value: GAME_BALANCE.buildings.levelEffects.infirmary[1].injuryRiskReduction,
+            target: 'allGladiators',
           },
         ],
       },
@@ -253,11 +253,6 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         upgradeCost: calculateBuildingUpgradeCost(2),
         requiredDomusLevel: 2,
         effects: [
-          {
-            type: 'increaseHealth',
-            value: GAME_BALANCE.buildings.levelEffects.infirmary[2].healthPerPoint,
-            target: 'plannedGladiators',
-          },
           {
             type: 'reduceInjuryRisk',
             value: GAME_BALANCE.buildings.levelEffects.infirmary[2].injuryRiskReduction,
@@ -293,7 +288,7 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
       'pleasureHall',
       160,
       2,
-      [{ type: 'increaseMorale', value: 5, target: 'plannedGladiators' }],
+      [{ type: 'increaseHappiness', value: 5, target: 'ludus' }],
       'slave',
     ),
     startsPurchased: false,

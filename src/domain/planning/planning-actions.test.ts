@@ -27,9 +27,7 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     strength: 7,
     agility: 6,
     defense: 7,
-    energy: 80,
-    health: 85,
-    morale: 75,
+    life: 85,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -77,8 +75,7 @@ describe('planning actions', () => {
     const save = synchronizePlanning(
       withGladiators(createTestSave(), [
         createGladiator({
-          health: 30,
-          energy: 45,
+          weeklyInjury: { reason: 'training', week: 1, year: 1 },
         }),
       ]),
     );
@@ -92,17 +89,27 @@ describe('planning actions', () => {
     expect(save.planning.alerts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          severity: 'critical',
-          titleKey: 'alerts.criticalHealth.title',
-          buildingId: 'infirmary',
-        }),
-        expect.objectContaining({
           severity: 'warning',
-          titleKey: 'alerts.lowEnergy.title',
-          buildingId: 'dormitory',
+          titleKey: 'alerts.injury.title',
+          buildingId: 'infirmary',
         }),
       ]),
     );
+  });
+
+  it('ignores stale weekly injuries when generating alerts and recommendations', () => {
+    const save = synchronizePlanning(
+      withGladiators(createTestSave(), [
+        createGladiator({
+          weeklyInjury: { reason: 'training', week: 8, year: 0 },
+        }),
+      ]),
+    );
+
+    expect(save.planning.alerts).toEqual([]);
+    expect(getPlanningRecommendation(save, save.gladiators[0])).toMatchObject({
+      buildingId: 'trainingGround',
+    });
   });
 
   it('recommends the right building without assigning per-character routine tasks', () => {
@@ -110,7 +117,7 @@ describe('planning actions', () => {
       withPurchasedBuildings(
         withGladiators(createTestSave(), [
           createGladiator({
-            health: 40,
+            weeklyInjury: { reason: 'training', week: 1, year: 1 },
           }),
         ]),
         ['infirmary'],
@@ -140,7 +147,7 @@ describe('planning actions', () => {
         },
         [
           createGladiator({
-            health: 40,
+            weeklyInjury: { reason: 'training', week: 1, year: 1 },
           }),
         ],
       ),
@@ -154,20 +161,16 @@ describe('planning actions', () => {
 
   it('uses macro needs before default training recommendations', () => {
     const save = synchronizePlanning(
-      withPurchasedBuildings(
-        withGladiators(createTestSave(), [
-          createGladiator({
-            energy: 10,
-            morale: 10,
-          }),
-        ]),
-        ['dormitory', 'pleasureHall', 'trainingGround'],
-      ),
+      withPurchasedBuildings(withGladiators(createTestSave(), [createGladiator({})]), [
+        'dormitory',
+        'pleasureHall',
+        'trainingGround',
+      ]),
     );
 
     expect(getPlanningRecommendation(save, save.gladiators[0])).toMatchObject({
-      buildingId: 'dormitory',
-      reasonKey: 'weeklyPlan.recommendations.energy',
+      buildingId: 'trainingGround',
+      reasonKey: 'weeklyPlan.recommendations.balanced',
     });
   });
 

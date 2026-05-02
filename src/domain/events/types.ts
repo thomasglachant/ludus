@@ -66,12 +66,9 @@ export type GameEventEffect =
   | { type: 'changeLudusRebellion'; amount: number }
   | { type: 'removeGladiator'; gladiatorId: string }
   | { type: 'releaseAllGladiators' }
-  | { type: 'changeGladiatorHealth'; gladiatorId: string; amount: number }
-  | { type: 'changeGladiatorEnergy'; gladiatorId: string; amount: number }
-  | { type: 'changeGladiatorMorale'; gladiatorId: string; amount: number }
   | {
       type: 'changeGladiatorStat';
       gladiatorId: string;
-      stat: 'strength' | 'agility' | 'defense';
+      stat: 'strength' | 'agility' | 'defense' | 'life';
       amount: number;
     };

@@ -234,10 +234,7 @@ export function WeeklyPlanningPanel({
 }: WeeklyPlanningPanelProps) {
   const { t } = useUiStore();
   const statuses = getGladiatorPlanningStatuses(save);
-  const atRiskStatuses = statuses.filter(
-    (status) =>
-      status.gladiator.health < 50 || status.gladiator.energy < 50 || status.gladiator.morale < 45,
-  );
+  const atRiskStatuses = statuses.filter((status) => status.gladiator.weeklyInjury);
   const weeklyProjection = projectWeeklyPlan(save);
   const latestCompletedReport =
     save.time.phase === 'report' ? getLatestCompletedReport(save) : null;
@@ -486,16 +483,8 @@ export function WeeklyPlanningPanel({
               </div>
               <dl className="planning-projection">
                 <div>
-                  <dt>{t('market.stats.health')}</dt>
-                  <dd>{status.gladiator.health}</dd>
-                </div>
-                <div>
-                  <dt>{t('market.stats.energy')}</dt>
-                  <dd>{status.gladiator.energy}</dd>
-                </div>
-                <div>
-                  <dt>{t('market.stats.morale')}</dt>
-                  <dd>{status.gladiator.morale}</dd>
+                  <dt>{t('market.stats.life')}</dt>
+                  <dd>{Math.floor(status.gladiator.life)}</dd>
                 </div>
                 <div>
                   <dt>{t('weeklyPlan.suggestedAssignment')}</dt>

@@ -34,9 +34,7 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     strength: 20,
     agility: 18,
     defense: 18,
-    energy: 90,
-    health: 100,
-    morale: 70,
+    life: 100,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -180,10 +178,9 @@ describe('combat actions', () => {
     expect(gladiator).toMatchObject({
       wins: 1,
       losses: 0,
-      morale: 85,
       reputation: 10,
     });
-    expect(gladiator.energy).toBeLessThan(90);
+    expect(gladiator.life).toBe(save.gladiators[0].life);
     expect(resolved.ludus.treasury).toBe(
       save.ludus.treasury + resolved.arena.resolvedCombats[0].reward.winnerReward,
     );
@@ -215,7 +212,7 @@ describe('combat actions', () => {
   });
 
   it('activates an empty Sunday arena day without rewards when no gladiator is eligible', () => {
-    const save = withSundayArena(createTestSave(), [createGladiator({ health: 0 })]);
+    const save = withSundayArena(createTestSave(), [createGladiator({ life: 0 })]);
     const resolved = resolveArenaDay(save, () => 0);
 
     expect(resolved.arena).toMatchObject({
@@ -227,13 +224,24 @@ describe('combat actions', () => {
     expect(resolved.gladiators[0].wins + resolved.gladiators[0].losses).toBe(0);
   });
 
+  it('excludes gladiators with an active weekly injury from Sunday combat', () => {
+    const save = withSundayArena(createTestSave(), [
+      createGladiator({ weeklyInjury: { reason: 'training', week: 1, year: 1 } }),
+    ]);
+    const resolved = resolveArenaDay(save, () => 0);
+
+    expect(resolved.arena.resolvedCombats).toEqual([]);
+    expect(resolved.gladiators[0]).toMatchObject({ wins: 0, losses: 0, reputation: 0 });
+    expect(resolved.ludus.treasury).toBe(save.ludus.treasury);
+  });
+
   it('applies loss consequences without a participation reward', () => {
     const save = withSundayArena(createTestSave(), [
       createGladiator({
         strength: 3,
         agility: 3,
         defense: 3,
-        health: 30,
+        life: 30,
       }),
     ]);
     const resolved = resolveArenaDay(save, () => 0);
@@ -246,7 +254,6 @@ describe('combat actions', () => {
     expect(gladiator).toMatchObject({
       wins: 0,
       losses: 1,
-      morale: 62,
       reputation: 0,
     });
   });
@@ -257,7 +264,7 @@ describe('combat actions', () => {
         strength: 3,
         agility: 3,
         defense: 3,
-        health: 30,
+        life: 30,
         reputation: 20,
       }),
     ]);

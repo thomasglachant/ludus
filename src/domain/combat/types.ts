@@ -31,12 +31,26 @@ export interface CombatState {
   id: string;
   gladiator: Gladiator;
   opponent: Gladiator;
+  gauges: CombatGauges;
   rank: ArenaRank;
   turns: CombatTurn[];
   winnerId?: string;
   loserId?: string;
   reward: CombatReward;
   consequence: CombatConsequence;
+}
+
+export interface CombatParticipantGauges {
+  maxHealth: number;
+  health: number;
+  maxEnergy: number;
+  energy: number;
+  morale: number;
+}
+
+export interface CombatGauges {
+  player: CombatParticipantGauges;
+  opponent: CombatParticipantGauges;
 }
 
 export interface CombatTurn {
@@ -65,12 +79,6 @@ export interface CombatReward {
 export interface CombatConsequence {
   didPlayerWin: boolean;
   playerReward: number;
-  healthChange: number;
-  energyChange: number;
-  moraleChange: number;
   reputationChange: number;
-  finalHealth: number;
-  finalEnergy: number;
-  finalMorale: number;
   finalReputation: number;
 }

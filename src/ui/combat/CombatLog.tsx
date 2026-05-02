@@ -33,11 +33,8 @@ interface CombatLogTurnViewModel {
 }
 
 interface CombatResultColumnViewModel {
-  energyChange: number;
   gladiator: Gladiator;
-  healthChange: number;
   isWinner: boolean;
-  moraleChange?: number;
   reputationChange?: number;
   reward: number;
   side: CombatLogSide;
@@ -57,19 +54,14 @@ function getCombatResultColumns(viewModel: CombatReplayViewModel): CombatResultC
 
   return [
     {
-      energyChange: viewModel.consequence.energyChange,
       gladiator: player,
-      healthChange: viewModel.consequence.healthChange,
       isWinner: viewModel.combat.winnerId === player.id,
-      moraleChange: viewModel.consequence.moraleChange,
       reputationChange: viewModel.consequence.reputationChange,
       reward: getCombatantReward(viewModel, player.id),
       side: 'left',
     },
     {
-      energyChange: viewModel.opponent.energy - opponent.energy,
       gladiator: opponent,
-      healthChange: viewModel.opponent.health - opponent.health,
       isWinner: viewModel.combat.winnerId === opponent.id,
       reward: getCombatantReward(viewModel, opponent.id),
       side: 'right',
@@ -84,24 +76,15 @@ function getTurnParticipantSide(
   return viewModel.combat.gladiator.id === combatantId ? 'left' : 'right';
 }
 
-function getTurnEnergyLoss(viewModel: CombatReplayViewModel, turnIndex: number) {
-  const totalEnergyCost = Math.abs(Math.round(viewModel.consequence.energyChange));
-  const totalTurns = Math.max(1, viewModel.combat.turns.length);
-  const baseLoss = Math.floor(totalEnergyCost / totalTurns);
-  const remainder = totalEnergyCost % totalTurns;
-
-  return baseLoss + (turnIndex < remainder ? 1 : 0);
-}
-
 function getCombatLogTurns(viewModel: CombatReplayViewModel): CombatLogTurnViewModel[] {
-  return viewModel.visibleTurns.map((turn, turnIndex) => {
+  return viewModel.visibleTurns.map((turn) => {
     const attackerSide = getTurnParticipantSide(viewModel, turn.attackerId);
     const defenderSide = getTurnParticipantSide(viewModel, turn.defenderId);
 
     return {
       attackerSide,
       defenderSide,
-      energyLoss: getTurnEnergyLoss(viewModel, turnIndex),
+      energyLoss: 1,
       healthDamage: turn.damage,
       isHit: turn.didHit,
       left: {
@@ -189,14 +172,16 @@ function CombatantTurnColumn({
                 <small>{t('combatScreen.logImpact.attackerAttack')}</small>
               </span>
             </span>
-            <ImpactIndicator
-              amount={-turn.energyLoss}
-              kind="energy"
-              label={t('combatScreen.logImpact.energySpent', {
-                fighter: combatant.gladiator.name,
-              })}
-              size="sm"
-            />
+            {turn.energyLoss > 0 ? (
+              <ImpactIndicator
+                amount={-turn.energyLoss}
+                kind="energy"
+                label={t('combatScreen.logImpact.energySpent', {
+                  fighter: combatant.gladiator.name,
+                })}
+                size="sm"
+              />
+            ) : null}
           </>
         ) : null}
         {isDefender && turn.isHit ? (
@@ -217,14 +202,6 @@ function CombatantTurnColumn({
                 <small>{t('combatScreen.logImpact.dodged')}</small>
               </span>
             </span>
-            <ImpactIndicator
-              amount={-turn.energyLoss}
-              kind="energy"
-              label={t('combatScreen.logImpact.energySpent', {
-                fighter: combatant.gladiator.name,
-              })}
-              size="sm"
-            />
           </>
         ) : null}
       </div>
@@ -264,28 +241,6 @@ function CombatResultColumn({ result }: { result: CombatResultColumnViewModel })
             kind: 'treasury',
             label: t('arena.rewardReceived'),
           },
-          {
-            amount: result.healthChange,
-            id: 'health',
-            kind: 'health',
-            label: t('arena.healthChange'),
-          },
-          {
-            amount: result.energyChange,
-            id: 'energy',
-            kind: 'energy',
-            label: t('arena.energyChange'),
-          },
-          ...(result.moraleChange === undefined
-            ? []
-            : [
-                {
-                  amount: result.moraleChange,
-                  id: 'morale',
-                  kind: 'morale' as const,
-                  label: t('arena.moraleChange'),
-                },
-              ]),
           ...(result.reputationChange === undefined
             ? []
             : [

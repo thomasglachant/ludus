@@ -61,20 +61,8 @@ function getEventImpactItem(
     case 'removeGladiator':
     case 'releaseAllGladiators':
       return undefined;
-    case 'changeGladiatorHealth':
-      kind = 'health';
-      labelKey = 'roster.healthShort';
-      break;
-    case 'changeGladiatorEnergy':
-      kind = 'energy';
-      labelKey = 'roster.energyShort';
-      break;
-    case 'changeGladiatorMorale':
-      kind = 'morale';
-      labelKey = 'roster.moraleShort';
-      break;
     case 'changeGladiatorStat':
-      kind = effect.stat;
+      kind = effect.stat === 'life' ? 'health' : effect.stat;
       labelKey = `events.effect.stat.${effect.stat}`;
       break;
   }

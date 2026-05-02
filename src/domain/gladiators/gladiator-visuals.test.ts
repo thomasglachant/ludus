@@ -16,20 +16,26 @@ import { inferGladiatorClassId } from './skills';
 
 describe('gladiator class visuals', () => {
   it('infers classes from dominant gladiator skills', () => {
-    expect(inferGladiatorClassId({ strength: 9, agility: 4, defense: 4 })).toBe('murmillo');
-    expect(inferGladiatorClassId({ strength: 4, agility: 9, defense: 4 })).toBe('retiarius');
-    expect(inferGladiatorClassId({ strength: 4, agility: 4, defense: 9 })).toBe('secutor');
+    expect(inferGladiatorClassId({ strength: 9, agility: 4, defense: 4, life: 4 })).toBe(
+      'murmillo',
+    );
+    expect(inferGladiatorClassId({ strength: 4, agility: 9, defense: 4, life: 4 })).toBe(
+      'retiarius',
+    );
+    expect(inferGladiatorClassId({ strength: 4, agility: 4, defense: 9, life: 4 })).toBe('secutor');
   });
 
   it('keeps the existing strength priority when dominant skills tie', () => {
-    expect(inferGladiatorClassId({ strength: 7, agility: 7, defense: 7 })).toBe('murmillo');
+    expect(inferGladiatorClassId({ strength: 7, agility: 7, defense: 7, life: 7 })).toBe(
+      'murmillo',
+    );
   });
 
   it('uses one logical visual asset id for each inferred class', () => {
     const classProfiles: Record<string, GladiatorSkillProfile> = {
-      murmillo: { strength: 9, agility: 4, defense: 4 },
-      retiarius: { strength: 4, agility: 9, defense: 4 },
-      secutor: { strength: 4, agility: 4, defense: 9 },
+      murmillo: { strength: 9, agility: 4, defense: 4, life: 4 },
+      retiarius: { strength: 4, agility: 9, defense: 4, life: 4 },
+      secutor: { strength: 4, agility: 4, defense: 9, life: 4 },
     };
     const assetIds = Object.values(GLADIATOR_CLASS_VISUAL_ASSET_IDS);
 
@@ -48,7 +54,7 @@ describe('gladiator class visuals', () => {
 
   it('uses the class portrait asset while sprites fall back to the mapped class asset set', () => {
     const visualIdentity = createGladiatorVisualIdentity('retiarius-seed', {
-      skillProfile: { strength: 4, agility: 9, defense: 4 },
+      skillProfile: { strength: 4, agility: 9, defense: 4, life: 4 },
     });
 
     expect(getGladiatorPortraitAssetPath(visualIdentity)).toBe(
@@ -70,7 +76,7 @@ describe('gladiator class visuals', () => {
       spriteAssetId: 'gladiator-10',
     };
     const visualIdentity = getGladiatorVisualIdentity('legacy-seed', legacyVisualIdentity, {
-      skillProfile: { strength: 4, agility: 4, defense: 9 },
+      skillProfile: { strength: 4, agility: 4, defense: 9, life: 4 },
     });
 
     expect(visualIdentity.classId).toBe('secutor');

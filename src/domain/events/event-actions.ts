@@ -16,6 +16,7 @@ import {
   updateCurrentWeekSummary,
 } from '../economy/economy-actions';
 import type { Gladiator } from '../gladiators/types';
+import { hasActiveWeeklyInjury } from '../gladiators/injuries';
 import { addSkillLevels } from '../gladiators/skills';
 import type { DailyPlan, DailyPlanActivity } from '../planning/types';
 import type { GameSave } from '../saves/types';
@@ -41,14 +42,6 @@ export interface EventActionResult {
   save: GameSave;
   validation: EventActionValidation;
 }
-
-type GladiatorNumericField = 'strength' | 'agility' | 'defense' | 'energy' | 'health' | 'morale';
-
-const eventEffectFieldByType: Partial<Record<GameEventEffect['type'], GladiatorNumericField>> = {
-  changeGladiatorHealth: 'health',
-  changeGladiatorEnergy: 'energy',
-  changeGladiatorMorale: 'morale',
-};
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -158,8 +151,8 @@ function canUseDefinition(save: GameSave, definition: DailyEventDefinition) {
   }
 
   if (definition.gladiatorSelector === 'injured') {
-    return save.gladiators.some(
-      (gladiator) => gladiator.health < EVENT_CONFIG.injuredHealthThreshold,
+    return save.gladiators.some((gladiator) =>
+      hasActiveWeeklyInjury(gladiator, save.time.year, save.time.week),
     );
   }
 
@@ -224,8 +217,8 @@ function selectGladiator(
 
   const candidates =
     definition.gladiatorSelector === 'injured'
-      ? save.gladiators.filter(
-          (gladiator) => gladiator.health < EVENT_CONFIG.injuredHealthThreshold,
+      ? save.gladiators.filter((gladiator) =>
+          hasActiveWeeklyInjury(gladiator, save.time.year, save.time.week),
         )
       : save.gladiators;
 
@@ -243,16 +236,12 @@ function resolveEffectTemplate(
   switch (template.type) {
     case 'changeSelectedGladiatorHealth':
       return gladiatorId
-        ? { type: 'changeGladiatorHealth', gladiatorId, amount: template.amount }
-        : null;
+        ? { type: 'changeGladiatorStat', gladiatorId, stat: 'life', amount: template.amount }
+        : { type: 'changeLudusHappiness', amount: Math.round(template.amount / 3) };
     case 'changeSelectedGladiatorEnergy':
-      return gladiatorId
-        ? { type: 'changeGladiatorEnergy', gladiatorId, amount: template.amount }
-        : null;
+      return { type: 'changeLudusHappiness', amount: Math.round(template.amount / 3) };
     case 'changeSelectedGladiatorMorale':
-      return gladiatorId
-        ? { type: 'changeGladiatorMorale', gladiatorId, amount: template.amount }
-        : null;
+      return { type: 'changeLudusHappiness', amount: template.amount };
     case 'changeSelectedGladiatorStat':
       return gladiatorId
         ? {
@@ -575,27 +564,7 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
     };
   }
 
-  const field = eventEffectFieldByType[effect.type];
-
-  if (!field) {
-    return save;
-  }
-
-  return {
-    ...save,
-    gladiators: save.gladiators.map((gladiator) =>
-      gladiator.id === effect.gladiatorId
-        ? {
-            ...gladiator,
-            [field]: clamp(
-              gladiator[field] + effect.amount,
-              GAME_BALANCE.gladiators.gauges.minimum,
-              GAME_BALANCE.gladiators.gauges.maximum,
-            ),
-          }
-        : gladiator,
-    ),
-  };
+  return save;
 }
 
 function applyOutcomeEffects(save: GameSave, outcome: GameEventOutcome, labelKey: string) {

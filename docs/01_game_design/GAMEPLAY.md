@@ -39,7 +39,7 @@ Daily activities are:
 - `maintenance`;
 - `events`.
 
-The default planning baseline is 12 gladiator time points per day. Food and sleep have minimum and ideal values. Under-allocation creates capped penalties. Overtraining increases fatigue, injury risk and unhappiness. Gladiators below the physical activity health threshold are unavailable for training and gladiator contract participation until their health recovers. Training injuries also create a weekly injury state that blocks physical activity until the next week begins.
+The default planning baseline is 12 gladiator time points per day. Food and sleep have minimum and ideal values. Under-allocation creates capped penalties. Overtraining increases injury risk and unhappiness. Training injuries create a weekly injury state that blocks physical activity and gladiator contract participation until the next week begins. Gladiator health, energy and morale are not daily attributes; they are temporary combat gauges calculated at fight start from aptitudes, especially life.
 
 Point buckets are budgeted and clamped by the domain: 12 gladiator time points, 8 labor points and 6 administration points per day. The planning UI previews daily and weekly projected deltas before the week is resolved.
 

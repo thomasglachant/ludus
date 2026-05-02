@@ -53,6 +53,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       strength: gladiator.strength,
       agility: gladiator.agility,
       defense: gladiator.defense,
+      life: gladiator.life,
     };
 
     return {
@@ -62,9 +63,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       strength: gladiator.strength,
       agility: gladiator.agility,
       defense: gladiator.defense,
-      energy: gladiator.energy,
-      health: gladiator.health,
-      morale: gladiator.morale,
+      life: gladiator.life,
       reputation: gladiator.reputation,
       wins: gladiator.wins,
       losses: gladiator.losses,
@@ -135,13 +134,11 @@ export function createMarketGladiator(gladiator: Gladiator & { price: number }):
     strength: gladiator.strength,
     agility: gladiator.agility,
     defense: gladiator.defense,
+    life: gladiator.life,
   };
 
   return {
     ...gladiator,
-    health: 100,
-    energy: 100,
-    morale: 100,
     visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, {
       skillProfile,
     }),

@@ -11,7 +11,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.strawBeds.description',
     cost: 70,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseEnergy', value: 1, target: 'plannedGladiators' }],
+    effects: [{ type: 'increaseHappiness', value: 5, target: 'ludus' }],
   },
   {
     id: 'woodenBeds',
@@ -21,7 +21,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     cost: 130,
     requiredBuildingLevel: 1,
     requiredImprovementIds: ['strawBeds'],
-    effects: [{ type: 'increaseEnergy', value: 2, target: 'plannedGladiators' }],
+    effects: [{ type: 'increaseHappiness', value: 8, target: 'ludus' }],
   },
   {
     id: 'quietQuarters',
@@ -30,7 +30,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.quietQuarters.description',
     cost: 150,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseMorale', value: 1, target: 'plannedGladiators' }],
+    effects: [{ type: 'increaseHappiness', value: 5, target: 'ludus' }],
   },
   {
     id: 'sparringRing',
@@ -57,7 +57,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.gameTables.description',
     cost: 90,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseMorale', value: 2, target: 'plannedGladiators' }],
+    effects: [{ type: 'increaseHappiness', value: 2, target: 'ludus' }],
   },
   {
     id: 'musicians',
@@ -66,7 +66,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.musicians.description',
     cost: 160,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseMorale', value: 1, target: 'allGladiators' }],
+    effects: [{ type: 'increaseHappiness', value: 1, target: 'ludus' }],
   },
   {
     id: 'privateRooms',
@@ -75,7 +75,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.privateRooms.description',
     cost: 210,
     requiredBuildingLevel: 2,
-    effects: [{ type: 'increaseMorale', value: 3, target: 'plannedGladiators' }],
+    effects: [{ type: 'increaseHappiness', value: 3, target: 'ludus' }],
   },
   {
     id: 'cleanBandages',
@@ -84,7 +84,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.cleanBandages.description',
     cost: 100,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseHealth', value: 2, target: 'plannedGladiators' }],
+    effects: [{ type: 'reduceInjuryRisk', value: 2, target: 'allGladiators' }],
   },
   {
     id: 'herbalStock',
@@ -93,7 +93,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.herbalStock.description',
     cost: 150,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseHealth', value: 1, target: 'allGladiators' }],
+    effects: [{ type: 'reduceInjuryRisk', value: 1, target: 'allGladiators' }],
   },
   {
     id: 'surgicalTools',
@@ -151,7 +151,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     requiredBuildingLevel: 2,
     effects: [
       { type: 'increaseStrength', value: 2, target: 'plannedGladiators' },
-      { type: 'decreaseMorale', value: 2, target: 'plannedGladiators' },
+      { type: 'reduceInjuryRisk', value: -2, target: 'allGladiators' },
     ],
   },
   {
@@ -160,7 +160,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.quietEvenings.name',
     descriptionKey: 'policies.quietEvenings.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseMorale', value: 3, target: 'plannedGladiators' }],
+    effects: [{ type: 'increaseHappiness', value: 3, target: 'ludus' }],
   },
   {
     id: 'gamesAndSongs',
@@ -168,7 +168,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.gamesAndSongs.name',
     descriptionKey: 'policies.gamesAndSongs.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseMorale', value: 5, target: 'plannedGladiators' }],
+    effects: [{ type: 'increaseHappiness', value: 5, target: 'ludus' }],
     cost: 25,
   },
   {
@@ -177,7 +177,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.grandEntertainment.name',
     descriptionKey: 'policies.grandEntertainment.description',
     requiredBuildingLevel: 2,
-    effects: [{ type: 'increaseMorale', value: 8, target: 'allGladiators' }],
+    effects: [{ type: 'increaseHappiness', value: 8, target: 'ludus' }],
     cost: 60,
   },
   {
@@ -186,7 +186,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.basicCare.name',
     descriptionKey: 'policies.basicCare.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseHealth', value: 3, target: 'plannedGladiators' }],
+    effects: [{ type: 'reduceInjuryRisk', value: 3, target: 'allGladiators' }],
   },
   {
     id: 'preventiveCare',
@@ -203,7 +203,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.intensiveTreatment.name',
     descriptionKey: 'policies.intensiveTreatment.description',
     requiredBuildingLevel: 2,
-    effects: [{ type: 'increaseHealth', value: 8, target: 'plannedGladiators' }],
+    effects: [{ type: 'reduceInjuryRisk', value: 8, target: 'allGladiators' }],
     cost: 70,
   },
 ];

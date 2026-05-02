@@ -95,9 +95,9 @@ function MarketCandidateCard({
         },
         {
           iconName: 'health',
-          id: 'health',
-          label: t('roster.healthShort'),
-          value: candidate.health,
+          id: 'life',
+          label: t('roster.lifeShort'),
+          value: Math.floor(candidate.life),
         },
       ]}
       testId={`market-candidate-${candidate.id}`}
@@ -148,10 +148,10 @@ function OwnedGladiatorCard({
           value: gladiator.reputation,
         },
         {
-          iconName: 'morale',
-          id: 'morale',
-          label: t('roster.moraleShort'),
-          value: gladiator.morale,
+          iconName: 'health',
+          id: 'life',
+          label: t('roster.lifeShort'),
+          value: Math.floor(gladiator.life),
         },
       ]}
       openLabel={t('roster.openGladiator', { name: gladiator.name })}

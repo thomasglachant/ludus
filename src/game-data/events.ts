@@ -9,7 +9,6 @@ export const EVENT_CONFIG = {
   defaultCooldownWeeks: GAME_BALANCE.events.defaultCooldownWeeks,
   launchedEventHistoryLimit: GAME_BALANCE.events.launchedEventHistoryLimit,
   dailyEventProbabilityByDay: GAME_BALANCE.events.dailyEventProbabilityByDay,
-  injuredHealthThreshold: GAME_BALANCE.events.injuredHealthThreshold,
   resolvedEventHistoryLimit: GAME_BALANCE.events.resolvedEventHistoryLimit,
 } as const;
 
@@ -28,7 +27,7 @@ export type DailyEventEffectTemplate =
   | { type: 'changeSelectedGladiatorMorale'; amount: number }
   | {
       type: 'changeSelectedGladiatorStat';
-      stat: 'strength' | 'agility' | 'defense';
+      stat: 'strength' | 'agility' | 'defense' | 'life';
       amount: number;
     };
 

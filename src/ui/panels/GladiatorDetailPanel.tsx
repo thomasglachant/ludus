@@ -91,21 +91,9 @@ export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelPr
           },
           {
             iconName: 'health',
-            id: 'health',
-            labelKey: 'roster.healthShort',
-            value: gladiator.health,
-          },
-          {
-            iconName: 'energy',
-            id: 'energy',
-            labelKey: 'roster.energyShort',
-            value: gladiator.energy,
-          },
-          {
-            iconName: 'morale',
-            id: 'morale',
-            labelKey: 'roster.moraleShort',
-            value: gladiator.morale,
+            id: 'life',
+            labelKey: 'roster.lifeShort',
+            value: Math.floor(gladiator.life),
           },
         ]}
         title={gladiator.name}
@@ -168,6 +156,7 @@ export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelPr
                   label={t('market.stats.defense')}
                   value={gladiator.defense}
                 />
+                <StatChip iconName="health" label={t('market.stats.life')} value={gladiator.life} />
               </div>
             </section>
           </div>
@@ -239,6 +228,11 @@ export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelPr
                 iconName="defense"
                 label={t('market.stats.defense')}
                 value={getEffectiveSkillValue(gladiator.trainingPlan.defense)}
+              />
+              <StatChip
+                iconName="health"
+                label={t('market.stats.life')}
+                value={getEffectiveSkillValue(gladiator.trainingPlan.life)}
               />
             </div>
           </ModalSection>

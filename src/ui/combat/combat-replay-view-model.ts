@@ -21,9 +21,6 @@ export interface CombatantViewModel {
 
 export interface CombatConsequenceViewModel {
   didPlayerWin: boolean;
-  healthChange: number;
-  energyChange: number;
-  moraleChange: number;
   playerReward: number;
   reputationChange: number;
   resultKey: string;
@@ -53,10 +50,6 @@ function clampPercent(value: number) {
   return Math.min(100, Math.max(0, Math.round(value)));
 }
 
-function getProgressiveStatValue(startValue: number, endValue: number, progressRatio: number) {
-  return startValue + (endValue - startValue) * progressRatio;
-}
-
 function findCombat(save: GameSave, combatId?: string) {
   const combats = save.arena.resolvedCombats;
 
@@ -67,13 +60,21 @@ function findCombat(save: GameSave, combatId?: string) {
   return combats.find((combat) => combat.id === save.arena.currentCombatId) ?? combats[0];
 }
 
+function getVisibleEnergy(combat: CombatState, combatantId: string, visibleTurns: CombatTurn[]) {
+  const gauges =
+    combatantId === combat.gladiator.id ? combat.gauges.player : combat.gauges.opponent;
+  const visibleAttackCount = visibleTurns.filter((turn) => turn.attackerId === combatantId).length;
+
+  return Math.max(gauges.energy, gauges.maxEnergy - visibleAttackCount);
+}
+
 function getTurnHealthState(combat: CombatState, visibleTurns: CombatTurn[]): CombatantHealthState {
   const latestTurn = visibleTurns.at(-1);
 
   if (!latestTurn) {
     return {
-      player: combat.gladiator.health,
-      opponent: combat.opponent.health,
+      player: combat.gauges.player.maxHealth,
+      opponent: combat.gauges.opponent.maxHealth,
     };
   }
 
@@ -91,7 +92,10 @@ function getTurnHealthState(combat: CombatState, visibleTurns: CombatTurn[]): Co
 }
 
 function createCombatantViewModel(
-  gladiator: Pick<Gladiator, 'id' | 'name' | 'strength' | 'agility' | 'defense' | 'visualIdentity'>,
+  gladiator: Pick<
+    Gladiator,
+    'id' | 'name' | 'strength' | 'agility' | 'defense' | 'life' | 'visualIdentity'
+  >,
   side: CombatantSide,
   health: number,
   energy: number,
@@ -124,20 +128,12 @@ export function getCombatReplayViewModel(
   const boundedVisibleTurnCount = Math.min(Math.max(0, visibleTurnCount), combat.turns.length);
   const visibleTurns = combat.turns.slice(0, boundedVisibleTurnCount);
   const isComplete = boundedVisibleTurnCount >= combat.turns.length;
-  const progressRatio = combat.turns.length > 0 ? boundedVisibleTurnCount / combat.turns.length : 1;
   const healthState = getTurnHealthState(combat, visibleTurns);
   const winnerName =
     combat.winnerId === combat.gladiator.id ? combat.gladiator.name : combat.opponent.name;
-  const playerEnergy = getProgressiveStatValue(
-    combat.gladiator.energy,
-    combat.consequence.finalEnergy,
-    progressRatio,
-  );
-  const playerMorale = getProgressiveStatValue(
-    combat.gladiator.morale,
-    combat.consequence.finalMorale,
-    progressRatio,
-  );
+  const playerEnergy = getVisibleEnergy(combat, combat.gladiator.id, visibleTurns);
+  const opponentEnergy = getVisibleEnergy(combat, combat.opponent.id, visibleTurns);
+  const playerMorale = combat.gauges.player.morale;
 
   return {
     combat,
@@ -145,9 +141,6 @@ export function getCombatReplayViewModel(
     combatCrowdPath: PRODUCTION_VISUAL_ASSET_MANIFEST.locations.arena.crowd,
     consequence: {
       didPlayerWin: combat.consequence.didPlayerWin,
-      healthChange: combat.consequence.healthChange,
-      energyChange: combat.consequence.energyChange,
-      moraleChange: combat.consequence.moraleChange,
       playerReward: combat.consequence.playerReward,
       reputationChange: combat.consequence.reputationChange,
       resultKey: combat.consequence.didPlayerWin ? 'arena.result.win' : 'arena.result.loss',
@@ -160,8 +153,8 @@ export function getCombatReplayViewModel(
       combat.opponent,
       'opponent',
       healthState.opponent,
-      combat.opponent.energy,
-      combat.opponent.morale,
+      opponentEnergy,
+      combat.gauges.opponent.morale,
     ),
     player: createCombatantViewModel(
       combat.gladiator,

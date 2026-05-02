@@ -9,7 +9,7 @@ The game should feel like a management game set in a living Roman countryside lu
 
 ## Core Fantasy
 
-The player owns and develops a gladiator school. They buy and train gladiators, maintain their health and morale, upgrade buildings, react to events and make economic decisions around risk and reputation.
+The player owns and develops a gladiator school. They buy and train gladiators, improve aptitudes including life, upgrade buildings, react to events and make economic decisions around risk and reputation. Health, energy and morale are temporary combat gauges calculated when a fight starts, not daily gladiator attributes.
 
 The dramatic rhythm is weekly management followed by Sunday arena resolution:
 

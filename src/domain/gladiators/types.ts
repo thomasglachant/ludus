@@ -6,6 +6,7 @@ export interface GladiatorSkillProfile {
   strength: number;
   agility: number;
   defense: number;
+  life: number;
 }
 
 export interface GladiatorVisualIdentity {
@@ -32,9 +33,7 @@ export interface Gladiator {
   strength: number;
   agility: number;
   defense: number;
-  energy: number;
-  health: number;
-  morale: number;
+  life: number;
   reputation: number;
   wins: number;
   losses: number;
@@ -66,4 +65,5 @@ export interface GladiatorTrainingPlan {
   strength: number;
   agility: number;
   defense: number;
+  life: number;
 }

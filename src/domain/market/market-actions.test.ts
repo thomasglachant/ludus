@@ -47,9 +47,7 @@ function createOwnedGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     strength: 7,
     agility: 6,
     defense: 7,
-    energy: 80,
-    health: 85,
-    morale: 75,
+    life: 85,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -65,7 +63,8 @@ describe('market actions', () => {
     expect(gladiators).toHaveLength(MARKET_CONFIG.availableGladiatorCount);
 
     for (const gladiator of gladiators) {
-      const totalStats = gladiator.strength + gladiator.agility + gladiator.defense;
+      const totalStats =
+        gladiator.strength + gladiator.agility + gladiator.defense + gladiator.life;
 
       expect(gladiator.age).toBeGreaterThanOrEqual(MARKET_CONFIG.minAge);
       expect(gladiator.age).toBeLessThanOrEqual(MARKET_CONFIG.maxAge);
@@ -73,12 +72,11 @@ describe('market actions', () => {
       expect(gladiator.strength).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedStat);
       expect(gladiator.agility).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedStat);
       expect(gladiator.defense).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedStat);
+      expect(gladiator.life).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedStat);
       expect(gladiator.strength).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
       expect(gladiator.agility).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
       expect(gladiator.defense).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
-      expect(gladiator.health).toBe(100);
-      expect(gladiator.energy).toBe(100);
-      expect(gladiator.morale).toBe(100);
+      expect(gladiator.life).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
       expect(gladiator.price).toBe(calculateGladiatorMarketPrice(gladiator));
     }
   });

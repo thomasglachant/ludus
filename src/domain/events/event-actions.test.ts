@@ -26,9 +26,7 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     strength: 20,
     agility: 18,
     defense: 18,
-    energy: 70,
-    health: 100,
-    morale: 60,
+    life: 100,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -219,7 +217,7 @@ describe('event actions', () => {
       status: 'resolved',
       selectedChoiceId: event.choices[0].id,
     });
-    expect(resolved.gladiators[0].morale).toBeGreaterThan(save.gladiators[0].morale);
+    expect(resolved.ludus.happiness).toBeGreaterThan(save.ludus.happiness);
   });
 
   it('generates macro events only from activities that received plan points', () => {
@@ -514,7 +512,7 @@ describe('event actions', () => {
     ).save;
 
     expect(resolved.gladiators).toHaveLength(1);
-    expect(resolved.gladiators[0].morale).toBe(40);
+    expect(resolved.ludus.happiness).toBe(45);
     expect(resolved.events.resolvedEvents[0].resolvedOutcomeIds).toEqual(['moraleLoss']);
     expect(resolved.ludus.treasury).toBe(save.ludus.treasury);
   });
@@ -522,7 +520,21 @@ describe('event actions', () => {
   it('does not trigger debug events when the requested type cannot be used', () => {
     const save: GameSave = {
       ...createTestSave(),
-      gladiators: [createGladiator({ health: 100 })],
+      gladiators: [createGladiator({ life: 100 })],
+    };
+    const synchronized = triggerDebugDailyEvent(save, 'medicusOffer', () => 0);
+
+    expect(synchronized).toBe(save);
+  });
+
+  it('does not treat stale weekly injuries as injured event candidates', () => {
+    const save: GameSave = {
+      ...createTestSave(),
+      gladiators: [
+        createGladiator({
+          weeklyInjury: { reason: 'training', week: 8, year: 0 },
+        }),
+      ],
     };
     const synchronized = triggerDebugDailyEvent(save, 'medicusOffer', () => 0);
 

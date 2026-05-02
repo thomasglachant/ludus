@@ -130,12 +130,9 @@ const eventEffectTypes = [
   'changeLudusRebellion',
   'removeGladiator',
   'releaseAllGladiators',
-  'changeGladiatorHealth',
-  'changeGladiatorEnergy',
-  'changeGladiatorMorale',
   'changeGladiatorStat',
 ];
-const eventStatFields = ['strength', 'agility', 'defense'];
+const eventStatFields = ['strength', 'agility', 'defense', 'life'];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -274,7 +271,8 @@ function isGladiatorTrainingPlan(value: unknown, gladiatorId: string) {
     value.gladiatorId === gladiatorId &&
     hasNumber(value, 'strength') &&
     hasNumber(value, 'agility') &&
-    hasNumber(value, 'defense')
+    hasNumber(value, 'defense') &&
+    (value.life === undefined || hasNumber(value, 'life'))
   );
 }
 
@@ -299,9 +297,7 @@ function isGladiator(value: unknown): value is Gladiator {
     hasNumber(value, 'strength') &&
     hasNumber(value, 'agility') &&
     hasNumber(value, 'defense') &&
-    hasNumber(value, 'energy') &&
-    hasNumber(value, 'health') &&
-    hasNumber(value, 'morale') &&
+    (hasNumber(value, 'life') || hasNumber(value, 'health')) &&
     hasNumber(value, 'reputation') &&
     hasNumber(value, 'wins') &&
     hasNumber(value, 'losses') &&
@@ -375,13 +371,7 @@ function isCombatConsequence(value: unknown) {
     isRecord(value) &&
     hasBoolean(value, 'didPlayerWin') &&
     hasNumber(value, 'playerReward') &&
-    hasNumber(value, 'healthChange') &&
-    hasNumber(value, 'energyChange') &&
-    hasNumber(value, 'moraleChange') &&
     hasNumber(value, 'reputationChange') &&
-    hasNumber(value, 'finalHealth') &&
-    hasNumber(value, 'finalEnergy') &&
-    hasNumber(value, 'finalMorale') &&
     hasNumber(value, 'finalReputation')
   );
 }
@@ -937,6 +927,9 @@ function normalizeVisualIdentity(visualIdentity: Gladiator['visualIdentity']) {
 function stripLegacyGladiatorFields(gladiator: Gladiator): Gladiator {
   const gladiatorWithoutClass = { ...gladiator } as Gladiator & {
     classId?: unknown;
+    health?: unknown;
+    energy?: unknown;
+    morale?: unknown;
     satiety?: unknown;
     currentLocationId?: unknown;
     currentBuildingId?: unknown;
@@ -945,6 +938,9 @@ function stripLegacyGladiatorFields(gladiator: Gladiator): Gladiator {
     mapMovement?: unknown;
   };
   delete gladiatorWithoutClass.classId;
+  delete gladiatorWithoutClass.health;
+  delete gladiatorWithoutClass.energy;
+  delete gladiatorWithoutClass.morale;
   delete gladiatorWithoutClass.satiety;
   delete gladiatorWithoutClass.currentLocationId;
   delete gladiatorWithoutClass.currentBuildingId;
@@ -954,6 +950,18 @@ function stripLegacyGladiatorFields(gladiator: Gladiator): Gladiator {
 
   return {
     ...gladiatorWithoutClass,
+    life:
+      typeof gladiator.life === 'number'
+        ? gladiator.life
+        : typeof (gladiator as Gladiator & { health?: unknown }).health === 'number'
+          ? (gladiator as Gladiator & { health: number }).health
+          : 10,
+    trainingPlan: gladiator.trainingPlan
+      ? {
+          ...gladiator.trainingPlan,
+          life: gladiator.trainingPlan.life ?? gladiatorWithoutClass.life ?? 10,
+        }
+      : undefined,
     weeklyInjury: gladiator.weeklyInjury,
     visualIdentity: normalizeVisualIdentity(gladiatorWithoutClass.visualIdentity),
   };
@@ -968,13 +976,40 @@ function normalizeCombatState<TCombat extends GameSave['arena']['resolvedCombats
 ): TCombat {
   const combatWithoutStrategy = { ...combat } as TCombat & {
     strategy?: unknown;
+    gauges?: unknown;
   };
   delete combatWithoutStrategy.strategy;
+  const gladiator = normalizeGladiator(combat.gladiator);
+  const opponent = normalizeGladiator(combat.opponent);
+  const createFallbackGauges = (fighter: Gladiator) => {
+    const maxHealth = Math.min(100, Math.max(1, Math.round(40 + fighter.life * 4)));
+    const maxEnergy = Math.min(
+      100,
+      Math.max(
+        0,
+        Math.round(35 + fighter.strength * 1.2 + fighter.agility * 1.6 + fighter.life * 0.8),
+      ),
+    );
+
+    return {
+      maxHealth,
+      health: maxHealth,
+      maxEnergy,
+      energy: maxEnergy,
+      morale: 70,
+    };
+  };
 
   return {
     ...combatWithoutStrategy,
-    gladiator: normalizeGladiator(combat.gladiator),
-    opponent: normalizeGladiator(combat.opponent),
+    gladiator,
+    opponent,
+    gauges:
+      combat.gauges ??
+      ({
+        player: createFallbackGauges(gladiator),
+        opponent: createFallbackGauges(opponent),
+      } as TCombat['gauges']),
   } as TCombat;
 }
 

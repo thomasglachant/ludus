@@ -240,13 +240,31 @@ function BoutPreviewView({
       </div>
       <div className="arena-route-bout-layout">
         <div className="arena-route-fighter-stack">
-          <GladiatorSummary gladiator={combat.gladiator} odds={odds.player} side="player" />
+          <GladiatorSummary
+            gladiator={combat.gladiator}
+            odds={odds.player}
+            side="player"
+            statValues={{
+              energy: combat.gauges.player.maxEnergy,
+              health: combat.gauges.player.maxHealth,
+              morale: combat.gauges.player.morale,
+            }}
+          />
         </div>
         <div className="arena-route-versus" aria-hidden="true">
           <span>{t('arenaRoute.versus')}</span>
         </div>
         <div className="arena-route-fighter-stack">
-          <GladiatorSummary gladiator={combat.opponent} odds={odds.opponent} side="opponent" />
+          <GladiatorSummary
+            gladiator={combat.opponent}
+            odds={odds.opponent}
+            side="opponent"
+            statValues={{
+              energy: combat.gauges.opponent.maxEnergy,
+              health: combat.gauges.opponent.maxHealth,
+              morale: combat.gauges.opponent.morale,
+            }}
+          />
         </div>
       </div>
       {isPresented ? <ArenaCombatResultIntel combat={combat} /> : null}
@@ -277,24 +295,6 @@ function CombatImpactList({ combat }: { combat: CombatState }) {
           id: 'treasury',
           kind: 'treasury',
           label: t('arena.rewardReceived'),
-        },
-        {
-          amount: combat.consequence.healthChange,
-          id: 'health',
-          kind: 'health',
-          label: t('arena.healthChange'),
-        },
-        {
-          amount: combat.consequence.energyChange,
-          id: 'energy',
-          kind: 'energy',
-          label: t('arena.energyChange'),
-        },
-        {
-          amount: combat.consequence.moraleChange,
-          id: 'morale',
-          kind: 'morale',
-          label: t('arena.moraleChange'),
         },
         {
           amount: combat.consequence.reputationChange,

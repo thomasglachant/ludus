@@ -1,7 +1,7 @@
 import { GAME_BALANCE } from '../../game-data/balance';
-import { PLANNING_THRESHOLDS } from '../../game-data/planning';
 import type { BuildingActivityId, BuildingId } from '../buildings/types';
 import { getSelectableBuildingActivities } from '../buildings/building-activities';
+import { hasActiveWeeklyInjury } from '../gladiators/injuries';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
 import { createDefaultWeeklyPlan } from '../weekly-simulation/weekly-simulation-actions';
@@ -40,58 +40,16 @@ export interface DailyPlanBuildingActivitySelectionUpdate {
   dayOfWeek: GameSave['time']['dayOfWeek'];
 }
 
-type GaugeAlertKind =
-  | 'criticalHealth'
-  | 'lowHealth'
-  | 'criticalEnergy'
-  | 'lowEnergy'
-  | 'criticalMorale'
-  | 'lowMorale';
-
-const alertBuildingTargets: Partial<Record<GaugeAlertKind, BuildingId>> = {
-  criticalHealth: 'infirmary',
-  lowHealth: 'infirmary',
-  criticalEnergy: 'dormitory',
-  lowEnergy: 'dormitory',
-  criticalMorale: 'pleasureHall',
-  lowMorale: 'pleasureHall',
-};
-
-function createGaugeAlert(
-  gladiatorId: string,
-  kind: GaugeAlertKind,
-  severity: GameAlert['severity'],
-  createdAt: string,
-): GameAlert {
+function createInjuryAlert(gladiatorId: string, createdAt: string): GameAlert {
   return {
-    id: `alert-${gladiatorId}-${kind}`,
-    severity,
-    titleKey: `alerts.${kind}.title`,
-    descriptionKey: `alerts.${kind}.description`,
+    id: `alert-${gladiatorId}-injury`,
+    severity: 'warning',
+    titleKey: 'alerts.injury.title',
+    descriptionKey: 'alerts.injury.description',
     gladiatorId,
-    buildingId: alertBuildingTargets[kind],
+    buildingId: 'infirmary',
     createdAt,
   };
-}
-
-function addGaugeAlert(
-  alerts: GameAlert[],
-  gladiator: Gladiator,
-  value: number,
-  lowThreshold: number,
-  criticalThreshold: number,
-  lowKind: GaugeAlertKind,
-  criticalKind: GaugeAlertKind,
-  createdAt: string,
-) {
-  if (value <= criticalThreshold) {
-    alerts.push(createGaugeAlert(gladiator.id, criticalKind, 'critical', createdAt));
-    return;
-  }
-
-  if (value <= lowThreshold) {
-    alerts.push(createGaugeAlert(gladiator.id, lowKind, 'warning', createdAt));
-  }
 }
 
 function getAvailableRecommendation(save: GameSave, buildingId: BuildingId, reasonKey: string) {
@@ -106,36 +64,9 @@ export function generatePlanningAlerts(save: GameSave, createdAt = save.updatedA
   const alerts: GameAlert[] = [];
 
   for (const gladiator of save.gladiators) {
-    addGaugeAlert(
-      alerts,
-      gladiator,
-      gladiator.health,
-      PLANNING_THRESHOLDS.lowHealth,
-      PLANNING_THRESHOLDS.criticalHealth,
-      'lowHealth',
-      'criticalHealth',
-      createdAt,
-    );
-    addGaugeAlert(
-      alerts,
-      gladiator,
-      gladiator.energy,
-      PLANNING_THRESHOLDS.lowEnergy,
-      PLANNING_THRESHOLDS.criticalEnergy,
-      'lowEnergy',
-      'criticalEnergy',
-      createdAt,
-    );
-    addGaugeAlert(
-      alerts,
-      gladiator,
-      gladiator.morale,
-      PLANNING_THRESHOLDS.lowMorale,
-      PLANNING_THRESHOLDS.criticalMorale,
-      'lowMorale',
-      'criticalMorale',
-      createdAt,
-    );
+    if (hasActiveWeeklyInjury(gladiator, save.time.year, save.time.week)) {
+      alerts.push(createInjuryAlert(gladiator.id, createdAt));
+    }
   }
 
   return alerts;
@@ -145,16 +76,8 @@ export function getPlanningRecommendation(
   save: GameSave,
   gladiator: Gladiator,
 ): PlanningRecommendation {
-  if (gladiator.health <= PLANNING_THRESHOLDS.lowHealth) {
-    return getAvailableRecommendation(save, 'infirmary', 'weeklyPlan.recommendations.health');
-  }
-
-  if (gladiator.energy <= PLANNING_THRESHOLDS.primaryNeedReassignment) {
-    return getAvailableRecommendation(save, 'dormitory', 'weeklyPlan.recommendations.energy');
-  }
-
-  if (gladiator.morale <= PLANNING_THRESHOLDS.primaryNeedReassignment) {
-    return getAvailableRecommendation(save, 'pleasureHall', 'weeklyPlan.recommendations.morale');
+  if (hasActiveWeeklyInjury(gladiator, save.time.year, save.time.week)) {
+    return getAvailableRecommendation(save, 'infirmary', 'weeklyPlan.recommendations.injury');
   }
 
   return getAvailableRecommendation(save, 'trainingGround', 'weeklyPlan.recommendations.balanced');

@@ -125,14 +125,10 @@ export interface BuildingPolicyDefinition {
 }
 
 export type BuildingEffectType =
-  | 'increaseEnergy'
-  | 'increaseHealth'
-  | 'increaseMorale'
   | 'increaseStrength'
   | 'increaseAgility'
   | 'increaseDefense'
-  | 'decreaseEnergy'
-  | 'decreaseMorale'
+  | 'increaseLife'
   | 'increaseCapacity'
   | 'reduceInjuryRisk'
   | 'increaseReputation'
