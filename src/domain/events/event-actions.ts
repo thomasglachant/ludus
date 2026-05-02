@@ -266,7 +266,6 @@ function resolveEffectTemplate(
       return gladiatorId ? { type: 'removeGladiator', gladiatorId } : null;
     case 'changeTreasury':
     case 'changeLudusReputation':
-    case 'changeLudusGlory':
     case 'changeLudusSecurity':
     case 'changeLudusHappiness':
     case 'changeLudusRebellion':
@@ -506,16 +505,6 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
           GAME_BALANCE.economy.minimumReputation,
           save.ludus.reputation + effect.amount,
         ),
-      },
-    };
-  }
-
-  if (effect.type === 'changeLudusGlory') {
-    return {
-      ...save,
-      ludus: {
-        ...save.ludus,
-        glory: Math.max(0, save.ludus.glory + effect.amount),
       },
     };
   }

@@ -11,7 +11,6 @@ export interface BuildingActivityDefinition {
   effects: {
     treasuryPerPoint?: number;
     reputationPerPoint?: number;
-    gloryPerPoint?: number;
     happinessPerPoint?: number;
     securityPerPoint?: number;
     rebellionPerPoint?: number;
@@ -50,14 +49,14 @@ export const BUILDING_ACTIVITY_DEFINITIONS: BuildingActivityDefinition[] = [
     'trainingGround',
     'trainingGround.soldier-training',
     'contracts',
-    { treasuryPerPoint: 10, gloryPerPoint: 0.1 },
+    { treasuryPerPoint: 10, reputationPerPoint: 0.1 },
   ),
   createActivity(
     'trainingGround.publicDrill',
     'trainingGround',
     'trainingGround.public-drill',
     'events',
-    { treasuryPerPoint: 4, gloryPerPoint: 0.2 },
+    { treasuryPerPoint: 4, reputationPerPoint: 0.2 },
   ),
   createActivity('canteen.supplyContracts', 'canteen', 'canteen.supply-contracts', 'production', {
     treasuryPerPoint: 5,
@@ -92,7 +91,7 @@ export const BUILDING_ACTIVITY_DEFINITIONS: BuildingActivityDefinition[] = [
   }),
   createActivity('domus.championshipBooking', 'domus', 'domus.championship-booking', 'contracts', {
     treasuryPerPoint: 6,
-    gloryPerPoint: 0.1,
+    reputationPerPoint: 0.1,
   }),
   createActivity('farm.marketSurplus', 'farm', 'farm.market-surplus', 'production', {
     treasuryPerPoint: 5,
@@ -106,14 +105,14 @@ export const BUILDING_ACTIVITY_DEFINITIONS: BuildingActivityDefinition[] = [
     'exhibitionGrounds',
     'exhibitionGrounds.local-exhibitions',
     'events',
-    { treasuryPerPoint: 7, gloryPerPoint: 0.15 },
+    { treasuryPerPoint: 7, reputationPerPoint: 0.15 },
   ),
   createActivity(
     'exhibitionGrounds.grandSpectacle',
     'exhibitionGrounds',
     'exhibitionGrounds.grand-spectacle',
     'events',
-    { treasuryPerPoint: 12, gloryPerPoint: 0.3, reputationPerPoint: 0.15 },
+    { treasuryPerPoint: 12, reputationPerPoint: 0.45 },
   ),
   createActivity(
     'bookmakerOffice.publicOdds',

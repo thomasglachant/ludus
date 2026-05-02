@@ -9,7 +9,6 @@ import type { BuildingActivityId, BuildingId } from './types';
 export interface BuildingActivityImpact {
   treasuryDelta: number;
   reputationDelta: number;
-  gloryDelta: number;
   happinessDelta: number;
   securityDelta: number;
   rebellionDelta: number;
@@ -26,7 +25,6 @@ export interface BuildingActivityContribution extends BuildingActivityImpact {
 const emptyImpact: BuildingActivityImpact = {
   treasuryDelta: 0,
   reputationDelta: 0,
-  gloryDelta: 0,
   happinessDelta: 0,
   securityDelta: 0,
   rebellionDelta: 0,
@@ -96,7 +94,6 @@ export function calculateBuildingActivityImpact(
     (impact, contribution) => ({
       treasuryDelta: impact.treasuryDelta + contribution.treasuryDelta,
       reputationDelta: impact.reputationDelta + contribution.reputationDelta,
-      gloryDelta: impact.gloryDelta + contribution.gloryDelta,
       happinessDelta: impact.happinessDelta + contribution.happinessDelta,
       securityDelta: impact.securityDelta + contribution.securityDelta,
       rebellionDelta: impact.rebellionDelta + contribution.rebellionDelta,
@@ -129,7 +126,6 @@ export function getBuildingActivityContributions(
           plannedPoints * (activity.effects.treasuryPerPoint ?? 0) * efficiencyMultiplier,
         reputationDelta:
           plannedPoints * (activity.effects.reputationPerPoint ?? 0) * efficiencyMultiplier,
-        gloryDelta: plannedPoints * (activity.effects.gloryPerPoint ?? 0) * efficiencyMultiplier,
         happinessDelta:
           plannedPoints * (activity.effects.happinessPerPoint ?? 0) * efficiencyMultiplier,
         securityDelta:

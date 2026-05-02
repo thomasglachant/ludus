@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createInitialSave } from './create-initial-save';
+import { CURRENT_SCHEMA_VERSION, createInitialSave } from './create-initial-save';
 import { isGameSave, parseGameSave } from './save-validation';
 
 function createTestSave() {
@@ -105,6 +105,20 @@ describe('save validation', () => {
     const parsed = parseGameSave(JSON.stringify(legacySave));
 
     expect(parsed).toBeNull();
+  });
+
+  it('rejects previous-schema saves after the ludus glory field removal', () => {
+    const save = createJsonClone(createTestSave());
+    const legacySave = {
+      ...save,
+      schemaVersion: CURRENT_SCHEMA_VERSION - 1,
+      ludus: {
+        ...save.ludus,
+        glory: 4,
+      },
+    };
+
+    expect(parseGameSave(JSON.stringify(legacySave))).toBeNull();
   });
 
   it('strips obsolete real-time fields from current-schema transitional saves', () => {

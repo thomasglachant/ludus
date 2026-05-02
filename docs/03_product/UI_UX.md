@@ -42,7 +42,6 @@ The HUD shows macro state:
 - phase;
 - clickable treasury;
 - reputation;
-- glory;
 - happiness;
 - security;
 - menu access.

@@ -39,7 +39,6 @@ export interface DailySimulationSummary {
   dayOfWeek: DayOfWeek;
   treasuryDelta: number;
   reputationDelta: number;
-  gloryDelta: number;
   happinessDelta: number;
   securityDelta: number;
   rebellionDelta: number;
@@ -54,7 +53,6 @@ export interface WeeklyReport {
   days: DailySimulationSummary[];
   treasuryDelta: number;
   reputationDelta: number;
-  gloryDelta: number;
   happinessDelta: number;
   securityDelta: number;
   rebellionDelta: number;

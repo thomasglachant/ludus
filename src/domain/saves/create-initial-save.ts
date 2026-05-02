@@ -20,7 +20,7 @@ export interface InitialSaveInput {
   createdAt: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 11;
+export const CURRENT_SCHEMA_VERSION = 12;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
   const save: GameSave = {
@@ -36,7 +36,6 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     ludus: {
       treasury: INITIAL_TREASURY,
       reputation: GAME_BALANCE.economy.initialReputation,
-      glory: 0,
       security: 50,
       happiness: 65,
       rebellion: 0,

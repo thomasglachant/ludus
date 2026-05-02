@@ -29,7 +29,6 @@ describe('createInitialSave', () => {
       });
     }
     expect(save.ludus).toMatchObject({
-      glory: 0,
       security: 50,
       happiness: 65,
       rebellion: 0,

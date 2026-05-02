@@ -61,7 +61,6 @@ export interface LaunchedGameEventRecord {
 export type GameEventEffect =
   | { type: 'changeTreasury'; amount: number }
   | { type: 'changeLudusReputation'; amount: number }
-  | { type: 'changeLudusGlory'; amount: number }
   | { type: 'changeLudusSecurity'; amount: number }
   | { type: 'changeLudusHappiness'; amount: number }
   | { type: 'changeLudusRebellion'; amount: number }

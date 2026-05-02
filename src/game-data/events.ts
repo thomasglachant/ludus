@@ -18,7 +18,6 @@ export type DailyEventGladiatorSelector = 'any' | 'injured';
 export type DailyEventEffectTemplate =
   | { type: 'changeTreasury'; amount: number }
   | { type: 'changeLudusReputation'; amount: number }
-  | { type: 'changeLudusGlory'; amount: number }
   | { type: 'changeLudusSecurity'; amount: number }
   | { type: 'changeLudusHappiness'; amount: number }
   | { type: 'changeLudusRebellion'; amount: number }
@@ -606,8 +605,7 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
             kind: 'certain',
             effects: [
               { type: 'changeTreasury', amount: -45 },
-              { type: 'changeLudusGlory', amount: 2 },
-              { type: 'changeLudusReputation', amount: 1 },
+              { type: 'changeLudusReputation', amount: 3 },
             ],
           },
         ],
@@ -619,10 +617,7 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
         consequences: [
           {
             kind: 'certain',
-            effects: [
-              { type: 'changeLudusGlory', amount: 1 },
-              { type: 'changeLudusReputation', amount: -1 },
-            ],
+            effects: [],
           },
         ],
       },
@@ -648,7 +643,7 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
             kind: 'certain',
             effects: [
               { type: 'changeTreasury', amount: 75 },
-              { type: 'changeLudusGlory', amount: 2 },
+              { type: 'changeLudusReputation', amount: 2 },
               { type: 'changeSelectedGladiatorEnergy', amount: -8 },
             ],
           },
@@ -991,8 +986,7 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
             kind: 'certain',
             effects: [
               { type: 'changeTreasury', amount: -55 },
-              { type: 'changeLudusReputation', amount: 3 },
-              { type: 'changeLudusGlory', amount: 1 },
+              { type: 'changeLudusReputation', amount: 4 },
             ],
           },
         ],
@@ -1088,8 +1082,7 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
             kind: 'certain',
             effects: [
               { type: 'changeTreasury', amount: 45 },
-              { type: 'changeLudusReputation', amount: 2 },
-              { type: 'changeLudusGlory', amount: 1 },
+              { type: 'changeLudusReputation', amount: 3 },
             ],
           },
         ],
@@ -1131,8 +1124,7 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
             kind: 'certain',
             effects: [
               { type: 'changeTreasury', amount: 70 },
-              { type: 'changeLudusReputation', amount: -2 },
-              { type: 'changeLudusGlory', amount: 1 },
+              { type: 'changeLudusReputation', amount: -1 },
               { type: 'changeLudusHappiness', amount: -3 },
             ],
           },

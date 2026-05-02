@@ -31,7 +31,7 @@ describe('building effects', () => {
       { type: 'increaseAgility', value: 1, target: 'plannedGladiators' },
       { type: 'increaseDefense', value: 1, target: 'plannedGladiators' },
       { type: 'reduceInjuryRisk', value: 0.5, target: 'allGladiators' },
-      { type: 'increaseGlory', value: 0.5, target: 'ludus' },
+      { type: 'increaseReputation', value: 0.5, target: 'ludus' },
     ]);
     expect(canteenTierTwoEffects).toEqual([
       { type: 'increaseHappiness', value: 1.5, target: 'ludus' },

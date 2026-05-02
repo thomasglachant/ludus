@@ -132,7 +132,7 @@ Tree rule:
 - tier 3 requires the first tier 2 key skill and building level 3;
 - tier 4 requires the first tier 3 key skill and building level 5.
 
-Skill effects currently map to the building's primary macro purpose, such as income, production, happiness, security, injury risk, glory or expense reduction.
+Skill effects currently map to the building's primary macro purpose, such as income, production, happiness, security, injury risk, reputation or expense reduction.
 
 Some skills also expose `unlockedActivities` ids from `src/game-data/building-activities.ts`. These ids use the owning building prefix and are meant for building-specific macro planning options. They are not standalone balance knobs; any resulting simulation benefit should still come from the activity definition, purchased skill state, explicit daily plan selection and current building efficiency.
 

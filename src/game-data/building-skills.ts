@@ -321,7 +321,7 @@ const skillEffectPatternsByBuilding = {
     { type: 'increaseAgility', target: 'plannedGladiators', values: [1, 1.5, 2, 2.5] },
     { type: 'increaseDefense', target: 'plannedGladiators', values: [1, 1.5, 2, 2.5] },
     { type: 'reduceInjuryRisk', target: 'allGladiators', values: [0.5, 1, 1.5, 2] },
-    { type: 'increaseGlory', target: 'ludus', values: [0.5, 1, 1.5, 2] },
+    { type: 'increaseReputation', target: 'ludus', values: [0.5, 1, 1.5, 2] },
   ],
   canteen: [
     { type: 'increaseHappiness', target: 'ludus', values: [1, 1.5, 2, 2.5] },
@@ -367,7 +367,7 @@ const skillEffectPatternsByBuilding = {
   ],
   exhibitionGrounds: [
     { type: 'increaseIncome', target: 'ludus', values: [1, 1.5, 2, 2.5] },
-    { type: 'increaseGlory', target: 'ludus', values: [0.5, 1, 1.5, 2] },
+    { type: 'increaseReputation', target: 'ludus', values: [0.5, 1, 1.5, 2] },
     { type: 'increaseReputation', target: 'ludus', values: [0.25, 0.5, 0.75, 1] },
     { type: 'increaseHappiness', target: 'ludus', values: [0.5, 1, 1.5, 2] },
     { type: 'increaseSecurity', target: 'ludus', values: [0.5, 1, 1.5, 2] },
@@ -391,7 +391,7 @@ const skillEffectPatternsByBuilding = {
     { type: 'increaseHappiness', target: 'ludus', values: [1, 1.5, 2, 2.5] },
     { type: 'increaseIncome', target: 'ludus', values: [0.5, 1, 1.5, 2] },
     { type: 'decreaseRebellion', target: 'ludus', values: [0.5, 1, 1.5, 2] },
-    { type: 'increaseGlory', target: 'ludus', values: [0.5, 1, 1.5, 2] },
+    { type: 'increaseReputation', target: 'ludus', values: [0.5, 1, 1.5, 2] },
   ],
   forgeWorkshop: [
     { type: 'increaseProduction', target: 'ludus', values: [1, 1.5, 2, 2.5] },

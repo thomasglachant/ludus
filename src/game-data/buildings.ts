@@ -160,7 +160,7 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
           },
         ],
       },
-      createLevel(3, 3, [{ type: 'increaseGlory', value: 2, target: 'ludus' }]),
+      createLevel(3, 3, [{ type: 'increaseReputation', value: 2, target: 'ludus' }]),
       createLevel(4, 4, [{ type: 'reduceInjuryRisk', value: 4, target: 'allGladiators' }]),
       createLevel(5, 5, [{ type: 'increaseStaffEfficiency', value: 5, target: 'ludus' }]),
     ],
@@ -305,7 +305,7 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     3,
     [
       { type: 'increaseIncome', value: 15, target: 'ludus' },
-      { type: 'increaseGlory', value: 2, target: 'ludus' },
+      { type: 'increaseReputation', value: 2, target: 'ludus' },
     ],
     'slave',
   ),

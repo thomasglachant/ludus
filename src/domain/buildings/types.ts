@@ -136,7 +136,6 @@ export type BuildingEffectType =
   | 'increaseCapacity'
   | 'reduceInjuryRisk'
   | 'increaseReputation'
-  | 'increaseGlory'
   | 'increaseSecurity'
   | 'increaseHappiness'
   | 'decreaseRebellion'

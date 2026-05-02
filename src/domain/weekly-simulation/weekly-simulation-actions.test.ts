@@ -364,6 +364,39 @@ describe('weekly simulation actions', () => {
     expect(boostedContractIncome?.amount).toBeGreaterThan(baseContractIncome?.amount ?? 0);
   });
 
+  it('counts event points once for reputation building effects', () => {
+    const save = createTestSave({
+      buildings: {
+        ...createTestSave().buildings,
+        domus: {
+          ...createTestSave().buildings.domus,
+          purchasedSkillIds: [
+            'domus.reception-atrium',
+            'domus.patron-letters',
+            'domus.public-seal',
+            'domus.provincial-charter',
+          ],
+        },
+      },
+    });
+    const plan = createDefaultDailyPlan('monday');
+    plan.gladiatorTimePoints.training = 0;
+    plan.gladiatorTimePoints.meals = 0;
+    plan.gladiatorTimePoints.sleep = 0;
+    plan.gladiatorTimePoints.leisure = 0;
+    plan.gladiatorTimePoints.care = 0;
+    plan.adminPoints.contracts = 0;
+    plan.adminPoints.events = 12;
+    plan.adminPoints.maintenance = 0;
+    plan.laborPoints.production = 0;
+    plan.laborPoints.security = 0;
+    plan.laborPoints.maintenance = 0;
+
+    const result = resolveDailyPlan(save, plan, () => 1);
+
+    expect(result.summary.reputationDelta).toBe(1);
+  });
+
   it('applies planned gladiator building effects during daily resolution', () => {
     const save = createTestSave({
       gladiators: [createGladiator({ energy: 50 })],
@@ -614,7 +647,6 @@ describe('weekly simulation actions', () => {
                 dayOfWeek: 'friday',
                 treasuryDelta: 10,
                 reputationDelta: 0,
-                gloryDelta: 0,
                 happinessDelta: 0,
                 securityDelta: 0,
                 rebellionDelta: 0,
@@ -624,7 +656,6 @@ describe('weekly simulation actions', () => {
             ],
             treasuryDelta: 10,
             reputationDelta: 0,
-            gloryDelta: 0,
             happinessDelta: 0,
             securityDelta: 0,
             rebellionDelta: 0,

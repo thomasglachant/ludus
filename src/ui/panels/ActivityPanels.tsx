@@ -45,10 +45,6 @@ function getEventImpactItem(
       kind = 'reputation';
       labelKey = 'ludus.reputation';
       break;
-    case 'changeLudusGlory':
-      kind = 'victory';
-      labelKey = 'ludus.glory';
-      break;
     case 'changeLudusSecurity':
       kind = 'defense';
       labelKey = 'ludus.security';

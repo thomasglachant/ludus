@@ -182,10 +182,10 @@ function getWeeklyProjectionMetrics(report: WeeklyReport): ProjectionMetric[] {
       labelKey: 'weeklyPlan.projection.weekTreasury',
     },
     {
-      amount: report.gloryDelta,
-      id: 'glory',
-      kind: 'victory',
-      labelKey: 'weeklyPlan.projection.weekGlory',
+      amount: report.reputationDelta,
+      id: 'reputation',
+      kind: 'reputation',
+      labelKey: 'weeklyPlan.projection.weekReputation',
     },
     {
       amount: report.happinessDelta,

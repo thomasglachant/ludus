@@ -125,7 +125,6 @@ const eventConsequenceKinds = ['certain', 'chance', 'oneOf'];
 const eventEffectTypes = [
   'changeTreasury',
   'changeLudusReputation',
-  'changeLudusGlory',
   'changeLudusSecurity',
   'changeLudusHappiness',
   'changeLudusRebellion',
@@ -495,7 +494,6 @@ function isDailySimulationSummary(value: unknown): value is DailySimulationSumma
     hasStringFrom(value, 'dayOfWeek', dayOfWeeks) &&
     hasNumber(value, 'treasuryDelta') &&
     hasNumber(value, 'reputationDelta') &&
-    hasNumber(value, 'gloryDelta') &&
     hasNumber(value, 'happinessDelta') &&
     hasNumber(value, 'securityDelta') &&
     hasNumber(value, 'rebellionDelta') &&
@@ -514,7 +512,6 @@ function isWeeklyReport(value: unknown): value is WeeklyReport {
     value.days.every(isDailySimulationSummary) &&
     hasNumber(value, 'treasuryDelta') &&
     hasNumber(value, 'reputationDelta') &&
-    hasNumber(value, 'gloryDelta') &&
     hasNumber(value, 'happinessDelta') &&
     hasNumber(value, 'securityDelta') &&
     hasNumber(value, 'rebellionDelta') &&
@@ -833,7 +830,6 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     !isRecord(value.ludus) ||
     !hasNumber(value.ludus, 'treasury') ||
     !hasNumber(value.ludus, 'reputation') ||
-    !hasNumber(value.ludus, 'glory') ||
     !hasNumber(value.ludus, 'security') ||
     !hasNumber(value.ludus, 'happiness') ||
     !hasNumber(value.ludus, 'rebellion') ||
@@ -1111,7 +1107,6 @@ export function normalizeGameSave(save: GameSave): GameSave {
     ludus: {
       treasury: save.ludus.treasury,
       reputation: save.ludus.reputation,
-      glory: save.ludus.glory ?? 0,
       security: save.ludus.security ?? 50,
       happiness: save.ludus.happiness ?? 65,
       rebellion: save.ludus.rebellion ?? 0,

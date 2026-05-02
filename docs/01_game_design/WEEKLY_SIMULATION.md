@@ -94,7 +94,6 @@ Current applied macro effect types:
 - `increaseHappiness`: improves daily happiness movement;
 - `decreaseRebellion`: lowers daily rebellion movement;
 - `increaseReputation`: adds reputation from public/admin activity;
-- `increaseGlory`: adds glory from training/public activity;
 - `reduceInjuryRisk`: lowers training injury chance;
 - `increaseStaffEfficiency`: improves operational efficiency for staffed buildings.
 
@@ -108,7 +107,6 @@ If a random event is created, its id is recorded in the daily summary and the sa
 
 - treasury delta;
 - reputation delta;
-- glory delta;
 - happiness delta;
 - security delta;
 - rebellion delta;
@@ -144,7 +142,6 @@ If the current day is Sunday:
 
 - treasury delta;
 - reputation delta;
-- glory delta;
 - happiness delta;
 - security delta;
 - rebellion delta;

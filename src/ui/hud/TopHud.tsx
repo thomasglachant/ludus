@@ -71,11 +71,6 @@ export function TopHud({ onOpenFinance, onOpenMenu, save }: TopHudProps) {
             </span>
             <span className="top-hud__resource-value">{formatNumber(save.ludus.reputation)}</span>
           </div>
-          <div className="top-hud__resource" data-testid="topbar-glory">
-            <span className="top-hud__resource-value">
-              {t('ludus.gloryValue', { value: save.ludus.glory })}
-            </span>
-          </div>
           <div className="top-hud__resource" data-testid="topbar-happiness">
             <span className="top-hud__resource-value">
               {t('ludus.happinessValue', { value: save.ludus.happiness })}

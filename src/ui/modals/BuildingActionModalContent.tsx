@@ -25,7 +25,6 @@ const effectIcons: Record<BuildingEffectType, GameIconName> = {
   increaseHealth: 'health',
   increaseMorale: 'morale',
   increaseReputation: 'reputation',
-  increaseGlory: 'victory',
   increaseSecurity: 'defense',
   increaseHappiness: 'morale',
   decreaseRebellion: 'warning',

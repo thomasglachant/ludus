@@ -404,7 +404,6 @@ export function createWeeklyReport(save: GameSave, days: DailySimulationSummary[
     days,
     treasuryDelta: days.reduce((total, day) => total + day.treasuryDelta, 0),
     reputationDelta: days.reduce((total, day) => total + day.reputationDelta, 0),
-    gloryDelta: days.reduce((total, day) => total + day.gloryDelta, 0),
     happinessDelta: days.reduce((total, day) => total + day.happinessDelta, 0),
     securityDelta: days.reduce((total, day) => total + day.securityDelta, 0),
     rebellionDelta: days.reduce((total, day) => total + day.rebellionDelta, 0),
@@ -543,21 +542,15 @@ function resolveDailyPlanInternal(
       : -GAME_BALANCE.macroSimulation.rebellionCalmDailyReduction) -
     rebellionReduction +
     Math.round(buildingActivityImpact.rebellionDelta);
-  const publicActivityPoints = getPoints(plan, 'contracts') + getPoints(plan, 'events');
+  const reputationBonusPoints =
+    getPoints(plan, 'contracts') + getPoints(plan, 'events') + plan.gladiatorTimePoints.training;
   const reputationDelta =
     (contractIncome > 0 ? 1 : 0) +
-    Math.floor(
-      (publicActivityPoints * getLudusEffectValue(operationalSave, 'increaseReputation')) / 12,
-    ) +
-    Math.round(buildingActivityImpact.reputationDelta);
-  const gloryDelta =
     (plan.gladiatorTimePoints.training > 0 ? 1 : 0) +
     Math.floor(
-      ((plan.gladiatorTimePoints.training + getPoints(plan, 'events')) *
-        getLudusEffectValue(operationalSave, 'increaseGlory')) /
-        12,
+      (reputationBonusPoints * getLudusEffectValue(operationalSave, 'increaseReputation')) / 12,
     ) +
-    Math.round(buildingActivityImpact.gloryDelta);
+    Math.round(buildingActivityImpact.reputationDelta);
   const buildingActivityLedgerEntries: DailyLedgerDraft[] = buildingActivityContributions
     .map<DailyLedgerDraft | null>((contribution) => {
       const amount = Math.round(contribution.treasuryDelta);
@@ -624,7 +617,6 @@ function resolveDailyPlanInternal(
     dayOfWeek: plan.dayOfWeek,
     treasuryDelta,
     reputationDelta,
-    gloryDelta,
     happinessDelta,
     securityDelta,
     rebellionDelta,
@@ -638,7 +630,6 @@ function resolveDailyPlanInternal(
     ludus: {
       ...operationalSave.ludus,
       reputation: Math.max(0, operationalSave.ludus.reputation + summary.reputationDelta),
-      glory: Math.max(0, operationalSave.ludus.glory + summary.gloryDelta),
       happiness: clamp(operationalSave.ludus.happiness + happinessDelta, 0, 100),
       security: clamp(operationalSave.ludus.security + securityDelta, 0, 100),
       rebellion: clamp(operationalSave.ludus.rebellion + rebellionDelta, 0, 100),
