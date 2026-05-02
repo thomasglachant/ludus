@@ -1,9 +1,9 @@
-import { getBuildingPurchaseAvailability } from '../../domain/buildings/building-unlocks';
 import type { BuildingId, GameSave } from '../../domain/types';
 import { BUILDING_DEFINITIONS, BUILDING_IDS } from '../../game-data/buildings';
 import { useUiStore } from '../../state/ui-store-context';
-import { Badge, MetricList, PanelShell, SectionCard } from '../components/shared';
-import { formatMoneyAmount } from '../formatters/money';
+import { BuildingAvatar } from '../buildings/BuildingAvatar';
+import { EntityList, EntityListRow } from '../components/EntityList';
+import { PanelShell } from '../components/shared';
 
 interface BuildingsListPanelProps {
   save: GameSave;
@@ -13,29 +13,7 @@ interface BuildingsListPanelProps {
 
 export function BuildingsListPanel({ onClose, onOpenBuilding, save }: BuildingsListPanelProps) {
   const { t } = useUiStore();
-  const groups = [
-    {
-      id: 'purchased',
-      titleKey: 'buildingsList.purchased',
-      buildingIds: BUILDING_IDS.filter(
-        (buildingId) => getBuildingPurchaseAvailability(save, buildingId).status === 'purchased',
-      ),
-    },
-    {
-      id: 'available',
-      titleKey: 'buildingsList.available',
-      buildingIds: BUILDING_IDS.filter((buildingId) => {
-        return getBuildingPurchaseAvailability(save, buildingId).status === 'available';
-      }),
-    },
-    {
-      id: 'locked',
-      titleKey: 'buildingsList.locked',
-      buildingIds: BUILDING_IDS.filter((buildingId) => {
-        return getBuildingPurchaseAvailability(save, buildingId).status === 'locked';
-      }),
-    },
-  ];
+  const buildingIds = BUILDING_IDS.filter((buildingId) => save.buildings[buildingId].isPurchased);
 
   return (
     <PanelShell
@@ -46,71 +24,51 @@ export function BuildingsListPanel({ onClose, onOpenBuilding, save }: BuildingsL
       onClose={onClose}
     >
       <div className="building-list-groups">
-        {groups.map((group) =>
-          group.buildingIds.length > 0 ? (
-            <section className="building-list-group" key={group.id}>
-              <h3>{t(group.titleKey)}</h3>
-              <div className="planning-card-grid planning-card-grid--compact">
-                {group.buildingIds.map((buildingId) => {
-                  const building = save.buildings[buildingId];
-                  const definition = BUILDING_DEFINITIONS[buildingId];
-                  const purchaseAvailability = getBuildingPurchaseAvailability(save, buildingId);
-                  const isAvailable = purchaseAvailability.status === 'available';
-                  const statusLabelKey =
-                    purchaseAvailability.status === 'purchased'
-                      ? 'common.purchased'
-                      : isAvailable
-                        ? 'buildingsList.availableStatus'
-                        : 'buildingsList.lockedStatus';
-                  const statusTone = building.isPurchased
-                    ? 'success'
-                    : isAvailable
-                      ? 'warning'
-                      : 'neutral';
+        {buildingIds.length > 0 ? (
+          <section className="building-list-group">
+            <h3>{t('buildingsList.purchased')}</h3>
+            <EntityList>
+              {buildingIds.map((buildingId) => {
+                const building = save.buildings[buildingId];
+                const definition = BUILDING_DEFINITIONS[buildingId];
 
-                  return (
-                    <SectionCard key={buildingId} testId={`buildings-list-${buildingId}`}>
-                      <div className="building-list-card__header">
-                        <strong>{t(definition.nameKey)}</strong>
-                        <Badge label={t(statusLabelKey)} tone={statusTone} />
-                      </div>
-                      <span>{t(definition.descriptionKey)}</span>
-                      <MetricList
-                        columns={2}
-                        items={[
-                          { labelKey: 'buildingPanel.level', value: building.level },
-                          {
-                            labelKey: 'buildingPanel.efficiency',
-                            value: `${building.efficiency}%`,
-                          },
-                          {
-                            labelKey: 'buildings.requiredDomus',
-                            value: t('common.level', {
-                              level: purchaseAvailability.requiredDomusLevel,
-                            }),
-                          },
-                          {
-                            labelKey: 'buildings.purchaseCostLabel',
-                            value: purchaseAvailability.isPurchased
-                              ? t('common.purchased')
-                              : purchaseAvailability.purchaseCost
-                                ? formatMoneyAmount(purchaseAvailability.purchaseCost)
-                                : t('common.empty'),
-                          },
-                        ]}
-                      />
-                      <div className="context-panel__actions">
-                        <button type="button" onClick={() => onOpenBuilding(buildingId)}>
-                          <span>{t('common.open')}</span>
-                        </button>
-                      </div>
-                    </SectionCard>
-                  );
-                })}
-              </div>
-            </section>
-          ) : null,
-        )}
+                return (
+                  <EntityListRow
+                    actions={[
+                      {
+                        id: 'open',
+                        label: t('common.open'),
+                        onClick: () => onOpenBuilding(buildingId),
+                        variant: 'primary',
+                      },
+                    ]}
+                    avatar={<BuildingAvatar buildingId={buildingId} size="small" />}
+                    info={[
+                      {
+                        iconName: 'landmark',
+                        id: 'level',
+                        label: t('buildingPanel.level'),
+                        value: building.level,
+                      },
+                      {
+                        iconName: 'workforce',
+                        id: 'efficiency',
+                        label: t('buildingPanel.efficiency'),
+                        value: `${building.efficiency}%`,
+                      },
+                    ]}
+                    key={buildingId}
+                    openLabel={t('map.openLocation', { name: t(definition.nameKey) })}
+                    subtitle={t(definition.descriptionKey)}
+                    testId={`buildings-list-${buildingId}`}
+                    title={t(definition.nameKey)}
+                    onOpen={() => onOpenBuilding(buildingId)}
+                  />
+                );
+              })}
+            </EntityList>
+          </section>
+        ) : null}
       </div>
     </PanelShell>
   );

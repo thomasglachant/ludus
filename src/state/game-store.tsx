@@ -68,7 +68,8 @@ function synchronizeLoadedSave(save: GameSave): GameSave {
 }
 
 export function GameStoreProvider({ children }: { children: ReactNode }) {
-  const { activeModal, screen, setLanguage, navigate, openModal } = useUiStore();
+  const { activeModal, modalStack, screen, setLanguage, navigate, openModal, pushModal } =
+    useUiStore();
   const [saveService] = useState(createSaveService);
   const [initialRoute] = useState(() => getGameSessionRoute(window.location.pathname));
   const initialRouteGameId = initialRoute?.gameId;
@@ -570,8 +571,14 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     const interruption = getActiveGameInterruption(currentSave);
 
     if (interruption?.kind === 'dailyEvent') {
-      if (!activeModal) {
-        openModal({ kind: 'events' });
+      const hasEventsModal = modalStack.some((modal) => modal.kind === 'events');
+
+      if (!hasEventsModal) {
+        if (activeModal) {
+          pushModal({ kind: 'events' });
+        } else {
+          openModal({ kind: 'events' });
+        }
       }
 
       return;
@@ -588,7 +595,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     if (screen === 'arena') {
       navigate('ludus', { gameId: currentSave.gameId });
     }
-  }, [activeModal, currentSave, navigate, openModal, screen]);
+  }, [activeModal, currentSave, modalStack, navigate, openModal, pushModal, screen]);
 
   const value = useMemo<GameStoreValue>(() => {
     return {

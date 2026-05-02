@@ -7,11 +7,12 @@ import { GameIcon } from '../icons/GameIcon';
 import { AppModal } from './AppModal';
 
 interface NewGameModalProps {
+  isActive?: boolean;
   onBack?(): void;
   onClose(): void;
 }
 
-export function NewGameModal({ onBack, onClose }: NewGameModalProps) {
+export function NewGameModal({ isActive = true, onBack, onClose }: NewGameModalProps) {
   const { createNewGame, isLoading } = useGameStore();
   const { t } = useUiStore();
   const [ludusName, setLudusName] = useState(() => generateLudusName(''));
@@ -35,6 +36,7 @@ export function NewGameModal({ onBack, onClose }: NewGameModalProps) {
 
   return (
     <AppModal
+      isActive={isActive}
       size="md"
       testId="new-game-modal"
       titleKey="newGame.title"
@@ -60,7 +62,7 @@ export function NewGameModal({ onBack, onClose }: NewGameModalProps) {
     >
       <form
         className="form-panel form-panel--modal"
-        data-new-game-form="active"
+        data-new-game-form={isActive ? 'active' : 'inactive'}
         data-testid="new-game-screen"
         onSubmit={submitNewGame}
       >

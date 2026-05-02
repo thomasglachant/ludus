@@ -9,6 +9,7 @@ import { BuildingsListPanel } from '../panels/BuildingsListPanel';
 import { FinancePanel } from '../panels/FinancePanel';
 import { GladiatorsListPanel } from '../panels/GladiatorsListPanel';
 import { GladiatorDetailPanel } from '../panels/GladiatorDetailPanel';
+import { StaffDetailPanel } from '../panels/StaffDetailPanel';
 import { WeeklyPlanningPanel } from '../panels/WeeklyPlanningPanel';
 import { AppModal } from './AppModal';
 import { GameMenuModal } from './GameMenuModal';
@@ -22,13 +23,13 @@ function createInitialFormValues(fields: FormModalField[]) {
 }
 
 function ConfirmDialog({
+  isActive,
   modal,
-  onBack,
 }: {
+  isActive: boolean;
   modal: Extract<UiModalState, { kind: 'confirm' }>;
-  onBack?(): void;
 }) {
-  const { closeAllModals, closeModal, t } = useUiStore();
+  const { closeModal, t } = useUiStore();
 
   const confirm = () => {
     const { onConfirm } = modal;
@@ -39,12 +40,12 @@ function ConfirmDialog({
 
   return (
     <AppModal
+      isActive={isActive}
       size={modal.size}
       testId={modal.testId ?? 'confirm-dialog'}
       titleKey={modal.titleKey}
       titleParams={modal.titleParams}
-      onBack={onBack}
-      onClose={closeAllModals}
+      onClose={closeModal}
       footer={
         <div className="form-actions confirm-dialog__actions">
           <ActionButton label={t(modal.cancelLabelKey ?? 'common.cancel')} onClick={closeModal} />
@@ -72,13 +73,13 @@ function ConfirmDialog({
 }
 
 function FormDialog({
+  isActive,
   modal,
-  onBack,
 }: {
+  isActive: boolean;
   modal: Extract<UiModalState, { kind: 'form' }>;
-  onBack?(): void;
 }) {
-  const { closeAllModals, closeModal, t } = useUiStore();
+  const { closeModal, t } = useUiStore();
   const [values, setValues] = useState(() => createInitialFormValues(modal.fields));
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -92,12 +93,12 @@ function FormDialog({
 
   return (
     <AppModal
+      isActive={isActive}
       size={modal.size ?? 'md'}
       testId={modal.testId ?? 'form-dialog'}
       titleKey={modal.titleKey}
       titleParams={modal.titleParams}
-      onBack={onBack}
-      onClose={closeAllModals}
+      onClose={closeModal}
       footer={
         <div className="form-actions">
           <ActionButton label={t(modal.cancelLabelKey ?? 'common.cancel')} onClick={closeModal} />
@@ -113,7 +114,11 @@ function FormDialog({
         </div>
       }
     >
-      <form className="form-panel form-panel--modal" data-modal-form="active" onSubmit={submit}>
+      <form
+        className="form-panel form-panel--modal"
+        data-modal-form={isActive ? 'active' : 'inactive'}
+        onSubmit={submit}
+      >
         {modal.fields.map((field) => (
           <label key={field.id}>
             <span>{t(field.labelKey)}</span>
@@ -136,7 +141,7 @@ function FormDialog({
   );
 }
 
-function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): void }) {
+function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModalState }) {
   const {
     applyPlanningRecommendations,
     currentSave,
@@ -157,7 +162,7 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
     updateDailyPlanBuildingActivitySelection,
     upgradeBuilding,
   } = useGameStore();
-  const { closeAllModals, navigate, openModal } = useUiStore();
+  const { closeAllModals, closeModal, navigate, pushModal } = useUiStore();
   const isDailyEventBlocking = currentSave ? currentSave.events.pendingEvents.length > 0 : false;
 
   const quitToMainMenu = () => {
@@ -168,29 +173,29 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
     return (
       <GameMenuModal
         hasUnsavedChanges={hasUnsavedChanges}
+        isActive={isActive}
         isSaving={isSaving || isLoading}
-        onBack={onBack}
-        onClose={onBack ?? closeAllModals}
+        onClose={closeModal}
         onQuit={quitToMainMenu}
-        onSave={() => void saveCurrentGame().then(closeAllModals)}
+        onSave={() => void saveCurrentGame().then(closeModal)}
       />
     );
   }
 
   if (modal.kind === 'options') {
-    return <OptionsModal onBack={onBack} onClose={closeAllModals} />;
+    return <OptionsModal isActive={isActive} onClose={closeModal} />;
   }
 
   if (modal.kind === 'loadGame') {
-    return <LoadGameModal onBack={onBack} onClose={closeAllModals} />;
+    return <LoadGameModal isActive={isActive} onClose={closeModal} />;
   }
 
   if (modal.kind === 'newGame') {
-    return <NewGameModal onBack={onBack} onClose={closeAllModals} />;
+    return <NewGameModal isActive={isActive} onClose={closeModal} />;
   }
 
   if (modal.kind === 'market') {
-    return <MarketModal onBack={onBack} onClose={closeAllModals} />;
+    return <MarketModal isActive={isActive} onClose={closeModal} />;
   }
 
   if (!currentSave) {
@@ -198,18 +203,22 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
   }
 
   if (modal.kind === 'building') {
+    if (!currentSave.buildings[modal.buildingId].isPurchased) {
+      return null;
+    }
+
     return (
       <AppModal
+        isActive={isActive}
         size="lg"
         testId="building-modal"
         titleKey={BUILDING_DEFINITIONS[modal.buildingId].nameKey}
-        onBack={onBack}
-        onClose={closeAllModals}
+        onClose={closeModal}
       >
         <BuildingPanel
           buildingId={modal.buildingId}
           save={currentSave}
-          onClose={closeAllModals}
+          onClose={closeModal}
           onPurchaseBuilding={purchaseBuilding}
           onPurchaseBuildingImprovement={purchaseBuildingImprovement}
           onPurchaseBuildingSkill={purchaseBuildingSkill}
@@ -224,17 +233,17 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
   if (modal.kind === 'buildingsList') {
     return (
       <AppModal
+        isActive={isActive}
         size="xl"
         testId="buildings-list-modal"
         titleKey="navigation.buildings"
-        onBack={onBack}
-        onClose={closeAllModals}
+        onClose={closeModal}
       >
         <BuildingsListPanel
           save={currentSave}
-          onClose={closeAllModals}
+          onClose={closeModal}
           onOpenBuilding={(buildingId) => {
-            openModal({ buildingId, kind: 'building' });
+            pushModal({ buildingId, kind: 'building' });
           }}
         />
       </AppModal>
@@ -244,17 +253,17 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
   if (modal.kind === 'gladiatorsList') {
     return (
       <AppModal
+        isActive={isActive}
         size="xl"
         testId="gladiators-list-modal"
         titleKey="roster.title"
-        onBack={onBack}
-        onClose={closeAllModals}
+        onClose={closeModal}
       >
         <GladiatorsListPanel
           save={currentSave}
-          onClose={closeAllModals}
+          onClose={closeModal}
           onOpenGladiator={(gladiatorId) => {
-            openModal({ gladiatorId, kind: 'gladiator' });
+            pushModal({ gladiatorId, kind: 'gladiator' });
           }}
         />
       </AppModal>
@@ -264,16 +273,16 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
   if (modal.kind === 'finance') {
     return (
       <AppModal
+        isActive={isActive}
         size="xl"
         testId="finance-modal"
         titleKey="finance.title"
-        onBack={onBack}
-        onClose={closeAllModals}
+        onClose={closeModal}
       >
         <FinancePanel
           save={currentSave}
           onBuyoutLoan={buyoutLoan}
-          onClose={closeAllModals}
+          onClose={closeModal}
           onTakeLoan={takeLoan}
         />
       </AppModal>
@@ -291,13 +300,35 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
 
     return (
       <AppModal
+        isActive={isActive}
         size="lg"
         testId="gladiator-modal"
         title={gladiator.name}
-        onBack={onBack}
-        onClose={closeAllModals}
+        onClose={closeModal}
       >
-        <GladiatorDetailPanel gladiator={gladiator} save={currentSave} onClose={closeAllModals} />
+        <GladiatorDetailPanel gladiator={gladiator} save={currentSave} onClose={closeModal} />
+      </AppModal>
+    );
+  }
+
+  if (modal.kind === 'staff') {
+    const staffMember = currentSave.staff.members.find(
+      (candidate) => candidate.id === modal.staffId,
+    );
+
+    if (!staffMember) {
+      return null;
+    }
+
+    return (
+      <AppModal
+        isActive={isActive}
+        size="lg"
+        testId="staff-modal"
+        title={staffMember.name}
+        onClose={closeModal}
+      >
+        <StaffDetailPanel save={currentSave} staffMember={staffMember} />
       </AppModal>
     );
   }
@@ -305,17 +336,17 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
   if (modal.kind === 'weeklyPlanning') {
     return (
       <AppModal
+        isActive={isActive}
         size="xl"
         testId="weekly-planning-modal"
         titleKey="weeklyPlan.title"
-        onBack={onBack}
-        onClose={closeAllModals}
+        onClose={closeModal}
       >
         <WeeklyPlanningPanel
           save={currentSave}
           onAdvanceWeekStep={advanceWeekStep}
           onApplyRecommendations={applyPlanningRecommendations}
-          onClose={closeAllModals}
+          onClose={closeModal}
           onUpdateDailyPlan={updateDailyPlan}
           onUpdateBuildingActivitySelection={updateDailyPlanBuildingActivitySelection}
         />
@@ -327,18 +358,19 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
     return (
       <AppModal
         dismissible={!isDailyEventBlocking}
+        isActive={isActive}
         size="lg"
         testId="events-modal"
         titleKey="events.title"
-        onBack={onBack}
-        onClose={closeAllModals}
+        onClose={closeModal}
       >
         <EventsPanel
           save={currentSave}
-          onClose={closeAllModals}
+          onClose={closeModal}
+          onOpenGladiator={(gladiatorId) => pushModal({ gladiatorId, kind: 'gladiator' })}
           onResolveEventChoice={(eventId, choiceId) => {
             resolveGameEventChoice(eventId, choiceId);
-            closeAllModals();
+            closeModal();
           }}
         />
       </AppModal>
@@ -348,15 +380,15 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
   if (modal.kind === 'arena') {
     return (
       <AppModal
+        isActive={isActive}
         size="md"
         testId="arena-panel"
         titleKey="arena.title"
-        onBack={onBack}
-        onClose={closeAllModals}
+        onClose={closeModal}
       >
         <ArenaPanel
           save={currentSave}
-          onClose={closeAllModals}
+          onClose={closeModal}
           onOpenArenaRoute={() => {
             closeAllModals();
             navigate('arena', { gameId: currentSave.gameId });
@@ -370,21 +402,27 @@ function GameModalRouter({ modal, onBack }: { modal: UiModalState; onBack?(): vo
 }
 
 export function ModalHost() {
-  const { activeModal, backModal, modalStack } = useUiStore();
+  const { modalStack } = useUiStore();
 
-  if (!activeModal) {
+  if (modalStack.length === 0) {
     return null;
   }
 
-  const onBack = modalStack.length > 1 ? backModal : undefined;
+  return (
+    <>
+      {modalStack.map((modal, index) => {
+        const isActive = index === modalStack.length - 1;
 
-  if (activeModal.kind === 'confirm') {
-    return <ConfirmDialog modal={activeModal} onBack={onBack} />;
-  }
+        if (modal.kind === 'confirm') {
+          return <ConfirmDialog isActive={isActive} key={modal.id} modal={modal} />;
+        }
 
-  if (activeModal.kind === 'form') {
-    return <FormDialog modal={activeModal} onBack={onBack} />;
-  }
+        if (modal.kind === 'form') {
+          return <FormDialog isActive={isActive} key={modal.id} modal={modal} />;
+        }
 
-  return <GameModalRouter modal={activeModal} onBack={onBack} />;
+        return <GameModalRouter isActive={isActive} key={modal.id} modal={modal} />;
+      })}
+    </>
+  );
 }

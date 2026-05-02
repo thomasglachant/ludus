@@ -9,6 +9,7 @@ import { GameIcon } from '../icons/GameIcon';
 import { AppModal } from './AppModal';
 
 interface LoadGameModalProps {
+  isActive?: boolean;
   onBack?(): void;
   onClose(): void;
 }
@@ -230,9 +231,10 @@ export function LoadGameContent({ onLoaded }: LoadGameContentProps) {
   );
 }
 
-export function LoadGameModal({ onBack, onClose }: LoadGameModalProps) {
+export function LoadGameModal({ isActive, onBack, onClose }: LoadGameModalProps) {
   return (
     <AppModal
+      isActive={isActive}
       size="lg"
       testId="load-game-modal"
       titleKey="loadGame.title"

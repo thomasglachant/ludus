@@ -470,10 +470,19 @@
   justify-items: center;
   justify-self: start;
   gap: 6px;
+  border: 0;
+  padding: 0;
+  background: transparent;
   color: #4f3825;
+  cursor: pointer;
   font-size: 0.82rem;
   font-weight: 850;
   text-align: center;
+}
+
+.events-panel__gladiator:hover {
+  color: #2d7c70;
+  filter: none;
 }
 
 .events-panel__gladiator strong {
@@ -570,26 +579,7 @@
   justify-self: stretch;
 }
 
-.gladiator-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.market-gladiator-summary__warning {
-  padding: 9px 10px;
-  border: 1px solid #ddb777;
-  border-radius: 8px;
-  background: #fff3d9;
-  color: #6b4a05;
-  font-weight: 700;
-}
-
 @media (max-width: 900px) {
-  .gladiator-grid {
-    grid-template-columns: 1fr;
-  }
-
   .planning-controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

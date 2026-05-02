@@ -7,8 +7,10 @@
 @import './styles/roster.css';
 @import './styles/staff.css';
 @import './styles/gladiator-summary.css';
+@import './styles/entity-list.css';
 @import './styles/panels.css';
 @import './styles/modals.css';
+@import './styles/modal-framework.css';
 @import './styles/feedback.css';
 @import './styles/arena.css';
 @import './styles/combat.css';

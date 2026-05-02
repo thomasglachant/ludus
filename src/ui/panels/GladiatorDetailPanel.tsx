@@ -1,12 +1,23 @@
+import { useState } from 'react';
 import { getEffectiveSkillValue } from '../../domain/gladiators/skills';
 import { getPlanningRecommendation } from '../../domain/planning/planning-actions';
 import type { GameSave, Gladiator } from '../../domain/types';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { useUiStore } from '../../state/ui-store-context';
-import { PanelShell } from '../components/shared';
+import { BuildingAvatar } from '../buildings/BuildingAvatar';
+import { EntityList, EntityListRow } from '../components/EntityList';
+import { MetricList, SectionCard } from '../components/shared';
 import { formatNumber } from '../formatters/number';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
-import { GladiatorSummary } from '../gladiators/GladiatorSummary';
+import {
+  ModalContentFrame,
+  ModalHeroCard,
+  ModalSection,
+  ModalTabPanel,
+  ModalTabs,
+  type ModalTabItem,
+} from '../modals/ModalContentFrame';
+import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface GladiatorDetailPanelProps {
   save: GameSave;
@@ -19,6 +30,14 @@ interface StatChipProps {
   label: string;
   value: number | string;
 }
+
+type GladiatorDetailTab = 'overview' | 'planning' | 'training';
+
+const gladiatorDetailTabs: ModalTabItem<GladiatorDetailTab>[] = [
+  { id: 'overview', labelKey: 'gladiatorPanel.tabs.overview' },
+  { id: 'planning', labelKey: 'gladiatorPanel.tabs.planning' },
+  { id: 'training', labelKey: 'gladiatorPanel.tabs.training' },
+];
 
 function StatChip({ iconName, label, value }: StatChipProps) {
   const formattedValue = typeof value === 'number' ? formatNumber(value) : value;
@@ -44,71 +63,167 @@ function getCurrentArenaRecord(save: GameSave, gladiator: Gladiator) {
   };
 }
 
-export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDetailPanelProps) {
-  const { t } = useUiStore();
+export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelProps) {
+  const { pushModal, t } = useUiStore();
+  const [activeTab, setActiveTab] = useState<GladiatorDetailTab>('overview');
   const recommendation = getPlanningRecommendation(save, gladiator);
+  const recommendedBuildingId = recommendation.buildingId;
   const recommendedBuildingName = recommendation.buildingId
     ? t(BUILDING_DEFINITIONS[recommendation.buildingId].nameKey)
     : t('weeklyPlan.noAssignment');
   const currentArenaRecord = getCurrentArenaRecord(save, gladiator);
+  const tabItems = gladiator.trainingPlan
+    ? gladiatorDetailTabs
+    : gladiatorDetailTabs.filter((tab) => tab.id !== 'training');
+  const selectedTab = tabItems.some((tab) => tab.id === activeTab) ? activeTab : 'overview';
+
   return (
-    <PanelShell eyebrowKey="gladiatorPanel.eyebrow" title={gladiator.name} onClose={onClose}>
-      <GladiatorSummary gladiator={gladiator} tone="light" />
+    <ModalContentFrame>
+      <ModalHeroCard
+        avatar={<GladiatorPortrait gladiator={gladiator} size="large" />}
+        description={t('gladiatorPanel.detailDescription', { age: gladiator.age })}
+        metrics={[
+          {
+            iconName: 'reputation',
+            id: 'reputation',
+            labelKey: 'gladiatorPanel.reputation',
+            value: gladiator.reputation,
+          },
+          {
+            iconName: 'health',
+            id: 'health',
+            labelKey: 'roster.healthShort',
+            value: gladiator.health,
+          },
+          {
+            iconName: 'energy',
+            id: 'energy',
+            labelKey: 'roster.energyShort',
+            value: gladiator.energy,
+          },
+          {
+            iconName: 'morale',
+            id: 'morale',
+            labelKey: 'roster.moraleShort',
+            value: gladiator.morale,
+          },
+        ]}
+        title={gladiator.name}
+      />
 
-      <div className="gladiator-info-grid">
-        <section className="gladiator-info-panel">
-          <h2>
-            <GameIcon name="record" size={18} />
-            {t('gladiatorPanel.record')}
-          </h2>
-          <dl>
-            <div>
-              <dt>{t('gladiatorPanel.careerRecord')}</dt>
-              <dd>
-                <GameIcon name="victory" size={16} />
-                {t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}
-              </dd>
-            </div>
-            <div>
-              <dt>{t('gladiatorPanel.todayRecord')}</dt>
-              <dd>
-                <GameIcon name="victory" size={16} />
-                {t('market.record', {
-                  wins: currentArenaRecord.wins,
-                  losses: currentArenaRecord.losses,
-                })}
-              </dd>
-            </div>
-          </dl>
-        </section>
+      <ModalTabs<GladiatorDetailTab>
+        ariaLabelKey="gladiatorPanel.tabsLabel"
+        items={tabItems}
+        selectedId={selectedTab}
+        onSelect={setActiveTab}
+      />
 
-        <section className="gladiator-info-panel">
-          <h2>
-            <GameIcon name="combatPressure" size={18} />
-            {t('gladiatorPanel.planning')}
-          </h2>
-          <dl>
-            <div>
-              <dt>{t('weeklyPlan.suggestedAssignment')}</dt>
-              <dd>
-                {recommendation.isAvailable
-                  ? recommendedBuildingName
-                  : t('weeklyPlan.buildingUnavailable')}
-              </dd>
-            </div>
-            <div>
-              <dt>{t('weeklyPlan.recommendedFocus')}</dt>
-              <dd>{t(recommendation.reasonKey)}</dd>
-            </div>
-          </dl>
-        </section>
+      {selectedTab === 'overview' ? (
+        <ModalTabPanel>
+          <div className="gladiator-info-grid">
+            <section className="gladiator-info-panel">
+              <h2>
+                <GameIcon name="record" size={18} />
+                {t('gladiatorPanel.record')}
+              </h2>
+              <dl>
+                <div>
+                  <dt>{t('gladiatorPanel.careerRecord')}</dt>
+                  <dd>
+                    <GameIcon name="victory" size={16} />
+                    {t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t('gladiatorPanel.todayRecord')}</dt>
+                  <dd>
+                    <GameIcon name="victory" size={16} />
+                    {t('market.record', {
+                      wins: currentArenaRecord.wins,
+                      losses: currentArenaRecord.losses,
+                    })}
+                  </dd>
+                </div>
+              </dl>
+            </section>
 
-        {gladiator.trainingPlan ? (
-          <section className="gladiator-info-panel gladiator-info-panel--wide">
-            <h2>
-              <GameIcon name="training" size={18} />
-              {t('gladiatorPanel.trainingPlan')}
-            </h2>
+            <section className="gladiator-info-panel">
+              <h2>
+                <GameIcon name="combatPressure" size={18} />
+                {t('gladiatorPanel.stats')}
+              </h2>
+              <div className="gladiator-skill-grid">
+                <StatChip
+                  iconName="strength"
+                  label={t('market.stats.strength')}
+                  value={gladiator.strength}
+                />
+                <StatChip
+                  iconName="agility"
+                  label={t('market.stats.agility')}
+                  value={gladiator.agility}
+                />
+                <StatChip
+                  iconName="defense"
+                  label={t('market.stats.defense')}
+                  value={gladiator.defense}
+                />
+              </div>
+            </section>
+          </div>
+        </ModalTabPanel>
+      ) : null}
+
+      {selectedTab === 'planning' ? (
+        <ModalTabPanel>
+          {recommendedBuildingId && recommendation.isAvailable ? (
+            <ModalSection titleKey="gladiatorPanel.planning">
+              <EntityList>
+                <EntityListRow
+                  avatar={<BuildingAvatar buildingId={recommendedBuildingId} size="small" />}
+                  info={[
+                    {
+                      iconName: 'assignment',
+                      id: 'focus',
+                      label: t('weeklyPlan.recommendedFocus'),
+                      value: t(recommendation.reasonKey),
+                    },
+                    {
+                      iconName: 'workforce',
+                      id: 'efficiency',
+                      label: t('buildingPanel.efficiency'),
+                      value: `${save.buildings[recommendedBuildingId].efficiency}%`,
+                    },
+                  ]}
+                  openLabel={t('map.openLocation', { name: recommendedBuildingName })}
+                  subtitle={t(BUILDING_DEFINITIONS[recommendedBuildingId].descriptionKey)}
+                  title={recommendedBuildingName}
+                  onOpen={() => pushModal({ buildingId: recommendedBuildingId, kind: 'building' })}
+                />
+              </EntityList>
+            </ModalSection>
+          ) : (
+            <SectionCard titleKey="gladiatorPanel.planning">
+              <MetricList
+                columns={2}
+                items={[
+                  {
+                    labelKey: 'weeklyPlan.suggestedAssignment',
+                    value: recommendation.isAvailable
+                      ? recommendedBuildingName
+                      : t('weeklyPlan.buildingUnavailable'),
+                  },
+                  { labelKey: 'weeklyPlan.recommendedFocus', value: t(recommendation.reasonKey) },
+                ]}
+              />
+            </SectionCard>
+          )}
+        </ModalTabPanel>
+      ) : null}
+
+      {selectedTab === 'training' && gladiator.trainingPlan ? (
+        <ModalTabPanel>
+          <ModalSection titleKey="gladiatorPanel.trainingPlan">
             <div className="gladiator-skill-grid">
               <StatChip
                 iconName="strength"
@@ -126,9 +241,9 @@ export function GladiatorDetailPanel({ save, gladiator, onClose }: GladiatorDeta
                 value={getEffectiveSkillValue(gladiator.trainingPlan.defense)}
               />
             </div>
-          </section>
-        ) : null}
-      </div>
-    </PanelShell>
+          </ModalSection>
+        </ModalTabPanel>
+      ) : null}
+    </ModalContentFrame>
   );
 }

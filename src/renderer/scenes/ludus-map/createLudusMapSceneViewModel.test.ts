@@ -223,72 +223,46 @@ describe('createLudusMapSceneViewModel', () => {
     expect(viewModel.theme.overlayOpacity).toBe(0.28);
   });
 
-  it('marks unpurchased buildings as available when the Domus requirement is met', () => {
+  it('omits unpurchased buildings even when the Domus requirement is met', () => {
     const save = createTestSave();
     save.buildings.domus.level = 2;
 
-    const farm = findLocation(createViewModel(save), 'farm');
+    const viewModel = createViewModel(save);
 
-    expect(farm).toMatchObject({
-      isOwned: false,
-      ownershipStatus: 'available',
-      purchaseCost: 300,
-      requiredDomusLevel: 2,
-      labelSubtitle: 'Build site',
-      labelDetail: 'Cost 300, Domus 2',
-      accessibilityLabel: 'buildings.farm.name, build site. Cost 300. Requires Domus 2.',
-    });
+    expect(viewModel.locations.some((location) => location.id === 'farm')).toBe(false);
   });
 
-  it('marks unpurchased buildings as locked when the Domus requirement is not met', () => {
+  it('omits unpurchased buildings when the Domus requirement is not met', () => {
     const viewModel = createViewModel(createTestSave());
 
-    expect(findLocation(viewModel, 'farm')).toMatchObject({
-      isOwned: false,
-      ownershipStatus: 'locked',
-      purchaseCost: 300,
-      requiredDomusLevel: 2,
-      labelSubtitle: 'Locked',
-      labelDetail: 'Requires Domus 2, cost 300',
-      accessibilityLabel: 'buildings.farm.name, locked. Cost 300. Requires Domus 2.',
-    });
-    expect(findLocation(viewModel, 'bookmakerOffice')).toMatchObject({
-      isOwned: false,
-      ownershipStatus: 'locked',
-      purchaseCost: 650,
-      requiredDomusLevel: 4,
-      labelSubtitle: 'Locked',
-      labelDetail: 'Requires Domus 4, cost 650',
-    });
+    expect(viewModel.locations.some((location) => location.id === 'farm')).toBe(false);
+    expect(viewModel.locations.some((location) => location.id === 'bookmakerOffice')).toBe(false);
   });
 
-  it('keeps buildable and locked map locations visible without gladiators', () => {
+  it('keeps unpurchased map locations hidden without gladiators', () => {
     const save = createTestSave();
     save.gladiators = [];
     save.buildings.domus.level = 2;
 
     const viewModel = createViewModel(save);
-    const availableLocations = viewModel.locations.filter(
-      (location) => location.ownershipStatus === 'available',
-    );
-    const lockedLocations = viewModel.locations.filter(
-      (location) => location.ownershipStatus === 'locked',
-    );
 
-    expect(availableLocations.length).toBeGreaterThan(0);
-    expect(lockedLocations.length).toBeGreaterThan(0);
-    expect(availableLocations.every((location) => location.kind === 'building')).toBe(true);
-    expect(lockedLocations.every((location) => location.kind === 'building')).toBe(true);
-    expect([...availableLocations, ...lockedLocations].every((location) => !location.isOwned)).toBe(
+    expect(viewModel.locations.every((location) => location.ownershipStatus === 'owned')).toBe(
       true,
     );
-    expect(findLocation(viewModel, 'farm')).toMatchObject({
-      ownershipStatus: 'available',
-      labelSubtitle: 'Build site',
-    });
-    expect(findLocation(viewModel, 'bookmakerOffice')).toMatchObject({
-      ownershipStatus: 'locked',
-      labelSubtitle: 'Locked',
+    expect(viewModel.locations.some((location) => location.id === 'farm')).toBe(false);
+    expect(viewModel.locations.some((location) => location.id === 'bookmakerOffice')).toBe(false);
+  });
+
+  it('shows buildings after purchase', () => {
+    const save = createTestSave();
+    save.buildings.farm.isPurchased = true;
+    save.buildings.farm.level = 1;
+
+    expect(findLocation(createViewModel(save), 'farm')).toMatchObject({
+      isOwned: true,
+      ownershipStatus: 'owned',
+      level: 1,
+      labelSubtitle: 'Level 1',
     });
   });
 
@@ -307,7 +281,6 @@ describe('createLudusMapSceneViewModel', () => {
     expect(findLocation(viewModel, 'arena').exteriorAssetPath).toBe(
       '/assets/generated/map/buildings/arena.png',
     );
-    expect(findLocation(viewModel, 'farm').exteriorAssetPath).toBeUndefined();
   });
 
   it('places every ludus building inside the stone compound with required clearance', () => {

@@ -72,6 +72,11 @@ export interface GladiatorModalRequest {
   kind: 'gladiator';
 }
 
+export interface StaffModalRequest {
+  kind: 'staff';
+  staffId: string;
+}
+
 export interface WeeklyPlanningModalRequest {
   kind: 'weeklyPlanning';
 }
@@ -106,6 +111,7 @@ export type UiModalRequest =
   | MarketModalRequest
   | BuildingModalRequest
   | GladiatorModalRequest
+  | StaffModalRequest
   | WeeklyPlanningModalRequest
   | BuildingsListModalRequest
   | GladiatorsListModalRequest

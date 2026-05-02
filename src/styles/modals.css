@@ -46,6 +46,10 @@
   z-index: 80;
 }
 
+.app-modal-backdrop--inactive {
+  display: none;
+}
+
 .app-modal {
   display: grid;
   gap: 14px;

@@ -110,7 +110,6 @@ export interface BuildingPanelViewModel {
     validationMessageParams: Record<string, string | number>;
   }[];
   activities: BuildingPanelActivityViewModel[];
-  statusKey: string;
 }
 
 export interface LudusCapacityViewModel {
@@ -362,7 +361,6 @@ export function createBuildingPanelViewModel(
       };
     }),
     activities,
-    statusKey: building.isPurchased ? 'common.purchased' : 'common.notPurchased',
   };
 }
 

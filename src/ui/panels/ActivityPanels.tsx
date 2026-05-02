@@ -20,6 +20,7 @@ interface PanelProps {
 }
 
 interface EventsPanelProps extends PanelProps {
+  onOpenGladiator(gladiatorId: string): void;
   onResolveEventChoice(eventId: string, choiceId: string): void;
 }
 
@@ -162,7 +163,12 @@ function getEventConsequenceIndicators(
   }
 }
 
-export function EventsPanel({ save, onClose, onResolveEventChoice }: EventsPanelProps) {
+export function EventsPanel({
+  save,
+  onClose,
+  onOpenGladiator,
+  onResolveEventChoice,
+}: EventsPanelProps) {
   const { t } = useUiStore();
 
   return (
@@ -187,10 +193,15 @@ export function EventsPanel({ save, onClose, onResolveEventChoice }: EventsPanel
                 <div className="events-panel__event-header">
                   <div className="events-panel__heading-row">
                     {gladiator ? (
-                      <div className="events-panel__gladiator" aria-label={gladiator.name}>
+                      <button
+                        aria-label={t('roster.openGladiator', { name: gladiator.name })}
+                        className="events-panel__gladiator"
+                        type="button"
+                        onClick={() => onOpenGladiator(gladiator.id)}
+                      >
                         <GladiatorPortrait gladiator={gladiator} size="medium" />
                         <strong>{gladiator.name}</strong>
-                      </div>
+                      </button>
                     ) : null}
                     <div className="events-panel__summary">
                       <h3>{t(event.titleKey)}</h3>

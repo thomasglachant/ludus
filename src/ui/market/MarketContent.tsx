@@ -16,12 +16,10 @@ import type {
   StaffMember,
 } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
-import { ActionButton } from '../components/ActionButton';
-import { CTAButton } from '../components/CTAButton';
-import { EmptyState, MetricList, SectionCard } from '../components/shared';
+import { EntityList, EntityListRow } from '../components/EntityList';
+import { MetricList } from '../components/shared';
 import { formatMoneyAmount } from '../formatters/money';
-import { GladiatorSummary } from '../gladiators/GladiatorSummary';
-import { GameIcon } from '../icons/GameIcon';
+import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 import { StaffPortrait } from '../staff/StaffPortrait';
 
 interface MarketContentProps {
@@ -44,6 +42,15 @@ function getStaffValidationMessageKey(reason?: string) {
   return reason ? `market.validation.${reason}` : null;
 }
 
+function MarketRowSubtitle({ label, warning }: { label: string; warning?: string }) {
+  return (
+    <>
+      <span>{label}</span>
+      {warning ? <span className="entity-list-row__warning">{warning}</span> : null}
+    </>
+  );
+}
+
 function MarketCandidateCard({
   candidate,
   onBuy,
@@ -59,33 +66,49 @@ function MarketCandidateCard({
   const formattedPrice = formatMoneyAmount(candidate.price);
 
   return (
-    <GladiatorSummary
-      className="gladiator-summary--market"
-      gladiator={candidate}
+    <EntityListRow
+      actions={[
+        {
+          disabled: !validation.isAllowed,
+          iconName: 'shoppingCart',
+          id: 'buy',
+          label: t('market.buy'),
+          onClick: () => onBuy(candidate),
+          testId: `market-buy-${candidate.id}`,
+          variant: 'primary',
+        },
+      ]}
+      avatar={<GladiatorPortrait gladiator={candidate} size="small" />}
+      info={[
+        {
+          iconName: 'treasury',
+          id: 'price',
+          label: t('market.priceLabel'),
+          tone: 'warning',
+          value: formattedPrice,
+        },
+        {
+          iconName: 'reputation',
+          id: 'reputation',
+          label: t('gladiatorPanel.reputation'),
+          value: candidate.reputation,
+        },
+        {
+          iconName: 'health',
+          id: 'health',
+          label: t('roster.healthShort'),
+          value: candidate.health,
+        },
+      ]}
       testId={`market-candidate-${candidate.id}`}
-      tone="light"
-      topRightContent={
-        <>
-          <GameIcon name="treasury" size={17} />
-          <strong>{formattedPrice}</strong>
-        </>
+      subtitle={
+        <MarketRowSubtitle
+          label={t('market.age', { age: candidate.age })}
+          warning={validationMessageKey ? t(validationMessageKey) : undefined}
+        />
       }
-      topRightLabel={t('market.price', { price: formattedPrice })}
-    >
-      <div className="market-gladiator-summary__footer">
-        <CTAButton
-          data-testid={`market-buy-${candidate.id}`}
-          disabled={!validation.isAllowed}
-          onClick={() => onBuy(candidate)}
-        >
-          <GameIcon color="#fff9e7" name="shoppingCart" size={18} />
-          <span>{t('market.buy')}</span>
-        </CTAButton>
-      </div>
-      {validationMessageKey ? (
-        <p className="market-gladiator-summary__warning">{t(validationMessageKey)}</p>
-      ) : null}
-    </GladiatorSummary>
+      title={candidate.name}
+    />
   );
 }
 
@@ -96,32 +119,47 @@ function OwnedGladiatorCard({
   gladiator: Gladiator;
   onSell(gladiator: Gladiator): void;
 }) {
-  const { t } = useUiStore();
+  const { pushModal, t } = useUiStore();
   const formattedSaleValue = formatMoneyAmount(calculateGladiatorSaleValue(gladiator));
 
   return (
-    <GladiatorSummary
-      className="gladiator-summary--market"
-      gladiator={gladiator}
+    <EntityListRow
+      actions={[
+        {
+          iconName: 'userMinus',
+          id: 'sell',
+          label: t('market.sell'),
+          onClick: () => onSell(gladiator),
+          testId: `market-sell-${gladiator.id}`,
+        },
+      ]}
+      avatar={<GladiatorPortrait gladiator={gladiator} size="small" />}
+      info={[
+        {
+          iconName: 'treasury',
+          id: 'sale-value',
+          label: t('market.saleValueLabel'),
+          value: formattedSaleValue,
+        },
+        {
+          iconName: 'reputation',
+          id: 'reputation',
+          label: t('gladiatorPanel.reputation'),
+          value: gladiator.reputation,
+        },
+        {
+          iconName: 'morale',
+          id: 'morale',
+          label: t('roster.moraleShort'),
+          value: gladiator.morale,
+        },
+      ]}
+      openLabel={t('roster.openGladiator', { name: gladiator.name })}
       testId={`market-owned-${gladiator.id}`}
-      tone="light"
-      topRightContent={
-        <>
-          <GameIcon name="treasury" size={17} />
-          <strong>{formattedSaleValue}</strong>
-        </>
-      }
-      topRightLabel={t('market.saleValue', { price: formattedSaleValue })}
-    >
-      <div className="market-gladiator-summary__footer">
-        <ActionButton
-          icon={<GameIcon name="userMinus" size={18} />}
-          label={t('market.sell')}
-          testId={`market-sell-${gladiator.id}`}
-          onClick={() => onSell(gladiator)}
-        />
-      </div>
-    </GladiatorSummary>
+      subtitle={t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}
+      title={gladiator.name}
+      onOpen={() => pushModal({ gladiatorId: gladiator.id, kind: 'gladiator' })}
+    />
   );
 }
 
@@ -139,33 +177,43 @@ function StaffCandidateCard({
   const validationMessageKey = getStaffValidationMessageKey(validation.reason);
 
   return (
-    <SectionCard className="staff-card" testId={`market-staff-candidate-${candidate.id}`}>
-      <StaffPortrait staffMember={candidate} />
-      <div className="staff-card__body">
-        <strong>{candidate.name}</strong>
-        <MetricList
-          columns={3}
-          items={[
-            { labelKey: 'staff.type', value: t(`staff.types.${candidate.type}`) },
-            { labelKey: 'market.priceLabel', value: formatMoneyAmount(candidate.price) },
-            { labelKey: 'staff.weeklyWage', value: formatMoneyAmount(candidate.weeklyWage) },
-          ]}
+    <EntityListRow
+      actions={[
+        {
+          disabled: !validation.isAllowed,
+          iconName: 'shoppingCart',
+          id: 'buy',
+          label: t('market.buy'),
+          onClick: () => onBuyStaff(candidate),
+          testId: `market-buy-staff-${candidate.id}`,
+          variant: 'primary',
+        },
+      ]}
+      avatar={<StaffPortrait staffMember={candidate} />}
+      info={[
+        {
+          iconName: 'treasury',
+          id: 'price',
+          label: t('market.priceLabel'),
+          tone: 'warning',
+          value: formatMoneyAmount(candidate.price),
+        },
+        {
+          iconName: 'treasury',
+          id: 'weekly-wage',
+          label: t('staff.weeklyWage'),
+          value: formatMoneyAmount(candidate.weeklyWage),
+        },
+      ]}
+      testId={`market-staff-candidate-${candidate.id}`}
+      subtitle={
+        <MarketRowSubtitle
+          label={t(`staff.types.${candidate.type}`)}
+          warning={validationMessageKey ? t(validationMessageKey) : undefined}
         />
-        {validationMessageKey ? (
-          <p className="market-gladiator-summary__warning">{t(validationMessageKey)}</p>
-        ) : null}
-        <div className="market-gladiator-summary__footer">
-          <CTAButton
-            data-testid={`market-buy-staff-${candidate.id}`}
-            disabled={!validation.isAllowed}
-            onClick={() => onBuyStaff(candidate)}
-          >
-            <GameIcon color="#fff9e7" name="shoppingCart" size={18} />
-            <span>{t('market.buy')}</span>
-          </CTAButton>
-        </div>
-      </div>
-    </SectionCard>
+      }
+      title={candidate.name}
+    />
   );
 }
 
@@ -176,32 +224,41 @@ function OwnedStaffCard({
   onSellStaff(staffMember: StaffMember): void;
   staffMember: StaffMember;
 }) {
-  const { t } = useUiStore();
+  const { pushModal, t } = useUiStore();
   const formattedSaleValue = formatMoneyAmount(calculateStaffSaleValue(staffMember));
 
   return (
-    <SectionCard className="staff-card" testId={`market-owned-staff-${staffMember.id}`}>
-      <StaffPortrait staffMember={staffMember} />
-      <div className="staff-card__body">
-        <strong>{staffMember.name}</strong>
-        <MetricList
-          columns={3}
-          items={[
-            { labelKey: 'staff.type', value: t(`staff.types.${staffMember.type}`) },
-            { labelKey: 'market.saleValueLabel', value: formattedSaleValue },
-            { labelKey: 'staff.weeklyWage', value: formatMoneyAmount(staffMember.weeklyWage) },
-          ]}
-        />
-        <div className="market-gladiator-summary__footer">
-          <ActionButton
-            icon={<GameIcon name="userMinus" size={18} />}
-            label={t('market.sell')}
-            testId={`market-sell-staff-${staffMember.id}`}
-            onClick={() => onSellStaff(staffMember)}
-          />
-        </div>
-      </div>
-    </SectionCard>
+    <EntityListRow
+      actions={[
+        {
+          iconName: 'userMinus',
+          id: 'sell',
+          label: t('market.sell'),
+          onClick: () => onSellStaff(staffMember),
+          testId: `market-sell-staff-${staffMember.id}`,
+        },
+      ]}
+      avatar={<StaffPortrait staffMember={staffMember} />}
+      info={[
+        {
+          iconName: 'treasury',
+          id: 'sale-value',
+          label: t('market.saleValueLabel'),
+          value: formattedSaleValue,
+        },
+        {
+          iconName: 'treasury',
+          id: 'weekly-wage',
+          label: t('staff.weeklyWage'),
+          value: formatMoneyAmount(staffMember.weeklyWage),
+        },
+      ]}
+      openLabel={t('staff.openDetailsFor', { name: staffMember.name })}
+      testId={`market-owned-staff-${staffMember.id}`}
+      subtitle={t(`staff.types.${staffMember.type}`)}
+      title={staffMember.name}
+      onOpen={() => pushModal({ kind: 'staff', staffId: staffMember.id })}
+    />
   );
 }
 
@@ -219,32 +276,24 @@ export function MarketContent({
     <div className="market-content">
       <section className="market-candidates" data-testid="market-candidates-section">
         <h2>{t('market.availableGladiators')}</h2>
-        {save.market.availableGladiators.length > 0 ? (
-          <div className="gladiator-grid">
-            {save.market.availableGladiators.map((candidate) => (
-              <MarketCandidateCard
-                candidate={candidate}
-                key={candidate.id}
-                save={save}
-                onBuy={onBuy}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState messageKey="market.noCandidates" testId="market-empty-candidates" />
-        )}
+        <EntityList emptyMessageKey="market.noCandidates" emptyTestId="market-empty-candidates">
+          {save.market.availableGladiators.map((candidate) => (
+            <MarketCandidateCard
+              candidate={candidate}
+              key={candidate.id}
+              save={save}
+              onBuy={onBuy}
+            />
+          ))}
+        </EntityList>
       </section>
       <section className="market-candidates" data-testid="market-owned-section">
         <h2>{t('market.ownedGladiators')}</h2>
-        {save.gladiators.length > 0 ? (
-          <div className="gladiator-grid">
-            {save.gladiators.map((gladiator) => (
-              <OwnedGladiatorCard gladiator={gladiator} key={gladiator.id} onSell={onSell} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState messageKey="market.noOwnedGladiators" testId="market-empty-owned" />
-        )}
+        <EntityList emptyMessageKey="market.noOwnedGladiators" emptyTestId="market-empty-owned">
+          {save.gladiators.map((gladiator) => (
+            <OwnedGladiatorCard gladiator={gladiator} key={gladiator.id} onSell={onSell} />
+          ))}
+        </EntityList>
       </section>
       <section className="market-candidates" data-testid="market-staff-candidates-section">
         <h2>{t('market.availableStaff')}</h2>
@@ -264,39 +313,31 @@ export function MarketContent({
             },
           ]}
         />
-        {save.staff.marketCandidates.length > 0 ? (
-          <div className="context-panel__list">
-            {save.staff.marketCandidates.map((candidate) => (
-              <StaffCandidateCard
-                candidate={candidate}
-                key={candidate.id}
-                save={save}
-                onBuyStaff={onBuyStaff}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            messageKey="market.noStaffCandidates"
-            testId="market-empty-staff-candidates"
-          />
-        )}
+        <EntityList
+          emptyMessageKey="market.noStaffCandidates"
+          emptyTestId="market-empty-staff-candidates"
+        >
+          {save.staff.marketCandidates.map((candidate) => (
+            <StaffCandidateCard
+              candidate={candidate}
+              key={candidate.id}
+              save={save}
+              onBuyStaff={onBuyStaff}
+            />
+          ))}
+        </EntityList>
       </section>
       <section className="market-candidates" data-testid="market-owned-staff-section">
         <h2>{t('market.ownedStaff')}</h2>
-        {save.staff.members.length > 0 ? (
-          <div className="context-panel__list">
-            {save.staff.members.map((staffMember) => (
-              <OwnedStaffCard
-                key={staffMember.id}
-                staffMember={staffMember}
-                onSellStaff={onSellStaff}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState messageKey="market.noOwnedStaff" testId="market-empty-owned-staff" />
-        )}
+        <EntityList emptyMessageKey="market.noOwnedStaff" emptyTestId="market-empty-owned-staff">
+          {save.staff.members.map((staffMember) => (
+            <OwnedStaffCard
+              key={staffMember.id}
+              staffMember={staffMember}
+              onSellStaff={onSellStaff}
+            />
+          ))}
+        </EntityList>
       </section>
     </div>
   );

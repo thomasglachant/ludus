@@ -13,11 +13,12 @@ import { MarketContent } from '../market/MarketContent';
 import { AppModal } from './AppModal';
 
 interface MarketModalProps {
+  isActive?: boolean;
   onBack?(): void;
   onClose(): void;
 }
 
-export function MarketModal({ onBack, onClose }: MarketModalProps) {
+export function MarketModal({ isActive, onBack, onClose }: MarketModalProps) {
   const { buyMarketGladiator, buyMarketStaff, currentSave, sellGladiator, sellStaff } =
     useGameStore();
   const { openConfirmModal, t } = useUiStore();
@@ -80,6 +81,7 @@ export function MarketModal({ onBack, onClose }: MarketModalProps) {
 
   return (
     <AppModal
+      isActive={isActive}
       size="xl"
       testId="market-modal"
       titleKey="market.title"

@@ -1,6 +1,7 @@
 import type { GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
-import { EmptyState, MetricList, PanelShell, SectionCard } from '../components/shared';
+import { EntityList, EntityListRow } from '../components/EntityList';
+import { PanelShell } from '../components/shared';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface GladiatorsListPanelProps {
@@ -20,33 +21,52 @@ export function GladiatorsListPanel({ onClose, onOpenGladiator, save }: Gladiato
       wide
       onClose={onClose}
     >
-      {save.gladiators.length > 0 ? (
-        <div className="planning-card-grid">
-          {save.gladiators.map((gladiator) => (
-            <SectionCard className="context-panel__portrait-row" key={gladiator.id}>
-              <GladiatorPortrait gladiator={gladiator} size="small" />
-              <span className="context-panel__identity-stack">
-                <strong>{gladiator.name}</strong>
-                <MetricList
-                  columns={3}
-                  items={[
-                    { labelKey: 'roster.healthShort', value: gladiator.health },
-                    { labelKey: 'roster.energyShort', value: gladiator.energy },
-                    { labelKey: 'roster.moraleShort', value: gladiator.morale },
-                  ]}
-                />
-              </span>
-              <div className="context-panel__actions">
-                <button type="button" onClick={() => onOpenGladiator(gladiator.id)}>
-                  <span>{t('common.open')}</span>
-                </button>
-              </div>
-            </SectionCard>
-          ))}
-        </div>
-      ) : (
-        <EmptyState messageKey="ludus.noGladiators" />
-      )}
+      <EntityList emptyMessageKey="ludus.noGladiators">
+        {save.gladiators.map((gladiator) => (
+          <EntityListRow
+            actions={[
+              {
+                id: 'open',
+                label: t('common.open'),
+                onClick: () => onOpenGladiator(gladiator.id),
+                variant: 'primary',
+              },
+            ]}
+            avatar={<GladiatorPortrait gladiator={gladiator} size="small" />}
+            info={[
+              {
+                iconName: 'reputation',
+                id: 'reputation',
+                label: t('gladiatorPanel.reputation'),
+                value: gladiator.reputation,
+              },
+              {
+                iconName: 'health',
+                id: 'health',
+                label: t('roster.healthShort'),
+                value: gladiator.health,
+              },
+              {
+                iconName: 'energy',
+                id: 'energy',
+                label: t('roster.energyShort'),
+                value: gladiator.energy,
+              },
+              {
+                iconName: 'morale',
+                id: 'morale',
+                label: t('roster.moraleShort'),
+                value: gladiator.morale,
+              },
+            ]}
+            key={gladiator.id}
+            openLabel={t('roster.openGladiator', { name: gladiator.name })}
+            subtitle={t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}
+            title={gladiator.name}
+            onOpen={() => onOpenGladiator(gladiator.id)}
+          />
+        ))}
+      </EntityList>
     </PanelShell>
   );
 }

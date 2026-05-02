@@ -254,12 +254,17 @@ export function createLudusMapSceneViewModel(
         zIndex: element.zIndex ?? 1,
       };
     }),
-    locations: LUDUS_MAP_DEFINITION.locations.map((location) => {
+    locations: LUDUS_MAP_DEFINITION.locations.flatMap((location) => {
       const building = location.kind === 'building' ? save.buildings[location.id] : null;
       const purchaseAvailability =
         location.kind === 'building'
           ? getBuildingPurchaseAvailability(save, location.id)
           : undefined;
+
+      if (location.kind === 'building' && purchaseAvailability?.status !== 'purchased') {
+        return [];
+      }
+
       const ownershipStatus: LudusMapSceneOwnershipStatus =
         location.kind === 'external' || purchaseAvailability?.status === 'purchased'
           ? 'owned'
@@ -284,56 +289,58 @@ export function createLudusMapSceneViewModel(
         level,
       );
 
-      return {
-        id: location.id,
-        mapLocationId: location.id,
-        kind: location.kind,
-        labelKey: location.nameKey,
-        label: labelParts.label,
-        labelTitle: labelParts.labelTitle,
-        labelSubtitle: labelParts.labelSubtitle,
-        labelDetail: labelParts.labelDetail,
-        accessibilityLabel: labelParts.accessibilityLabel,
-        labelLevel: level,
-        x: location.x,
-        y: location.y,
-        width,
-        height,
-        isOwned: location.kind === 'external' || Boolean(purchaseAvailability?.isPurchased),
-        ownershipStatus,
-        level,
-        purchaseCost: purchaseAvailability?.purchaseCost,
-        requiredDomusLevel: purchaseAvailability?.requiredDomusLevel,
-        activitySlots: location.activitySlots.map((slot) => ({
-          id: slot.id,
-          x: slot.x,
-          y: slot.y,
-        })),
-        entrancePosition: {
-          id: `${location.id}-entrance`,
-          x:
-            location.entrance.column * LUDUS_MAP_DEFINITION.grid.cellSize +
-            LUDUS_MAP_DEFINITION.grid.cellSize / 2,
-          y:
-            location.entrance.row * LUDUS_MAP_DEFINITION.grid.cellSize +
-            LUDUS_MAP_DEFINITION.grid.cellSize / 2,
-        },
-        exteriorAssetPath,
-        propsAssetPath: undefined,
-        roofAssetPath: undefined,
-        assetPath: undefined,
-        hitArea: {
-          x: 0,
-          y: 0,
+      return [
+        {
+          id: location.id,
+          mapLocationId: location.id,
+          kind: location.kind,
+          labelKey: location.nameKey,
+          label: labelParts.label,
+          labelTitle: labelParts.labelTitle,
+          labelSubtitle: labelParts.labelSubtitle,
+          labelDetail: labelParts.labelDetail,
+          accessibilityLabel: labelParts.accessibilityLabel,
+          labelLevel: level,
+          x: location.x,
+          y: location.y,
           width,
           height,
+          isOwned: location.kind === 'external' || Boolean(purchaseAvailability?.isPurchased),
+          ownershipStatus,
+          level,
+          purchaseCost: purchaseAvailability?.purchaseCost,
+          requiredDomusLevel: purchaseAvailability?.requiredDomusLevel,
+          activitySlots: location.activitySlots.map((slot) => ({
+            id: slot.id,
+            x: slot.x,
+            y: slot.y,
+          })),
+          entrancePosition: {
+            id: `${location.id}-entrance`,
+            x:
+              location.entrance.column * LUDUS_MAP_DEFINITION.grid.cellSize +
+              LUDUS_MAP_DEFINITION.grid.cellSize / 2,
+            y:
+              location.entrance.row * LUDUS_MAP_DEFINITION.grid.cellSize +
+              LUDUS_MAP_DEFINITION.grid.cellSize / 2,
+          },
+          exteriorAssetPath,
+          propsAssetPath: undefined,
+          roofAssetPath: undefined,
+          assetPath: undefined,
+          hitArea: {
+            x: 0,
+            y: 0,
+            width,
+            height,
+          },
+          labelPosition: {
+            x: location.x + width / 2,
+            y: location.y + height - LOCATION_LABEL_BOTTOM_OFFSET,
+          },
+          sortY: location.y + height,
         },
-        labelPosition: {
-          x: location.x + width / 2,
-          y: location.y + height - LOCATION_LABEL_BOTTOM_OFFSET,
-        },
-        sortY: location.y + height,
-      };
+      ];
     }),
   };
 }

@@ -8,6 +8,7 @@ import { LoadGameContent } from './LoadGameModal';
 
 interface GameMenuModalProps {
   hasUnsavedChanges: boolean;
+  isActive?: boolean;
   isSaving: boolean;
   onBack?(): void;
   onClose(): void;
@@ -19,6 +20,7 @@ type GameMenuPanel = 'loadGame' | 'options' | 'quit';
 
 export function GameMenuModal({
   hasUnsavedChanges,
+  isActive = true,
   isSaving,
   onBack,
   onClose,
@@ -29,6 +31,10 @@ export function GameMenuModal({
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
+    if (!isActive) {
+      return undefined;
+    }
+
     closeButtonRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -40,22 +46,29 @@ export function GameMenuModal({
     window.addEventListener('keydown', handleKeyDown);
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [isActive, onClose]);
 
   return (
     <div
-      className="app-modal-backdrop game-menu-modal-backdrop"
+      aria-hidden={isActive ? undefined : true}
+      className={[
+        'app-modal-backdrop',
+        'game-menu-modal-backdrop',
+        isActive ? null : 'app-modal-backdrop--inactive',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       data-testid="game-menu-modal"
       role="presentation"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (isActive && event.target === event.currentTarget) {
           onClose();
         }
       }}
     >
       <MenuCard<GameMenuPanel>
         ariaLabel={t('gameMenu.title')}
-        ariaModal
+        ariaModal={isActive}
         actions={[
           {
             disabled: isSaving,

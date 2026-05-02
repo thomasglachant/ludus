@@ -6,6 +6,7 @@ interface AppModalProps {
   children: ReactNode;
   dismissible?: boolean;
   footer?: ReactNode;
+  isActive?: boolean;
   onBack?(): void;
   onClose(): void;
   size?: ModalSize;
@@ -19,6 +20,7 @@ export function AppModal({
   children,
   dismissible = true,
   footer,
+  isActive = true,
   onBack,
   onClose,
   size = 'md',
@@ -35,6 +37,10 @@ export function AppModal({
   const [modalBottomOffset, setModalBottomOffset] = useState(18);
 
   useEffect(() => {
+    if (!isActive) {
+      return undefined;
+    }
+
     if (dismissible) {
       closeButtonRef.current?.focus();
     }
@@ -48,9 +54,13 @@ export function AppModal({
     window.addEventListener('keydown', handleKeyDown);
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [dismissible, onClose]);
+  }, [dismissible, isActive, onClose]);
 
   useEffect(() => {
+    if (!isActive) {
+      return undefined;
+    }
+
     const modal = modalRef.current;
 
     if (!modal) {
@@ -79,7 +89,7 @@ export function AppModal({
       resizeObserver.disconnect();
       window.removeEventListener('resize', updateModalOffset);
     };
-  }, [children, footer]);
+  }, [children, footer, isActive]);
 
   const modalStyle: CSSProperties & Record<string, string | number> = {
     marginBottom: modalBottomOffset,
@@ -88,11 +98,14 @@ export function AppModal({
 
   return (
     <div
-      className="app-modal-backdrop"
+      aria-hidden={isActive ? undefined : true}
+      className={['app-modal-backdrop', isActive ? null : 'app-modal-backdrop--inactive']
+        .filter(Boolean)
+        .join(' ')}
       data-testid={testId}
       role="presentation"
       onMouseDown={(event) => {
-        if (dismissible && event.target === event.currentTarget) {
+        if (isActive && dismissible && event.target === event.currentTarget) {
           onClose();
         }
       }}
