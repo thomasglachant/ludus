@@ -1,16 +1,24 @@
 import type { GameSave } from '../../domain/types';
+import { calculateGladiatorSaleValue } from '../../domain/market/market-actions';
 import { useUiStore } from '../../state/ui-store-context';
-import { EntityList, EntityListRow } from '../components/EntityList';
+import { EntityList } from '../components/EntityList';
 import { PanelShell } from '../components/shared';
-import { GladiatorPortrait } from '../roster/GladiatorPortrait';
+import { formatMoneyAmount } from '../formatters/money';
+import { GladiatorListRow } from '../gladiators/GladiatorListRow';
 
 interface GladiatorsListPanelProps {
   save: GameSave;
   onClose(): void;
   onOpenGladiator(gladiatorId: string): void;
+  onSellGladiator(gladiatorId: string): void;
 }
 
-export function GladiatorsListPanel({ onClose, onOpenGladiator, save }: GladiatorsListPanelProps) {
+export function GladiatorsListPanel({
+  onClose,
+  onOpenGladiator,
+  onSellGladiator,
+  save,
+}: GladiatorsListPanelProps) {
   const { t } = useUiStore();
 
   return (
@@ -23,26 +31,17 @@ export function GladiatorsListPanel({ onClose, onOpenGladiator, save }: Gladiato
     >
       <EntityList emptyMessageKey="ludus.noGladiators">
         {save.gladiators.map((gladiator) => (
-          <EntityListRow
-            avatar={<GladiatorPortrait gladiator={gladiator} size="small" />}
-            info={[
-              {
-                iconName: 'reputation',
-                id: 'reputation',
-                label: t('gladiatorPanel.reputation'),
-                value: gladiator.reputation,
-              },
-              {
-                iconName: 'health',
-                id: 'life',
-                label: t('roster.lifeShort'),
-                value: Math.floor(gladiator.life),
-              },
-            ]}
+          <GladiatorListRow
+            action={{
+              iconName: 'userMinus',
+              id: 'sell',
+              label: `${t('market.sell')} (${formatMoneyAmount(calculateGladiatorSaleValue(gladiator))})`,
+              onClick: () => onSellGladiator(gladiator.id),
+              testId: `market-sell-${gladiator.id}`,
+            }}
+            gladiator={gladiator}
             key={gladiator.id}
             openLabel={t('roster.openGladiator', { name: gladiator.name })}
-            subtitle={t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}
-            title={gladiator.name}
             onOpen={() => onOpenGladiator(gladiator.id)}
           />
         ))}

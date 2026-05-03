@@ -61,6 +61,7 @@ Current macro UI surfaces include:
 - `FinancePanel`;
 - `BuildingsListPanel`;
 - `GladiatorsListPanel`;
+- `StaffListPanel`;
 - enriched `BuildingPanel` tabs.
 
 ### `src/renderer`

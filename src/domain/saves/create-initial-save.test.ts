@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BUILDING_DEFINITIONS, BUILDING_IDS } from '../../game-data/buildings';
+import { MARKET_CONFIG } from '../../game-data/market';
 import { INITIAL_TREASURY } from '../../game-data/economy';
 import { getLudusGladiatorCapacity } from '../ludus/capacity';
 import { CURRENT_SCHEMA_VERSION, createInitialSave } from './create-initial-save';
@@ -68,6 +69,6 @@ describe('createInitialSave', () => {
     expect(save.map.placements.some((placement) => placement.definitionId === 'domus')).toBe(true);
     expect(getLudusGladiatorCapacity(save)).toBe(1);
     expect(save.gladiators).toEqual([]);
-    expect(save.market.availableGladiators).toHaveLength(5);
+    expect(save.market.availableGladiators).toHaveLength(MARKET_CONFIG.availableGladiatorCount);
   });
 });

@@ -1,33 +1,51 @@
 import {
-  calculateGladiatorSaleValue,
   validateMarketPurchase,
   type MarketActionValidation,
 } from '../../domain/market/market-actions';
-import { getLudusStaffCapacity } from '../../domain/ludus/capacity';
-import {
-  calculateStaffSaleValue,
-  validateStaffMarketPurchase,
-} from '../../domain/staff/staff-actions';
+import { getLudusGladiatorCapacity, getLudusStaffCapacity } from '../../domain/ludus/capacity';
+import { validateStaffMarketPurchase } from '../../domain/staff/staff-actions';
 import type {
   GameSave,
-  Gladiator,
   MarketGladiator,
   StaffMarketCandidate,
-  StaffMember,
+  StaffType,
 } from '../../domain/types';
+import { useState } from 'react';
 import { useUiStore } from '../../state/ui-store-context';
 import { EntityList, EntityListRow } from '../components/EntityList';
-import { MetricList } from '../components/shared';
 import { formatMoneyAmount } from '../formatters/money';
-import { GladiatorPortrait } from '../roster/GladiatorPortrait';
+import { GladiatorListRow } from '../gladiators/GladiatorListRow';
+import { GameIcon } from '../icons/GameIcon';
+import {
+  ModalContentFrame,
+  ModalHeroCard,
+  ModalTabPanel,
+  ModalTabs,
+  type ModalTabItem,
+} from '../modals/ModalContentFrame';
 import { StaffPortrait } from '../staff/StaffPortrait';
 
 interface MarketContentProps {
   save: GameSave;
   onBuy(candidate: MarketGladiator): void;
   onBuyStaff(candidate: StaffMarketCandidate): void;
-  onSell(gladiator: Gladiator): void;
-  onSellStaff(staffMember: StaffMember): void;
+}
+
+type MarketTab = 'gladiators' | StaffType;
+
+const marketTabs: ModalTabItem<MarketTab>[] = [
+  { id: 'gladiators', labelKey: 'market.tabs.gladiators' },
+  { id: 'slave', labelKey: 'market.tabs.slaves' },
+  { id: 'trainer', labelKey: 'market.tabs.trainers' },
+  { id: 'guard', labelKey: 'market.tabs.guards' },
+];
+
+function MarketAvatar() {
+  return (
+    <div className="finance-modal-avatar" aria-hidden="true">
+      <GameIcon name="shoppingCart" size={58} />
+    </div>
+  );
 }
 
 function getMarketValidationMessageKey(validation: MarketActionValidation) {
@@ -51,118 +69,6 @@ function MarketRowSubtitle({ label, warning }: { label: string; warning?: string
   );
 }
 
-function MarketCandidateCard({
-  candidate,
-  onBuy,
-  save,
-}: {
-  candidate: MarketGladiator;
-  onBuy(candidate: MarketGladiator): void;
-  save: GameSave;
-}) {
-  const { t } = useUiStore();
-  const validation = validateMarketPurchase(save, candidate.id);
-  const validationMessageKey = getMarketValidationMessageKey(validation);
-  const formattedPrice = formatMoneyAmount(candidate.price);
-
-  return (
-    <EntityListRow
-      actions={[
-        {
-          disabled: !validation.isAllowed,
-          iconName: 'shoppingCart',
-          id: 'buy',
-          label: t('market.buy'),
-          onClick: () => onBuy(candidate),
-          testId: `market-buy-${candidate.id}`,
-          variant: 'primary',
-        },
-      ]}
-      avatar={<GladiatorPortrait gladiator={candidate} size="small" />}
-      info={[
-        {
-          iconName: 'treasury',
-          id: 'price',
-          label: t('market.priceLabel'),
-          tone: 'warning',
-          value: formattedPrice,
-        },
-        {
-          iconName: 'reputation',
-          id: 'reputation',
-          label: t('gladiatorPanel.reputation'),
-          value: candidate.reputation,
-        },
-        {
-          iconName: 'health',
-          id: 'life',
-          label: t('roster.lifeShort'),
-          value: Math.floor(candidate.life),
-        },
-      ]}
-      testId={`market-candidate-${candidate.id}`}
-      subtitle={
-        <MarketRowSubtitle
-          label={t('market.age', { age: candidate.age })}
-          warning={validationMessageKey ? t(validationMessageKey) : undefined}
-        />
-      }
-      title={candidate.name}
-    />
-  );
-}
-
-function OwnedGladiatorCard({
-  gladiator,
-  onSell,
-}: {
-  gladiator: Gladiator;
-  onSell(gladiator: Gladiator): void;
-}) {
-  const { pushModal, t } = useUiStore();
-  const formattedSaleValue = formatMoneyAmount(calculateGladiatorSaleValue(gladiator));
-
-  return (
-    <EntityListRow
-      actions={[
-        {
-          iconName: 'userMinus',
-          id: 'sell',
-          label: t('market.sell'),
-          onClick: () => onSell(gladiator),
-          testId: `market-sell-${gladiator.id}`,
-        },
-      ]}
-      avatar={<GladiatorPortrait gladiator={gladiator} size="small" />}
-      info={[
-        {
-          iconName: 'treasury',
-          id: 'sale-value',
-          label: t('market.saleValueLabel'),
-          value: formattedSaleValue,
-        },
-        {
-          iconName: 'reputation',
-          id: 'reputation',
-          label: t('gladiatorPanel.reputation'),
-          value: gladiator.reputation,
-        },
-        {
-          iconName: 'health',
-          id: 'life',
-          label: t('roster.lifeShort'),
-          value: Math.floor(gladiator.life),
-        },
-      ]}
-      openLabel={t('roster.openGladiator', { name: gladiator.name })}
-      testId={`market-owned-${gladiator.id}`}
-      subtitle={t('market.record', { wins: gladiator.wins, losses: gladiator.losses })}
-      title={gladiator.name}
-      onOpen={() => pushModal({ gladiatorId: gladiator.id, kind: 'gladiator' })}
-    />
-  );
-}
-
 function StaffCandidateCard({
   candidate,
   onBuyStaff,
@@ -180,6 +86,7 @@ function StaffCandidateCard({
     <EntityListRow
       actions={[
         {
+          amountMoney: formatMoneyAmount(candidate.price),
           disabled: !validation.isAllowed,
           iconName: 'shoppingCart',
           id: 'buy',
@@ -217,128 +124,95 @@ function StaffCandidateCard({
   );
 }
 
-function OwnedStaffCard({
-  onSellStaff,
-  staffMember,
-}: {
-  onSellStaff(staffMember: StaffMember): void;
-  staffMember: StaffMember;
-}) {
-  const { pushModal, t } = useUiStore();
-  const formattedSaleValue = formatMoneyAmount(calculateStaffSaleValue(staffMember));
-
-  return (
-    <EntityListRow
-      actions={[
-        {
-          iconName: 'userMinus',
-          id: 'sell',
-          label: t('market.sell'),
-          onClick: () => onSellStaff(staffMember),
-          testId: `market-sell-staff-${staffMember.id}`,
-        },
-      ]}
-      avatar={<StaffPortrait staffMember={staffMember} />}
-      info={[
-        {
-          iconName: 'treasury',
-          id: 'sale-value',
-          label: t('market.saleValueLabel'),
-          value: formattedSaleValue,
-        },
-        {
-          iconName: 'treasury',
-          id: 'weekly-wage',
-          label: t('staff.weeklyWage'),
-          value: formatMoneyAmount(staffMember.weeklyWage),
-        },
-      ]}
-      openLabel={t('staff.openDetailsFor', { name: staffMember.name })}
-      testId={`market-owned-staff-${staffMember.id}`}
-      subtitle={t(`staff.types.${staffMember.type}`)}
-      title={staffMember.name}
-      onOpen={() => pushModal({ kind: 'staff', staffId: staffMember.id })}
-    />
-  );
-}
-
-export function MarketContent({
-  save,
-  onBuy,
-  onBuyStaff,
-  onSell,
-  onSellStaff,
-}: MarketContentProps) {
+export function MarketContent({ save, onBuy, onBuyStaff }: MarketContentProps) {
   const { t } = useUiStore();
+  const [activeTab, setActiveTab] = useState<MarketTab>('gladiators');
+  const gladiatorCapacity = getLudusGladiatorCapacity(save);
   const staffCapacity = getLudusStaffCapacity(save);
+  const activeStaffCandidates =
+    activeTab === 'gladiators'
+      ? []
+      : save.staff.marketCandidates.filter((candidate) => candidate.type === activeTab);
+  const ownedCapacityValue =
+    activeTab === 'gladiators'
+      ? t('staff.capacityValue', {
+          current: save.gladiators.length,
+          maximum: gladiatorCapacity,
+        })
+      : t('staff.capacityValue', {
+          current: save.staff.members.length,
+          maximum: staffCapacity,
+        });
 
   return (
-    <div className="market-content">
-      <section className="market-candidates" data-testid="market-candidates-section">
-        <h2>{t('market.availableGladiators')}</h2>
-        <EntityList emptyMessageKey="market.noCandidates" emptyTestId="market-empty-candidates">
-          {save.market.availableGladiators.map((candidate) => (
-            <MarketCandidateCard
-              candidate={candidate}
-              key={candidate.id}
-              save={save}
-              onBuy={onBuy}
-            />
-          ))}
-        </EntityList>
-      </section>
-      <section className="market-candidates" data-testid="market-owned-section">
-        <h2>{t('market.ownedGladiators')}</h2>
-        <EntityList emptyMessageKey="market.noOwnedGladiators" emptyTestId="market-empty-owned">
-          {save.gladiators.map((gladiator) => (
-            <OwnedGladiatorCard gladiator={gladiator} key={gladiator.id} onSell={onSell} />
-          ))}
-        </EntityList>
-      </section>
-      <section className="market-candidates" data-testid="market-staff-candidates-section">
-        <h2>{t('market.availableStaff')}</h2>
-        <MetricList
-          columns={2}
-          items={[
-            {
-              labelKey: 'staff.capacity',
-              value: t('staff.capacityValue', {
-                current: save.staff.members.length,
-                maximum: staffCapacity,
-              }),
-            },
-            {
-              labelKey: 'staff.capacitySource',
-              value: t('staff.capacitySourceValue', { level: save.buildings.domus.level }),
-            },
-          ]}
-        />
-        <EntityList
-          emptyMessageKey="market.noStaffCandidates"
-          emptyTestId="market-empty-staff-candidates"
-        >
-          {save.staff.marketCandidates.map((candidate) => (
-            <StaffCandidateCard
-              candidate={candidate}
-              key={candidate.id}
-              save={save}
-              onBuyStaff={onBuyStaff}
-            />
-          ))}
-        </EntityList>
-      </section>
-      <section className="market-candidates" data-testid="market-owned-staff-section">
-        <h2>{t('market.ownedStaff')}</h2>
-        <EntityList emptyMessageKey="market.noOwnedStaff" emptyTestId="market-empty-owned-staff">
-          {save.staff.members.map((staffMember) => (
-            <OwnedStaffCard
-              key={staffMember.id}
-              staffMember={staffMember}
-              onSellStaff={onSellStaff}
-            />
-          ))}
-        </EntityList>
-      </section>
-    </div>
+    <ModalContentFrame className="market-content">
+      <ModalHeroCard
+        avatar={<MarketAvatar />}
+        descriptionKey="market.subtitle"
+        eyebrowKey="market.eyebrow"
+        titleKey="market.title"
+      />
+      <ModalTabs<MarketTab>
+        ariaLabelKey="market.tabsLabel"
+        items={marketTabs}
+        selectedId={activeTab}
+        onSelect={setActiveTab}
+      />
+      {activeTab === 'gladiators' ? (
+        <ModalTabPanel>
+          <div className="market-candidates" data-testid="market-candidates-section">
+            <p className="market-candidates__owned-capacity">
+              {t('market.currentlyOwned')} {ownedCapacityValue}
+            </p>
+            <EntityList emptyMessageKey="market.noCandidates" emptyTestId="market-empty-candidates">
+              {save.market.availableGladiators.map((candidate) => {
+                const validation = validateMarketPurchase(save, candidate.id);
+                const validationMessageKey = getMarketValidationMessageKey(validation);
+
+                return (
+                  <GladiatorListRow
+                    action={{
+                      amountMoney: formatMoneyAmount(candidate.price),
+                      disabled: !validation.isAllowed,
+                      iconName: 'shoppingCart',
+                      id: 'buy',
+                      label: t('market.buy'),
+                      onClick: () => onBuy(candidate),
+                      testId: `market-buy-${candidate.id}`,
+                      variant: 'primary',
+                    }}
+                    gladiator={candidate}
+                    key={candidate.id}
+                    testId={`market-candidate-${candidate.id}`}
+                    warning={validationMessageKey ? t(validationMessageKey) : undefined}
+                  />
+                );
+              })}
+            </EntityList>
+          </div>
+        </ModalTabPanel>
+      ) : (
+        <ModalTabPanel>
+          <div className="market-candidates" data-testid={`market-${activeTab}-candidates-section`}>
+            <p className="market-candidates__owned-capacity">
+              {t('market.currentlyOwned')} {ownedCapacityValue}
+            </p>
+            <EntityList
+              emptyMessageKey={`market.noStaffCandidatesByType.${activeTab}`}
+              emptyTestId="market-empty-staff-candidates"
+            >
+              {activeStaffCandidates.map((candidate) => (
+                <StaffCandidateCard
+                  candidate={candidate}
+                  key={candidate.id}
+                  save={save}
+                  onBuyStaff={onBuyStaff}
+                />
+              ))}
+            </EntityList>
+          </div>
+        </ModalTabPanel>
+      )}
+    </ModalContentFrame>
   );
 }

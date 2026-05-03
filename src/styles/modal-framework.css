@@ -24,7 +24,6 @@
 .modal-hero-card::before {
   position: absolute;
   inset: 10px;
-  border: 1px solid rgba(111, 69, 35, 0.14);
   border-radius: 7px;
   content: '';
   pointer-events: none;
@@ -89,6 +88,20 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
+}
+
+.modal-hero-card__heading-content {
+  margin-top: 10px;
+}
+
+.modal-hero-card__description-content {
+  margin-top: 10px;
+}
+
+.modal-hero-card__heading-content .icon-value-stat,
+.modal-hero-card__description-content .icon-value-stat {
+  background: rgba(111, 69, 35, 0.06);
+  color: #2f2118;
 }
 
 .modal-hero-card__heading h2 {
@@ -156,10 +169,9 @@
   gap: 5px;
   min-width: 0;
   padding: 9px 10px;
-  border: 1px solid rgba(111, 69, 35, 0.24);
-  border-left-width: 4px;
-  border-radius: 7px;
-  background: rgba(255, 248, 226, 0.62);
+  border-left: 4px solid rgba(111, 69, 35, 0.24);
+  border-radius: 6px;
+  background: rgba(255, 248, 226, 0.42);
 }
 
 .modal-hero-card__metric--positive {
@@ -249,11 +261,9 @@
   grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
   gap: 7px;
   padding: 7px;
-  border: 1px solid rgba(111, 69, 35, 0.3);
   border-radius: 10px;
   background:
     linear-gradient(180deg, rgba(55, 42, 31, 0.98), rgba(37, 29, 22, 0.98)), var(--obsidian-raised);
-  box-shadow: inset 0 0 0 1px rgba(255, 241, 199, 0.06);
 }
 
 .modal-tabs button {
@@ -264,7 +274,7 @@
   justify-content: center;
   gap: 7px;
   padding: 8px 10px;
-  border: 1px solid rgba(214, 163, 74, 0.2);
+  border: 0;
   border-radius: 7px;
   background: rgba(255, 241, 199, 0.06);
   color: #d7bd84;
@@ -288,7 +298,6 @@
 }
 
 .modal-tabs button.is-selected {
-  border-color: color-mix(in srgb, var(--green-action), #f0dfb8 12%);
   background:
     linear-gradient(
       180deg,
@@ -297,9 +306,7 @@
     ),
     var(--green-action);
   color: #fff9e7;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 248, 226, 0.16),
-    0 3px 0 rgba(8, 60, 38, 0.28);
+  box-shadow: 0 3px 0 rgba(8, 60, 38, 0.28);
 }
 
 .modal-tab-panel,

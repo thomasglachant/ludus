@@ -57,7 +57,7 @@ function createOwnedGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
 }
 
 describe('market actions', () => {
-  it('generates five market gladiators that respect generation rules', () => {
+  it('generates twenty market gladiators that respect generation rules', () => {
     const gladiators = generateMarketGladiators(1, 1, () => 0);
 
     expect(gladiators).toHaveLength(MARKET_CONFIG.availableGladiatorCount);
@@ -68,7 +68,8 @@ describe('market actions', () => {
 
       expect(gladiator.age).toBeGreaterThanOrEqual(MARKET_CONFIG.minAge);
       expect(gladiator.age).toBeLessThanOrEqual(MARKET_CONFIG.maxAge);
-      expect(totalStats).toBe(MARKET_CONFIG.totalStatPoints);
+      expect(totalStats).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedTotalStatPoints);
+      expect(totalStats).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedTotalStatPoints);
       expect(gladiator.strength).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedStat);
       expect(gladiator.agility).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedStat);
       expect(gladiator.defense).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedStat);
@@ -79,6 +80,27 @@ describe('market actions', () => {
       expect(gladiator.life).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
       expect(gladiator.price).toBe(calculateGladiatorMarketPrice(gladiator));
     }
+  });
+
+  it('prices generated gladiators from their skill capacity and reputation', () => {
+    const weakGladiator = createOwnedGladiator({
+      strength: 2,
+      agility: 2,
+      defense: 2,
+      life: 10,
+      reputation: 0,
+    });
+    const strongGladiator = createOwnedGladiator({
+      strength: 8,
+      agility: 8,
+      defense: 8,
+      life: 10,
+      reputation: 4,
+    });
+
+    expect(calculateGladiatorMarketPrice(strongGladiator)).toBeGreaterThan(
+      calculateGladiatorMarketPrice(weakGladiator),
+    );
   });
 
   it('uses floored skill values for market pricing', () => {

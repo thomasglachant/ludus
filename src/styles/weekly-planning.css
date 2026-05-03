@@ -8,14 +8,15 @@
 .weekly-planner__summary,
 .weekly-planner__palette,
 .weekly-planner__day {
-  border: 2px solid rgba(88, 58, 34, 0.32);
   border-radius: 12px;
   background:
     linear-gradient(180deg, rgba(255, 248, 226, 0.84), rgba(228, 196, 136, 0.58)),
     rgba(255, 248, 226, 0.7);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 248, 226, 0.58),
-    0 10px 24px rgba(67, 41, 19, 0.1);
+  box-shadow: 0 10px 24px rgba(67, 41, 19, 0.08);
+}
+
+.weekly-planner__hero {
+  border: 2px solid rgba(88, 58, 34, 0.32);
 }
 
 .weekly-planner__hero {
@@ -199,9 +200,8 @@
 
 .weekly-planner__task-group {
   padding: 10px;
-  border: 1px solid rgba(111, 69, 35, 0.22);
   border-radius: 10px;
-  background: rgba(255, 248, 226, 0.48);
+  background: rgba(111, 69, 35, 0.055);
 }
 
 .weekly-planner__task-group > header {

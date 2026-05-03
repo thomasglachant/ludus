@@ -4,6 +4,7 @@ import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import { Tooltip } from './Tooltip';
 
 interface IconValueStatProps {
+  className?: string;
   iconName: GameIconName;
   label: string;
   tooltipContent?: string;
@@ -14,10 +15,16 @@ function formatStatValue(value: ReactNode) {
   return typeof value === 'number' ? formatNumber(value) : value;
 }
 
-export function IconValueStat({ iconName, label, tooltipContent, value }: IconValueStatProps) {
+export function IconValueStat({
+  className,
+  iconName,
+  label,
+  tooltipContent,
+  value,
+}: IconValueStatProps) {
   return (
     <Tooltip content={tooltipContent ?? label}>
-      <span className="icon-value-stat">
+      <span className={['icon-value-stat', className].filter(Boolean).join(' ')}>
         <GameIcon name={iconName} size={18} />
         <strong>{formatStatValue(value)}</strong>
       </span>

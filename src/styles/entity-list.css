@@ -5,12 +5,7 @@
 
 .entity-list {
   display: grid;
-  border: 1px solid rgba(111, 69, 35, 0.28);
-  border-radius: 10px;
-  background:
-    linear-gradient(180deg, rgba(255, 248, 226, 0.58), rgba(229, 202, 145, 0.24)),
-    rgba(255, 248, 226, 0.36);
-  overflow: hidden;
+  background: transparent;
 }
 
 .entity-list-row {
@@ -21,7 +16,7 @@
   align-items: stretch;
   min-width: 0;
   padding: 0;
-  border-bottom: 1px solid rgba(111, 69, 35, 0.22);
+  border-bottom: 1px solid rgba(111, 69, 35, 0.16);
   color: #38291d;
 }
 
@@ -82,7 +77,7 @@
 }
 
 .entity-list-row--clickable:hover {
-  background: rgba(255, 248, 226, 0.42);
+  background: rgba(255, 248, 226, 0.28);
 }
 
 .entity-list-row:focus-within {
@@ -92,20 +87,23 @@
 
 .entity-list-row__avatar {
   display: grid;
-  min-width: 82px;
+  width: 76px;
+  min-width: 76px;
   place-items: center;
-  padding: 12px 14px;
+  padding: 10px;
 }
 
 .entity-list-row__avatar .gladiator-portrait,
 .entity-list-row__avatar .staff-portrait,
 .entity-list-row__avatar .building-modal-avatar {
   flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  min-height: 56px;
 }
 
 .entity-list-row__avatar .building-modal-avatar {
-  width: 56px;
-  min-height: 56px;
+  border-radius: 8px;
 }
 
 .entity-list-row__avatar .building-modal-avatar::before {
@@ -155,7 +153,7 @@
 
 .entity-list-row__info,
 .entity-list-row__actions {
-  border-left: 1px solid rgba(111, 69, 35, 0.18);
+  border-left: 1px solid rgba(111, 69, 35, 0.12);
 }
 
 .entity-list-row__info {
@@ -169,69 +167,67 @@
 }
 
 .entity-list-row__info-item {
-  display: grid;
+  display: flex;
   min-width: 64px;
-  gap: 3px;
-  justify-items: center;
-  padding: 7px 9px;
-  border: 1px solid rgba(111, 69, 35, 0.2);
-  border-radius: 7px;
-  background: rgba(255, 248, 226, 0.56);
+  align-items: center;
+  justify-content: center;
 }
 
 .entity-list-row__info-item--positive {
-  border-color: rgba(45, 124, 112, 0.28);
-  background: rgba(220, 239, 234, 0.66);
+  background: rgba(220, 239, 234, 0.54);
 }
 
 .entity-list-row__info-item--warning {
-  border-color: rgba(214, 163, 74, 0.38);
-  background: rgba(255, 241, 199, 0.7);
+  background: rgba(255, 241, 199, 0.58);
 }
 
 .entity-list-row__info-item--danger {
-  border-color: rgba(169, 79, 58, 0.32);
-  background: rgba(255, 227, 220, 0.72);
+  background: rgba(255, 227, 220, 0.62);
 }
 
-.entity-list-row__info-item dt {
-  display: inline-flex;
-  max-width: 88px;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  color: #765637;
-  font-size: 0.62rem;
-  font-weight: 950;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.entity-list-row__info-item dt span {
+.entity-list-row__info-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
-  text-overflow: ellipsis;
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
 }
 
 .entity-list-row__info-item dd {
   margin: 0;
+}
+
+.entity-list-row__info-item .icon-value-stat {
+  min-width: 54px;
+  justify-content: center;
+  padding: 7px 9px;
+  background: rgba(111, 69, 35, 0.06);
   color: #2f2118;
-  font-size: 0.88rem;
-  font-weight: 950;
-  line-height: 1;
-  text-align: center;
-  white-space: nowrap;
 }
 
-.entity-list-row__info-item--positive dd {
-  color: #23695f;
+.entity-list-row__info > .icon-value-stat,
+.entity-list-row__info .gladiator-attributes .icon-value-stat {
+  min-width: 54px;
+  justify-content: center;
+  padding: 7px 9px;
+  background: rgba(111, 69, 35, 0.06);
+  color: #2f2118;
 }
 
-.entity-list-row__info-item--warning dd {
+.entity-list-row__info > .icon-value-stat--warning {
   color: #6b4a05;
 }
 
-.entity-list-row__info-item--danger dd {
+.entity-list-row__info-item--positive .icon-value-stat {
+  color: #23695f;
+}
+
+.entity-list-row__info-item--warning .icon-value-stat {
+  color: #6b4a05;
+}
+
+.entity-list-row__info-item--danger .icon-value-stat {
   color: #7d2f1f;
 }
 
@@ -273,11 +269,8 @@
   place-items: center;
   gap: 8px;
   padding: 20px;
-  border: 1px dashed rgba(111, 69, 35, 0.44);
-  border-radius: 10px;
-  background:
-    linear-gradient(180deg, rgba(255, 248, 226, 0.7), rgba(229, 202, 145, 0.24)),
-    rgba(255, 248, 226, 0.42);
+  border-radius: 8px;
+  background: rgba(111, 69, 35, 0.06);
   color: #6d5035;
   text-align: center;
 }

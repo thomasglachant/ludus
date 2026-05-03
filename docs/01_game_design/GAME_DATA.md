@@ -146,11 +146,11 @@ Initial staff:
 - one slave assigned to `canteen`;
 - one guard assigned to `guardBarracks`.
 
-The staff market generates slave, guard and trainer candidates each week. Buying staff moves a candidate into `staff.members`, selling staff removes assignments and returns a calculated sale value. Staff and gladiator market transactions are recorded in the economy ledger.
+The market generates 20 gladiators, 20 slaves, 20 guards and 20 trainers each week. Buying staff moves a candidate into `staff.members`, selling staff removes assignments and returns a calculated sale value. Staff and gladiator market transactions are recorded in the economy ledger. Market prices scale with generated capability: gladiators use effective skills and reputation, while staff use role, wage and building experience.
 
 ```ts
-GAME_BALANCE.staffMarket.availableStaffCount = 4;
-GAME_BALANCE.staffMarket.typePool = ['slave', 'slave', 'guard', 'trainer'];
+GAME_BALANCE.market.availableGladiatorCount = 20;
+GAME_BALANCE.staffMarket.candidatesPerType = 20;
 GAME_BALANCE.staffMarket.weeklyWageByType = {
   slave: 0,
   guard: 32,

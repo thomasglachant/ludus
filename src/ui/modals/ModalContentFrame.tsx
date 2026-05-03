@@ -29,9 +29,11 @@ interface ModalContentFrameProps {
 interface ModalHeroCardProps {
   avatar: ReactNode;
   description?: ReactNode;
+  descriptionContent?: ReactNode;
   descriptionKey?: string;
   descriptionParams?: TranslationParams;
   eyebrowKey?: string;
+  headingContent?: ReactNode;
   level?: ReactNode;
   levelLabelKey?: string;
   metrics?: ModalHeroMetric[];
@@ -79,9 +81,11 @@ export function ModalContentFrame({ children, className }: ModalContentFrameProp
 export function ModalHeroCard({
   avatar,
   description,
+  descriptionContent,
   descriptionKey,
   descriptionParams,
   eyebrowKey,
+  headingContent,
   level,
   levelLabelKey,
   metrics = [],
@@ -109,6 +113,12 @@ export function ModalHeroCard({
           )}
         </div>
         {resolvedDescription ? <p>{resolvedDescription}</p> : null}
+        {descriptionContent ? (
+          <div className="modal-hero-card__description-content">{descriptionContent}</div>
+        ) : null}
+        {headingContent ? (
+          <div className="modal-hero-card__heading-content">{headingContent}</div>
+        ) : null}
         {metrics.length > 0 ? (
           <dl className="modal-hero-card__metrics">
             {metrics.map((metric) => (

@@ -41,7 +41,17 @@ function pickIndex(length: number, random: RandomSource) {
 function createGeneratedStats(random: RandomSource) {
   const statCount = GAME_BALANCE.gladiators.skills.names.length;
   const stats = Array.from({ length: statCount }, () => MARKET_CONFIG.minGeneratedStat);
-  let remainingPoints = MARKET_CONFIG.totalStatPoints - MARKET_CONFIG.minGeneratedStat * statCount;
+  const maximumTotalStatPoints = Math.min(
+    MARKET_CONFIG.maxGeneratedTotalStatPoints,
+    MARKET_CONFIG.maxGeneratedStat * statCount,
+  );
+  const minimumTotalStatPoints = Math.max(
+    MARKET_CONFIG.minGeneratedTotalStatPoints,
+    MARKET_CONFIG.minGeneratedStat * statCount,
+  );
+  const generatedTotalStatPoints =
+    minimumTotalStatPoints + pickIndex(maximumTotalStatPoints - minimumTotalStatPoints + 1, random);
+  let remainingPoints = generatedTotalStatPoints - MARKET_CONFIG.minGeneratedStat * statCount;
 
   while (remainingPoints > 0) {
     const eligibleStatIndexes = stats

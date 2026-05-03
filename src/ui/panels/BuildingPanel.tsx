@@ -350,7 +350,13 @@ export function BuildingPanel({
             </NoticeBox>
           ) : null}
           <ModalActionDock>
-            <CTAButton disabled={!viewModel.action.isAllowed} onClick={requestBuildingAction}>
+            <CTAButton
+              amountMoney={
+                viewModel.action.cost > 0 ? formatMoneyAmount(viewModel.action.cost) : undefined
+              }
+              disabled={!viewModel.action.isAllowed}
+              onClick={requestBuildingAction}
+            >
               <GameIcon name="hammer" size={17} />
               <span>{t(viewModel.action.labelKey)}</span>
             </CTAButton>

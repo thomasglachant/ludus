@@ -64,6 +64,19 @@
   filter: saturate(0.52);
 }
 
+.cta-button__amount {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.88em;
+  opacity: 0.92;
+}
+
+.cta-button__amount strong {
+  color: inherit;
+  font-weight: 900;
+}
+
 .card-blured {
   background:
     linear-gradient(180deg, rgba(255, 244, 212, 0.08), rgba(255, 244, 212, 0.015)),
@@ -166,6 +179,17 @@
   color: inherit;
   font-size: 0.95rem;
   font-weight: 700;
+}
+
+.icon-value-stat--warning {
+  color: #6b4a05;
+}
+
+.gladiator-attributes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
 }
 
 .league-rank-badge {

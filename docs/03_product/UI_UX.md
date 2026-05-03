@@ -28,6 +28,7 @@ Bottom navigation entries:
 
 - Buildings;
 - Gladiators;
+- Staff;
 - Planning;
 - Finances;
 - Events.
@@ -101,11 +102,19 @@ Shared modal content components:
 - `ModalSection` groups related content inside a tab with a consistent heading style.
 - `ModalActionDock` centers primary CTAs at the bottom of a modal tab.
 
+Visual containment rules:
+
+- Avoid the “card inside card” effect. If `AppModal`, `ModalHeroCard`, `ModalTabPanel`, `SectionCard`, `EntityList`, or a feature panel already provides containment, children should usually use spacing, headings, separators, or subtle background tint instead of another bordered box.
+- Do not wrap `EntityList` in `SectionCard` only to add a title. Prefer a direct list with the surrounding tab or modal title providing context. Add a `ModalSection` heading only when the page contains multiple distinct groups that would otherwise be ambiguous.
+- `SectionCard` should be reserved for meaningful grouping or comparative blocks, not as a default wrapper around every list, metrics group, notice, chart or CTA.
+- When nesting is unavoidable, only one layer should carry a visible border. Inner elements should use whitespace, a left accent strip, text hierarchy, or light background tint.
+- Prefer fewer borders and flatter panels over stacked parchment boxes. The Roman visual style should come from typography, color, icons and purposeful hero surfaces, not from repeated frames.
+
 Default entity detail template:
 
 - Hero card first, with avatar on the left and name, description, level and key metrics on the right.
 - Tabs second, using the same order for the same type of entity across the app.
-- Tab content third, using `ModalSection`, shared cards, impact indicators, charts or lists as needed.
+- Tab content third, using direct lists, `ModalSection`, shared metrics, impact indicators or charts as needed. Use shared cards only when they add meaningful grouping.
 - Primary CTA last, centered in `ModalActionDock` and using `CTAButton` or `.cta-button` by default.
 
 Building detail template:
@@ -120,11 +129,14 @@ Personnel and gladiator detail template:
 
 - Use the same hero card structure with portrait, name, short description and key stats.
 - Use tabs for overview, assignment or planning, progression and finances only when those sections exist.
-- Do not create isolated bespoke stat cards when `ModalHeroCard`, `MetricList`, `ImpactIndicator`, `ImpactList`, `SectionCard` or chart primitives can represent the data.
+- Use `GladiatorAttributes` from `src/ui/gladiators/GladiatorAttributes.tsx` whenever a gladiator row or gladiator hero needs the standard compact attributes. The order is reputation, life, strength, agility and defense.
+- Use `GladiatorListRow` from `src/ui/gladiators/GladiatorListRow.tsx` for gladiator lists, including market and owned roster rows. Customize it through props for price, primary action and clickability instead of rebuilding row markup.
+- Use `IconValueStat` from `src/ui/components/IconValueStat.tsx` for compact aptitude, reputation, life and cost values. Do not create feature-local stat chip components or manually pair `GameIcon` with a numeric value for these facts.
+- Do not create isolated bespoke stat cards when `ModalHeroCard`, `MetricList`, `ImpactIndicator`, `ImpactList` or chart primitives can represent the data. Avoid wrapping these primitives in extra cards unless the grouping changes the meaning.
 
 List modal template:
 
-- Use the modal framework for the overall body rhythm, then render reusable row cards.
+- Use the modal framework for the overall body rhythm, then render reusable rows directly.
 - Rows should be scannable, clickable when they open a detail modal and explicit when they perform an action.
 - List modals should open entity detail modals through the modal stack when the player is drilling down from a parent modal.
 
@@ -164,7 +176,8 @@ List rules:
 - Use `EntityList` empty states instead of bespoke empty paragraphs for entity lists.
 - If a row opens a detail view, pass `onOpen` and make the whole row clickable; action buttons must remain separate and must not trigger row navigation.
 - Use primary `EntityListActionItem` actions for CTAs and secondary actions for destructive or less common operations.
-- Prefer `EntityListInfoItem` icon/value metrics for compact facts such as level, reputation, wage, cost, efficiency or profitability.
+- Prefer `EntityListInfoItem` icon/value metrics for compact facts such as level, reputation, wage, cost, efficiency or profitability. `EntityListRow` renders these through `IconValueStat`; keep new list facts on that path instead of custom row markup.
+- Use the shared `CTAButton` for primary CTAs. When a CTA has a monetary amount, pass `amountMoney` so the button renders the standardized `label (amount treasuryIcon)` pattern.
 
 ## Finances
 
@@ -203,6 +216,12 @@ The panel exposes a `Resolve next day` action that calls the weekly macro step.
 Gladiators are available through the `Gladiators` list panel and building context.
 
 This keeps the main screen scalable as the school grows.
+
+## Staff
+
+Staff is available through the `Staff` list panel, staff detail modals and market recruitment tabs.
+
+This keeps assignment review separate from recruitment while preserving the map-first shell.
 
 ## Events
 

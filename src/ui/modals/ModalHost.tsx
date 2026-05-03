@@ -10,6 +10,7 @@ import { BuildingsListPanel } from '../panels/BuildingsListPanel';
 import { FinancePanel } from '../panels/FinancePanel';
 import { GladiatorsListPanel } from '../panels/GladiatorsListPanel';
 import { GladiatorDetailPanel } from '../panels/GladiatorDetailPanel';
+import { StaffListPanel } from '../panels/StaffListPanel';
 import { StaffDetailPanel } from '../panels/StaffDetailPanel';
 import { WeeklyPlanningPanel } from '../panels/WeeklyPlanningPanel';
 import { AppModal } from './AppModal';
@@ -156,16 +157,54 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
     resolveGameEventChoice,
     saveCurrentGame,
     selectBuildingPolicy,
+    sellGladiator,
+    sellStaff,
     takeLoan,
     updateDailyPlan,
     updateDailyPlanBuildingActivitySelection,
     upgradeBuilding,
   } = useGameStore();
-  const { closeAllModals, closeModal, navigate, pushModal } = useUiStore();
+  const { closeAllModals, closeModal, navigate, openConfirmModal, pushModal } = useUiStore();
   const isDailyEventBlocking = currentSave ? currentSave.events.pendingEvents.length > 0 : false;
 
   const quitToMainMenu = () => {
     navigate('mainMenu');
+  };
+
+  const requestSellGladiator = (gladiatorId: string) => {
+    const gladiator = currentSave?.gladiators.find((candidate) => candidate.id === gladiatorId);
+
+    if (!gladiator) {
+      return;
+    }
+
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: 'market.sell',
+      messageKey: 'market.sellConfirmation',
+      messageParams: { name: gladiator.name },
+      onConfirm: () => sellGladiator(gladiator.id),
+      testId: 'market-sell-confirm-dialog',
+      titleKey: 'market.sellConfirmationTitle',
+    });
+  };
+
+  const requestSellStaff = (staffId: string) => {
+    const staffMember = currentSave?.staff.members.find((candidate) => candidate.id === staffId);
+
+    if (!staffMember) {
+      return;
+    }
+
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: 'market.sell',
+      messageKey: 'market.sellStaffConfirmation',
+      messageParams: { name: staffMember.name },
+      onConfirm: () => sellStaff(staffMember.id),
+      testId: 'market-sell-staff-confirm-dialog',
+      titleKey: 'market.sellConfirmationTitle',
+    });
   };
 
   if (modal.kind === 'gameMenu') {
@@ -253,7 +292,7 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
     return (
       <AppModal
         isActive={isActive}
-        size="xl"
+        size="lg"
         testId="gladiators-list-modal"
         titleKey="roster.title"
         onClose={closeModal}
@@ -264,6 +303,28 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
           onOpenGladiator={(gladiatorId) => {
             pushModal({ gladiatorId, kind: 'gladiator' });
           }}
+          onSellGladiator={requestSellGladiator}
+        />
+      </AppModal>
+    );
+  }
+
+  if (modal.kind === 'staffList') {
+    return (
+      <AppModal
+        isActive={isActive}
+        size="xl"
+        testId="staff-list-modal"
+        titleKey="staff.listTitle"
+        onClose={closeModal}
+      >
+        <StaffListPanel
+          save={currentSave}
+          onClose={closeModal}
+          onOpenStaff={(staffId) => {
+            pushModal({ kind: 'staff', staffId });
+          }}
+          onSellStaff={requestSellStaff}
         />
       </AppModal>
     );

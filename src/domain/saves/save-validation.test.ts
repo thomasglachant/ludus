@@ -231,7 +231,11 @@ describe('save validation', () => {
         ...save.staff,
         members: [
           {
-            ...save.staff.members[0],
+            id: 'staff-legacy-trainer',
+            name: 'Titus',
+            type: 'trainer',
+            visualId: 'trainer-01',
+            weeklyWage: 35,
             assignedBuildingId: 'nobleTraining',
             buildingExperience: {
               nobleTraining: 30,
@@ -239,7 +243,7 @@ describe('save validation', () => {
             },
           },
         ],
-        assignments: [{ buildingId: 'nobleTraining', staffIds: [save.staff.members[0].id] }],
+        assignments: [{ buildingId: 'nobleTraining', staffIds: ['staff-legacy-trainer'] }],
       },
     };
 

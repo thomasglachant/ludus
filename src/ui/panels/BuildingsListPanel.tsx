@@ -34,14 +34,6 @@ export function BuildingsListPanel({ onClose, onOpenBuilding, save }: BuildingsL
 
                 return (
                   <EntityListRow
-                    actions={[
-                      {
-                        id: 'open',
-                        label: t('common.open'),
-                        onClick: () => onOpenBuilding(buildingId),
-                        variant: 'primary',
-                      },
-                    ]}
                     avatar={<BuildingAvatar buildingId={buildingId} size="small" />}
                     info={[
                       {

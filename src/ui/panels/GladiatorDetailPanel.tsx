@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { getEffectiveSkillValue } from '../../domain/gladiators/skills';
 import type { GameSave, Gladiator } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
+import { IconValueStat } from '../components/IconValueStat';
 import { MetricList, SectionCard } from '../components/shared';
-import { formatNumber } from '../formatters/number';
-import { GameIcon, type GameIconName } from '../icons/GameIcon';
+import { GladiatorAttributes } from '../gladiators/GladiatorAttributes';
+import { GameIcon } from '../icons/GameIcon';
 import {
   ModalContentFrame,
   ModalHeroCard,
@@ -21,12 +22,6 @@ interface GladiatorDetailPanelProps {
   onClose(): void;
 }
 
-interface StatChipProps {
-  iconName: GameIconName;
-  label: string;
-  value: number | string;
-}
-
 type GladiatorDetailTab = 'overview' | 'planning' | 'training';
 
 const gladiatorDetailTabs: ModalTabItem<GladiatorDetailTab>[] = [
@@ -34,18 +29,6 @@ const gladiatorDetailTabs: ModalTabItem<GladiatorDetailTab>[] = [
   { id: 'planning', labelKey: 'gladiatorPanel.tabs.planning' },
   { id: 'training', labelKey: 'gladiatorPanel.tabs.training' },
 ];
-
-function StatChip({ iconName, label, value }: StatChipProps) {
-  const formattedValue = typeof value === 'number' ? formatNumber(value) : value;
-
-  return (
-    <div className="gladiator-stat-chip">
-      <GameIcon name={iconName} size={19} />
-      <span>{label}</span>
-      <strong>{formattedValue}</strong>
-    </div>
-  );
-}
 
 function getCurrentArenaRecord(save: GameSave, gladiator: Gladiator) {
   const combatIdPrefix = `combat-${save.time.year}-${save.time.week}-`;
@@ -72,21 +55,13 @@ export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelPr
     <ModalContentFrame>
       <ModalHeroCard
         avatar={<GladiatorPortrait gladiator={gladiator} size="large" />}
-        description={t('gladiatorPanel.detailDescription', { age: gladiator.age })}
-        metrics={[
-          {
-            iconName: 'reputation',
-            id: 'reputation',
-            labelKey: 'gladiatorPanel.reputation',
-            value: gladiator.reputation,
-          },
-          {
-            iconName: 'health',
-            id: 'life',
-            labelKey: 'roster.lifeShort',
-            value: Math.floor(gladiator.life),
-          },
-        ]}
+        description={
+          <span>
+            {t('market.age', { age: gladiator.age })} -{' '}
+            {gladiator.traits.length > 0 ? <>{t(`traits.${gladiator.traits[0]}`)}</> : null}
+          </span>
+        }
+        descriptionContent={<GladiatorAttributes gladiator={gladiator} />}
         title={gladiator.name}
       />
 
@@ -125,31 +100,6 @@ export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelPr
                 </div>
               </dl>
             </section>
-
-            <section className="gladiator-info-panel">
-              <h2>
-                <GameIcon name="combatPressure" size={18} />
-                {t('gladiatorPanel.stats')}
-              </h2>
-              <div className="gladiator-skill-grid">
-                <StatChip
-                  iconName="strength"
-                  label={t('market.stats.strength')}
-                  value={gladiator.strength}
-                />
-                <StatChip
-                  iconName="agility"
-                  label={t('market.stats.agility')}
-                  value={gladiator.agility}
-                />
-                <StatChip
-                  iconName="defense"
-                  label={t('market.stats.defense')}
-                  value={gladiator.defense}
-                />
-                <StatChip iconName="health" label={t('market.stats.life')} value={gladiator.life} />
-              </div>
-            </section>
           </div>
         </ModalTabPanel>
       ) : null}
@@ -185,22 +135,22 @@ export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelPr
         <ModalTabPanel>
           <ModalSection titleKey="gladiatorPanel.trainingPlan">
             <div className="gladiator-skill-grid">
-              <StatChip
+              <IconValueStat
                 iconName="strength"
                 label={t('market.stats.strength')}
                 value={getEffectiveSkillValue(gladiator.trainingPlan.strength)}
               />
-              <StatChip
+              <IconValueStat
                 iconName="agility"
                 label={t('market.stats.agility')}
                 value={getEffectiveSkillValue(gladiator.trainingPlan.agility)}
               />
-              <StatChip
+              <IconValueStat
                 iconName="defense"
                 label={t('market.stats.defense')}
                 value={getEffectiveSkillValue(gladiator.trainingPlan.defense)}
               />
-              <StatChip
+              <IconValueStat
                 iconName="health"
                 label={t('market.stats.life')}
                 value={getEffectiveSkillValue(gladiator.trainingPlan.life)}

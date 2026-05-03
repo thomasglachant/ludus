@@ -5,14 +5,17 @@ import {
   isStaffVisualIdForType,
   STAFF_VISUAL_IDS_BY_TYPE,
 } from '../../game-data/staff-visuals';
+import { GAME_BALANCE } from '../../game-data/balance';
 import type { BuildingId, GameSave } from '../types';
 import { createInitialSave } from '../saves/create-initial-save';
 import {
   assignStaffToBuilding,
+  calculateStaffMarketPrice,
   buyMarketStaff,
   createInitialStaffState,
   generateStaffMarketCandidates,
   sellStaff,
+  synchronizeStaffAssignments,
   validateStaffAssignment,
   validateStaffMarketPurchase,
 } from './staff-actions';
@@ -22,6 +25,46 @@ function createTestSave() {
     ludusName: 'Ludus Magnus',
     saveId: 'save-test',
     createdAt: '2026-04-25T12:00:00.000Z',
+  });
+}
+
+function createStaffedTestSave() {
+  const save = createTestSave();
+
+  return synchronizeStaffAssignments({
+    ...save,
+    staff: {
+      ...save.staff,
+      members: [
+        {
+          id: 'staff-initial-trainer',
+          name: 'Titus',
+          type: 'trainer',
+          visualId: 'trainer-01',
+          weeklyWage: 35,
+          assignedBuildingId: 'trainingGround',
+          buildingExperience: { trainingGround: 10 },
+        },
+        {
+          id: 'staff-initial-slave',
+          name: 'Dama',
+          type: 'slave',
+          visualId: 'slave-01',
+          weeklyWage: 0,
+          assignedBuildingId: 'canteen',
+          buildingExperience: { canteen: 8 },
+        },
+        {
+          id: 'staff-initial-guard',
+          name: 'Marcellus',
+          type: 'guard',
+          visualId: 'guard-01',
+          weeklyWage: 25,
+          assignedBuildingId: 'guardBarracks',
+          buildingExperience: { guardBarracks: 6 },
+        },
+      ],
+    },
   });
 }
 
@@ -78,32 +121,57 @@ describe('staff actions', () => {
   it('generates weekly staff candidates with typed wages and prices', () => {
     const candidates = generateStaffMarketCandidates(2, 3, () => 0);
 
-    expect(candidates).toHaveLength(4);
+    expect(candidates).toHaveLength(GAME_BALANCE.staffMarket.availableStaffCount);
+    expect(candidates.filter((candidate) => candidate.type === 'slave')).toHaveLength(20);
+    expect(candidates.filter((candidate) => candidate.type === 'guard')).toHaveLength(20);
+    expect(candidates.filter((candidate) => candidate.type === 'trainer')).toHaveLength(20);
     expect(candidates[0]).toMatchObject({
-      id: 'staff-market-2-3-1',
+      id: 'staff-market-2-3-slave-1',
       type: 'slave',
       visualId: 'slave-01',
       weeklyWage: 0,
     });
-    expect(candidates.every((candidate) => candidate.price > 0)).toBe(true);
+    expect(
+      candidates.every((candidate) => candidate.price === calculateStaffMarketPrice(candidate)),
+    ).toBe(true);
     expect(
       candidates.every((candidate) => isStaffVisualIdForType(candidate.type, candidate.visualId)),
     ).toBe(true);
   });
 
-  it('randomly assigns generated staff visuals from the candidate type pool', () => {
+  it('randomly assigns generated staff visuals inside each candidate type category', () => {
     const candidates = generateStaffMarketCandidates(
       2,
       3,
       createSequenceRandom([0, 0, 0, 0, 0.99, 0, 0, 0, 0.4, 0, 0, 0, 0.2, 0, 0, 0, 0.8]),
     );
 
-    expect(candidates.map((candidate) => [candidate.type, candidate.visualId])).toEqual([
-      ['slave', 'slave-05'],
-      ['slave', 'slave-03'],
-      ['guard', 'guard-02'],
-      ['trainer', 'trainer-05'],
-    ]);
+    expect(
+      candidates.every((candidate) => isStaffVisualIdForType(candidate.type, candidate.visualId)),
+    ).toBe(true);
+    expect(candidates.slice(0, 20).every((candidate) => candidate.type === 'slave')).toBe(true);
+    expect(candidates.slice(20, 40).every((candidate) => candidate.type === 'guard')).toBe(true);
+    expect(candidates.slice(40, 60).every((candidate) => candidate.type === 'trainer')).toBe(true);
+  });
+
+  it('prices staff candidates from role, wage and generated experience', () => {
+    const inexperiencedTrainer = {
+      id: 'trainer-low',
+      name: 'Titus',
+      type: 'trainer' as const,
+      visualId: 'trainer-01' as const,
+      weeklyWage: GAME_BALANCE.staffMarket.weeklyWageByType.trainer,
+      buildingExperience: { trainingGround: 2 },
+    };
+    const experiencedTrainer = {
+      ...inexperiencedTrainer,
+      id: 'trainer-high',
+      buildingExperience: { trainingGround: 10 },
+    };
+
+    expect(calculateStaffMarketPrice(experiencedTrainer)).toBeGreaterThan(
+      calculateStaffMarketPrice(inexperiencedTrainer),
+    );
   });
 
   it('buys staff from the market', () => {
@@ -164,7 +232,7 @@ describe('staff actions', () => {
   });
 
   it('prevents buying staff when Domus staff capacity is full', () => {
-    const save = createTestSave();
+    const save = createStaffedTestSave();
     const candidate = save.staff.marketCandidates.find(
       (staffCandidate) => staffCandidate.type === 'trainer',
     )!;
@@ -178,7 +246,7 @@ describe('staff actions', () => {
   });
 
   it('sells staff and clears assignments', () => {
-    const save = createTestSave();
+    const save = createStaffedTestSave();
     const result = sellStaff(save, 'staff-initial-guard');
 
     expect(result.validation).toMatchObject({ isAllowed: true });
@@ -206,7 +274,7 @@ describe('staff actions', () => {
 
   it('allows slaves to work in any building', () => {
     const result = assignStaffToBuilding(
-      withPurchasedBuilding(createTestSave(), 'farm'),
+      withPurchasedBuilding(createStaffedTestSave(), 'farm'),
       'staff-initial-slave',
       'farm',
     );
@@ -224,7 +292,7 @@ describe('staff actions', () => {
   });
 
   it('prevents assigning staff to unpurchased buildings', () => {
-    const result = assignStaffToBuilding(createTestSave(), 'staff-initial-slave', 'farm');
+    const result = assignStaffToBuilding(createStaffedTestSave(), 'staff-initial-slave', 'farm');
 
     expect(result.validation).toMatchObject({
       isAllowed: false,
@@ -233,7 +301,7 @@ describe('staff actions', () => {
   });
 
   it('prevents assigning staff above the building requirement', () => {
-    const save = createTestSave();
+    const save = createStaffedTestSave();
     const saveWithExtraSlave: GameSave = {
       ...save,
       staff: {
@@ -260,7 +328,7 @@ describe('staff actions', () => {
   });
 
   it('unassigns staff from a building', () => {
-    const result = assignStaffToBuilding(createTestSave(), 'staff-initial-slave');
+    const result = assignStaffToBuilding(createStaffedTestSave(), 'staff-initial-slave');
 
     expect(result.validation).toMatchObject({ isAllowed: true });
     expect(
@@ -271,7 +339,11 @@ describe('staff actions', () => {
   });
 
   it('restricts guards to the barracks', () => {
-    const result = assignStaffToBuilding(createTestSave(), 'staff-initial-guard', 'trainingGround');
+    const result = assignStaffToBuilding(
+      createStaffedTestSave(),
+      'staff-initial-guard',
+      'trainingGround',
+    );
 
     expect(result.validation).toMatchObject({
       isAllowed: false,
@@ -281,12 +353,12 @@ describe('staff actions', () => {
 
   it('restricts trainers to the training ground', () => {
     const invalidResult = assignStaffToBuilding(
-      createTestSave(),
+      createStaffedTestSave(),
       'staff-initial-trainer',
       'canteen',
     );
     const validResult = assignStaffToBuilding(
-      createTestSave(),
+      createStaffedTestSave(),
       'staff-initial-trainer',
       'trainingGround',
     );

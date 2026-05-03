@@ -118,13 +118,35 @@ function getTrainingPressurePoints(plan: DailyPlan) {
   );
 }
 
+function getAverageTrainingPressurePoints(plan: DailyPlan, gladiatorPointDivisor: number) {
+  return getTrainingPressurePoints(plan) / gladiatorPointDivisor;
+}
+
+function getTrainingLoadScale(plan: DailyPlan, gladiatorPointDivisor: number) {
+  const averageTrainingPressurePoints = getAverageTrainingPressurePoints(
+    plan,
+    gladiatorPointDivisor,
+  );
+  const maximumTrainingPressurePoints =
+    GAME_BALANCE.macroSimulation.idealTrainingPressurePointsPerGladiator *
+    GAME_BALANCE.macroSimulation.maximumTrainingEfficiencyMultiplier;
+
+  if (averageTrainingPressurePoints <= maximumTrainingPressurePoints) {
+    return 1;
+  }
+
+  return maximumTrainingPressurePoints / averageTrainingPressurePoints;
+}
+
 function getFocusedTrainingGain(
   plan: DailyPlan,
   focus: TrainingFocus,
   gladiatorPointDivisor: number,
+  trainingLoadScale: number,
 ) {
   return (
     (getFocusedTrainingPoints(plan, focus) / gladiatorPointDivisor) *
+    trainingLoadScale *
     GAME_BALANCE.macroSimulation.trainingFocus[focus].progressMultiplier
   );
 }
@@ -262,9 +284,15 @@ function applyDailyGladiatorEffects(
   gladiatorPointDivisor: number,
 ): DailyGladiatorResolutionResult {
   const canTrain = canGladiatorPerformPhysicalActivities(gladiator, year, week);
-  const trainingPoints = canTrain ? getTrainingPressurePoints(plan) / gladiatorPointDivisor : 0;
+  const trainingLoadScale = getTrainingLoadScale(plan, gladiatorPointDivisor);
+  const trainingPoints = canTrain
+    ? getAverageTrainingPressurePoints(plan, gladiatorPointDivisor)
+    : 0;
   const carePoints = plan.gladiatorTimePoints.care / gladiatorPointDivisor;
-  const overtrainingPenalty = Math.max(0, trainingPoints - 4);
+  const overtrainingPenalty = Math.max(
+    0,
+    trainingPoints - GAME_BALANCE.macroSimulation.idealTrainingPressurePointsPerGladiator,
+  );
   const injuryChance =
     trainingPoints *
     GAME_BALANCE.macroSimulation.trainingInjuryChancePerPoint *
@@ -273,19 +301,19 @@ function applyDailyGladiatorEffects(
   const isInjured = trainingPoints > 0 && random() < injuryChance;
   const focusedSkillGain = canTrain && !isInjured ? modifiers.trainingEfficiency : 0;
   const strengthGain =
-    getFocusedTrainingGain(plan, 'strength', gladiatorPointDivisor) *
+    getFocusedTrainingGain(plan, 'strength', gladiatorPointDivisor, trainingLoadScale) *
     focusedSkillGain *
     getPercentMultiplier(modifiers.trainingStrengthProgressBonusPercent);
   const agilityGain =
-    getFocusedTrainingGain(plan, 'agility', gladiatorPointDivisor) *
+    getFocusedTrainingGain(plan, 'agility', gladiatorPointDivisor, trainingLoadScale) *
     focusedSkillGain *
     getPercentMultiplier(modifiers.trainingAgilityProgressBonusPercent);
   const defenseGain =
-    getFocusedTrainingGain(plan, 'defense', gladiatorPointDivisor) *
+    getFocusedTrainingGain(plan, 'defense', gladiatorPointDivisor, trainingLoadScale) *
     focusedSkillGain *
     getPercentMultiplier(modifiers.trainingDefenseProgressBonusPercent);
   const lifeGain =
-    getFocusedTrainingGain(plan, 'life', gladiatorPointDivisor) *
+    getFocusedTrainingGain(plan, 'life', gladiatorPointDivisor, trainingLoadScale) *
     focusedSkillGain *
     getPercentMultiplier(modifiers.trainingLifeProgressBonusPercent);
   const lifePenalty = overtrainingPenalty * 4 + (isInjured ? 16 : 0);
@@ -394,7 +422,10 @@ function resolveDailyPlanInternal(
   );
   const gladiatorPointDivisor = Math.max(1, operationalSave.gladiators.length);
   const totalTrainingPressurePoints = getTrainingPressurePoints(plan);
-  const averageGladiatorTrainingPoints = totalTrainingPressurePoints / gladiatorPointDivisor;
+  const averageGladiatorTrainingPoints = getAverageTrainingPressurePoints(
+    plan,
+    gladiatorPointDivisor,
+  );
   const securityDelta = Math.round(
     guardCount * GAME_BALANCE.macroSimulation.securityPerGuard * securityEfficiency -
       targetGuards * 10 +
@@ -407,7 +438,11 @@ function resolveDailyPlanInternal(
   );
   const happinessDelta =
     plan.gladiatorTimePoints.leisure / gladiatorPointDivisor +
-    -Math.max(0, averageGladiatorTrainingPoints - 4) *
+    -Math.max(
+      0,
+      averageGladiatorTrainingPoints -
+        GAME_BALANCE.macroSimulation.idealTrainingPressurePointsPerGladiator,
+    ) *
       GAME_BALANCE.macroSimulation.heavyScheduleHappinessPenalty +
     happinessBuildingBonus +
     Math.round(buildingActivityImpact.happinessDelta);

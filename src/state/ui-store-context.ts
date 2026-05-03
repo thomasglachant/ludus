@@ -77,6 +77,10 @@ export interface StaffModalRequest {
   staffId: string;
 }
 
+export interface StaffListModalRequest {
+  kind: 'staffList';
+}
+
 export interface WeeklyPlanningModalRequest {
   kind: 'weeklyPlanning';
 }
@@ -112,6 +116,7 @@ export type UiModalRequest =
   | BuildingModalRequest
   | GladiatorModalRequest
   | StaffModalRequest
+  | StaffListModalRequest
   | WeeklyPlanningModalRequest
   | BuildingsListModalRequest
   | GladiatorsListModalRequest

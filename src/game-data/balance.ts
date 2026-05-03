@@ -193,6 +193,8 @@ export const GAME_BALANCE = {
     baseDailyGladiatorPoints: 6,
     baseDailyLaborPoints: 8,
     baseDailyAdminPoints: 0,
+    idealTrainingPressurePointsPerGladiator: 4,
+    maximumTrainingEfficiencyMultiplier: 1.25,
     trainingInjuryChancePerPoint: 0.015,
     trainingFocus: {
       strength: {
@@ -253,12 +255,16 @@ export const GAME_BALANCE = {
 
   market: {
     // Number of gladiators offered by the market each week.
-    availableGladiatorCount: 5,
+    availableGladiatorCount: 20,
     // Minimum age for generated market gladiators.
     minAge: 16,
     // Maximum age for generated market gladiators.
     maxAge: 20,
-    // Total strength, agility and defense points distributed on generation.
+    // Minimum total skill points distributed on generated market gladiators.
+    minGeneratedTotalStatPoints: 16,
+    // Maximum total skill points distributed on generated market gladiators.
+    maxGeneratedTotalStatPoints: 34,
+    // Legacy baseline used by tests and docs as the midpoint of generated market stat totals.
     totalStatPoints: 20,
     // Minimum generated value for each market gladiator skill.
     minGeneratedStat: 1,
@@ -296,8 +302,10 @@ export const GAME_BALANCE = {
   },
 
   staffMarket: {
-    // Number of staff candidates offered by the market each week.
-    availableStaffCount: 4,
+    // Number of generated candidates for each staff type each week.
+    candidatesPerType: 20,
+    // Legacy aggregate staff market count retained for older references.
+    availableStaffCount: 60,
     // Candidate type rotation used by weekly staff market generation.
     typePool: ['slave', 'slave', 'guard', 'trainer'] as const satisfies readonly StaffType[],
     basePriceByType: {
@@ -314,6 +322,10 @@ export const GAME_BALANCE = {
     minGeneratedExperience: 2,
     // Maximum starting building experience assigned to generated staff.
     maxGeneratedExperience: 10,
+    // Denarii added to staff market price per generated building experience point.
+    experiencePriceMultiplier: 8,
+    // Fraction of weekly wage added to staff market price.
+    weeklyWagePriceMultiplier: 2,
   },
 
   arena: {

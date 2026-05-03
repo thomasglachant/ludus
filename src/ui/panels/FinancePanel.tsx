@@ -403,6 +403,7 @@ export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelPro
                         ) : null}
                         <div className="context-panel__actions">
                           <CTAButton
+                            amountMoney={formatMoneyAmount(loan.remainingBalance)}
                             disabled={!canBuyout}
                             type="button"
                             onClick={() => requestBuyout(loan)}
@@ -463,6 +464,7 @@ export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelPro
                     ) : null}
                     <div className="context-panel__actions">
                       <CTAButton
+                        amountMoney={formatMoneyAmount(loan.amount)}
                         disabled={!canTake}
                         type="button"
                         onClick={() => requestLoan(loan)}

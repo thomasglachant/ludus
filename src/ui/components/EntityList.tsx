@@ -2,6 +2,7 @@ import { Children, type ReactNode } from 'react';
 import { useUiStore } from '../../state/ui-store-context';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import { CTAButton } from './CTAButton';
+import { IconValueStat } from './IconValueStat';
 
 export type EntityListInfoTone = 'danger' | 'neutral' | 'positive' | 'warning';
 
@@ -14,6 +15,7 @@ export interface EntityListInfoItem {
 }
 
 export interface EntityListActionItem {
+  amountMoney?: ReactNode;
   disabled?: boolean;
   iconName?: GameIconName;
   id: string;
@@ -40,6 +42,7 @@ interface EntityListRowProps {
   avatar?: ReactNode;
   className?: string;
   info?: EntityListInfoItem[];
+  infoContent?: ReactNode;
   openLabel?: string;
   subtitle?: ReactNode;
   testId?: string;
@@ -52,13 +55,17 @@ function getRowClassName({
   avatar,
   className,
   info,
+  infoContent,
   onOpen,
-}: Pick<EntityListRowProps, 'actions' | 'avatar' | 'className' | 'info' | 'onOpen'>) {
+}: Pick<
+  EntityListRowProps,
+  'actions' | 'avatar' | 'className' | 'info' | 'infoContent' | 'onOpen'
+>) {
   return [
     'entity-list-row',
     onOpen ? 'entity-list-row--clickable' : null,
     avatar ? null : 'entity-list-row--no-avatar',
-    info && info.length > 0 ? null : 'entity-list-row--no-info',
+    infoContent || (info && info.length > 0) ? null : 'entity-list-row--no-info',
     actions && actions.length > 0 ? null : 'entity-list-row--no-actions',
     className,
   ]
@@ -77,7 +84,12 @@ function EntityListAction({ action }: { action: EntityListActionItem }) {
 
   if (action.variant === 'primary') {
     return (
-      <CTAButton data-testid={action.testId} disabled={action.disabled} onClick={handleClick}>
+      <CTAButton
+        amountMoney={action.amountMoney}
+        data-testid={action.testId}
+        disabled={action.disabled}
+        onClick={handleClick}
+      >
         {content}
       </CTAButton>
     );
@@ -122,6 +134,7 @@ export function EntityListRow({
   avatar,
   className,
   info = [],
+  infoContent,
   onOpen,
   openLabel,
   subtitle,
@@ -132,7 +145,7 @@ export function EntityListRow({
 
   return (
     <article
-      className={getRowClassName({ actions, avatar, className, info, onOpen })}
+      className={getRowClassName({ actions, avatar, className, info, infoContent, onOpen })}
       data-testid={testId}
     >
       {onOpen ? (
@@ -148,18 +161,18 @@ export function EntityListRow({
         <strong>{title}</strong>
         {subtitle ? <div className="entity-list-row__subtitle">{subtitle}</div> : null}
       </div>
-      {info.length > 0 ? (
+      {infoContent ? <div className="entity-list-row__info">{infoContent}</div> : null}
+      {!infoContent && info.length > 0 ? (
         <dl className="entity-list-row__info">
           {info.map((item) => (
             <div
               className={`entity-list-row__info-item entity-list-row__info-item--${item.tone ?? 'neutral'}`}
               key={item.id}
             >
-              <dt>
-                <GameIcon name={item.iconName} size={16} />
-                <span>{item.label}</span>
-              </dt>
-              <dd>{item.value}</dd>
+              <dt className="entity-list-row__info-label">{item.label}</dt>
+              <dd>
+                <IconValueStat iconName={item.iconName} label={item.label} value={item.value} />
+              </dd>
             </div>
           ))}
         </dl>

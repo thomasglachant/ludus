@@ -4,6 +4,7 @@ export type ContextPanelKind =
   | 'weeklyPlanning'
   | 'buildingsList'
   | 'gladiatorsList'
+  | 'staffList'
   | 'finance'
   | 'events'
   | 'market'
