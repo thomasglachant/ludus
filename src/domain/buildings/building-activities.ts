@@ -32,9 +32,7 @@ const emptyImpact: BuildingActivityImpact = {
 };
 
 function getPoints(plan: DailyPlan, activity: DailyPlanActivity) {
-  return (
-    plan.gladiatorTimePoints[activity] + plan.laborPoints[activity] + plan.adminPoints[activity]
-  );
+  return plan.gladiatorTimePoints[activity] + plan.laborPoints[activity];
 }
 
 function isActivityUnlocked(save: GameSave, definition: BuildingActivityDefinition) {

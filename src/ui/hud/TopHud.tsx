@@ -7,76 +7,70 @@ import { formatNumber } from '../formatters/number';
 import { GameIcon } from '../icons/GameIcon';
 
 interface TopHudProps {
+  clockLabel: string;
+  isPaused: boolean;
   save: GameSave;
+  onOpenDomus(): void;
   onOpenFinance(): void;
   onOpenMenu(): void;
+  onTogglePause(): void;
 }
 
 const TOP_HUD_RESOURCE_ICON_SIZE = 24;
 
-export function TopHud({ onOpenFinance, onOpenMenu, save }: TopHudProps) {
+export function TopHud({
+  clockLabel,
+  isPaused,
+  onOpenDomus,
+  onOpenFinance,
+  onOpenMenu,
+  onTogglePause,
+  save,
+}: TopHudProps) {
   const { t } = useUiStore();
   const dayLabel = t(`days.${save.time.dayOfWeek}`);
   const happinessPercent = Math.round(Math.min(100, Math.max(0, save.ludus.happiness)));
   const securityPercent = Math.round(Math.min(100, Math.max(0, save.ludus.security)));
+  const domusLevel = save.buildings.domus.level;
 
   return (
     <header className="top-hud" data-testid="topbar">
       <div className="top-hud__brand">
-        <div className="top-hud__brand-title-row">
-          <img
-            alt=""
-            aria-hidden="true"
-            className="top-hud__brand-laurel"
-            src="/assets/ui/laurel-left.png"
-          />
-          <h1>{t('app.title')}</h1>
-          <img
-            alt=""
-            aria-hidden="true"
-            className="top-hud__brand-laurel top-hud__brand-laurel--right"
-            src="/assets/ui/laurel-left.png"
-          />
-        </div>
+        <button className="top-hud__ludus-card" type="button" onClick={onOpenDomus}>
+          <strong>{save.player.ludusName}</strong>
+          <span>
+            {t('common.level', { level: domusLevel })} ·{' '}
+            {t('ludus.reputationValue', { value: save.ludus.reputation })}
+          </span>
+        </button>
       </div>
 
       <div className="top-hud__center">
-        <div className="top-hud__time" data-testid="topbar-time">
-          <span className="top-hud__date-lines">
-            <span>{dayLabel}</span>
-            <span>
-              <span>{t('topBar.weekShort', { week: save.time.week })}</span>
-              <span>{t('topBar.year', { year: save.time.year })}</span>
-            </span>
-          </span>
-        </div>
-        <div className="top-hud__phase" data-testid="topbar-phase">
-          {t(`gamePhase.${save.time.phase}`)}
-        </div>
-      </div>
-
-      <div className="top-hud__actions">
         <div className="top-hud__resources" aria-label={t('topBar.resources')}>
-          <button
-            aria-label={t('finance.open')}
-            className="top-hud__resource top-hud__resource--button"
-            data-testid="topbar-treasury"
-            type="button"
-            onClick={onOpenFinance}
-          >
-            <span aria-hidden="true" className="top-hud__resource-icon">
-              <GameIcon name="treasury" size={TOP_HUD_RESOURCE_ICON_SIZE} />
-            </span>
-            <span className="top-hud__resource-value">
-              {formatMoneyAmount(save.ludus.treasury)}
-            </span>
-          </button>
-          <div className="top-hud__resource" data-testid="topbar-reputation">
-            <span aria-hidden="true" className="top-hud__resource-icon">
-              <GameIcon name="reputation" size={TOP_HUD_RESOURCE_ICON_SIZE} />
-            </span>
-            <span className="top-hud__resource-value">{formatNumber(save.ludus.reputation)}</span>
-          </div>
+          <Tooltip content={t('common.treasury')}>
+            <button
+              aria-label={t('finance.open')}
+              className="top-hud__resource top-hud__resource--button"
+              data-testid="topbar-treasury"
+              type="button"
+              onClick={onOpenFinance}
+            >
+              <span aria-hidden="true" className="top-hud__resource-icon">
+                <GameIcon name="treasury" size={TOP_HUD_RESOURCE_ICON_SIZE} />
+              </span>
+              <span className="top-hud__resource-value">
+                {formatMoneyAmount(save.ludus.treasury)}
+              </span>
+            </button>
+          </Tooltip>
+          <Tooltip content={t('ludus.reputation')}>
+            <div className="top-hud__resource" data-testid="topbar-reputation">
+              <span aria-hidden="true" className="top-hud__resource-icon">
+                <GameIcon name="reputation" size={TOP_HUD_RESOURCE_ICON_SIZE} />
+              </span>
+              <span className="top-hud__resource-value">{formatNumber(save.ludus.reputation)}</span>
+            </div>
+          </Tooltip>
           <div
             className="top-hud__resource top-hud__resource--meter"
             data-testid="topbar-happiness"
@@ -107,17 +101,40 @@ export function TopHud({ onOpenFinance, onOpenMenu, save }: TopHudProps) {
             </Tooltip>
           </div>
         </div>
+      </div>
 
-        <div className="top-hud__menu-zone">
+      <div className="top-hud__actions">
+        <div className="top-hud__time" data-testid="topbar-time">
+          <button
+            aria-label={t(isPaused ? 'topBar.resume' : 'topBar.pause')}
+            className="top-hud__time-action"
+            title={t(isPaused ? 'topBar.resume' : 'topBar.pause')}
+            type="button"
+            onClick={onTogglePause}
+          >
+            <GameIcon name={isPaused ? 'play' : 'pause'} size={22} />
+          </button>
+          <span className="top-hud__date-lines">
+            <span>
+              <strong className="top-hud__clock">{clockLabel}</strong>
+              <span>,</span>
+              <span>{dayLabel}</span>
+            </span>
+            <span>
+              <span>{t('topBar.weekShort', { week: save.time.week })}</span>
+              <span>{t('topBar.year', { year: save.time.year })}</span>
+            </span>
+          </span>
           <button
             aria-label={t('topBar.openGameMenu')}
-            className="top-hud__edit-button"
+            className="top-hud__time-action"
             data-testid="topbar-menu-button"
+            title={t('topBar.openGameMenu')}
             type="button"
             onClick={onOpenMenu}
           >
             <span aria-hidden="true" className="top-hud__menu-icon">
-              <GameIcon color="currentColor" name="menu" size={28} />
+              <GameIcon color="currentColor" name="menu" size={22} />
             </span>
           </button>
         </div>

@@ -130,6 +130,7 @@ export type BuildingEffectType =
   | 'increaseDefense'
   | 'increaseLife'
   | 'increaseCapacity'
+  | 'increaseDailyGladiatorPoints'
   | 'reduceInjuryRisk'
   | 'increaseReputation'
   | 'increaseSecurity'

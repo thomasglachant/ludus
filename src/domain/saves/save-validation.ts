@@ -76,17 +76,26 @@ const gladiatorTraits = [
 const alertSeverities = ['info', 'warning', 'critical'];
 const eventStatuses = ['pending', 'resolved', 'expired'];
 const dailyPlanActivities: DailyPlanActivity[] = [
-  'training',
+  'strengthTraining',
+  'agilityTraining',
+  'defenseTraining',
+  'lifeTraining',
   'meals',
   'sleep',
   'leisure',
   'care',
-  'contracts',
   'production',
   'security',
-  'maintenance',
-  'events',
 ];
+const legacyDailyPlanActivities = ['training', 'contracts', 'maintenance', 'events'];
+const supportedDailyPlanPointKeys = [...dailyPlanActivities, ...legacyDailyPlanActivities];
+const requiredDailyPlanPointKeys = dailyPlanActivities.filter(
+  (activity) =>
+    activity !== 'strengthTraining' &&
+    activity !== 'agilityTraining' &&
+    activity !== 'defenseTraining' &&
+    activity !== 'lifeTraining',
+);
 const economyEntryKinds = ['income', 'expense'];
 const economyCategories = [
   'arena',
@@ -430,9 +439,27 @@ function isGameAlert(value: unknown): value is GameAlert {
 function isDailyPlanPoints(value: unknown): value is DailyPlanPoints {
   return (
     isRecord(value) &&
-    dailyPlanActivities.every((activity) => hasNonNegativeNumber(value, activity)) &&
-    Object.keys(value).every((key) => isStringFrom(key, dailyPlanActivities))
+    requiredDailyPlanPointKeys.every((activity) => hasNonNegativeNumber(value, activity)) &&
+    Object.keys(value).every(
+      (key) => isStringFrom(key, supportedDailyPlanPointKeys) && hasNonNegativeNumber(value, key),
+    )
   );
+}
+
+function normalizeDailyPlanPoints(
+  value: unknown,
+  fallbackPoints: DailyPlanPoints,
+): DailyPlanPoints {
+  if (!isRecord(value)) {
+    return fallbackPoints;
+  }
+
+  return Object.fromEntries(
+    dailyPlanActivities.map((activity) => [
+      activity,
+      hasNonNegativeNumber(value, activity) ? value[activity] : fallbackPoints[activity],
+    ]),
+  ) as DailyPlanPoints;
 }
 
 function isBuildingActivitySelections(
@@ -443,7 +470,7 @@ function isBuildingActivitySelections(
   }
 
   return Object.entries(value).every(([activity, activityId]) => {
-    if (!isStringFrom(activity, dailyPlanActivities) || typeof activityId !== 'string') {
+    if (!isStringFrom(activity, supportedDailyPlanPointKeys) || typeof activityId !== 'string') {
       return false;
     }
 
@@ -1054,15 +1081,12 @@ function normalizeDailyPlan(dayPlan: unknown, fallbackPlan: DailyPlan): DailyPla
 
   return {
     dayOfWeek: fallbackPlan.dayOfWeek,
-    gladiatorTimePoints: isDailyPlanPoints(dayPlan.gladiatorTimePoints)
-      ? dayPlan.gladiatorTimePoints
-      : fallbackPlan.gladiatorTimePoints,
-    laborPoints: isDailyPlanPoints(dayPlan.laborPoints)
-      ? dayPlan.laborPoints
-      : fallbackPlan.laborPoints,
-    adminPoints: isDailyPlanPoints(dayPlan.adminPoints)
-      ? dayPlan.adminPoints
-      : fallbackPlan.adminPoints,
+    gladiatorTimePoints: normalizeDailyPlanPoints(
+      dayPlan.gladiatorTimePoints,
+      fallbackPlan.gladiatorTimePoints,
+    ),
+    laborPoints: normalizeDailyPlanPoints(dayPlan.laborPoints, fallbackPlan.laborPoints),
+    adminPoints: fallbackPlan.adminPoints,
     buildingActivitySelections: normalizeBuildingActivitySelections(
       dayPlan.buildingActivitySelections,
     ),

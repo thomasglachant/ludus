@@ -21,6 +21,8 @@ export interface GameStoreValue {
   isLoading: boolean;
   isSaving: boolean;
   hasUnsavedChanges: boolean;
+  isGamePaused: boolean;
+  gameClockLabel: string;
   lastSavedAt: string | null;
   errorKey: string | null;
   saveNoticeKey: string | null;
@@ -41,7 +43,6 @@ export interface GameStoreValue {
   sellGladiator(gladiatorId: string): void;
   buyMarketStaff(candidateId: string): void;
   sellStaff(staffId: string): void;
-  applyPlanningRecommendations(): void;
   updateDailyPlan(update: DailyPlanUpdate): void;
   updateDailyPlanBuildingActivitySelection(update: DailyPlanBuildingActivitySelectionUpdate): void;
   resolveGameEventChoice(eventId: string, choiceId: string): void;
@@ -49,7 +50,8 @@ export interface GameStoreValue {
   adjustDebugTreasury(amount: number): void;
   markArenaCombatPresented(combatId: string): void;
   completeSundayArenaDay(): void;
-  advanceWeekStep(): void;
+  advanceWeekStep(options?: { ignoreModalPause?: boolean }): void;
+  toggleGamePause(): void;
   takeLoan(loanId: LoanId): void;
   buyoutLoan(loanInstanceId: string): void;
   assignStaffToBuilding(staffId: string, buildingId?: BuildingId): void;

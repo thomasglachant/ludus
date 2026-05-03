@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BUILDING_SKILLS } from '../../game-data/building-skills';
+import { createDefaultDailyPlan } from '../planning/planning-actions';
 import { createInitialSave } from '../saves/create-initial-save';
 import { purchaseBuildingSkill } from './building-actions';
 import {
@@ -43,18 +44,8 @@ describe('building effects', () => {
     expect(BUILDING_SKILLS.find((skill) => skill.id === 'domus.steward-desk')).toMatchObject({
       requiredSkillIds: ['domus.ledger-room', 'domus.contract-shelf', 'domus.staff-registry'],
     });
-    expect(BUILDING_SKILLS.find((skill) => skill.id === 'domus.profit-forecasting')).toMatchObject({
-      unlockedActivities: ['domus.profitForecasting'],
-    });
-    expect(
-      BUILDING_SKILLS.find((skill) => skill.id === 'domus.championship-booking'),
-    ).toMatchObject({
-      unlockedActivities: ['domus.championshipBooking'],
-    });
-    expect(
-      BUILDING_SKILLS.find((skill) => skill.id === 'trainingGround.noble-training'),
-    ).toMatchObject({
-      unlockedActivities: ['trainingGround.nobleTraining'],
+    expect(BUILDING_SKILLS.find((skill) => skill.id === 'farm.market-surplus')).toMatchObject({
+      unlockedActivities: ['farm.marketSurplus'],
     });
   });
 
@@ -104,81 +95,47 @@ describe('building effects', () => {
   });
 
   it('makes purchased skill activities detectable and applies their planned impact', () => {
-    const activitySkill = BUILDING_SKILLS.find(
-      (skill) => skill.id === 'trainingGround.noble-training',
-    );
+    const activitySkill = BUILDING_SKILLS.find((skill) => skill.id === 'farm.market-surplus');
 
     expect(activitySkill).toMatchObject({
-      buildingId: 'trainingGround',
-      unlockedActivities: ['trainingGround.nobleTraining'],
+      buildingId: 'farm',
+      unlockedActivities: ['farm.marketSurplus'],
     });
-    expect(isBuildingActivityUnlocked(createTestSave(), 'trainingGround.nobleTraining')).toBe(
-      false,
-    );
+    expect(isBuildingActivityUnlocked(createTestSave(), 'farm.marketSurplus')).toBe(false);
 
     const save = {
       ...createTestSave(),
       buildings: {
         ...createTestSave().buildings,
-        trainingGround: {
-          ...createTestSave().buildings.trainingGround,
-          purchasedSkillIds: ['trainingGround.noble-training'],
+        farm: {
+          ...createTestSave().buildings.farm,
+          efficiency: 100,
+          isPurchased: true,
+          purchasedSkillIds: ['farm.market-surplus'],
         },
       },
     };
 
-    expect(isBuildingActivityUnlocked(save, 'trainingGround.nobleTraining')).toBe(true);
-    expect(getUnlockedBuildingActivities(save, 'trainingGround')).toEqual([
+    expect(isBuildingActivityUnlocked(save, 'farm.marketSurplus')).toBe(true);
+    expect(getUnlockedBuildingActivities(save, 'farm')).toEqual([
       expect.objectContaining({
-        id: 'trainingGround.nobleTraining',
-        requiredSkillId: 'trainingGround.noble-training',
-        activity: 'contracts',
+        id: 'farm.marketSurplus',
+        requiredSkillId: 'farm.market-surplus',
+        activity: 'production',
       }),
     ]);
     const impact = calculateBuildingActivityImpact(save, {
-      dayOfWeek: 'monday',
-      gladiatorTimePoints: {
-        training: 0,
-        meals: 0,
-        sleep: 0,
-        leisure: 0,
-        care: 0,
-        contracts: 0,
-        production: 0,
-        security: 0,
-        maintenance: 0,
-        events: 0,
-      },
+      ...createDefaultDailyPlan('monday'),
       laborPoints: {
-        training: 0,
-        meals: 0,
-        sleep: 0,
-        leisure: 0,
-        care: 0,
-        contracts: 0,
-        production: 0,
-        security: 0,
-        maintenance: 0,
-        events: 0,
-      },
-      adminPoints: {
-        training: 0,
-        meals: 0,
-        sleep: 0,
-        leisure: 0,
-        care: 0,
-        contracts: 2,
-        production: 0,
-        security: 0,
-        maintenance: 0,
-        events: 0,
+        ...createDefaultDailyPlan('monday').laborPoints,
+        production: 2,
       },
       buildingActivitySelections: {
-        contracts: 'trainingGround.nobleTraining',
+        production: 'farm.marketSurplus',
       },
     });
 
-    expect(impact.treasuryDelta).toBeCloseTo(17.6);
-    expect(impact.reputationDelta).toBeCloseTo(0.22);
+    expect(impact.treasuryDelta).toBeCloseTo(10);
+    expect(impact.reputationDelta).toBeCloseTo(0);
   });
 });

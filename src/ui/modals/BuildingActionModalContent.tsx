@@ -18,6 +18,7 @@ interface BuildingActionModalContentProps {
 const effectIcons: Record<BuildingEffectType, GameIconName> = {
   increaseAgility: 'agility',
   increaseCapacity: 'capacity',
+  increaseDailyGladiatorPoints: 'training',
   increaseDefense: 'defense',
   increaseLife: 'health',
   increaseReputation: 'reputation',

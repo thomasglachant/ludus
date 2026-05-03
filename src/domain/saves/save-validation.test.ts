@@ -248,10 +248,7 @@ describe('save validation', () => {
     expect(parsed).not.toBeNull();
     expect(parsed?.buildings).not.toHaveProperty('office');
     expect(parsed?.buildings).not.toHaveProperty('nobleTraining');
-    expect(parsed?.planning.days.monday.buildingActivitySelections).toEqual({
-      contracts: 'trainingGround.nobleTraining',
-      maintenance: 'domus.profitForecasting',
-    });
+    expect(parsed?.planning.days.monday.buildingActivitySelections).toEqual({});
     expect(parsed?.staff.members[0].assignedBuildingId).toBeUndefined();
     expect(parsed?.staff.members[0].buildingExperience).toEqual({ trainingGround: 10 });
     expect(parsed?.staff.assignments).toEqual([]);

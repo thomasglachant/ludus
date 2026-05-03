@@ -1,11 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { BuildingId, GameSave, Gladiator } from '../types';
+import type { GameSave, Gladiator } from '../types';
 import { createInitialSave } from '../saves/create-initial-save';
 import {
-  applyPlanningRecommendations,
   getDailyPlanBucketRemaining,
-  getGladiatorPlanningStatuses,
-  getPlanningRecommendation,
   synchronizePlanning,
   updateDailyPlan,
   updateDailyPlanBuildingActivitySelection,
@@ -43,25 +40,6 @@ function withGladiators(save: GameSave, gladiators: Gladiator[]): GameSave {
   };
 }
 
-function withPurchasedBuildings(save: GameSave, buildingIds: BuildingId[]): GameSave {
-  return {
-    ...save,
-    buildings: {
-      ...save.buildings,
-      ...Object.fromEntries(
-        buildingIds.map((buildingId) => [
-          buildingId,
-          {
-            ...save.buildings[buildingId],
-            isPurchased: true,
-            level: Math.max(1, save.buildings[buildingId].level),
-          },
-        ]),
-      ),
-    },
-  };
-}
-
 describe('planning actions', () => {
   it('synchronizes macro planning alerts for owned gladiators', () => {
     const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
@@ -71,7 +49,7 @@ describe('planning actions', () => {
     expect(save.planning.week).toBe(save.time.week);
   });
 
-  it('generates alerts and planning statuses for owned gladiators', () => {
+  it('generates alerts for injured owned gladiators', () => {
     const save = synchronizePlanning(
       withGladiators(createTestSave(), [
         createGladiator({
@@ -79,13 +57,7 @@ describe('planning actions', () => {
         }),
       ]),
     );
-    const statuses = getGladiatorPlanningStatuses(save);
 
-    expect(statuses).toHaveLength(1);
-    expect(statuses[0]).toMatchObject({
-      gladiator: expect.objectContaining({ id: 'gladiator-test' }),
-      recommendation: expect.objectContaining({ buildingId: 'infirmary' }),
-    });
     expect(save.planning.alerts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -97,7 +69,7 @@ describe('planning actions', () => {
     );
   });
 
-  it('ignores stale weekly injuries when generating alerts and recommendations', () => {
+  it('ignores stale weekly injuries when generating alerts', () => {
     const save = synchronizePlanning(
       withGladiators(createTestSave(), [
         createGladiator({
@@ -107,71 +79,6 @@ describe('planning actions', () => {
     );
 
     expect(save.planning.alerts).toEqual([]);
-    expect(getPlanningRecommendation(save, save.gladiators[0])).toMatchObject({
-      buildingId: 'trainingGround',
-    });
-  });
-
-  it('recommends the right building without assigning per-character routine tasks', () => {
-    const save = synchronizePlanning(
-      withPurchasedBuildings(
-        withGladiators(createTestSave(), [
-          createGladiator({
-            weeklyInjury: { reason: 'training', week: 1, year: 1 },
-          }),
-        ]),
-        ['infirmary'],
-      ),
-    );
-    const result = applyPlanningRecommendations(save);
-
-    expect(getPlanningRecommendation(save, save.gladiators[0])).toMatchObject({
-      buildingId: 'infirmary',
-      isAvailable: true,
-    });
-    expect(result.gladiators[0]).toEqual(save.gladiators[0]);
-  });
-
-  it('marks recommendations unavailable when the building is not purchased', () => {
-    const save = synchronizePlanning(
-      withGladiators(
-        {
-          ...createTestSave(),
-          buildings: {
-            ...createTestSave().buildings,
-            infirmary: {
-              ...createTestSave().buildings.infirmary,
-              isPurchased: false,
-            },
-          },
-        },
-        [
-          createGladiator({
-            weeklyInjury: { reason: 'training', week: 1, year: 1 },
-          }),
-        ],
-      ),
-    );
-
-    expect(getPlanningRecommendation(save, save.gladiators[0])).toMatchObject({
-      buildingId: 'infirmary',
-      isAvailable: false,
-    });
-  });
-
-  it('uses macro needs before default training recommendations', () => {
-    const save = synchronizePlanning(
-      withPurchasedBuildings(withGladiators(createTestSave(), [createGladiator({})]), [
-        'dormitory',
-        'pleasureHall',
-        'trainingGround',
-      ]),
-    );
-
-    expect(getPlanningRecommendation(save, save.gladiators[0])).toMatchObject({
-      buildingId: 'trainingGround',
-      reasonKey: 'weeklyPlan.recommendations.balanced',
-    });
   });
 
   it('updates daily macro plan points by activity bucket', () => {
@@ -189,14 +96,28 @@ describe('planning actions', () => {
   it('caps daily macro plan updates to the bucket budget', () => {
     const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
     const result = updateDailyPlan(save, {
-      activity: 'training',
+      activity: 'strengthTraining',
       bucket: 'gladiatorTimePoints',
       dayOfWeek: 'monday',
       points: 20,
     });
 
-    expect(result.planning.days.monday.gladiatorTimePoints.training).toBe(3);
-    expect(getDailyPlanBucketRemaining(result.planning.days.monday, 'gladiatorTimePoints')).toBe(0);
+    expect(result.planning.days.monday.gladiatorTimePoints.strengthTraining).toBe(7);
+    expect(
+      getDailyPlanBucketRemaining(result, result.planning.days.monday, 'gladiatorTimePoints'),
+    ).toBe(0);
+  });
+
+  it('allows labor planning for production and security', () => {
+    const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
+    const result = updateDailyPlan(save, {
+      activity: 'production',
+      bucket: 'laborPoints',
+      dayOfWeek: 'monday',
+      points: 2,
+    });
+
+    expect(result.planning.days.monday.laborPoints.production).toBe(2);
   });
 
   it('selects an unlocked building activity for a daily activity', () => {

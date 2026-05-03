@@ -27,6 +27,10 @@ export const GAME_BALANCE = {
   },
 
   time: {
+    // First displayed hour of an automatically simulated day.
+    dayStartHour: 8,
+    // Hour at which the current day is resolved and the next day starts.
+    dayEndHour: 20,
     // Ordered weekdays used by time progression and weekly systems.
     daysOfWeek: [
       // First playable weekday of a new week.
@@ -44,6 +48,19 @@ export const GAME_BALANCE = {
       // Arena day and final weekday of a new week.
       'sunday',
     ] as const satisfies readonly DayOfWeek[],
+    // In-game minutes advanced every real-time second while the game is not paused.
+    minutesPerRealSecond: 30,
+  },
+
+  planning: {
+    taskDefaultPoints: {
+      strengthTraining: 3,
+      agilityTraining: 2,
+      defenseTraining: 2,
+      lifeTraining: 2,
+      leisure: 1,
+      care: 1,
+    },
   },
 
   gladiators: {
@@ -118,10 +135,28 @@ export const GAME_BALANCE = {
         6: { capacity: 6 },
       },
       dormitory: {
-        // Ludus happiness support granted by Dormitory level 1.
-        1: { happiness: 2 },
-        // Ludus happiness support granted by Dormitory level 2.
-        2: { happiness: 3 },
+        // Passive daily gladiator planning points and happiness support granted by Dormitory level 1.
+        1: { dailyGladiatorPoints: 1, happiness: 2 },
+        // Passive daily gladiator planning points and happiness support granted by Dormitory level 2.
+        2: { dailyGladiatorPoints: 2, happiness: 3 },
+        // Passive daily gladiator planning points and happiness support granted by Dormitory level 3.
+        3: { dailyGladiatorPoints: 3, happiness: 2 },
+        // Passive daily gladiator planning points and rebellion support granted by Dormitory level 4.
+        4: { dailyGladiatorPoints: 4, rebellionReduction: 2 },
+        // Passive daily gladiator planning points and staff support granted by Dormitory level 5.
+        5: { dailyGladiatorPoints: 5, staffEfficiency: 5 },
+      },
+      canteen: {
+        // Passive daily gladiator planning points granted by Canteen level 1.
+        1: { dailyGladiatorPoints: 1 },
+        // Passive daily gladiator planning points granted by Canteen level 2.
+        2: { dailyGladiatorPoints: 2 },
+        // Passive daily gladiator planning points and happiness support granted by Canteen level 3.
+        3: { dailyGladiatorPoints: 3, happiness: 2 },
+        // Passive daily gladiator planning points and expense support granted by Canteen level 4.
+        4: { dailyGladiatorPoints: 4, expenseReduction: 5 },
+        // Passive daily gladiator planning points and production support granted by Canteen level 5.
+        5: { dailyGladiatorPoints: 5, production: 5 },
       },
       trainingGround: {
         1: {
@@ -155,22 +190,30 @@ export const GAME_BALANCE = {
   },
 
   macroSimulation: {
-    baseDailyGladiatorPoints: 12,
+    baseDailyGladiatorPoints: 6,
     baseDailyLaborPoints: 8,
-    baseDailyAdminPoints: 6,
-    minimumMealPoints: 2,
-    idealMealPoints: 3,
-    maximumMealBonusPoints: 4,
-    minimumSleepPoints: 3,
-    idealSleepPoints: 4,
-    maximumSleepBonusPoints: 5,
+    baseDailyAdminPoints: 0,
     trainingInjuryChancePerPoint: 0.015,
+    trainingFocus: {
+      strength: {
+        progressMultiplier: 1.15,
+        pressureMultiplier: 1.15,
+      },
+      agility: {
+        progressMultiplier: 1.05,
+        pressureMultiplier: 1,
+      },
+      defense: {
+        progressMultiplier: 1,
+        pressureMultiplier: 0.9,
+      },
+      life: {
+        progressMultiplier: 0.85,
+        pressureMultiplier: 0.75,
+      },
+    },
     heavyScheduleHappinessPenalty: 2,
-    insufficientFoodPenalty: 6,
-    insufficientSleepPenalty: 8,
-    contractIncomePerPoint: 12,
     productionIncomePerPoint: 8,
-    maintenanceCostPerBuilding: 7,
     staffExperiencePerAssignedDay: 1,
     maximumStaffExperienceBonusPercent: 20,
     targetGuardRatio: 0.5,
@@ -181,6 +224,31 @@ export const GAME_BALANCE = {
     rebellionCalmDailyReduction: 4,
     rebellionCriticalThreshold: 80,
     gameOverTreasuryThreshold: -1000,
+  },
+
+  events: {
+    // Maximum pending events generated on a single day.
+    maxEventsPerDay: 1,
+    // Maximum generated events during a single week.
+    maxEventsPerWeek: 3,
+    // Default relative weight used when selecting one event definition.
+    defaultSelectionWeightPercent: 100,
+    // Default game-week cooldown before the same event definition can reappear.
+    defaultCooldownWeeks: 4,
+    // Number of launched event records kept to enforce cooldowns across saves.
+    launchedEventHistoryLimit: 128,
+    // Chance that an event appears on each weekday once other limits allow it.
+    dailyEventProbabilityByDay: {
+      monday: 0.1,
+      tuesday: 0.25,
+      wednesday: 0.25,
+      thursday: 0.25,
+      friday: 0.25,
+      saturday: 0.1,
+      sunday: 0,
+    } satisfies Record<DayOfWeek, number>,
+    // Number of resolved or expired events kept in save history.
+    resolvedEventHistoryLimit: 12,
   },
 
   market: {
@@ -455,30 +523,5 @@ export const GAME_BALANCE = {
       // Upper clamp for projected player win chance used by arena odds.
       maximum: 0.85,
     },
-  },
-
-  events: {
-    // Maximum pending events generated on a single day.
-    maxEventsPerDay: 1,
-    // Maximum generated events during a single week.
-    maxEventsPerWeek: 3,
-    // Default relative weight used when selecting one event definition.
-    defaultSelectionWeightPercent: 100,
-    // Default game-week cooldown before the same event definition can reappear.
-    defaultCooldownWeeks: 4,
-    // Number of launched event records kept to enforce cooldowns across saves.
-    launchedEventHistoryLimit: 128,
-    // Chance that an event appears on each weekday once other limits allow it.
-    dailyEventProbabilityByDay: {
-      monday: 0.1,
-      tuesday: 0.25,
-      wednesday: 0.25,
-      thursday: 0.25,
-      friday: 0.25,
-      saturday: 0.1,
-      sunday: 0,
-    } satisfies Record<DayOfWeek, number>,
-    // Number of resolved or expired events kept in save history.
-    resolvedEventHistoryLimit: 12,
   },
 } as const;

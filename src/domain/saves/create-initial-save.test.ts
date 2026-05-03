@@ -45,7 +45,7 @@ describe('createInitialSave', () => {
     expect(save.buildings.trainingGround.efficiency).toBe(110);
     expect(save.buildings.canteen.efficiency).toBe(108);
     expect(save.buildings.guardBarracks.efficiency).toBe(106);
-    expect(save.planning.days.monday.gladiatorTimePoints.training).toBeGreaterThan(0);
+    expect(save.planning.days.monday.gladiatorTimePoints.strengthTraining).toBe(0);
     expect(save.buildings.canteen.configuration).toBeUndefined();
     expect(save.buildings.canteen.selectedPolicyId).toBeUndefined();
     expect(save.buildings.dormitory.configuration).toBeUndefined();

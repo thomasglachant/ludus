@@ -1,5 +1,4 @@
 import { GAME_BALANCE } from '../../game-data/balance';
-import { BUILDING_IDS } from '../../game-data/buildings';
 import { DAYS_OF_WEEK } from '../../game-data/time';
 import {
   calculateBuildingEfficiency,
@@ -27,15 +26,30 @@ import {
 } from '../economy/economy-actions';
 import type { BuildingEffect, BuildingId } from '../buildings/types';
 import type { EconomyCategory, WeeklyProjection } from '../economy/types';
+import {
+  createDefaultWeeklyPlan,
+  getRemainingPlanningDays,
+  isWeeklyPlanningComplete,
+} from '../planning/planning-actions';
 import type {
   DailyPlan,
   DailyPlanActivity,
-  DailyPlanPoints,
   DailySimulationSummary,
   WeeklyReport,
 } from '../planning/types';
 
 type RandomSource = () => number;
+type TrainingFocus = keyof typeof GAME_BALANCE.macroSimulation.trainingFocus;
+
+export { createDefaultDailyPlan, createDefaultWeeklyPlan } from '../planning/planning-actions';
+
+export interface RemainingWeeklyPlanProjection {
+  expense: number;
+  income: number;
+  net: number;
+  remainingDays: DayOfWeek[];
+  report: WeeklyReport;
+}
 
 interface DailyLedgerDraft {
   amount: number;
@@ -65,7 +79,6 @@ interface DailyGladiatorResolutionResult {
 
 interface DailyGladiatorModifiers {
   careEfficiency: number;
-  foodEfficiency: number;
   injuryRiskReductionPercent: number;
   trainingAgilityProgressBonusPercent: number;
   trainingDefenseProgressBonusPercent: number;
@@ -74,73 +87,45 @@ interface DailyGladiatorModifiers {
   trainingStrengthProgressBonusPercent: number;
 }
 
-const dailyActivityDefaults: DailyPlanPoints = {
-  training: 3,
-  meals: 3,
-  sleep: 4,
-  leisure: 1,
-  care: 1,
-  contracts: 0,
-  production: 0,
-  security: 0,
-  maintenance: 0,
-  events: 0,
-};
-
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
-function createEmptyPoints(): DailyPlanPoints {
-  return {
-    training: 0,
-    meals: 0,
-    sleep: 0,
-    leisure: 0,
-    care: 0,
-    contracts: 0,
-    production: 0,
-    security: 0,
-    maintenance: 0,
-    events: 0,
-  };
-}
-
-export function createDefaultDailyPlan(dayOfWeek: DayOfWeek): DailyPlan {
-  return {
-    dayOfWeek,
-    gladiatorTimePoints: { ...dailyActivityDefaults },
-    laborPoints: {
-      ...createEmptyPoints(),
-      production: 4,
-      security: 2,
-      maintenance: 2,
-    },
-    adminPoints: {
-      ...createEmptyPoints(),
-      contracts: 2,
-      events: 2,
-      maintenance: 2,
-    },
-    buildingActivitySelections: {},
-  };
-}
-
-export function createDefaultWeeklyPlan(year: number, week: number) {
-  return {
-    year,
-    week,
-    days: Object.fromEntries(
-      DAYS_OF_WEEK.map((dayOfWeek) => [dayOfWeek, createDefaultDailyPlan(dayOfWeek)]),
-    ) as Record<DayOfWeek, DailyPlan>,
-    reports: [],
-    alerts: [],
-  };
-}
-
 function getPoints(plan: DailyPlan, activity: DailyPlanActivity) {
+  return plan.gladiatorTimePoints[activity] + plan.laborPoints[activity];
+}
+
+function getFocusedTrainingPoints(plan: DailyPlan, focus: TrainingFocus) {
+  switch (focus) {
+    case 'strength':
+      return plan.gladiatorTimePoints.strengthTraining;
+    case 'agility':
+      return plan.gladiatorTimePoints.agilityTraining;
+    case 'defense':
+      return plan.gladiatorTimePoints.defenseTraining;
+    case 'life':
+      return plan.gladiatorTimePoints.lifeTraining;
+  }
+}
+
+function getTrainingPressurePoints(plan: DailyPlan) {
+  return (Object.keys(GAME_BALANCE.macroSimulation.trainingFocus) as TrainingFocus[]).reduce(
+    (total, focus) =>
+      total +
+      getFocusedTrainingPoints(plan, focus) *
+        GAME_BALANCE.macroSimulation.trainingFocus[focus].pressureMultiplier,
+    0,
+  );
+}
+
+function getFocusedTrainingGain(
+  plan: DailyPlan,
+  focus: TrainingFocus,
+  gladiatorPointDivisor: number,
+) {
   return (
-    plan.gladiatorTimePoints[activity] + plan.laborPoints[activity] + plan.adminPoints[activity]
+    (getFocusedTrainingPoints(plan, focus) / gladiatorPointDivisor) *
+    GAME_BALANCE.macroSimulation.trainingFocus[focus].progressMultiplier
   );
 }
 
@@ -211,26 +196,15 @@ function getExpenseMultiplier(reductionPercent: number) {
 }
 
 function getFinanceCategoryForActivity(activity: DailyPlanActivity): EconomyCategory {
-  if (activity === 'contracts' || activity === 'production' || activity === 'maintenance') {
+  if (activity === 'production') {
     return activity;
   }
 
-  if (activity === 'events' || activity === 'security') {
+  if (activity === 'security') {
     return 'event';
   }
 
   return 'other';
-}
-
-function distributeRoundedAmount(amount: number, count: number) {
-  if (count <= 0 || amount <= 0) {
-    return [];
-  }
-
-  const baseAmount = Math.floor(amount / count);
-  const remainder = amount - baseAmount * count;
-
-  return Array.from({ length: count }, (_, index) => baseAmount + (index < remainder ? 1 : 0));
 }
 
 function addDailyDraftsToProjection(
@@ -285,20 +259,11 @@ function applyDailyGladiatorEffects(
   random: RandomSource,
   year: number,
   week: number,
+  gladiatorPointDivisor: number,
 ): DailyGladiatorResolutionResult {
   const canTrain = canGladiatorPerformPhysicalActivities(gladiator, year, week);
-  const trainingPoints = canTrain ? plan.gladiatorTimePoints.training : 0;
-  const sleepPoints = plan.gladiatorTimePoints.sleep;
-  const mealPoints = plan.gladiatorTimePoints.meals;
-  const carePoints = plan.gladiatorTimePoints.care;
-  const insufficientFoodPenalty =
-    mealPoints < GAME_BALANCE.macroSimulation.minimumMealPoints
-      ? GAME_BALANCE.macroSimulation.insufficientFoodPenalty
-      : 0;
-  const insufficientSleepPenalty =
-    sleepPoints < GAME_BALANCE.macroSimulation.minimumSleepPoints
-      ? GAME_BALANCE.macroSimulation.insufficientSleepPenalty
-      : 0;
+  const trainingPoints = canTrain ? getTrainingPressurePoints(plan) / gladiatorPointDivisor : 0;
+  const carePoints = plan.gladiatorTimePoints.care / gladiatorPointDivisor;
   const overtrainingPenalty = Math.max(0, trainingPoints - 4);
   const injuryChance =
     trainingPoints *
@@ -306,21 +271,24 @@ function applyDailyGladiatorEffects(
     Math.max(0.35, 1 - carePoints * 0.08 * modifiers.careEfficiency) *
     Math.max(0.1, 1 - modifiers.injuryRiskReductionPercent / 100);
   const isInjured = trainingPoints > 0 && random() < injuryChance;
-  const completedTrainingPoints = isInjured ? 0 : trainingPoints;
-  const skillGain = completedTrainingPoints * modifiers.trainingEfficiency;
+  const focusedSkillGain = canTrain && !isInjured ? modifiers.trainingEfficiency : 0;
   const strengthGain =
-    skillGain * getPercentMultiplier(modifiers.trainingStrengthProgressBonusPercent);
+    getFocusedTrainingGain(plan, 'strength', gladiatorPointDivisor) *
+    focusedSkillGain *
+    getPercentMultiplier(modifiers.trainingStrengthProgressBonusPercent);
   const agilityGain =
-    skillGain * 0.55 * getPercentMultiplier(modifiers.trainingAgilityProgressBonusPercent);
+    getFocusedTrainingGain(plan, 'agility', gladiatorPointDivisor) *
+    focusedSkillGain *
+    getPercentMultiplier(modifiers.trainingAgilityProgressBonusPercent);
   const defenseGain =
-    skillGain * 0.45 * getPercentMultiplier(modifiers.trainingDefenseProgressBonusPercent);
+    getFocusedTrainingGain(plan, 'defense', gladiatorPointDivisor) *
+    focusedSkillGain *
+    getPercentMultiplier(modifiers.trainingDefenseProgressBonusPercent);
   const lifeGain =
-    skillGain * 0.35 * getPercentMultiplier(modifiers.trainingLifeProgressBonusPercent);
-  const lifePenalty =
-    insufficientFoodPenalty +
-    insufficientSleepPenalty +
-    overtrainingPenalty * 4 +
-    (isInjured ? 16 : 0);
+    getFocusedTrainingGain(plan, 'life', gladiatorPointDivisor) *
+    focusedSkillGain *
+    getPercentMultiplier(modifiers.trainingLifeProgressBonusPercent);
+  const lifePenalty = overtrainingPenalty * 4 + (isInjured ? 16 : 0);
 
   return {
     gladiator: {
@@ -366,7 +334,6 @@ function resolveDailyPlanInternal(
     calculateBuildingEfficiency(operationalSave, 'trainingGround') * 0.1;
   const modifiers: DailyGladiatorModifiers = {
     careEfficiency: getPurchasedBuildingMaxEfficiency(operationalSave, ['infirmary']),
-    foodEfficiency: getPurchasedBuildingMaxEfficiency(operationalSave, ['canteen']),
     injuryRiskReductionPercent:
       getAllGladiatorsEffectValue(operationalSave, 'reduceInjuryRisk') +
       buildingActivityImpact.injuryRiskReductionPercent,
@@ -396,46 +363,23 @@ function resolveDailyPlanInternal(
       random,
       operationalSave.time.year,
       operationalSave.time.week,
+      Math.max(1, operationalSave.gladiators.length),
     ),
   );
-  const contractEfficiency = getPurchasedBuildingMaxEfficiency(operationalSave, [
-    'domus',
-    'exhibitionGrounds',
-    'bookmakerOffice',
-    'banquetHall',
-  ]);
   const productionEfficiency = getPurchasedBuildingMaxEfficiency(operationalSave, [
     'canteen',
     'farm',
     'armory',
     'forgeWorkshop',
   ]);
-  const incomeBonusPercent = getLudusEffectValue(operationalSave, 'increaseIncome');
   const productionBonusPercent = getLudusEffectValue(operationalSave, 'increaseProduction');
   const expenseReductionPercent = getLudusEffectValue(operationalSave, 'reduceExpense');
-  const availablePhysicalGladiatorRatio =
-    operationalSave.gladiators.length === 0
-      ? 0
-      : gladiatorResults.filter((result) => !result.isUnavailableForPhysicalActivities).length /
-        operationalSave.gladiators.length;
-  const contractIncome = Math.round(
-    getPoints(plan, 'contracts') *
-      GAME_BALANCE.macroSimulation.contractIncomePerPoint *
-      contractEfficiency *
-      getPercentMultiplier(incomeBonusPercent) *
-      availablePhysicalGladiatorRatio,
-  );
   const productionIncome = Math.round(
     getPoints(plan, 'production') *
       GAME_BALANCE.macroSimulation.productionIncomePerPoint *
       productionEfficiency *
       getPercentMultiplier(productionBonusPercent),
   );
-  const purchasedBuildingIds = BUILDING_IDS.filter(
-    (buildingId) => operationalSave.buildings[buildingId].isPurchased,
-  );
-  const maintenanceCost =
-    purchasedBuildingIds.length * GAME_BALANCE.macroSimulation.maintenanceCostPerBuilding;
   const staffCost = operationalSave.staff.members.reduce(
     (total, member) => total + member.weeklyWage / 7,
     0,
@@ -448,6 +392,9 @@ function resolveDailyPlanInternal(
   const securityBuildingBonus = Math.round(
     getLudusEffectValue(operationalSave, 'increaseSecurity') / 2,
   );
+  const gladiatorPointDivisor = Math.max(1, operationalSave.gladiators.length);
+  const totalTrainingPressurePoints = getTrainingPressurePoints(plan);
+  const averageGladiatorTrainingPoints = totalTrainingPressurePoints / gladiatorPointDivisor;
   const securityDelta = Math.round(
     guardCount * GAME_BALANCE.macroSimulation.securityPerGuard * securityEfficiency -
       targetGuards * 10 +
@@ -459,9 +406,8 @@ function resolveDailyPlanInternal(
     getLudusEffectValue(operationalSave, 'increaseHappiness') / 5,
   );
   const happinessDelta =
-    plan.gladiatorTimePoints.leisure +
-    plan.gladiatorTimePoints.meals -
-    Math.max(0, plan.gladiatorTimePoints.training - 4) *
+    plan.gladiatorTimePoints.leisure / gladiatorPointDivisor +
+    -Math.max(0, averageGladiatorTrainingPoints - 4) *
       GAME_BALANCE.macroSimulation.heavyScheduleHappinessPenalty +
     happinessBuildingBonus +
     Math.round(buildingActivityImpact.happinessDelta);
@@ -479,11 +425,9 @@ function resolveDailyPlanInternal(
       : -GAME_BALANCE.macroSimulation.rebellionCalmDailyReduction) -
     rebellionReduction +
     Math.round(buildingActivityImpact.rebellionDelta);
-  const reputationBonusPoints =
-    getPoints(plan, 'contracts') + getPoints(plan, 'events') + plan.gladiatorTimePoints.training;
+  const reputationBonusPoints = totalTrainingPressurePoints;
   const reputationDelta =
-    (contractIncome > 0 ? 1 : 0) +
-    (plan.gladiatorTimePoints.training > 0 ? 1 : 0) +
+    (averageGladiatorTrainingPoints > 0 ? 1 : 0) +
     Math.floor(
       (reputationBonusPoints * getLudusEffectValue(operationalSave, 'increaseReputation')) / 12,
     ) +
@@ -510,11 +454,6 @@ function resolveDailyPlanInternal(
     .filter((entry): entry is DailyLedgerDraft => entry !== null);
   const incomeEntries: DailyLedgerDraft[] = [
     {
-      amount: contractIncome,
-      category: 'contracts' as EconomyCategory,
-      labelKey: 'finance.ledger.dailyIncome',
-    },
-    {
       amount: productionIncome,
       category: 'production' as EconomyCategory,
       labelKey: 'finance.ledger.dailyIncome',
@@ -523,21 +462,8 @@ function resolveDailyPlanInternal(
       .filter((entry) => entry.amount > 0)
       .map((entry) => ({ ...entry, amount: entry.amount })),
   ].filter((entry) => entry.amount > 0);
-  const maintenanceExpense = Math.round(
-    maintenanceCost * getExpenseMultiplier(expenseReductionPercent),
-  );
-  const maintenanceAmounts = distributeRoundedAmount(
-    maintenanceExpense,
-    purchasedBuildingIds.length,
-  );
   const staffExpense = Math.round(staffCost * getExpenseMultiplier(expenseReductionPercent));
   const expenseEntries: DailyLedgerDraft[] = [
-    ...purchasedBuildingIds.map((buildingId, index) => ({
-      amount: maintenanceAmounts[index] ?? 0,
-      buildingId,
-      category: 'maintenance' as EconomyCategory,
-      labelKey: 'finance.ledger.dailyExpenses',
-    })),
     {
       amount: staffExpense,
       category: 'staff' as EconomyCategory,
@@ -550,7 +476,7 @@ function resolveDailyPlanInternal(
   const income = incomeEntries.reduce((total, entry) => total + entry.amount, 0);
   const expense = expenseEntries.reduce((total, entry) => total + entry.amount, 0);
   const treasuryDelta = income - expense;
-  let summary: DailySimulationSummary = {
+  const summary: DailySimulationSummary = {
     dayOfWeek: plan.dayOfWeek,
     treasuryDelta,
     reputationDelta,
@@ -646,11 +572,6 @@ function resolveDailyPlanInternal(
       ? { save: summarizedSave, createdEventIds: [] }
       : synchronizeMacroEvents(summarizedSave, plan, random);
 
-  summary = {
-    ...summary,
-    eventIds: options.createEvents ? eventResult.createdEventIds : [],
-  };
-
   return {
     expenseEntries,
     incomeEntries,
@@ -658,7 +579,10 @@ function resolveDailyPlanInternal(
       eventResult.createdEventIds.length > 0
         ? { ...eventResult.save, time: { ...eventResult.save.time, phase: 'event' } }
         : eventResult.save,
-    summary,
+    summary: {
+      ...summary,
+      eventIds: eventResult.createdEventIds,
+    },
   };
 }
 
@@ -740,6 +664,70 @@ export function projectWeeklyPlan(save: GameSave): WeeklyReport {
   return {
     ...createWeeklyReport(save, days),
     id: `projection-${save.time.year}-${save.time.week}`,
+  };
+}
+
+export function projectRemainingWeeklyPlan(save: GameSave): RemainingWeeklyPlanProjection {
+  let projectedSave: GameSave = {
+    ...save,
+    events: {
+      ...save.events,
+      pendingEvents: [],
+    },
+  };
+  const days: DailySimulationSummary[] = [];
+  let income = 0;
+  let expense = 0;
+  const remainingDays = getRemainingPlanningDays(save);
+
+  for (const dayOfWeek of remainingDays) {
+    const result = resolveDailyPlanInternal(
+      {
+        ...projectedSave,
+        time: {
+          ...projectedSave.time,
+          dayOfWeek,
+          phase: 'planning',
+        },
+      },
+      save.planning.days[dayOfWeek],
+      () => 1,
+      {
+        createEvents: false,
+        recordLedger: false,
+      },
+    );
+
+    income += result.incomeEntries.reduce((total, entry) => total + entry.amount, 0);
+    expense += result.expenseEntries.reduce((total, entry) => total + entry.amount, 0);
+    days.push({
+      ...result.summary,
+      eventIds: [],
+    });
+    projectedSave = {
+      ...result.save,
+      events: {
+        ...result.save.events,
+        pendingEvents: [],
+      },
+    };
+
+    if (projectedSave.ludus.gameStatus === 'lost') {
+      break;
+    }
+  }
+
+  const report = {
+    ...createWeeklyReport(save, days),
+    id: `remaining-projection-${save.time.year}-${save.time.week}`,
+  };
+
+  return {
+    expense,
+    income,
+    net: income - expense,
+    remainingDays,
+    report,
   };
 }
 
@@ -1014,6 +1002,10 @@ export function resolveWeekStep(save: GameSave, random: RandomSource = Math.rand
     }
 
     return resolveSundayArena(save, random);
+  }
+
+  if (!isWeeklyPlanningComplete(save)) {
+    return { ...save, time: { ...save.time, phase: 'planning' } };
   }
 
   const plan = save.planning.days[save.time.dayOfWeek];

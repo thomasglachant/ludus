@@ -49,6 +49,7 @@ export type {
   WeeklyPlanningState,
   DailyPlan,
   DailyPlanActivity,
+  DailyPlanBucket,
   DailyPlanBuildingActivitySelections,
   DailyPlanPoints,
   DailySimulationSummary,
@@ -75,9 +76,6 @@ export type {
   StaffVisualId,
 } from './staff/types';
 export type {
-  PlanningRecommendation,
-  GladiatorPlanningStatus,
-  DailyPlanBucket,
   DailyPlanUpdate,
   DailyPlanBuildingActivitySelectionUpdate,
 } from './planning/planning-actions';

@@ -47,11 +47,43 @@ function createTestSave(overrides: Partial<GameSave> = {}): GameSave {
   };
 }
 
+function withCompleteWeeklyPlanning(save: GameSave): GameSave {
+  const gladiatorCount = save.gladiators.length;
+  const plannedDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+  const days = { ...save.planning.days };
+
+  for (const dayOfWeek of plannedDays) {
+    days[dayOfWeek] = {
+      ...days[dayOfWeek],
+      gladiatorTimePoints: {
+        ...days[dayOfWeek].gladiatorTimePoints,
+        strengthTraining: 3 * gladiatorCount,
+        meals: 0,
+        sleep: 0,
+        leisure: 2 * gladiatorCount,
+        care: 2 * gladiatorCount,
+      },
+      laborPoints: {
+        ...days[dayOfWeek].laborPoints,
+        production: 4,
+        security: 4,
+      },
+    };
+  }
+
+  return {
+    ...save,
+    planning: {
+      ...save.planning,
+      days,
+    },
+  };
+}
+
 describe('weekly simulation actions', () => {
-  it('resolves daily contracts, production and ledger entries from allocated points', () => {
+  it('resolves daily production and ledger entries from allocated points', () => {
     const save = createTestSave();
     const plan = createDefaultDailyPlan('monday');
-    plan.adminPoints.contracts = 3;
     plan.laborPoints.production = 2;
 
     const result = resolveDailyPlan(save, plan, () => 1);
@@ -66,57 +98,10 @@ describe('weekly simulation actions', () => {
     expect(result.save.economy.currentWeekSummary.net).toBe(result.summary.treasuryDelta);
   });
 
-  it('adds eligible macro events to the daily report and moves into event phase', () => {
-    const save = createTestSave();
-    const plan = createDefaultDailyPlan('monday');
-    plan.gladiatorTimePoints.training = 0;
-    plan.gladiatorTimePoints.meals = 0;
-    plan.gladiatorTimePoints.sleep = 0;
-    plan.gladiatorTimePoints.leisure = 0;
-    plan.gladiatorTimePoints.care = 0;
-    plan.adminPoints.contracts = 0;
-    plan.adminPoints.events = 0;
-    plan.laborPoints.production = 2;
-    plan.laborPoints.security = 0;
-    plan.laborPoints.maintenance = 0;
-
-    const result = resolveDailyPlan(save, plan, () => 0);
-
-    expect(result.summary.eventIds).toHaveLength(1);
-    expect(result.save.events.pendingEvents).toHaveLength(1);
-    expect(result.save.time.phase).toBe('event');
-  });
-
-  it('blocks week progression while a macro event needs a decision', () => {
-    const save = createTestSave({
-      events: {
-        ...createTestSave().events,
-        pendingEvents: [
-          {
-            id: 'event-test',
-            definitionId: 'test',
-            titleKey: 'events.test.title',
-            descriptionKey: 'events.test.description',
-            status: 'pending',
-            createdAtYear: 1,
-            createdAtWeek: 1,
-            createdAtDay: 'monday',
-            choices: [],
-          },
-        ],
-      },
-    });
-
-    const result = resolveWeekStep(save, () => 0);
-
-    expect(result.time.dayOfWeek).toBe('monday');
-    expect(result.time.phase).toBe('event');
-  });
-
   it('applies capped need penalties and records injuries for heavy training days', () => {
     const save = createTestSave();
     const plan = createDefaultDailyPlan('monday');
-    plan.gladiatorTimePoints.training = 12;
+    plan.gladiatorTimePoints.strengthTraining = 12;
     plan.gladiatorTimePoints.meals = 0;
     plan.gladiatorTimePoints.sleep = 0;
     plan.gladiatorTimePoints.care = 0;
@@ -125,6 +110,7 @@ describe('weekly simulation actions', () => {
     const gladiator = result.save.gladiators[0];
 
     expect(result.summary.injuredGladiatorIds).toContain('gladiator-test');
+    expect(result.summary.happinessDelta).toBeLessThan(0);
     expect(gladiator.weeklyInjury).toEqual({ reason: 'training', week: 1, year: 1 });
     expect(gladiator.strength).toBe(8);
     expect(gladiator.life).toBeLessThan(80);
@@ -143,12 +129,26 @@ describe('weekly simulation actions', () => {
       ],
     });
     const plan = createDefaultDailyPlan('monday');
-    plan.gladiatorTimePoints.training = 8;
+    plan.gladiatorTimePoints.strengthTraining = 8;
 
     const result = resolveDailyPlan(save, plan, () => 1);
 
     expect(result.summary.injuredGladiatorIds).toEqual([]);
     expect(result.save.gladiators[0].strength).toBe(8);
+  });
+
+  it('applies focused training gains only to the targeted aptitude', () => {
+    const save = createTestSave();
+    const plan = createDefaultDailyPlan('monday');
+    plan.gladiatorTimePoints.strengthTraining = 3;
+
+    const result = resolveDailyPlan(save, plan, () => 1);
+    const gladiator = result.save.gladiators[0];
+
+    expect(gladiator.strength).toBeGreaterThan(8);
+    expect(gladiator.agility).toBe(7);
+    expect(gladiator.defense).toBe(6);
+    expect(gladiator.life).toBe(80);
   });
 
   it('clears weekly injury status when Sunday arena is completed', () => {
@@ -183,48 +183,14 @@ describe('weekly simulation actions', () => {
     expect(result.gladiators[0].weeklyInjury).toBeUndefined();
   });
 
-  it('removes injured gladiators from gladiator contract income', () => {
-    const save = createTestSave({
-      gladiators: [
-        createGladiator({ id: 'ready-gladiator', life: 90 }),
-        createGladiator({
-          id: 'injured-gladiator',
-          life: 40,
-          weeklyInjury: { reason: 'training', week: 1, year: 1 },
-        }),
-      ],
-    });
-    const plan = createDefaultDailyPlan('monday');
-    plan.adminPoints.contracts = 4;
-    plan.laborPoints.production = 0;
-
-    const result = resolveDailyPlan(save, plan, () => 1);
-
-    expect(result.save.economy.ledgerEntries).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          amount: 24,
-          category: 'contracts',
-          kind: 'income',
-          labelKey: 'finance.ledger.dailyIncome',
-        }),
-      ]),
-    );
-  });
-
   it('uses macro happiness and security thresholds for rebellion pressure', () => {
     const pressurePlan = createDefaultDailyPlan('monday');
-    pressurePlan.gladiatorTimePoints.training = 0;
     pressurePlan.gladiatorTimePoints.meals = 0;
     pressurePlan.gladiatorTimePoints.sleep = 4;
     pressurePlan.gladiatorTimePoints.leisure = 0;
     pressurePlan.gladiatorTimePoints.care = 0;
-    pressurePlan.adminPoints.contracts = 0;
-    pressurePlan.adminPoints.events = 0;
-    pressurePlan.adminPoints.maintenance = 0;
     pressurePlan.laborPoints.production = 0;
     pressurePlan.laborPoints.security = 0;
-    pressurePlan.laborPoints.maintenance = 0;
 
     const unhappyResult = resolveDailyPlan(
       createTestSave({
@@ -295,7 +261,6 @@ describe('weekly simulation actions', () => {
     });
 
     const plan = createDefaultDailyPlan('monday');
-    plan.adminPoints.contracts = 0;
     plan.laborPoints.production = 0;
     const result = resolveDailyPlan(save, plan, () => 1);
 
@@ -313,7 +278,6 @@ describe('weekly simulation actions', () => {
       },
     });
     const plan = createDefaultDailyPlan('monday');
-    plan.adminPoints.contracts = 0;
     plan.laborPoints.production = 0;
 
     const result = resolveDailyPlan(save, plan, () => 1);
@@ -321,90 +285,11 @@ describe('weekly simulation actions', () => {
     expect(result.save.buildings.trainingGround.efficiency).toBe(61);
   });
 
-  it('applies purchased building effects to macro income and expenses', () => {
-    const save = createTestSave();
-    const plan = createDefaultDailyPlan('monday');
-    plan.adminPoints.contracts = 10;
-    plan.laborPoints.production = 0;
-    const baseResult = resolveDailyPlan(save, plan, () => 1);
-    const boostedSave: GameSave = {
-      ...save,
-      buildings: {
-        ...save.buildings,
-        domus: {
-          ...save.buildings.domus,
-          purchasedSkillIds: [
-            'domus.ledger-room',
-            'domus.contract-shelf',
-            'domus.staff-registry',
-            'domus.treasury-lockbox',
-            'domus.reception-atrium',
-          ],
-        },
-        exhibitionGrounds: {
-          ...save.buildings.exhibitionGrounds,
-          isPurchased: true,
-          level: 1,
-          purchasedSkillIds: [
-            'exhibitionGrounds.sand-ring',
-            'exhibitionGrounds.practice-stands',
-            'exhibitionGrounds.crowd-fence',
-          ],
-        },
-      },
-    };
-
-    const boostedResult = resolveDailyPlan(boostedSave, plan, () => 1);
-
-    const baseContractIncome = baseResult.save.economy.ledgerEntries.find(
-      (entry) => entry.kind === 'income' && entry.category === 'contracts',
-    );
-    const boostedContractIncome = boostedResult.save.economy.ledgerEntries.find(
-      (entry) => entry.kind === 'income' && entry.category === 'contracts',
-    );
-
-    expect(boostedContractIncome?.amount).toBeGreaterThan(baseContractIncome?.amount ?? 0);
-  });
-
-  it('counts event points once for reputation building effects', () => {
-    const save = createTestSave({
-      buildings: {
-        ...createTestSave().buildings,
-        domus: {
-          ...createTestSave().buildings.domus,
-          purchasedSkillIds: [
-            'domus.reception-atrium',
-            'domus.patron-letters',
-            'domus.public-seal',
-            'domus.provincial-charter',
-          ],
-        },
-      },
-    });
-    const plan = createDefaultDailyPlan('monday');
-    plan.gladiatorTimePoints.training = 0;
-    plan.gladiatorTimePoints.meals = 0;
-    plan.gladiatorTimePoints.sleep = 0;
-    plan.gladiatorTimePoints.leisure = 0;
-    plan.gladiatorTimePoints.care = 0;
-    plan.adminPoints.contracts = 0;
-    plan.adminPoints.events = 12;
-    plan.adminPoints.maintenance = 0;
-    plan.laborPoints.production = 0;
-    plan.laborPoints.security = 0;
-    plan.laborPoints.maintenance = 0;
-
-    const result = resolveDailyPlan(save, plan, () => 1);
-
-    expect(result.summary.reputationDelta).toBe(1);
-  });
-
   it('applies planned gladiator building effects during daily resolution', () => {
     const save = createTestSave({
       gladiators: [createGladiator({ life: 50 })],
     });
     const plan = createDefaultDailyPlan('monday');
-    plan.gladiatorTimePoints.training = 0;
     plan.gladiatorTimePoints.sleep = 4;
     plan.gladiatorTimePoints.care = 0;
     plan.gladiatorTimePoints.leisure = 0;
@@ -431,7 +316,6 @@ describe('weekly simulation actions', () => {
   it('applies unlocked building activities to matching planned points', () => {
     const save = createTestSave();
     const plan = createDefaultDailyPlan('monday');
-    plan.adminPoints.contracts = 0;
     plan.laborPoints.production = 4;
     plan.buildingActivitySelections.production = 'farm.marketSurplus';
     const farmSave: GameSave = {
@@ -476,7 +360,7 @@ describe('weekly simulation actions', () => {
   it('projects a daily plan without mutating the save', () => {
     const save = createTestSave();
     const plan = createDefaultDailyPlan('monday');
-    plan.adminPoints.contracts = 4;
+    plan.laborPoints.production = 4;
     const projection = projectDailyPlan(save, plan);
 
     expect(projection.treasuryDelta).not.toBe(0);
@@ -513,14 +397,13 @@ describe('weekly simulation actions', () => {
     });
   });
 
-  it('keeps the starting weekly projection conservative before upgrades', () => {
+  it('keeps the starting weekly projection costly before manual planning', () => {
     const save = createTestSave();
     const projection = projectWeeklyEconomy(save);
 
-    expect(projection.net).toBeGreaterThan(0);
-    expect(projection.net).toBeLessThanOrEqual(GAME_BALANCE.economy.initialTreasury * 0.12);
+    expect(projection.net).toBeLessThan(0);
     expect(projection.incomeByCategory.production ?? 0).toBeLessThan(
-      (projection.expenseByCategory.maintenance ?? 0) + (projection.expenseByCategory.staff ?? 0),
+      projection.expenseByCategory.staff ?? 0,
     );
   });
 
@@ -556,7 +439,7 @@ describe('weekly simulation actions', () => {
   });
 
   it('keeps running weekly report aggregates up to date', () => {
-    const result = resolveWeekStep(createTestSave(), () => 1);
+    const result = resolveWeekStep(withCompleteWeeklyPlanning(createTestSave()), () => 1);
     const runningReport = result.planning.reports[0];
 
     expect(runningReport).toMatchObject({
@@ -577,7 +460,6 @@ describe('weekly simulation actions', () => {
     });
 
     const plan = createDefaultDailyPlan('monday');
-    plan.adminPoints.contracts = 0;
     plan.laborPoints.production = 0;
     const result = resolveDailyPlan(save, plan, () => 1);
 
@@ -637,36 +519,38 @@ describe('weekly simulation actions', () => {
   });
 
   it('starts a fresh running report when a new week has an older final report', () => {
-    const save = createTestSave({
-      planning: {
-        ...createTestSave().planning,
-        reports: [
-          {
-            id: 'report-1-1',
-            year: 1,
-            week: 1,
-            days: [
-              {
-                dayOfWeek: 'friday',
-                treasuryDelta: 10,
-                reputationDelta: 0,
-                happinessDelta: 0,
-                securityDelta: 0,
-                rebellionDelta: 0,
-                injuredGladiatorIds: [],
-                eventIds: [],
-              },
-            ],
-            treasuryDelta: 10,
-            reputationDelta: 0,
-            happinessDelta: 0,
-            securityDelta: 0,
-            rebellionDelta: 0,
-            injuries: 0,
-          },
-        ],
-      },
-    });
+    const save = withCompleteWeeklyPlanning(
+      createTestSave({
+        planning: {
+          ...createTestSave().planning,
+          reports: [
+            {
+              id: 'report-1-1',
+              year: 1,
+              week: 1,
+              days: [
+                {
+                  dayOfWeek: 'friday',
+                  treasuryDelta: 10,
+                  reputationDelta: 0,
+                  happinessDelta: 0,
+                  securityDelta: 0,
+                  rebellionDelta: 0,
+                  injuredGladiatorIds: [],
+                  eventIds: [],
+                },
+              ],
+              treasuryDelta: 10,
+              reputationDelta: 0,
+              happinessDelta: 0,
+              securityDelta: 0,
+              rebellionDelta: 0,
+              injuries: 0,
+            },
+          ],
+        },
+      }),
+    );
 
     const result = resolveWeekStep(save, () => 1);
 

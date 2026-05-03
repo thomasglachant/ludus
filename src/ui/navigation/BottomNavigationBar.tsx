@@ -66,7 +66,7 @@ export function BottomNavigationBar({
               type="button"
               onClick={() => onOpenPanel(item.panelKind)}
             >
-              <GameIcon name={item.iconName} size={21} />
+              <GameIcon name={item.iconName} size={36} />
               <span>{t(item.labelKey)}</span>
               {badge ? <strong>{badge}</strong> : null}
             </button>

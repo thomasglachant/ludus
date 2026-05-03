@@ -1,17 +1,21 @@
 .top-hud {
   z-index: 30;
   display: grid;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
   grid-column: 1 / -1;
-  grid-template-columns: minmax(220px, auto) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, auto) minmax(220px, 1fr);
   grid-template-areas: 'brand center actions';
-  gap: 14px;
+  gap: 18px;
   align-items: center;
-  min-height: var(--shell-top);
-  padding: 12px 18px;
-  border-bottom: 2px solid rgba(214, 163, 74, 0.42);
-  background:
-    linear-gradient(180deg, rgba(42, 33, 24, 0.98), rgba(21, 17, 13, 0.98)), var(--obsidian-raised);
-  box-shadow: 0 12px 24px rgba(8, 6, 4, 0.32);
+  padding: 14px 18px;
+  pointer-events: none;
+}
+
+.top-hud > * {
+  pointer-events: auto;
 }
 
 .top-hud__brand {
@@ -19,29 +23,42 @@
   min-width: 0;
 }
 
-.top-hud__brand-title-row {
-  display: flex;
+.top-hud__ludus-card {
+  display: grid;
+  min-width: min(280px, 100%);
+  gap: 4px;
   align-items: center;
-  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid rgba(214, 163, 74, 0.3);
+  border-radius: 7px;
+  background: rgba(8, 7, 6, 0.42);
+  color: #f7e6b3;
+  cursor: pointer;
+  text-align: left;
 }
 
-.top-hud__brand h1 {
-  margin: 0;
+.top-hud__ludus-card:hover {
+  border-color: var(--gold);
+  background: rgba(214, 163, 74, 0.12);
+}
+
+.top-hud__ludus-card strong {
+  overflow: hidden;
   color: #fff1c7;
   font-family: var(--font-display);
-  font-size: clamp(1.35rem, 2vw, 2rem);
-  letter-spacing: 0;
-  text-transform: uppercase;
+  font-size: 1.08rem;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.top-hud__brand-laurel {
-  width: 34px;
-  height: 34px;
-  object-fit: contain;
-}
-
-.top-hud__brand-laurel--right {
-  transform: scaleX(-1);
+.top-hud__ludus-card span {
+  overflow: hidden;
+  color: #d6a34a;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .top-hud__center {
@@ -59,12 +76,41 @@
   display: grid;
   min-height: 44px;
   align-items: center;
-  padding: 8px 12px;
+  padding: 12px 16px;
   border: 1px solid rgba(214, 163, 74, 0.3);
   border-radius: 7px;
   background: rgba(8, 7, 6, 0.42);
   color: #f7e6b3;
   font-weight: 800;
+}
+
+.top-hud__time {
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  gap: 16px;
+  text-align: center;
+}
+
+.top-hud__clock {
+  color: #fff1c7;
+  font-size: inherit;
+  letter-spacing: 0.04em;
+}
+
+.top-hud__time-action {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #f7e6b3;
+  cursor: pointer;
+}
+
+.top-hud__time-action:hover {
+  border-color: var(--gold);
+  background: rgba(214, 163, 74, 0.12);
 }
 
 .top-hud__date-lines {
@@ -73,13 +119,22 @@
   line-height: 1.05;
 }
 
+.top-hud__date-lines > span:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: baseline;
+  justify-content: center;
+  font-size: 0.82rem;
+}
+
 .top-hud__date-lines > span:last-child {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  justify-content: center;
   color: #d6a34a;
   font-size: 0.74rem;
-  text-transform: uppercase;
 }
 
 .top-hud__phase {
@@ -102,7 +157,23 @@
   border: 1px solid rgba(214, 163, 74, 0.36);
   border-radius: 7px;
   background: rgba(8, 7, 6, 0.44);
-  overflow: hidden;
+  overflow: visible;
+}
+
+.top-hud__resources > .tooltip {
+  min-width: 0;
+}
+
+.top-hud__resources > .tooltip + .tooltip,
+.top-hud__resources > .tooltip + .top-hud__resource,
+.top-hud__resources > .top-hud__resource + .tooltip,
+.top-hud__resources > .top-hud__resource + .top-hud__resource {
+  border-left: 1px solid rgba(214, 163, 74, 0.24);
+}
+
+.top-hud__resources > .tooltip::after {
+  z-index: 60;
+  bottom: calc(100% + 9px);
 }
 
 .top-hud__resource {
@@ -111,15 +182,11 @@
   gap: 8px;
   align-items: center;
   justify-content: center;
-  padding: 8px 12px;
+  padding: 12px 16px;
   border: 0;
   color: #f7e6b3;
   font-weight: 800;
   white-space: nowrap;
-}
-
-.top-hud__resource + .top-hud__resource {
-  border-left: 1px solid rgba(214, 163, 74, 0.24);
 }
 
 .top-hud__resource--meter {
@@ -135,7 +202,8 @@
   background: transparent;
 }
 
-.top-hud__resource--meter > .tooltip {
+.top-hud__resource--meter > .tooltip,
+.top-hud__resources > .tooltip > .top-hud__resource {
   width: 100%;
 }
 
@@ -187,29 +255,9 @@
   text-overflow: ellipsis;
 }
 
-.top-hud__menu-zone {
-  display: grid;
-  place-items: center;
-}
-
-.top-hud__edit-button {
-  display: grid;
-  width: 54px;
-  height: 46px;
-  place-items: center;
-  border: 1px solid rgba(180, 122, 51, 0.52);
-  border-radius: 6px;
-  background: rgba(8, 7, 6, 0.3);
-  color: #f7e6b3;
-}
-
-.top-hud__edit-button:hover {
-  border-color: var(--gold);
-  background: rgba(214, 163, 74, 0.12);
-}
-
 .top-hud__resource--button:focus-visible,
-.top-hud__edit-button:focus-visible {
+.top-hud__time-action:focus-visible,
+.top-hud__ludus-card:focus-visible {
   outline: 2px solid #fff1c7;
   outline-offset: 2px;
 }

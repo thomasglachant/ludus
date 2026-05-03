@@ -15,7 +15,15 @@ const PixiLudusMap = lazy(() =>
 );
 
 export function GameShell() {
-  const { currentSave, errorKey, isLoading, saveNoticeKey } = useGameStore();
+  const {
+    currentSave,
+    errorKey,
+    gameClockLabel,
+    isGamePaused,
+    isLoading,
+    saveNoticeKey,
+    toggleGamePause,
+  } = useGameStore();
   const { activeModal, navigate, openModal, t } = useUiStore();
 
   const activePanelKind: ContextPanelKind | null =
@@ -88,7 +96,13 @@ export function GameShell() {
   return (
     <section className="game-shell">
       <TopHud
+        clockLabel={gameClockLabel}
+        isPaused={isGamePaused}
         save={currentSave}
+        onOpenDomus={() => {
+          openModal({ buildingId: 'domus', kind: 'building' });
+        }}
+        onTogglePause={toggleGamePause}
         onOpenMenu={() => {
           openModal({ kind: 'gameMenu' });
         }}

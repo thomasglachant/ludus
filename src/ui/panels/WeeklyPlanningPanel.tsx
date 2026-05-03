@@ -1,38 +1,40 @@
+import { useMemo, useState, type CSSProperties, type DragEvent } from 'react';
 import {
   getDailyPlanBucketBudget,
-  getDailyPlanBucketRemaining,
   getDailyPlanBucketTotal,
-  getGladiatorPlanningStatuses,
+  isPastPlanningDay,
+  validateDailyPlan,
+  validateWeeklyPlanning,
 } from '../../domain/planning/planning-actions';
 import { getSelectableBuildingActivities } from '../../domain/buildings/building-activities';
 import {
   projectDailyPlan,
-  projectWeeklyPlan,
+  projectRemainingWeeklyPlan,
 } from '../../domain/weekly-simulation/weekly-simulation-actions';
 import type {
   BuildingActivityId,
-  DailySimulationSummary,
   DailyPlanActivity,
   DailyPlanBucket,
+  DailySimulationSummary,
+  DayOfWeek,
   GameSave,
-  WeeklyReport,
 } from '../../domain/types';
-import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
+import { PLANNING_ACTIVITY_DEFINITIONS } from '../../game-data/planning';
+import { GAME_BALANCE } from '../../game-data/balance';
+import { DAYS_OF_WEEK } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store-context';
+import { CTAButton } from '../components/CTAButton';
 import {
   ImpactIndicator,
   type ImpactIndicatorKind,
   type ImpactIndicatorSize,
   type ImpactIndicatorTone,
 } from '../components/ImpactIndicator';
-import { EmptyState, MetricList, PanelShell, SectionCard } from '../components/shared';
-import { GameIcon } from '../icons/GameIcon';
-import { GladiatorPortrait } from '../roster/GladiatorPortrait';
+import { formatNumber } from '../formatters/number';
+import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface WeeklyPlanningPanelProps {
   save: GameSave;
-  onAdvanceWeekStep(): void;
-  onApplyRecommendations(): void;
   onClose(): void;
   onUpdateDailyPlan(input: {
     activity: DailyPlanActivity;
@@ -47,27 +49,14 @@ interface WeeklyPlanningPanelProps {
   }): void;
 }
 
-const dailyPlanGroups = [
-  {
-    bucket: 'gladiatorTimePoints',
-    labelKey: 'weeklyPlan.buckets.gladiatorTimePoints',
-    activities: ['training', 'meals', 'sleep', 'leisure', 'care'],
-  },
-  {
-    bucket: 'laborPoints',
-    labelKey: 'weeklyPlan.buckets.laborPoints',
-    activities: ['production', 'security', 'maintenance'],
-  },
-  {
-    bucket: 'adminPoints',
-    labelKey: 'weeklyPlan.buckets.adminPoints',
-    activities: ['contracts', 'events', 'maintenance'],
-  },
-] satisfies readonly {
-  bucket: DailyPlanBucket;
-  labelKey: string;
-  activities: readonly DailyPlanActivity[];
-}[];
+type PlanningTaskDefinition = (typeof PLANNING_ACTIVITY_DEFINITIONS)[number];
+type Translate = (key: string, params?: Record<string, string | number>) => string;
+
+interface DraggedPlanningTask {
+  activity: DailyPlanActivity;
+  fromDay?: DayOfWeek;
+  points?: number;
+}
 
 interface ProjectionMetric {
   amount: number;
@@ -85,13 +74,62 @@ interface ProjectionImpactProps {
   size?: ImpactIndicatorSize;
 }
 
-type Translate = (key: string, params?: Record<string, string | number>) => string;
-
 interface ProjectionMetricStripProps {
-  className?: string;
   metrics: ProjectionMetric[];
   size?: ImpactIndicatorSize;
   t: Translate;
+}
+
+const playableDays = DAYS_OF_WEEK.filter((dayOfWeek) => dayOfWeek !== GAME_BALANCE.arena.dayOfWeek);
+
+const activityIcons = {
+  strengthTraining: 'strength',
+  agilityTraining: 'agility',
+  defenseTraining: 'defense',
+  lifeTraining: 'health',
+  meals: 'happiness',
+  sleep: 'timeNight',
+  leisure: 'dice',
+  care: 'health',
+  production: 'hammer',
+  security: 'security',
+} satisfies Record<DailyPlanActivity, GameIconName>;
+
+const planningTaskGroups = [
+  {
+    bucket: 'gladiatorTimePoints',
+    iconName: 'training',
+    labelKey: 'weeklyPlan.buckets.gladiatorTimePoints',
+  },
+  {
+    bucket: 'laborPoints',
+    iconName: 'workforce',
+    labelKey: 'weeklyPlan.buckets.laborPoints',
+  },
+] satisfies readonly {
+  bucket: DailyPlanBucket;
+  iconName: GameIconName;
+  labelKey: string;
+}[];
+
+function parseDraggedTask(event: DragEvent<HTMLElement>, fallback: DraggedPlanningTask | null) {
+  const serializedTask = event.dataTransfer.getData('application/x-ludus-planning-task');
+
+  if (!serializedTask) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(serializedTask) as DraggedPlanningTask;
+  } catch {
+    return fallback;
+  }
+}
+
+function getTaskStyle(task: PlanningTaskDefinition): CSSProperties & Record<string, string> {
+  return {
+    '--planning-task-color': task.color,
+  };
 }
 
 function getProjectionTone(amount: number, inverseTone?: boolean): ImpactIndicatorTone {
@@ -124,9 +162,9 @@ function ProjectionImpact({
   );
 }
 
-function ProjectionMetricStrip({ className, metrics, size = 'sm', t }: ProjectionMetricStripProps) {
+function ProjectionMetricStrip({ metrics, size = 'sm', t }: ProjectionMetricStripProps) {
   return (
-    <div className={['planning-projection-strip', className].filter(Boolean).join(' ')}>
+    <div className="planning-projection-strip weekly-planner-summary-strip">
       {metrics.map((metric) => (
         <div className="planning-projection-metric" key={metric.id}>
           <span className="planning-projection-metric__label">{t(metric.labelKey)}</span>
@@ -173,332 +211,512 @@ function getDailyProjectionMetrics(projection: DailySimulationSummary): Projecti
   ];
 }
 
-function getWeeklyProjectionMetrics(report: WeeklyReport): ProjectionMetric[] {
+function getRemainingProjectionMetrics(
+  projection: ReturnType<typeof projectRemainingWeeklyPlan>,
+): ProjectionMetric[] {
   return [
     {
-      amount: report.treasuryDelta,
-      id: 'treasury',
+      amount: projection.income,
+      id: 'income',
+      kind: 'treasury',
+      labelKey: 'weeklyPlan.projection.weekIncome',
+    },
+    {
+      amount: -projection.expense,
+      id: 'expense',
+      kind: 'treasury',
+      labelKey: 'weeklyPlan.projection.weekExpense',
+    },
+    {
+      amount: projection.net,
+      id: 'net',
       kind: 'treasury',
       labelKey: 'weeklyPlan.projection.weekTreasury',
     },
     {
-      amount: report.reputationDelta,
+      amount: projection.report.reputationDelta,
       id: 'reputation',
       kind: 'reputation',
       labelKey: 'weeklyPlan.projection.weekReputation',
     },
     {
-      amount: report.happinessDelta,
+      amount: projection.report.happinessDelta,
       id: 'happiness',
       kind: 'morale',
       labelKey: 'weeklyPlan.projection.happiness',
     },
     {
-      amount: report.securityDelta,
-      id: 'security',
-      kind: 'defense',
-      labelKey: 'weeklyPlan.projection.security',
-    },
-    {
-      amount: report.rebellionDelta,
+      amount: projection.report.rebellionDelta,
       id: 'rebellion',
       inverseTone: true,
       kind: 'warning',
       labelKey: 'weeklyPlan.projection.weekRebellion',
     },
-    {
-      amount: report.injuries,
-      id: 'injuries',
-      inverseTone: true,
-      kind: 'health',
-      labelKey: 'weeklyPlan.projection.injuries',
-    },
   ];
 }
 
-function getReportEventCount(report: WeeklyReport) {
-  return report.days.reduce((total, day) => total + day.eventIds.length, 0);
-}
-
-function getLatestCompletedReport(save: GameSave) {
-  return save.planning.reports.find((report) => !report.id.startsWith('running-'));
+function getActivityTotals(save: GameSave, remainingDays: DayOfWeek[]) {
+  return Object.fromEntries(
+    PLANNING_ACTIVITY_DEFINITIONS.map((task) => [
+      task.activity,
+      remainingDays.reduce(
+        (total, dayOfWeek) => total + save.planning.days[dayOfWeek][task.bucket][task.activity],
+        0,
+      ),
+    ]),
+  ) as Record<PlanningTaskDefinition['activity'], number>;
 }
 
 export function WeeklyPlanningPanel({
   save,
-  onAdvanceWeekStep,
-  onApplyRecommendations,
   onClose,
   onUpdateBuildingActivitySelection,
   onUpdateDailyPlan,
 }: WeeklyPlanningPanelProps) {
   const { t } = useUiStore();
-  const statuses = getGladiatorPlanningStatuses(save);
-  const atRiskStatuses = statuses.filter((status) => status.gladiator.weeklyInjury);
-  const weeklyProjection = projectWeeklyPlan(save);
-  const latestCompletedReport =
-    save.time.phase === 'report' ? getLatestCompletedReport(save) : null;
-  const visibleReports = save.planning.reports.slice(0, 3);
+  const weeklyValidation = validateWeeklyPlanning(save);
+  const remainingProjection = projectRemainingWeeklyPlan(save);
+  const visibleTaskGroups = planningTaskGroups.filter(
+    (group) => getDailyPlanBucketBudget(save, group.bucket) > 0,
+  );
+  const activityTotals = useMemo(
+    () => getActivityTotals(save, weeklyValidation.remainingDays),
+    [save, weeklyValidation.remainingDays],
+  );
+  const firstEditableDay = weeklyValidation.remainingDays[0] ?? 'monday';
+  const [selectedDay, setSelectedDay] = useState<DayOfWeek>(firstEditableDay);
+  const [draggedTask, setDraggedTask] = useState<DraggedPlanningTask | null>(null);
+  const [dragOverDay, setDragOverDay] = useState<DayOfWeek | null>(null);
+  const [isPaletteDropTarget, setIsPaletteDropTarget] = useState(false);
+  const activeDay = weeklyValidation.remainingDays.includes(selectedDay)
+    ? selectedDay
+    : firstEditableDay;
+
+  const taskByActivity = (activity: DailyPlanActivity) =>
+    PLANNING_ACTIVITY_DEFINITIONS.find((task) => task.activity === activity);
+
+  const changeTaskPoints = (dayOfWeek: DayOfWeek, task: PlanningTaskDefinition, points: number) => {
+    onUpdateDailyPlan({
+      activity: task.activity,
+      bucket: task.bucket,
+      dayOfWeek,
+      points,
+    });
+  };
+
+  const addTaskPoints = (dayOfWeek: DayOfWeek, task: PlanningTaskDefinition) => {
+    if (isPastPlanningDay(save, dayOfWeek) || dayOfWeek === GAME_BALANCE.arena.dayOfWeek) {
+      return;
+    }
+
+    const currentPoints = save.planning.days[dayOfWeek][task.bucket][task.activity];
+    changeTaskPoints(dayOfWeek, task, currentPoints + task.defaultPoints);
+    setSelectedDay(dayOfWeek);
+  };
+
+  const handleDrop = (event: DragEvent<HTMLElement>, dayOfWeek: DayOfWeek) => {
+    event.preventDefault();
+    setDragOverDay(null);
+
+    const dragged = parseDraggedTask(event, draggedTask);
+    const task = dragged ? taskByActivity(dragged.activity) : undefined;
+
+    if (!task) {
+      return;
+    }
+
+    if (dragged?.fromDay) {
+      const movedPoints = Math.max(0, dragged.points ?? 0);
+
+      if (movedPoints <= 0) {
+        return;
+      }
+
+      if (dragged.fromDay === dayOfWeek) {
+        setSelectedDay(dayOfWeek);
+        return;
+      }
+
+      changeTaskPoints(dragged.fromDay, task, 0);
+
+      const currentPoints = save.planning.days[dayOfWeek][task.bucket][task.activity];
+      changeTaskPoints(dayOfWeek, task, currentPoints + movedPoints);
+
+      setSelectedDay(dayOfWeek);
+      return;
+    }
+
+    addTaskPoints(dayOfWeek, task);
+  };
+
+  const handlePaletteDrop = (event: DragEvent<HTMLElement>) => {
+    event.preventDefault();
+    setIsPaletteDropTarget(false);
+
+    const dragged = parseDraggedTask(event, draggedTask);
+    const task = dragged ? taskByActivity(dragged.activity) : undefined;
+
+    if (!task || !dragged?.fromDay) {
+      return;
+    }
+
+    changeTaskPoints(dragged.fromDay, task, 0);
+  };
 
   return (
-    <PanelShell
-      descriptionKey="weeklyPlan.dailyPlanDescription"
-      eyebrowKey="weeklyPlan.eyebrow"
-      titleKey="weeklyPlan.title"
-      testId="weekly-planning-panel"
-      wide
-      onClose={onClose}
-    >
-      <div className="context-panel__actions">
-        <button type="button" onClick={onAdvanceWeekStep}>
-          <GameIcon name="nextDay" size={17} />
-          <span>{t('weeklyPlan.resolveNextStep')}</span>
-        </button>
-        <button type="button" onClick={onApplyRecommendations}>
-          <GameIcon name="warning" size={17} />
-          <span>{t('weeklyPlan.applyRecommendations')}</span>
-        </button>
-      </div>
-      {latestCompletedReport ? (
-        <SectionCard className="weekly-report-spotlight" titleKey="weeklyPlan.finalReport.title">
-          <div className="weekly-report-spotlight__header">
-            <div>
-              <strong>
-                {t('weeklyPlan.finalReport.weekLabel', {
-                  week: latestCompletedReport.week,
-                  year: latestCompletedReport.year,
-                })}
-              </strong>
-              <span>
-                {t('weeklyPlan.finalReport.summary', {
-                  days: latestCompletedReport.days.length,
-                  events: getReportEventCount(latestCompletedReport),
-                })}
-              </span>
-            </div>
+    <section className="weekly-planner" data-testid="weekly-planning-panel">
+      <header className="weekly-planner__hero">
+        <div className="weekly-planner__hero-copy">
+          <h2>{t('weeklyPlan.manualTitle')}</h2>
+          <p>{t('weeklyPlan.manualDescription')}</p>
+        </div>
+        <div className="weekly-planner__hero-actions">
+          <div className="weekly-planner__status-chip">
+            <GameIcon name={weeklyValidation.isComplete ? 'check' : 'alert'} size={18} />
+            <span>
+              {weeklyValidation.isComplete
+                ? t('weeklyPlan.validation.ready')
+                : t('weeklyPlan.validation.incomplete', {
+                    days: weeklyValidation.incompleteDayCount,
+                    points: weeklyValidation.missingPoints,
+                  })}
+            </span>
           </div>
-          <ProjectionMetricStrip
-            className="planning-projection-strip--final-report"
-            metrics={getWeeklyProjectionMetrics(latestCompletedReport)}
-            size="md"
-            t={t}
-          />
-          <div className="weekly-report-day-list">
-            {latestCompletedReport.days.map((day) => (
-              <article className="weekly-report-day" key={day.dayOfWeek}>
-                <strong>{t(`days.${day.dayOfWeek}`)}</strong>
-                <ProjectionMetricStrip
-                  className="planning-projection-strip--report-day"
-                  metrics={getDailyProjectionMetrics(day)}
-                  t={t}
-                />
-              </article>
-            ))}
+          <CTAButton
+            disabled={!weeklyValidation.isComplete}
+            onClick={() => {
+              onClose();
+            }}
+          >
+            <GameIcon name="play" size={18} />
+            <span>{t('weeklyPlan.validateAndStart')}</span>
+          </CTAButton>
+        </div>
+      </header>
+
+      <section className="weekly-planner__summary" aria-label={t('weeklyPlan.weekProjectionTitle')}>
+        <div className="weekly-planner__summary-heading">
+          <div>
+            <strong>
+              {t('weeklyPlan.remainingWeekTitle', {
+                days: weeklyValidation.remainingDays.length,
+                week: save.time.week,
+                year: save.time.year,
+              })}
+            </strong>
           </div>
-        </SectionCard>
-      ) : null}
-      <MetricList
-        columns={3}
-        items={[
-          { labelKey: 'weeklyPlan.gladiators', value: statuses.length },
-          { labelKey: 'weeklyPlan.alerts', value: save.planning.alerts.length },
-          { labelKey: 'weeklyPlan.atRisk', value: atRiskStatuses.length },
-        ]}
-      />
-      <SectionCard className="weekly-projection-card" titleKey="weeklyPlan.weekProjectionTitle">
+        </div>
         <ProjectionMetricStrip
-          className="planning-projection-strip--weekly"
-          metrics={getWeeklyProjectionMetrics(weeklyProjection)}
+          metrics={getRemainingProjectionMetrics(remainingProjection)}
           size="md"
           t={t}
         />
-      </SectionCard>
-      <SectionCard className="weekly-report-section" titleKey="weeklyPlan.reports.title">
-        {visibleReports.length > 0 ? (
-          <div className="weekly-report-list">
-            {visibleReports.map((report) => {
-              const isCurrentReport =
-                report.year === save.time.year && report.week === save.time.week;
-              const titleKey = isCurrentReport
-                ? 'weeklyPlan.reports.currentWeek'
-                : 'weeklyPlan.reports.week';
-
-              return (
-                <article className="weekly-report-card" key={report.id}>
-                  <div className="weekly-report-card__header">
-                    <strong>
-                      {t(titleKey, {
-                        week: report.week,
-                        year: report.year,
-                      })}
-                    </strong>
-                    <span>
-                      {t('weeklyPlan.reports.daysResolved', { count: report.days.length })}
-                    </span>
-                  </div>
-                  <ProjectionMetricStrip
-                    className="planning-projection-strip--report"
-                    metrics={getWeeklyProjectionMetrics(report)}
-                    t={t}
-                  />
-                </article>
-              );
-            })}
-          </div>
-        ) : (
-          <EmptyState messageKey="weeklyPlan.reports.empty" />
-        )}
-      </SectionCard>
-      <div className="context-panel__list">
-        {Object.values(save.planning.days).map((dayPlan) => {
-          const projection = projectDailyPlan(save, dayPlan);
-
-          return (
-            <details
-              className="planning-card planning-card--shell planning-day-card"
-              key={dayPlan.dayOfWeek}
-              open={dayPlan.dayOfWeek === save.time.dayOfWeek}
+        <div className="weekly-planner__activity-totals">
+          {PLANNING_ACTIVITY_DEFINITIONS.map((task) => (
+            <span
+              className="weekly-planner__activity-total"
+              key={task.activity}
+              style={getTaskStyle(task)}
             >
-              <summary className="planning-day-card__summary">
-                <h3>{t(`days.${dayPlan.dayOfWeek}`)}</h3>
-                <ProjectionMetricStrip
-                  className="planning-projection-strip--daily"
-                  metrics={getDailyProjectionMetrics(projection)}
-                  t={t}
-                />
-              </summary>
-              <div className="planning-controls planning-controls--macro">
-                {dailyPlanGroups.map((group) => {
-                  const usedPoints = getDailyPlanBucketTotal(dayPlan[group.bucket]);
-                  const remainingPoints = getDailyPlanBucketRemaining(dayPlan, group.bucket);
-                  const budget = getDailyPlanBucketBudget(group.bucket);
+              <GameIcon name={activityIcons[task.activity]} size={15} />
+              <span>{t(`weeklyPlan.activities.${task.activity}`)}</span>
+              <strong>{formatNumber(activityTotals[task.activity])}</strong>
+            </span>
+          ))}
+        </div>
+      </section>
 
-                  return (
-                    <fieldset className="planning-control-group" key={group.bucket}>
-                      <legend>
-                        <span>{t(group.labelKey)}</span>
-                        <strong>
-                          {t('weeklyPlan.pointsSummary', {
-                            used: usedPoints,
-                            total: budget,
-                          })}
-                        </strong>
-                      </legend>
-                      <div className="planning-control-group__grid">
-                        {group.activities.map((activity) => {
-                          const value = dayPlan[group.bucket][activity];
-                          const specializedActivities = getSelectableBuildingActivities(
-                            save,
-                            activity,
-                          );
+      <div className="weekly-planner__workspace">
+        <aside
+          className={[
+            'weekly-planner__palette',
+            isPaletteDropTarget ? 'weekly-planner__palette--drop-target' : null,
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          aria-label={t('weeklyPlan.paletteTitle')}
+          onDragLeave={() => setIsPaletteDropTarget(false)}
+          onDragOver={(event) => {
+            if (draggedTask?.fromDay) {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'move';
+              setIsPaletteDropTarget(true);
+            }
+          }}
+          onDrop={handlePaletteDrop}
+        >
+          {visibleTaskGroups.map((group) => {
+            const tasks = PLANNING_ACTIVITY_DEFINITIONS.filter(
+              (task) => task.bucket === group.bucket,
+            );
+            const budget = getDailyPlanBucketBudget(save, group.bucket);
 
-                          return (
-                            <label key={`${group.bucket}-${activity}`}>
-                              <span>{t(`weeklyPlan.activities.${activity}`)}</span>
-                              <input
-                                max={value + remainingPoints}
-                                min={0}
-                                type="number"
-                                value={value}
-                                onChange={(event) =>
-                                  onUpdateDailyPlan({
-                                    activity,
-                                    bucket: group.bucket,
-                                    dayOfWeek: dayPlan.dayOfWeek,
-                                    points: Number(event.target.value),
-                                  })
-                                }
-                              />
-                              {specializedActivities.length > 0 ? (
-                                <>
-                                  <span className="planning-control-specialty-label">
-                                    {t('weeklyPlan.specializedActivity')}
-                                  </span>
-                                  <select
-                                    value={dayPlan.buildingActivitySelections?.[activity] ?? ''}
-                                    onChange={(event) =>
-                                      onUpdateBuildingActivitySelection({
-                                        activity,
-                                        activityId: event.target.value
-                                          ? (event.target.value as BuildingActivityId)
-                                          : undefined,
-                                        dayOfWeek: dayPlan.dayOfWeek,
-                                      })
+            return (
+              <section className="weekly-planner__task-group" key={group.bucket}>
+                <header>
+                  <GameIcon name={group.iconName} size={18} />
+                  <strong>{t(group.labelKey)}</strong>
+                  <span>{t('weeklyPlan.pointsPerDay', { points: budget })}</span>
+                </header>
+                <div className="weekly-planner__task-list">
+                  {tasks.map((task) => (
+                    <button
+                      className="weekly-planner__task-card"
+                      draggable
+                      key={task.activity}
+                      style={getTaskStyle(task)}
+                      type="button"
+                      onClick={() => addTaskPoints(activeDay, task)}
+                      onDragEnd={() => setDraggedTask(null)}
+                      onDragStart={(event) => {
+                        const payload: DraggedPlanningTask = { activity: task.activity };
+
+                        event.dataTransfer.setData(
+                          'application/x-ludus-planning-task',
+                          JSON.stringify(payload),
+                        );
+                        event.dataTransfer.effectAllowed = 'copy';
+                        setDraggedTask(payload);
+                      }}
+                    >
+                      <GameIcon name={activityIcons[task.activity]} size={20} />
+                      <span>{t(`weeklyPlan.activities.${task.activity}`)}</span>
+                      <strong>{t('weeklyPlan.taskCost', { points: task.defaultPoints })}</strong>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </aside>
+
+        <div className="weekly-planner__days" aria-label={t('weeklyPlan.daysGridLabel')}>
+          {playableDays.map((dayOfWeek) => {
+            const dayPlan = save.planning.days[dayOfWeek];
+            const dayValidation = validateDailyPlan(save, dayPlan);
+            const dayProjection = projectDailyPlan(save, dayPlan);
+            const isPast = dayValidation.isPast;
+            const isSelected = activeDay === dayOfWeek;
+            const isDropTarget = dragOverDay === dayOfWeek && !isPast;
+
+            return (
+              <article
+                className={[
+                  'weekly-planner__day',
+                  isPast ? 'weekly-planner__day--past' : null,
+                  isSelected ? 'weekly-planner__day--selected' : null,
+                  isDropTarget ? 'weekly-planner__day--drop-target' : null,
+                  dayValidation.isComplete
+                    ? 'weekly-planner__day--complete'
+                    : 'weekly-planner__day--incomplete',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                key={dayOfWeek}
+                onClick={() => {
+                  if (!isPast) {
+                    setSelectedDay(dayOfWeek);
+                  }
+                }}
+                onDragLeave={() => setDragOverDay(null)}
+                onDragOver={(event) => {
+                  if (!isPast) {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = draggedTask?.fromDay ? 'move' : 'copy';
+                    setDragOverDay(dayOfWeek);
+                  }
+                }}
+                onDrop={(event) => handleDrop(event, dayOfWeek)}
+              >
+                <header className="weekly-planner__day-header">
+                  <div>
+                    {isPast ? <span>{t('weeklyPlan.dayPassed')}</span> : null}
+                    <h3>{t(`days.${dayOfWeek}`)}</h3>
+                  </div>
+                  <GameIcon name={dayValidation.isComplete ? 'check' : 'alert'} size={18} />
+                </header>
+
+                <ProjectionMetricStrip metrics={getDailyProjectionMetrics(dayProjection)} t={t} />
+
+                <div className="weekly-planner__constraints">
+                  {dayValidation.buckets.flatMap((bucketValidation) =>
+                    bucketValidation.constraints
+                      .filter((constraint) => !constraint.isSatisfied)
+                      .map((constraint) => (
+                        <div
+                          className={[
+                            'weekly-planner__constraint',
+                            constraint.isSatisfied ? null : 'weekly-planner__constraint--invalid',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                          key={`${dayOfWeek}-${constraint.activity}`}
+                        >
+                          <GameIcon name={activityIcons[constraint.activity]} size={15} />
+                          <span>
+                            {t('weeklyPlan.constraintRange', {
+                              activity: t(`weeklyPlan.activities.${constraint.activity}`),
+                              current: constraint.points,
+                              max: constraint.maximum,
+                              min: constraint.minimum,
+                            })}
+                          </span>
+                        </div>
+                      )),
+                  )}
+                </div>
+
+                <div className="weekly-planner__day-buckets">
+                  {visibleTaskGroups.map((group) => {
+                    const bucketValidation = dayValidation.buckets.find(
+                      (bucket) => bucket.bucket === group.bucket,
+                    );
+                    const budget = bucketValidation?.budget ?? 0;
+                    const used = getDailyPlanBucketTotal(dayPlan[group.bucket]);
+                    const progress = budget === 0 ? 100 : Math.min(100, (used / budget) * 100);
+                    const bucketTasks = PLANNING_ACTIVITY_DEFINITIONS.filter(
+                      (task) =>
+                        task.bucket === group.bucket && dayPlan[task.bucket][task.activity] > 0,
+                    );
+
+                    return (
+                      <section className="weekly-planner__bucket" key={group.bucket}>
+                        <header>
+                          <span>{t(group.labelKey)}</span>
+                          <strong>
+                            {t('weeklyPlan.pointsSummary', {
+                              total: budget,
+                              used,
+                            })}
+                          </strong>
+                        </header>
+                        <div className="weekly-planner__bucket-track">
+                          <span style={{ width: `${progress}%` }} />
+                        </div>
+                        <div className="weekly-planner__assignments">
+                          {bucketTasks.length === 0 ? (
+                            <div className="weekly-planner__empty-bucket">
+                              <GameIcon name="assignment" size={16} />
+                              <span>{t('weeklyPlan.emptyBucketHint')}</span>
+                            </div>
+                          ) : null}
+                          {bucketTasks.map((task) => {
+                            const value = dayPlan[task.bucket][task.activity];
+                            const unitCount = Math.floor(value / task.defaultPoints);
+                            const specializedActivities = getSelectableBuildingActivities(
+                              save,
+                              task.activity,
+                            );
+
+                            return (
+                              <div
+                                className="weekly-planner__assignment"
+                                draggable={!isPast && value > 0}
+                                key={`${dayOfWeek}-${task.activity}`}
+                                style={getTaskStyle(task)}
+                                onDragEnd={() => setDraggedTask(null)}
+                                onDragStart={(event) => {
+                                  const payload: DraggedPlanningTask = {
+                                    activity: task.activity,
+                                    fromDay: dayOfWeek,
+                                    points: value,
+                                  };
+
+                                  event.dataTransfer.setData(
+                                    'application/x-ludus-planning-task',
+                                    JSON.stringify(payload),
+                                  );
+                                  event.dataTransfer.effectAllowed = 'move';
+                                  setDraggedTask(payload);
+                                }}
+                              >
+                                <div className="weekly-planner__assignment-label">
+                                  <GameIcon name={activityIcons[task.activity]} size={17} />
+                                  <span>{t(`weeklyPlan.activities.${task.activity}`)}</span>
+                                </div>
+                                <div className="weekly-planner__assignment-controls">
+                                  <button
+                                    aria-label={t('weeklyPlan.decreaseTask', {
+                                      activity: t(`weeklyPlan.activities.${task.activity}`),
+                                    })}
+                                    disabled={isPast || value <= 0}
+                                    type="button"
+                                    onClick={() =>
+                                      changeTaskPoints(dayOfWeek, task, value - task.defaultPoints)
                                     }
                                   >
-                                    <option value="">
-                                      {t('weeklyPlan.noSpecializedActivity')}
-                                    </option>
-                                    {specializedActivities.map((specializedActivity) => (
-                                      <option
-                                        key={specializedActivity.id}
-                                        value={specializedActivity.id}
-                                      >
-                                        {t(specializedActivity.nameKey)}
+                                    -
+                                  </button>
+                                  <strong className="weekly-planner__assignment-points">
+                                    {formatNumber(unitCount)}
+                                  </strong>
+                                  <button
+                                    aria-label={t('weeklyPlan.increaseTask', {
+                                      activity: t(`weeklyPlan.activities.${task.activity}`),
+                                    })}
+                                    disabled={isPast}
+                                    type="button"
+                                    onClick={() => addTaskPoints(dayOfWeek, task)}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                {specializedActivities.length > 0 ? (
+                                  <label className="weekly-planner__specialty">
+                                    <span>{t('weeklyPlan.specializedActivity')}</span>
+                                    <select
+                                      disabled={isPast}
+                                      value={
+                                        dayPlan.buildingActivitySelections?.[task.activity] ?? ''
+                                      }
+                                      onChange={(event) =>
+                                        onUpdateBuildingActivitySelection({
+                                          activity: task.activity,
+                                          activityId: event.target.value
+                                            ? (event.target.value as BuildingActivityId)
+                                            : undefined,
+                                          dayOfWeek,
+                                        })
+                                      }
+                                    >
+                                      <option value="">
+                                        {t('weeklyPlan.noSpecializedActivity')}
                                       </option>
-                                    ))}
-                                  </select>
-                                </>
-                              ) : null}
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </fieldset>
-                  );
-                })}
-              </div>
-            </details>
-          );
-        })}
-      </div>
-      {save.planning.alerts.length > 0 ? (
-        <ul className="alert-list">
-          {save.planning.alerts.slice(0, 4).map((alert) => (
-            <li className={`alert-list__item alert-list__item--${alert.severity}`} key={alert.id}>
-              <strong>{t(alert.titleKey)}</strong>
-              <span>{t(alert.descriptionKey)}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="context-panel__muted">{t('weeklyPlan.noAlerts')}</p>
-      )}
-      <div className="planning-card-grid">
-        {statuses.map((status) => {
-          const recommendedBuildingName = status.recommendation.buildingId
-            ? t(BUILDING_DEFINITIONS[status.recommendation.buildingId].nameKey)
-            : t('weeklyPlan.noAssignment');
+                                      {specializedActivities.map((specializedActivity) => (
+                                        <option
+                                          key={specializedActivity.id}
+                                          value={specializedActivity.id}
+                                        >
+                                          {t(specializedActivity.nameKey)}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </label>
+                                ) : null}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    );
+                  })}
+                </div>
+              </article>
+            );
+          })}
 
-          return (
-            <article className="planning-card planning-card--shell" key={status.gladiator.id}>
-              <div className="planning-card__header">
-                <div className="context-panel__portrait-row">
-                  <GladiatorPortrait gladiator={status.gladiator} size="small" />
-                  <div>
-                    <h3>{status.gladiator.name}</h3>
-                    <p>{t(status.recommendation.reasonKey)}</p>
-                  </div>
-                </div>
+          <article className="weekly-planner__day weekly-planner__day--arena">
+            <header className="weekly-planner__day-header">
+              <div>
+                <span>{t('weeklyPlan.arenaDayEyebrow')}</span>
+                <h3>{t('days.sunday')}</h3>
               </div>
-              <dl className="planning-projection">
-                <div>
-                  <dt>{t('market.stats.life')}</dt>
-                  <dd>{Math.floor(status.gladiator.life)}</dd>
-                </div>
-                <div>
-                  <dt>{t('weeklyPlan.suggestedAssignment')}</dt>
-                  <dd>
-                    {status.recommendation.isAvailable
-                      ? recommendedBuildingName
-                      : t('weeklyPlan.buildingUnavailable')}
-                  </dd>
-                </div>
-              </dl>
-            </article>
-          );
-        })}
+              <GameIcon name="victory" size={18} />
+            </header>
+            <p>{t('weeklyPlan.arenaDayDescription')}</p>
+          </article>
+        </div>
       </div>
-    </PanelShell>
+    </section>
   );
 }

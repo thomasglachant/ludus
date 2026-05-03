@@ -206,8 +206,13 @@
   width: min(1180px, 100%);
 }
 
+.app-modal--full {
+  width: min(1480px, calc(100vw - 28px));
+}
+
 .app-modal--lg,
-.app-modal--xl {
+.app-modal--xl,
+.app-modal--full {
   max-height: var(--app-modal-available-height, calc(100vh - 36px));
 }
 

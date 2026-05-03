@@ -10,7 +10,7 @@ interface ModalBase {
   testId?: string;
 }
 
-export type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
+export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
 export interface ConfirmModalRequest extends ModalBase {
   kind: 'confirm';

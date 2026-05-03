@@ -1,8 +1,8 @@
+import { adjustDebugTreasury as adjustDebugTreasuryAction } from '../domain/debug/debug-actions';
 import {
   resolveGameEventChoice as resolveGameEventChoiceAction,
   triggerDebugDailyEvent as triggerDebugDailyEventAction,
 } from '../domain/events/event-actions';
-import { adjustDebugTreasury as adjustDebugTreasuryAction } from '../domain/debug/debug-actions';
 import {
   buyoutLoan as buyoutLoanAction,
   takeLoan as takeLoanAction,
@@ -30,7 +30,6 @@ import {
   synchronizeEconomyProjection,
 } from '../domain/weekly-simulation/weekly-simulation-actions';
 import {
-  applyPlanningRecommendations,
   updateDailyPlanBuildingActivitySelection as updateDailyPlanBuildingActivitySelectionAction,
   updateDailyPlan as updateDailyPlanAction,
   synchronizePlanning,
@@ -52,8 +51,12 @@ import { LocalSaveProvider } from '../persistence/local-save-provider';
 import { SaveService } from '../persistence/save-service';
 import { GameStoreContext, type GameStoreValue, type NewGameInput } from './game-store-context';
 import { useUiStore } from './ui-store-context';
+import { GAME_BALANCE } from '../game-data/balance';
 
 const AUTO_SAVE_INTERVAL_MS = 30_000;
+const GAME_CLOCK_INTERVAL_MS = 1_000;
+const GAME_CLOCK_START_MINUTES = GAME_BALANCE.time.dayStartHour * 60;
+const GAME_CLOCK_END_MINUTES = GAME_BALANCE.time.dayEndHour * 60;
 
 function createSaveService() {
   return new SaveService(
@@ -79,12 +82,16 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const [demoSaves, setDemoSaves] = useState<GameSaveMetadata[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGamePaused, setIsGamePaused] = useState(false);
+  const [gameClockMinutes, setGameClockMinutes] = useState(GAME_CLOCK_START_MINUTES);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [saveNoticeKey, setSaveNoticeKey] = useState<string | null>(null);
   const hasLoadedInitialRouteGame = useRef(false);
   const currentSaveRef = useRef<GameSave | null>(null);
+  const activeModalRef = useRef(activeModal);
+  const isGamePausedRef = useRef(isGamePaused);
   const hasUnsavedChangesRef = useRef(false);
   const isSavingRef = useRef(false);
   const isAutoSavingRef = useRef(false);
@@ -292,19 +299,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const triggerDebugDailyEvent = useCallback(
-    (definitionId: string) => {
-      applyPlayerChange((save) => {
-        if (!featureFlags.enableDebugUi) {
-          return save;
-        }
-
-        return triggerDebugDailyEventAction(save, definitionId);
-      });
-    },
-    [applyPlayerChange],
-  );
-
   const adjustDebugTreasury = useCallback(
     (amount: number) => {
       applyPlayerChange((save) => {
@@ -383,10 +377,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     [applyPlayerChange],
   );
 
-  const applyPlanningRecommendationsAction = useCallback(() => {
-    applyPlayerChange((save) => applyPlanningRecommendations(save));
-  }, [applyPlayerChange]);
-
   const updateDailyPlan = useCallback(
     (update: DailyPlanUpdate) => {
       applyPlayerChange((save) => updateDailyPlanAction(save, update));
@@ -408,6 +398,19 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     [applyPlayerChange],
   );
 
+  const triggerDebugDailyEvent = useCallback(
+    (definitionId: string) => {
+      applyPlayerChange((save) => {
+        if (!featureFlags.enableDebugUi) {
+          return save;
+        }
+
+        return triggerDebugDailyEventAction(save, definitionId);
+      });
+    },
+    [applyPlayerChange],
+  );
+
   const markArenaCombatPresented = useCallback(
     (combatId: string) => {
       applyPlayerChange((save) => markArenaCombatPresentedAction(save, combatId));
@@ -419,9 +422,20 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     applyPlayerChange((save) => completeSundayArenaDayAction(save));
   }, [applyPlayerChange]);
 
-  const advanceWeekStepAction = useCallback(() => {
-    applyPlayerChange((save) => resolveWeekStep(save));
-  }, [applyPlayerChange]);
+  const advanceWeekStepAction = useCallback(
+    (options?: { ignoreModalPause?: boolean }) => {
+      if (activeModalRef.current && !options?.ignoreModalPause) {
+        return;
+      }
+
+      applyPlayerChange((save) => resolveWeekStep(save));
+    },
+    [applyPlayerChange],
+  );
+
+  const toggleGamePause = useCallback(() => {
+    setIsGamePaused((paused) => !paused);
+  }, []);
 
   const takeLoan = useCallback(
     (loanId: LoanId) => {
@@ -449,6 +463,14 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     currentSaveRef.current = currentSave;
   }, [currentSave]);
+
+  useEffect(() => {
+    activeModalRef.current = activeModal;
+  }, [activeModal]);
+
+  useEffect(() => {
+    isGamePausedRef.current = isGamePaused;
+  }, [isGamePaused]);
 
   useEffect(() => {
     hasUnsavedChangesRef.current = hasUnsavedChanges;
@@ -564,6 +586,35 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   }, [saveService]);
 
   useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      const save = currentSaveRef.current;
+
+      if (
+        !save ||
+        activeModalRef.current ||
+        isGamePausedRef.current ||
+        save.time.phase !== 'planning'
+      ) {
+        return;
+      }
+
+      setGameClockMinutes((minutes) => {
+        const nextMinutes = minutes + GAME_BALANCE.time.minutesPerRealSecond;
+
+        if (nextMinutes < GAME_CLOCK_END_MINUTES) {
+          return nextMinutes;
+        }
+
+        applyPlayerChange((currentSaveForStep) => resolveWeekStep(currentSaveForStep));
+
+        return GAME_CLOCK_START_MINUTES;
+      });
+    }, GAME_CLOCK_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [applyPlayerChange]);
+
+  useEffect(() => {
     if (!currentSave || (screen !== 'ludus' && screen !== 'arena')) {
       return;
     }
@@ -592,18 +643,39 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    if (interruption?.kind === 'weeklyPlanning') {
+      const hasWeeklyPlanningModal = modalStack.some((modal) => modal.kind === 'weeklyPlanning');
+
+      if (!hasWeeklyPlanningModal) {
+        if (activeModal) {
+          pushModal({ kind: 'weeklyPlanning' });
+        } else {
+          openModal({ kind: 'weeklyPlanning' });
+        }
+      }
+
+      return;
+    }
+
     if (screen === 'arena') {
       navigate('ludus', { gameId: currentSave.gameId });
     }
   }, [activeModal, currentSave, modalStack, navigate, openModal, pushModal, screen]);
 
   const value = useMemo<GameStoreValue>(() => {
+    const clockHours = Math.floor(gameClockMinutes / 60);
+    const clockMinutes = gameClockMinutes % 60;
+
     return {
       currentSave,
       localSaves,
       demoSaves,
       isLoading,
       isSaving,
+      isGamePaused: isGamePaused || Boolean(activeModal),
+      gameClockLabel: `${clockHours.toString().padStart(2, '0')}:${clockMinutes
+        .toString()
+        .padStart(2, '0')}`,
       hasUnsavedChanges,
       lastSavedAt,
       errorKey,
@@ -625,7 +697,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       sellGladiator: sellGladiatorAction,
       buyMarketStaff,
       sellStaff,
-      applyPlanningRecommendations: applyPlanningRecommendationsAction,
       updateDailyPlan,
       updateDailyPlanBuildingActivitySelection,
       resolveGameEventChoice,
@@ -634,6 +705,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       markArenaCombatPresented,
       completeSundayArenaDay,
       advanceWeekStep: advanceWeekStepAction,
+      toggleGamePause,
       takeLoan,
       buyoutLoan,
       assignStaffToBuilding,
@@ -642,7 +714,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   }, [
     adjustDebugTreasury,
     advanceWeekStepAction,
-    applyPlanningRecommendationsAction,
+    activeModal,
     assignStaffToBuilding,
     buyoutLoan,
     buyMarketGladiatorAction,
@@ -652,7 +724,9 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     createNewGame,
     demoSaves,
     errorKey,
+    gameClockMinutes,
     hasUnsavedChanges,
+    isGamePaused,
     isLoading,
     isSaving,
     lastSavedAt,
@@ -665,11 +739,12 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     refreshLocalSaves,
     refreshDemoSaves,
     resetActiveDemo,
+    resolveGameEventChoice,
     saveCurrentGame,
     saveNoticeKey,
-    resolveGameEventChoice,
-    triggerDebugDailyEvent,
     takeLoan,
+    triggerDebugDailyEvent,
+    toggleGamePause,
     updateDailyPlan,
     updateDailyPlanBuildingActivitySelection,
     markArenaCombatPresented,

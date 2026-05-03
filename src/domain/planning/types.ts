@@ -10,18 +10,20 @@ export interface WeeklyPlanningState {
 }
 
 export type DailyPlanActivity =
-  | 'training'
+  | 'strengthTraining'
+  | 'agilityTraining'
+  | 'defenseTraining'
+  | 'lifeTraining'
   | 'meals'
   | 'sleep'
   | 'leisure'
   | 'care'
-  | 'contracts'
   | 'production'
-  | 'security'
-  | 'maintenance'
-  | 'events';
+  | 'security';
 
 export type DailyPlanPoints = Record<DailyPlanActivity, number>;
+
+export type DailyPlanBucket = 'gladiatorTimePoints' | 'laborPoints' | 'adminPoints';
 
 export type DailyPlanBuildingActivitySelections = Partial<
   Record<DailyPlanActivity, BuildingActivityId>

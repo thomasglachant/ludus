@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore, type FormModalField, type UiModalState } from '../../state/ui-store-context';
+import { isWeeklyPlanningComplete } from '../../domain/planning/planning-actions';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { ActionButton } from '../components/ActionButton';
 import { ArenaPanel, EventsPanel } from '../panels/ActivityPanels';
@@ -143,10 +144,8 @@ function FormDialog({
 
 function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModalState }) {
   const {
-    applyPlanningRecommendations,
     currentSave,
     assignStaffToBuilding,
-    advanceWeekStep,
     buyoutLoan,
     hasUnsavedChanges,
     isLoading,
@@ -329,18 +328,19 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
   }
 
   if (modal.kind === 'weeklyPlanning') {
+    const isPlanningComplete = isWeeklyPlanningComplete(currentSave);
+
     return (
       <AppModal
+        dismissible={isPlanningComplete}
         isActive={isActive}
-        size="xl"
+        size="full"
         testId="weekly-planning-modal"
         titleKey="weeklyPlan.title"
         onClose={closeModal}
       >
         <WeeklyPlanningPanel
           save={currentSave}
-          onAdvanceWeekStep={advanceWeekStep}
-          onApplyRecommendations={applyPlanningRecommendations}
           onClose={closeModal}
           onUpdateDailyPlan={updateDailyPlan}
           onUpdateBuildingActivitySelection={updateDailyPlanBuildingActivitySelection}

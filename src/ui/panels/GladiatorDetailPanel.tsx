@@ -1,11 +1,7 @@
 import { useState } from 'react';
 import { getEffectiveSkillValue } from '../../domain/gladiators/skills';
-import { getPlanningRecommendation } from '../../domain/planning/planning-actions';
 import type { GameSave, Gladiator } from '../../domain/types';
-import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { useUiStore } from '../../state/ui-store-context';
-import { BuildingAvatar } from '../buildings/BuildingAvatar';
-import { EntityList, EntityListRow } from '../components/EntityList';
 import { MetricList, SectionCard } from '../components/shared';
 import { formatNumber } from '../formatters/number';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
@@ -66,11 +62,6 @@ function getCurrentArenaRecord(save: GameSave, gladiator: Gladiator) {
 export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelProps) {
   const { pushModal, t } = useUiStore();
   const [activeTab, setActiveTab] = useState<GladiatorDetailTab>('overview');
-  const recommendation = getPlanningRecommendation(save, gladiator);
-  const recommendedBuildingId = recommendation.buildingId;
-  const recommendedBuildingName = recommendation.buildingId
-    ? t(BUILDING_DEFINITIONS[recommendation.buildingId].nameKey)
-    : t('weeklyPlan.noAssignment');
   const currentArenaRecord = getCurrentArenaRecord(save, gladiator);
   const tabItems = gladiator.trainingPlan
     ? gladiatorDetailTabs
@@ -165,48 +156,28 @@ export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelPr
 
       {selectedTab === 'planning' ? (
         <ModalTabPanel>
-          {recommendedBuildingId && recommendation.isAvailable ? (
-            <ModalSection titleKey="gladiatorPanel.planning">
-              <EntityList>
-                <EntityListRow
-                  avatar={<BuildingAvatar buildingId={recommendedBuildingId} size="small" />}
-                  info={[
-                    {
-                      iconName: 'assignment',
-                      id: 'focus',
-                      label: t('weeklyPlan.recommendedFocus'),
-                      value: t(recommendation.reasonKey),
-                    },
-                    {
-                      iconName: 'workforce',
-                      id: 'efficiency',
-                      label: t('buildingPanel.efficiency'),
-                      value: `${save.buildings[recommendedBuildingId].efficiency}%`,
-                    },
-                  ]}
-                  openLabel={t('map.openLocation', { name: recommendedBuildingName })}
-                  subtitle={t(BUILDING_DEFINITIONS[recommendedBuildingId].descriptionKey)}
-                  title={recommendedBuildingName}
-                  onOpen={() => pushModal({ buildingId: recommendedBuildingId, kind: 'building' })}
-                />
-              </EntityList>
-            </ModalSection>
-          ) : (
-            <SectionCard titleKey="gladiatorPanel.planning">
-              <MetricList
-                columns={2}
-                items={[
-                  {
-                    labelKey: 'weeklyPlan.suggestedAssignment',
-                    value: recommendation.isAvailable
-                      ? recommendedBuildingName
-                      : t('weeklyPlan.buildingUnavailable'),
-                  },
-                  { labelKey: 'weeklyPlan.recommendedFocus', value: t(recommendation.reasonKey) },
-                ]}
-              />
-            </SectionCard>
-          )}
+          <SectionCard titleKey="gladiatorPanel.planning">
+            <MetricList
+              columns={2}
+              items={[
+                {
+                  labelKey: 'weeklyPlan.manualMode',
+                  value: t('weeklyPlan.manualModeValue'),
+                },
+                {
+                  labelKey: 'weeklyPlan.currentWeek',
+                  value: t('weeklyPlan.weekLabel', {
+                    week: save.time.week,
+                    year: save.time.year,
+                  }),
+                },
+              ]}
+            />
+            <button type="button" onClick={() => pushModal({ kind: 'weeklyPlanning' })}>
+              <GameIcon name="weeklyPlanning" size={17} />
+              <span>{t('navigation.weeklyPlanning')}</span>
+            </button>
+          </SectionCard>
         </ModalTabPanel>
       ) : null}
 

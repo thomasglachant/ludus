@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react';
-import { DAILY_EVENT_DEFINITIONS } from '../../game-data/events';
 import { featureFlags } from '../../config/features';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 
 const TREASURY_ADJUSTMENTS = [100, 1_000, -100, -1_000];
 
-type DebugMenuId = 'root' | 'events' | 'treasury';
+type DebugMenuId = 'root' | 'treasury';
 
 interface DebugActionItem {
   id: string;
@@ -33,8 +32,8 @@ function isMenuItem(item: DebugItem): item is DebugMenuItem {
 }
 
 export function DebugOverlay() {
-  const { currentSave, triggerDebugDailyEvent, adjustDebugTreasury } = useGameStore();
-  const { isPixiDebugEnabled, openModal, t, togglePixiDebug } = useUiStore();
+  const { currentSave, adjustDebugTreasury } = useGameStore();
+  const { isPixiDebugEnabled, t, togglePixiDebug } = useUiStore();
   const [isOpen, setIsOpen] = useState(false);
   const [menuStack, setMenuStack] = useState<DebugMenuId[]>(['root']);
   const isDebugAvailable = Boolean(featureFlags.enableDebugUi && currentSave);
@@ -45,7 +44,6 @@ export function DebugOverlay() {
         id: 'root',
         title: t('debug.title'),
         items: [
-          { id: 'events', label: t('debug.events'), menuId: 'events' },
           { id: 'treasury', label: t('debug.treasury'), menuId: 'treasury' },
           {
             id: 'pixi-debug',
@@ -63,27 +61,8 @@ export function DebugOverlay() {
           onSelect: () => adjustDebugTreasury(amount),
         })),
       },
-      events: {
-        id: 'events',
-        title: t('debug.events'),
-        items: DAILY_EVENT_DEFINITIONS.map((definition) => ({
-          id: definition.id,
-          label: t(definition.titleKey),
-          onSelect: () => {
-            triggerDebugDailyEvent(definition.id);
-            openModal({ kind: 'events' });
-          },
-        })),
-      },
     }),
-    [
-      adjustDebugTreasury,
-      isPixiDebugEnabled,
-      openModal,
-      t,
-      togglePixiDebug,
-      triggerDebugDailyEvent,
-    ],
+    [adjustDebugTreasury, isPixiDebugEnabled, t, togglePixiDebug],
   );
 
   if (!isDebugAvailable || !isOpen) {
