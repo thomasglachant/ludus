@@ -81,6 +81,17 @@ function StaffCandidateCard({
   const { t } = useUiStore();
   const validation = validateStaffMarketPurchase(save, candidate.id);
   const validationMessageKey = getStaffValidationMessageKey(validation.reason);
+  const recurringInfo =
+    candidate.weeklyWage > 0
+      ? [
+          {
+            iconName: 'treasury' as const,
+            id: 'weekly-wage',
+            label: t('staff.weeklyWage'),
+            value: t('market.weeklyPrice', { price: formatMoneyAmount(candidate.weeklyWage) }),
+          },
+        ]
+      : [];
 
   return (
     <EntityListRow
@@ -97,21 +108,7 @@ function StaffCandidateCard({
         },
       ]}
       avatar={<StaffPortrait staffMember={candidate} />}
-      info={[
-        {
-          iconName: 'treasury',
-          id: 'price',
-          label: t('market.priceLabel'),
-          tone: 'warning',
-          value: formatMoneyAmount(candidate.price),
-        },
-        {
-          iconName: 'treasury',
-          id: 'weekly-wage',
-          label: t('staff.weeklyWage'),
-          value: formatMoneyAmount(candidate.weeklyWage),
-        },
-      ]}
+      info={recurringInfo}
       testId={`market-staff-candidate-${candidate.id}`}
       subtitle={
         <MarketRowSubtitle

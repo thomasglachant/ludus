@@ -234,6 +234,7 @@
   "market.age": "{age} ans",
   "market.price": "Coût {price}",
   "market.priceLabel": "Coût",
+  "market.weeklyPrice": "{price} / sem",
   "market.saleValue": "Vendre {price}",
   "market.saleValueLabel": "Valeur de vente",
   "market.record": "{wins}V {losses}D",
