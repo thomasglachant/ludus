@@ -139,20 +139,22 @@ export interface WeeklyPlanningState {
 ```
 
 Weekly planning is global to the ludus. It no longer stores per-gladiator routines,
-objectives, intensity settings or manual building overrides.
+objectives, intensity settings or manual building overrides. The current app only exposes
+`gladiatorTimePoints`; `laborPoints` and `adminPoints` remain in the current schema but are
+cleared during planning synchronization and should stay zero.
 
 ```ts
 export type DailyPlanActivity =
-  | 'training'
+  | 'strengthTraining'
+  | 'agilityTraining'
+  | 'defenseTraining'
+  | 'lifeTraining'
   | 'meals'
   | 'sleep'
   | 'leisure'
   | 'care'
-  | 'contracts'
   | 'production'
-  | 'security'
-  | 'maintenance'
-  | 'events';
+  | 'security';
 
 export type DailyPlanPoints = Record<DailyPlanActivity, number>;
 

@@ -89,7 +89,38 @@ describe('ludus capacity', () => {
   });
 
   it('reports available staff places from the current staff size', () => {
-    const save = withDomusLevel(createTestSave(), 2);
+    const save = {
+      ...withDomusLevel(createTestSave(), 2),
+      staff: {
+        ...createTestSave().staff,
+        members: [
+          {
+            id: 'staff-test-slave',
+            name: 'Dama',
+            type: 'slave' as const,
+            visualId: 'slave-01' as const,
+            weeklyWage: 0,
+            buildingExperience: {},
+          },
+          {
+            id: 'staff-test-guard',
+            name: 'Marcellus',
+            type: 'guard' as const,
+            visualId: 'guard-01' as const,
+            weeklyWage: 25,
+            buildingExperience: {},
+          },
+          {
+            id: 'staff-test-trainer',
+            name: 'Titus',
+            type: 'trainer' as const,
+            visualId: 'trainer-01' as const,
+            weeklyWage: 35,
+            buildingExperience: {},
+          },
+        ],
+      },
+    };
 
     expect(getAvailableLudusStaffPlaces(save)).toBe(3);
   });

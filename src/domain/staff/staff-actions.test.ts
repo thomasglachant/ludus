@@ -109,12 +109,16 @@ describe('staff actions', () => {
     }
   });
 
-  it('creates initial staff members with persisted visual ids', () => {
+  it('starts without owned staff and seeds market candidates with persisted visual ids', () => {
     const staff = createInitialStaffState(1, 1, () => 0);
 
-    expect(staff.members).toHaveLength(3);
+    expect(staff.members).toEqual([]);
+    expect(staff.assignments).toEqual([]);
+    expect(staff.marketCandidates.length).toBeGreaterThan(0);
     expect(
-      staff.members.every((member) => isStaffVisualIdForType(member.type, member.visualId)),
+      staff.marketCandidates.every((candidate) =>
+        isStaffVisualIdForType(candidate.type, candidate.visualId),
+      ),
     ).toBe(true);
   });
 

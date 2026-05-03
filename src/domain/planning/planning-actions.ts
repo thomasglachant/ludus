@@ -1,4 +1,8 @@
 import { GAME_BALANCE } from '../../game-data/balance';
+import {
+  PLANNING_ACTIVITY_DEFINITIONS,
+  type PlanningActivityDefinition,
+} from '../../game-data/planning';
 import { DAYS_OF_WEEK } from '../../game-data/time';
 import type { BuildingActivityId } from '../buildings/types';
 import { getSelectableBuildingActivities } from '../buildings/building-activities';
@@ -52,7 +56,7 @@ export interface WeeklyPlanningValidation {
   remainingDays: DayOfWeek[];
 }
 
-const dailyPlanBuckets: DailyPlanBucket[] = ['gladiatorTimePoints', 'laborPoints'];
+const dailyPlanBuckets: DailyPlanBucket[] = ['gladiatorTimePoints'];
 
 export const DAILY_PLAN_BUCKET_BUDGETS = {
   gladiatorTimePoints: GAME_BALANCE.macroSimulation.baseDailyGladiatorPoints,
@@ -101,8 +105,27 @@ export function createDefaultDailyPlan(dayOfWeek: DayOfWeek): DailyPlan {
 function sanitizeDailyPlan(plan: DailyPlan): DailyPlan {
   return {
     ...plan,
+    laborPoints: createEmptyPoints(),
     adminPoints: createEmptyPoints(),
   };
+}
+
+export function isPlanningActivityUnlocked(save: GameSave, task: PlanningActivityDefinition) {
+  const building = save.buildings[task.buildingId];
+
+  if (!building?.isPurchased) {
+    return false;
+  }
+
+  if (task.requiredBuildingLevel !== undefined && building.level < task.requiredBuildingLevel) {
+    return false;
+  }
+
+  return !task.requiredSkillId || building.purchasedSkillIds.includes(task.requiredSkillId);
+}
+
+export function getAvailablePlanningActivityDefinitions(save: GameSave) {
+  return PLANNING_ACTIVITY_DEFINITIONS.filter((task) => isPlanningActivityUnlocked(save, task));
 }
 
 export function createDefaultWeeklyPlan(year: number, week: number) {
@@ -325,9 +348,13 @@ function clampDailyPlanBucketPoints(
 
 export function updateDailyPlan(save: GameSave, update: DailyPlanUpdate): GameSave {
   const dayPlan = save.planning.days[update.dayOfWeek];
+  const task = getAvailablePlanningActivityDefinitions(save).find(
+    (definition) => definition.activity === update.activity && definition.bucket === update.bucket,
+  );
 
   if (
     !dayPlan ||
+    !task ||
     !dailyPlanBuckets.includes(update.bucket) ||
     isPastPlanningDay(save, update.dayOfWeek)
   ) {

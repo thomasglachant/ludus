@@ -7,7 +7,13 @@ interface TooltipProps {
 
 export function Tooltip({ children, content }: TooltipProps) {
   return (
-    <span aria-label={content} className="tooltip" data-tooltip={content} tabIndex={0}>
+    <span
+      aria-label={content}
+      className="tooltip"
+      data-tooltip={content}
+      tabIndex={0}
+      onMouseDown={(event) => event.preventDefault()}
+    >
       {children}
     </span>
   );

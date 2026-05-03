@@ -52,23 +52,20 @@ The normal ludus loop is resolved through daily and weekly macro actions. Hour, 
 
 ```ts
 GAME_BALANCE.macroSimulation = {
-  baseDailyGladiatorPoints: 12,
+  baseDailyGladiatorPoints: 6,
   baseDailyLaborPoints: 8,
-  baseDailyAdminPoints: 6,
-  minimumMealPoints: 2,
-  idealMealPoints: 3,
-  maximumMealBonusPoints: 4,
-  minimumSleepPoints: 3,
-  idealSleepPoints: 4,
-  maximumSleepBonusPoints: 5,
-  insufficientFoodPenalty: 6,
-  insufficientSleepPenalty: 8,
-  heavyScheduleHappinessPenalty: 2,
+  baseDailyAdminPoints: 0,
+  idealTrainingPressurePointsPerGladiator: 4,
+  maximumTrainingEfficiencyMultiplier: 1.25,
   trainingInjuryChancePerPoint: 0.015,
-  physicalActivityHealthThreshold: 55,
-  contractIncomePerPoint: 12,
+  trainingFocus: {
+    strength: { progressMultiplier: 1.15, pressureMultiplier: 1.15 },
+    agility: { progressMultiplier: 1.05, pressureMultiplier: 1 },
+    defense: { progressMultiplier: 1, pressureMultiplier: 0.9 },
+    life: { progressMultiplier: 0.85, pressureMultiplier: 0.75 },
+  },
+  heavyScheduleHappinessPenalty: 2,
   productionIncomePerPoint: 8,
-  maintenanceCostPerBuilding: 7,
   staffExperiencePerAssignedDay: 1,
   maximumStaffExperienceBonusPercent: 20,
   targetGuardRatio: 0.5,
@@ -81,6 +78,8 @@ GAME_BALANCE.macroSimulation = {
   gameOverTreasuryThreshold: -1000,
 };
 ```
+
+Only `baseDailyGladiatorPoints` is active in the current player-facing planner. `baseDailyLaborPoints` and `baseDailyAdminPoints` are legacy schema-facing values and should not be reintroduced as visible planning buckets without an intentional design update.
 
 ## Buildings
 
@@ -140,11 +139,7 @@ Daily simulation applies active macro effects from levels, improvements, policie
 
 ## Staff
 
-Initial staff:
-
-- one trainer assigned to `trainingGround`;
-- one slave assigned to `canteen`;
-- one guard assigned to `guardBarracks`.
+New saves start without owned staff. The player recruits personnel from the staff market and assigns them manually.
 
 The market generates 20 gladiators, 20 slaves, 20 guards and 20 trainers each week. Buying staff moves a candidate into `staff.members`, selling staff removes assignments and returns a calculated sale value. Staff and gladiator market transactions are recorded in the economy ledger. Market prices scale with generated capability: gladiators use effective skills and reputation, while staff use role, wage and building experience.
 

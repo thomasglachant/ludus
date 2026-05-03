@@ -52,7 +52,7 @@ describe('building actions', () => {
     expect(result.save.buildings.canteen).toMatchObject({
       isPurchased: true,
       level: 1,
-      efficiency: 108,
+      efficiency: 25,
     });
     expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 120);
     expect(result.save.economy.ledgerEntries[0]).toMatchObject({
@@ -169,7 +169,7 @@ describe('building actions', () => {
       isAllowed: true,
       targetLevel: 3,
     });
-    expect(result.save.buildings.trainingGround.efficiency).toBe(60);
+    expect(result.save.buildings.trainingGround.efficiency).toBe(25);
   });
 
   it('gates non-domus upgrades behind the required Domus level', () => {

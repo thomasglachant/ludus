@@ -108,7 +108,7 @@ describe('planning actions', () => {
     ).toBe(0);
   });
 
-  it('allows labor planning for production and security', () => {
+  it('ignores unavailable labor planning updates', () => {
     const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
     const result = updateDailyPlan(save, {
       activity: 'production',
@@ -117,7 +117,34 @@ describe('planning actions', () => {
       points: 2,
     });
 
-    expect(result.planning.days.monday.laborPoints.production).toBe(2);
+    expect(result).toBe(save);
+  });
+
+  it('clears stale labor and admin planning points when synchronizing', () => {
+    const baseSave = createTestSave();
+    const save = synchronizePlanning({
+      ...baseSave,
+      planning: {
+        ...baseSave.planning,
+        days: {
+          ...baseSave.planning.days,
+          monday: {
+            ...baseSave.planning.days.monday,
+            adminPoints: {
+              ...baseSave.planning.days.monday.adminPoints,
+              security: 3,
+            },
+            laborPoints: {
+              ...baseSave.planning.days.monday.laborPoints,
+              production: 4,
+            },
+          },
+        },
+      },
+    });
+
+    expect(save.planning.days.monday.laborPoints.production).toBe(0);
+    expect(save.planning.days.monday.adminPoints.security).toBe(0);
   });
 
   it('selects an unlocked building activity for a daily activity', () => {

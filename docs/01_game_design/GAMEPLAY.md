@@ -20,28 +20,24 @@ The game should support larger rosters and more buildings by avoiding continuous
 
 ## Macro Planning
 
-The planning model is day-based. Each day contains three point pools:
+The planning model is day-based. The current player-facing planner uses one active point pool:
 
-- `gladiatorTimePoints`: time spent by gladiators;
-- `laborPoints`: productive and maintenance labor;
-- `adminPoints`: contracts, events and administrative effort.
+- `gladiatorTimePoints`: time spent by gladiators.
 
-Daily activities are:
+Legacy `laborPoints` and `adminPoints` fields may still exist in the save shape for compatibility with the current schema, but the app no longer exposes or resolves them as active planning notions. Synchronization clears those buckets to prevent stale hidden allocations.
 
-- `training`;
-- `meals`;
-- `sleep`;
+Current visible planning tasks are:
+
+- `strengthTraining`;
+- `agilityTraining`;
+- `defenseTraining`;
+- `lifeTraining`;
 - `leisure`;
-- `care`;
-- `contracts`;
-- `production`;
-- `security`;
-- `maintenance`;
-- `events`.
+- `care`.
 
-The default planning baseline is 12 gladiator time points per day. Food and sleep have minimum and ideal values. Under-allocation creates capped penalties. Overtraining increases injury risk and unhappiness. Training injuries create a weekly injury state that blocks physical activity and gladiator contract participation until the next week begins. Gladiator health, energy and morale are not daily attributes; they are temporary combat gauges calculated at fight start from aptitudes, especially life.
+The default planning baseline is 6 gladiator time points per day before building effects and roster scaling. Training pressure increases injury risk and can reduce happiness when overdone. Training injuries create a weekly injury state that blocks physical activity and gladiator contract participation until the next week begins. Gladiator health, energy and morale are not daily attributes; they are temporary combat gauges calculated at fight start from aptitudes, especially life.
 
-Point buckets are budgeted and clamped by the domain: 12 gladiator time points, 8 labor points and 6 administration points per day. The planning UI previews daily and weekly projected deltas before the week is resolved.
+Gladiator planning points are budgeted and clamped by the domain. The planning UI previews daily and weekly projected deltas before the week is resolved.
 
 ## Daily Resolution
 

@@ -1,5 +1,6 @@
-import { useMemo, useState, type CSSProperties, type DragEvent } from 'react';
+import { useMemo, useState, type CSSProperties, type DragEvent, type KeyboardEvent } from 'react';
 import {
+  getAvailablePlanningActivityDefinitions,
   getDailyPlanBucketBudget,
   getDailyPlanBucketTotal,
   isPastPlanningDay,
@@ -19,11 +20,13 @@ import type {
   DayOfWeek,
   GameSave,
 } from '../../domain/types';
-import { PLANNING_ACTIVITY_DEFINITIONS } from '../../game-data/planning';
+import type { PlanningActivityDefinition } from '../../game-data/planning';
 import { GAME_BALANCE } from '../../game-data/balance';
 import { DAYS_OF_WEEK } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store-context';
 import { CTAButton } from '../components/CTAButton';
+import { ImpactList, type ImpactListItem } from '../components/ImpactList';
+import { EmptyState } from '../components/shared';
 import {
   ImpactIndicator,
   type ImpactIndicatorKind,
@@ -49,7 +52,7 @@ interface WeeklyPlanningPanelProps {
   }): void;
 }
 
-type PlanningTaskDefinition = (typeof PLANNING_ACTIVITY_DEFINITIONS)[number];
+type PlanningTaskDefinition = PlanningActivityDefinition;
 type Translate = (key: string, params?: Record<string, string | number>) => string;
 
 interface DraggedPlanningTask {
@@ -80,9 +83,10 @@ interface ProjectionMetricStripProps {
   t: Translate;
 }
 
+const planningTaskDragMimeType = 'application/x-ludus-planning-task';
 const playableDays = DAYS_OF_WEEK.filter((dayOfWeek) => dayOfWeek !== GAME_BALANCE.arena.dayOfWeek);
 
-const activityIcons = {
+const activityIcons: Partial<Record<DailyPlanActivity, GameIconName>> = {
   strengthTraining: 'strength',
   agilityTraining: 'agility',
   defenseTraining: 'defense',
@@ -91,20 +95,17 @@ const activityIcons = {
   sleep: 'timeNight',
   leisure: 'dice',
   care: 'health',
-  production: 'hammer',
-  security: 'security',
-} satisfies Record<DailyPlanActivity, GameIconName>;
+};
+
+function getActivityIcon(activity: DailyPlanActivity): GameIconName {
+  return activityIcons[activity] ?? 'assignment';
+}
 
 const planningTaskGroups = [
   {
     bucket: 'gladiatorTimePoints',
     iconName: 'training',
     labelKey: 'weeklyPlan.buckets.gladiatorTimePoints',
-  },
-  {
-    bucket: 'laborPoints',
-    iconName: 'workforce',
-    labelKey: 'weeklyPlan.buckets.laborPoints',
   },
 ] satisfies readonly {
   bucket: DailyPlanBucket;
@@ -113,7 +114,9 @@ const planningTaskGroups = [
 }[];
 
 function parseDraggedTask(event: DragEvent<HTMLElement>, fallback: DraggedPlanningTask | null) {
-  const serializedTask = event.dataTransfer.getData('application/x-ludus-planning-task');
+  const serializedTask =
+    event.dataTransfer.getData(planningTaskDragMimeType) ||
+    event.dataTransfer.getData('text/plain');
 
   if (!serializedTask) {
     return fallback;
@@ -130,6 +133,31 @@ function getTaskStyle(task: PlanningTaskDefinition): CSSProperties & Record<stri
   return {
     '--planning-task-color': task.color,
   };
+}
+
+function getTaskImpactItems(task: PlanningTaskDefinition, t: Translate): ImpactListItem[] {
+  return task.impacts.map((impact) => ({
+    amount: impact.amount * task.defaultPoints,
+    id: `${task.activity}-${impact.labelKey}`,
+    kind: impact.kind,
+    label: t(impact.labelKey),
+    size: 'sm',
+  }));
+}
+
+function TaskImpactPopover({ task, t }: { task: PlanningTaskDefinition; t: Translate }) {
+  const impacts = getTaskImpactItems(task, t);
+
+  if (impacts.length === 0) {
+    return null;
+  }
+
+  return (
+    <span className="weekly-planner__task-impact-popover">
+      <span>{t('weeklyPlan.taskImpactsTitle')}</span>
+      <ImpactList impacts={impacts} size="sm" />
+    </span>
+  );
 }
 
 function getProjectionTone(amount: number, inverseTone?: boolean): ImpactIndicatorTone {
@@ -255,9 +283,13 @@ function getRemainingProjectionMetrics(
   ];
 }
 
-function getActivityTotals(save: GameSave, remainingDays: DayOfWeek[]) {
+function getActivityTotals(
+  save: GameSave,
+  remainingDays: DayOfWeek[],
+  tasks: PlanningTaskDefinition[],
+) {
   return Object.fromEntries(
-    PLANNING_ACTIVITY_DEFINITIONS.map((task) => [
+    tasks.map((task) => [
       task.activity,
       remainingDays.reduce(
         (total, dayOfWeek) => total + save.planning.days[dayOfWeek][task.bucket][task.activity],
@@ -276,12 +308,15 @@ export function WeeklyPlanningPanel({
   const { t } = useUiStore();
   const weeklyValidation = validateWeeklyPlanning(save);
   const remainingProjection = projectRemainingWeeklyPlan(save);
+  const availableTasks = useMemo(() => getAvailablePlanningActivityDefinitions(save), [save]);
   const visibleTaskGroups = planningTaskGroups.filter(
-    (group) => getDailyPlanBucketBudget(save, group.bucket) > 0,
+    (group) =>
+      getDailyPlanBucketBudget(save, group.bucket) > 0 &&
+      availableTasks.some((task) => task.bucket === group.bucket),
   );
   const activityTotals = useMemo(
-    () => getActivityTotals(save, weeklyValidation.remainingDays),
-    [save, weeklyValidation.remainingDays],
+    () => getActivityTotals(save, weeklyValidation.remainingDays, availableTasks),
+    [availableTasks, save, weeklyValidation.remainingDays],
   );
   const firstEditableDay = weeklyValidation.remainingDays[0] ?? 'monday';
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>(firstEditableDay);
@@ -293,7 +328,7 @@ export function WeeklyPlanningPanel({
     : firstEditableDay;
 
   const taskByActivity = (activity: DailyPlanActivity) =>
-    PLANNING_ACTIVITY_DEFINITIONS.find((task) => task.activity === activity);
+    availableTasks.find((task) => task.activity === activity);
 
   const changeTaskPoints = (dayOfWeek: DayOfWeek, task: PlanningTaskDefinition, points: number) => {
     onUpdateDailyPlan({
@@ -363,6 +398,31 @@ export function WeeklyPlanningPanel({
     changeTaskPoints(dragged.fromDay, task, 0);
   };
 
+  const startTaskDrag = (
+    event: DragEvent<HTMLElement>,
+    payload: DraggedPlanningTask,
+    effectAllowed: DataTransfer['effectAllowed'],
+  ) => {
+    const serializedPayload = JSON.stringify(payload);
+
+    event.dataTransfer.setData(planningTaskDragMimeType, serializedPayload);
+    event.dataTransfer.setData('text/plain', serializedPayload);
+    event.dataTransfer.effectAllowed = effectAllowed;
+    setDraggedTask(payload);
+  };
+
+  const handleTaskCardKeyDown = (
+    event: KeyboardEvent<HTMLElement>,
+    task: PlanningTaskDefinition,
+  ) => {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    event.preventDefault();
+    addTaskPoints(activeDay, task);
+  };
+
   return (
     <section className="weekly-planner" data-testid="weekly-planning-panel">
       <header className="weekly-planner__hero">
@@ -412,13 +472,13 @@ export function WeeklyPlanningPanel({
           t={t}
         />
         <div className="weekly-planner__activity-totals">
-          {PLANNING_ACTIVITY_DEFINITIONS.map((task) => (
+          {availableTasks.map((task) => (
             <span
               className="weekly-planner__activity-total"
               key={task.activity}
               style={getTaskStyle(task)}
             >
-              <GameIcon name={activityIcons[task.activity]} size={15} />
+              <GameIcon name={getActivityIcon(task.activity)} size={15} />
               <span>{t(`weeklyPlan.activities.${task.activity}`)}</span>
               <strong>{formatNumber(activityTotals[task.activity])}</strong>
             </span>
@@ -445,10 +505,14 @@ export function WeeklyPlanningPanel({
           }}
           onDrop={handlePaletteDrop}
         >
+          {visibleTaskGroups.length === 0 ? (
+            <div className="weekly-planner__empty-palette">
+              <GameIcon name="assignment" size={16} />
+              <EmptyState messageKey="weeklyPlan.emptyPalette" />
+            </div>
+          ) : null}
           {visibleTaskGroups.map((group) => {
-            const tasks = PLANNING_ACTIVITY_DEFINITIONS.filter(
-              (task) => task.bucket === group.bucket,
-            );
+            const tasks = availableTasks.filter((task) => task.bucket === group.bucket);
             const budget = getDailyPlanBucketBudget(save, group.bucket);
 
             return (
@@ -460,29 +524,27 @@ export function WeeklyPlanningPanel({
                 </header>
                 <div className="weekly-planner__task-list">
                   {tasks.map((task) => (
-                    <button
-                      className="weekly-planner__task-card"
-                      draggable
-                      key={task.activity}
-                      style={getTaskStyle(task)}
-                      type="button"
-                      onClick={() => addTaskPoints(activeDay, task)}
-                      onDragEnd={() => setDraggedTask(null)}
-                      onDragStart={(event) => {
-                        const payload: DraggedPlanningTask = { activity: task.activity };
-
-                        event.dataTransfer.setData(
-                          'application/x-ludus-planning-task',
-                          JSON.stringify(payload),
-                        );
-                        event.dataTransfer.effectAllowed = 'copy';
-                        setDraggedTask(payload);
-                      }}
-                    >
-                      <GameIcon name={activityIcons[task.activity]} size={20} />
-                      <span>{t(`weeklyPlan.activities.${task.activity}`)}</span>
-                      <strong>{t('weeklyPlan.taskCost', { points: task.defaultPoints })}</strong>
-                    </button>
+                    <div className="weekly-planner__task-card-wrap" key={task.activity}>
+                      <div
+                        aria-label={t(`weeklyPlan.activities.${task.activity}`)}
+                        className="weekly-planner__task-card"
+                        draggable
+                        role="button"
+                        style={getTaskStyle(task)}
+                        tabIndex={0}
+                        onClick={() => addTaskPoints(activeDay, task)}
+                        onDragEnd={() => setDraggedTask(null)}
+                        onDragStart={(event) => {
+                          startTaskDrag(event, { activity: task.activity }, 'copy');
+                        }}
+                        onKeyDown={(event) => handleTaskCardKeyDown(event, task)}
+                      >
+                        <GameIcon name={getActivityIcon(task.activity)} size={20} />
+                        <span>{t(`weeklyPlan.activities.${task.activity}`)}</span>
+                        <strong>{t('weeklyPlan.taskCost', { points: task.defaultPoints })}</strong>
+                      </div>
+                      <TaskImpactPopover task={task} t={t} />
+                    </div>
                   ))}
                 </div>
               </section>
@@ -552,7 +614,7 @@ export function WeeklyPlanningPanel({
                             .join(' ')}
                           key={`${dayOfWeek}-${constraint.activity}`}
                         >
-                          <GameIcon name={activityIcons[constraint.activity]} size={15} />
+                          <GameIcon name={getActivityIcon(constraint.activity)} size={15} />
                           <span>
                             {t('weeklyPlan.constraintRange', {
                               activity: t(`weeklyPlan.activities.${constraint.activity}`),
@@ -574,7 +636,7 @@ export function WeeklyPlanningPanel({
                     const budget = bucketValidation?.budget ?? 0;
                     const used = getDailyPlanBucketTotal(dayPlan[group.bucket]);
                     const progress = budget === 0 ? 100 : Math.min(100, (used / budget) * 100);
-                    const bucketTasks = PLANNING_ACTIVITY_DEFINITIONS.filter(
+                    const bucketTasks = availableTasks.filter(
                       (task) =>
                         task.bucket === group.bucket && dayPlan[task.bucket][task.activity] > 0,
                     );
@@ -616,22 +678,19 @@ export function WeeklyPlanningPanel({
                                 style={getTaskStyle(task)}
                                 onDragEnd={() => setDraggedTask(null)}
                                 onDragStart={(event) => {
-                                  const payload: DraggedPlanningTask = {
-                                    activity: task.activity,
-                                    fromDay: dayOfWeek,
-                                    points: value,
-                                  };
-
-                                  event.dataTransfer.setData(
-                                    'application/x-ludus-planning-task',
-                                    JSON.stringify(payload),
+                                  startTaskDrag(
+                                    event,
+                                    {
+                                      activity: task.activity,
+                                      fromDay: dayOfWeek,
+                                      points: value,
+                                    },
+                                    'move',
                                   );
-                                  event.dataTransfer.effectAllowed = 'move';
-                                  setDraggedTask(payload);
                                 }}
                               >
                                 <div className="weekly-planner__assignment-label">
-                                  <GameIcon name={activityIcons[task.activity]} size={17} />
+                                  <GameIcon name={getActivityIcon(task.activity)} size={17} />
                                   <span>{t(`weeklyPlan.activities.${task.activity}`)}</span>
                                 </div>
                                 <div className="weekly-planner__assignment-controls">
@@ -693,6 +752,7 @@ export function WeeklyPlanningPanel({
                                     </select>
                                   </label>
                                 ) : null}
+                                <TaskImpactPopover task={task} t={t} />
                               </div>
                             );
                           })}

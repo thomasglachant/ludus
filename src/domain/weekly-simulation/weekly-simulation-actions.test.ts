@@ -113,7 +113,6 @@ describe('weekly simulation actions', () => {
     expect(result.save.economy.ledgerEntries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: 'income', labelKey: 'finance.ledger.dailyIncome' }),
-        expect.objectContaining({ kind: 'expense', labelKey: 'finance.ledger.dailyExpenses' }),
       ]),
     );
     expect(result.save.economy.currentWeekSummary.net).toBe(result.summary.treasuryDelta);
@@ -443,17 +442,15 @@ describe('weekly simulation actions', () => {
     });
   });
 
-  it('keeps the starting weekly projection costly before manual planning', () => {
+  it('keeps the starting weekly projection neutral before manual planning', () => {
     const save = createTestSave();
     const projection = projectWeeklyEconomy(save);
 
-    expect(projection.net).toBeLessThan(0);
-    expect(projection.incomeByCategory.production ?? 0).toBeLessThan(
-      projection.expenseByCategory.staff ?? 0,
-    );
+    expect(projection.net).toBe(0);
+    expect(projection.expenseByCategory.staff ?? 0).toBe(0);
   });
 
-  it('does not let default production carry an empty ludus', () => {
+  it('keeps an empty ludus neutral before manual planning', () => {
     const save = createInitialSave({
       ludusName: 'Ludus Magnus',
       saveId: 'empty-save-test',
@@ -461,7 +458,7 @@ describe('weekly simulation actions', () => {
     });
     const projection = projectWeeklyEconomy(save);
 
-    expect(projection.net).toBeLessThan(0);
+    expect(projection.net).toBe(0);
   });
 
   it('keeps small loan repayments meaningful for the starting weekly plan', () => {

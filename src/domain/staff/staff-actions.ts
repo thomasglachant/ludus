@@ -130,40 +130,8 @@ export function createInitialStaffState(
   random: RandomSource = Math.random,
 ): StaffState {
   return {
-    members: [
-      {
-        id: 'staff-initial-trainer',
-        name: 'Titus',
-        type: 'trainer',
-        visualId: createStaffVisualId('trainer', random),
-        weeklyWage: 35,
-        assignedBuildingId: 'trainingGround',
-        buildingExperience: { trainingGround: 10 },
-      },
-      {
-        id: 'staff-initial-slave',
-        name: 'Dama',
-        type: 'slave',
-        visualId: createStaffVisualId('slave', random),
-        weeklyWage: 0,
-        assignedBuildingId: 'canteen',
-        buildingExperience: { canteen: 8 },
-      },
-      {
-        id: 'staff-initial-guard',
-        name: 'Marcellus',
-        type: 'guard',
-        visualId: createStaffVisualId('guard', random),
-        weeklyWage: 25,
-        assignedBuildingId: 'guardBarracks',
-        buildingExperience: { guardBarracks: 6 },
-      },
-    ],
-    assignments: [
-      { buildingId: 'trainingGround', staffIds: ['staff-initial-trainer'] },
-      { buildingId: 'canteen', staffIds: ['staff-initial-slave'] },
-      { buildingId: 'guardBarracks', staffIds: ['staff-initial-guard'] },
-    ],
+    members: [],
+    assignments: [],
     marketCandidates: generateStaffMarketCandidates(year, week, random),
   };
 }

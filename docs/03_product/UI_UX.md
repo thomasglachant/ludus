@@ -195,17 +195,9 @@ It shows:
 
 ## Planning
 
-The weekly planning panel includes the shared daily allocation grid. The player edits daily point buckets for:
+The weekly planning panel includes the shared daily allocation grid. The player edits daily gladiator time points.
 
-- gladiator time;
-- labor;
-- administration.
-
-Current activity groups:
-
-- gladiator time: training, meals, sleep, leisure and care;
-- labor: production, security and maintenance;
-- administration: contracts, events and maintenance.
+Current visible task options are unlocked from owned buildings and building skills. Starting options focus on training, care and other gladiator-time tasks.
 
 The panel shows projected daily deltas and an aggregate weekly projection before the player resolves the next step.
 
