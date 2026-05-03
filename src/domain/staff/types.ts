@@ -1,6 +1,6 @@
 import type { BuildingId } from '../buildings/types';
 
-export type StaffType = 'slave' | 'guard' | 'trainer';
+export type StaffType = 'slave' | 'trainer';
 export type StaffVisualId = `${StaffType}-0${1 | 2 | 3 | 4 | 5}`;
 
 export interface StaffMember {

@@ -78,7 +78,6 @@ interface DailyGladiatorResolutionResult {
 }
 
 interface DailyGladiatorModifiers {
-  careEfficiency: number;
   injuryRiskReductionPercent: number;
   trainingAgilityProgressBonusPercent: number;
   trainingDefenseProgressBonusPercent: number;
@@ -151,7 +150,7 @@ function getFocusedTrainingGain(
   );
 }
 
-function getAssignedStaffCount(save: GameSave, type: 'guard' | 'trainer' | 'slave') {
+function getAssignedStaffCount(save: GameSave, type: 'trainer' | 'slave') {
   return save.staff.members.filter(
     (member) =>
       member.type === type &&
@@ -222,10 +221,6 @@ function getFinanceCategoryForActivity(activity: DailyPlanActivity): EconomyCate
     return activity;
   }
 
-  if (activity === 'security') {
-    return 'event';
-  }
-
   return 'other';
 }
 
@@ -288,7 +283,6 @@ function applyDailyGladiatorEffects(
   const trainingPoints = canTrain
     ? getAverageTrainingPressurePoints(plan, gladiatorPointDivisor)
     : 0;
-  const carePoints = plan.gladiatorTimePoints.care / gladiatorPointDivisor;
   const overtrainingPenalty = Math.max(
     0,
     trainingPoints - GAME_BALANCE.macroSimulation.idealTrainingPressurePointsPerGladiator,
@@ -296,7 +290,6 @@ function applyDailyGladiatorEffects(
   const injuryChance =
     trainingPoints *
     GAME_BALANCE.macroSimulation.trainingInjuryChancePerPoint *
-    Math.max(0.35, 1 - carePoints * 0.08 * modifiers.careEfficiency) *
     Math.max(0.1, 1 - modifiers.injuryRiskReductionPercent / 100);
   const isInjured = trainingPoints > 0 && random() < injuryChance;
   const focusedSkillGain = canTrain && !isInjured ? modifiers.trainingEfficiency : 0;
@@ -341,7 +334,6 @@ export function createWeeklyReport(save: GameSave, days: DailySimulationSummary[
     treasuryDelta: days.reduce((total, day) => total + day.treasuryDelta, 0),
     reputationDelta: days.reduce((total, day) => total + day.reputationDelta, 0),
     happinessDelta: days.reduce((total, day) => total + day.happinessDelta, 0),
-    securityDelta: days.reduce((total, day) => total + day.securityDelta, 0),
     rebellionDelta: days.reduce((total, day) => total + day.rebellionDelta, 0),
     injuries: days.reduce((total, day) => total + day.injuredGladiatorIds.length, 0),
   };
@@ -361,7 +353,6 @@ function resolveDailyPlanInternal(
     getAssignedStaffCount(operationalSave, 'trainer') * 0.08 +
     calculateBuildingEfficiency(operationalSave, 'trainingGround') * 0.1;
   const modifiers: DailyGladiatorModifiers = {
-    careEfficiency: getPurchasedBuildingMaxEfficiency(operationalSave, ['infirmary']),
     injuryRiskReductionPercent:
       getAllGladiatorsEffectValue(operationalSave, 'reduceInjuryRisk') +
       buildingActivityImpact.injuryRiskReductionPercent,
@@ -394,12 +385,7 @@ function resolveDailyPlanInternal(
       Math.max(1, operationalSave.gladiators.length),
     ),
   );
-  const productionEfficiency = getPurchasedBuildingMaxEfficiency(operationalSave, [
-    'canteen',
-    'farm',
-    'armory',
-    'forgeWorkshop',
-  ]);
+  const productionEfficiency = getPurchasedBuildingMaxEfficiency(operationalSave, ['canteen']);
   const productionBonusPercent = getLudusEffectValue(operationalSave, 'increaseProduction');
   const expenseReductionPercent = getLudusEffectValue(operationalSave, 'reduceExpense');
   const productionIncome = Math.round(
@@ -412,32 +398,16 @@ function resolveDailyPlanInternal(
     (total, member) => total + member.weeklyWage / 7,
     0,
   );
-  const guardCount = getAssignedStaffCount(operationalSave, 'guard');
-  const targetGuards = Math.ceil(
-    operationalSave.gladiators.length * GAME_BALANCE.macroSimulation.targetGuardRatio,
-  );
-  const securityEfficiency = getPurchasedBuildingMaxEfficiency(operationalSave, ['guardBarracks']);
-  const securityBuildingBonus = Math.round(
-    getLudusEffectValue(operationalSave, 'increaseSecurity') / 2,
-  );
   const gladiatorPointDivisor = Math.max(1, operationalSave.gladiators.length);
   const totalTrainingPressurePoints = getTrainingPressurePoints(plan);
   const averageGladiatorTrainingPoints = getAverageTrainingPressurePoints(
     plan,
     gladiatorPointDivisor,
   );
-  const securityDelta = Math.round(
-    guardCount * GAME_BALANCE.macroSimulation.securityPerGuard * securityEfficiency -
-      targetGuards * 10 +
-      getPoints(plan, 'security') * securityEfficiency +
-      securityBuildingBonus +
-      buildingActivityImpact.securityDelta,
-  );
   const happinessBuildingBonus = Math.round(
     getLudusEffectValue(operationalSave, 'increaseHappiness') / 5,
   );
   const happinessDelta =
-    plan.gladiatorTimePoints.leisure / gladiatorPointDivisor +
     -Math.max(
       0,
       averageGladiatorTrainingPoints -
@@ -451,9 +421,7 @@ function resolveDailyPlanInternal(
   );
   const isUnderRebellionPressure =
     operationalSave.ludus.happiness + happinessDelta <
-      GAME_BALANCE.macroSimulation.rebellionPressureHappinessThreshold ||
-    operationalSave.ludus.security + securityDelta <
-      GAME_BALANCE.macroSimulation.rebellionPressureSecurityThreshold;
+    GAME_BALANCE.macroSimulation.rebellionPressureHappinessThreshold;
   const rebellionDelta =
     (isUnderRebellionPressure
       ? GAME_BALANCE.macroSimulation.rebellionPressureDailyIncrease
@@ -516,7 +484,6 @@ function resolveDailyPlanInternal(
     treasuryDelta,
     reputationDelta,
     happinessDelta,
-    securityDelta,
     rebellionDelta,
     injuredGladiatorIds: gladiatorResults
       .filter((result) => result.isInjured)
@@ -529,7 +496,6 @@ function resolveDailyPlanInternal(
       ...operationalSave.ludus,
       reputation: Math.max(0, operationalSave.ludus.reputation + summary.reputationDelta),
       happiness: clamp(operationalSave.ludus.happiness + happinessDelta, 0, 100),
-      security: clamp(operationalSave.ludus.security + securityDelta, 0, 100),
       rebellion: clamp(operationalSave.ludus.rebellion + rebellionDelta, 0, 100),
     },
     gladiators: gladiatorResults.map((result) => result.gladiator),

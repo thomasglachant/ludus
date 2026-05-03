@@ -93,8 +93,6 @@ const activityIcons: Partial<Record<DailyPlanActivity, GameIconName>> = {
   lifeTraining: 'health',
   meals: 'happiness',
   sleep: 'timeNight',
-  leisure: 'dice',
-  care: 'health',
 };
 
 function getActivityIcon(activity: DailyPlanActivity): GameIconName {
@@ -222,12 +220,6 @@ function getDailyProjectionMetrics(projection: DailySimulationSummary): Projecti
       id: 'happiness',
       kind: 'morale',
       labelKey: 'weeklyPlan.projection.happiness',
-    },
-    {
-      amount: projection.securityDelta,
-      id: 'security',
-      kind: 'defense',
-      labelKey: 'weeklyPlan.projection.security',
     },
     {
       amount: projection.rebellionDelta,

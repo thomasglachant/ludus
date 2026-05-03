@@ -10,7 +10,6 @@ export interface BuildingActivityImpact {
   treasuryDelta: number;
   reputationDelta: number;
   happinessDelta: number;
-  securityDelta: number;
   rebellionDelta: number;
   injuryRiskReductionPercent: number;
 }
@@ -26,7 +25,6 @@ const emptyImpact: BuildingActivityImpact = {
   treasuryDelta: 0,
   reputationDelta: 0,
   happinessDelta: 0,
-  securityDelta: 0,
   rebellionDelta: 0,
   injuryRiskReductionPercent: 0,
 };
@@ -93,7 +91,6 @@ export function calculateBuildingActivityImpact(
       treasuryDelta: impact.treasuryDelta + contribution.treasuryDelta,
       reputationDelta: impact.reputationDelta + contribution.reputationDelta,
       happinessDelta: impact.happinessDelta + contribution.happinessDelta,
-      securityDelta: impact.securityDelta + contribution.securityDelta,
       rebellionDelta: impact.rebellionDelta + contribution.rebellionDelta,
       injuryRiskReductionPercent:
         impact.injuryRiskReductionPercent + contribution.injuryRiskReductionPercent,
@@ -126,8 +123,6 @@ export function getBuildingActivityContributions(
           plannedPoints * (activity.effects.reputationPerPoint ?? 0) * efficiencyMultiplier,
         happinessDelta:
           plannedPoints * (activity.effects.happinessPerPoint ?? 0) * efficiencyMultiplier,
-        securityDelta:
-          plannedPoints * (activity.effects.securityPerPoint ?? 0) * efficiencyMultiplier,
         rebellionDelta:
           plannedPoints * (activity.effects.rebellionPerPoint ?? 0) * efficiencyMultiplier,
         injuryRiskReductionPercent:

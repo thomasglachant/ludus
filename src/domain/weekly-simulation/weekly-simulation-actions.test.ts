@@ -79,15 +79,15 @@ function withCompleteWeeklyPlanning(save: GameSave): GameSave {
       gladiatorTimePoints: {
         ...days[dayOfWeek].gladiatorTimePoints,
         strengthTraining: 3 * gladiatorCount,
+        agilityTraining: 2 * gladiatorCount,
+        defenseTraining: 1 * gladiatorCount,
+        lifeTraining: 1 * gladiatorCount,
         meals: 0,
         sleep: 0,
-        leisure: 2 * gladiatorCount,
-        care: 2 * gladiatorCount,
       },
       laborPoints: {
         ...days[dayOfWeek].laborPoints,
         production: 4,
-        security: 4,
       },
     };
   }
@@ -124,7 +124,6 @@ describe('weekly simulation actions', () => {
     plan.gladiatorTimePoints.strengthTraining = 12;
     plan.gladiatorTimePoints.meals = 0;
     plan.gladiatorTimePoints.sleep = 0;
-    plan.gladiatorTimePoints.care = 0;
 
     const result = resolveDailyPlan(save, plan, () => 0);
     const gladiator = result.save.gladiators[0];
@@ -241,37 +240,17 @@ describe('weekly simulation actions', () => {
     expect(result.gladiators[0].weeklyInjury).toBeUndefined();
   });
 
-  it('uses macro happiness and security thresholds for rebellion pressure', () => {
+  it('uses the macro happiness threshold for rebellion pressure', () => {
     const pressurePlan = createDefaultDailyPlan('monday');
     pressurePlan.gladiatorTimePoints.meals = 0;
     pressurePlan.gladiatorTimePoints.sleep = 4;
-    pressurePlan.gladiatorTimePoints.leisure = 0;
-    pressurePlan.gladiatorTimePoints.care = 0;
     pressurePlan.laborPoints.production = 0;
-    pressurePlan.laborPoints.security = 0;
 
     const unhappyResult = resolveDailyPlan(
       createTestSave({
         ludus: {
           ...createTestSave().ludus,
           happiness: GAME_BALANCE.macroSimulation.rebellionPressureHappinessThreshold - 1,
-          security: GAME_BALANCE.macroSimulation.rebellionPressureSecurityThreshold + 20,
-        },
-      }),
-      pressurePlan,
-      () => 1,
-    );
-    const unsafeResult = resolveDailyPlan(
-      createTestSave({
-        ludus: {
-          ...createTestSave().ludus,
-          happiness: GAME_BALANCE.macroSimulation.rebellionPressureHappinessThreshold + 20,
-          security: GAME_BALANCE.macroSimulation.rebellionPressureSecurityThreshold - 1,
-        },
-        staff: {
-          ...createTestSave().staff,
-          members: [],
-          assignments: [],
         },
       }),
       pressurePlan,
@@ -282,7 +261,6 @@ describe('weekly simulation actions', () => {
         ludus: {
           ...createTestSave().ludus,
           happiness: GAME_BALANCE.macroSimulation.rebellionPressureHappinessThreshold,
-          security: GAME_BALANCE.macroSimulation.rebellionPressureSecurityThreshold + 20,
         },
       }),
       pressurePlan,
@@ -290,9 +268,6 @@ describe('weekly simulation actions', () => {
     );
 
     expect(unhappyResult.summary.rebellionDelta).toBe(
-      GAME_BALANCE.macroSimulation.rebellionPressureDailyIncrease,
-    );
-    expect(unsafeResult.summary.rebellionDelta).toBe(
       GAME_BALANCE.macroSimulation.rebellionPressureDailyIncrease,
     );
     expect(stableResult.summary.rebellionDelta).toBe(
@@ -336,8 +311,6 @@ describe('weekly simulation actions', () => {
     });
     const plan = createDefaultDailyPlan('monday');
     plan.gladiatorTimePoints.sleep = 4;
-    plan.gladiatorTimePoints.care = 0;
-    plan.gladiatorTimePoints.leisure = 0;
     const boostedSave: GameSave = {
       ...save,
       buildings: {
@@ -362,41 +335,41 @@ describe('weekly simulation actions', () => {
     const save = createTestSave();
     const plan = createDefaultDailyPlan('monday');
     plan.laborPoints.production = 4;
-    plan.buildingActivitySelections.production = 'farm.marketSurplus';
-    const farmSave: GameSave = {
+    plan.buildingActivitySelections.production = 'canteen.supplyContracts';
+    const canteenSave: GameSave = {
       ...save,
       buildings: {
         ...save.buildings,
-        farm: {
-          ...save.buildings.farm,
+        canteen: {
+          ...save.buildings.canteen,
           isPurchased: true,
           level: 1,
         },
       },
     };
-    const unlockedFarmSave: GameSave = {
-      ...farmSave,
+    const unlockedCanteenSave: GameSave = {
+      ...canteenSave,
       buildings: {
-        ...farmSave.buildings,
-        farm: {
-          ...farmSave.buildings.farm,
-          purchasedSkillIds: ['farm.market-surplus'],
+        ...canteenSave.buildings,
+        canteen: {
+          ...canteenSave.buildings.canteen,
+          purchasedSkillIds: ['canteen.supply-contracts'],
         },
       },
     };
 
-    const baseResult = resolveDailyPlan(farmSave, plan, () => 1);
-    const unlockedResult = resolveDailyPlan(unlockedFarmSave, plan, () => 1);
+    const baseResult = resolveDailyPlan(canteenSave, plan, () => 1);
+    const unlockedResult = resolveDailyPlan(unlockedCanteenSave, plan, () => 1);
 
     expect(unlockedResult.summary.treasuryDelta).toBeGreaterThan(baseResult.summary.treasuryDelta);
     expect(unlockedResult.save.economy.ledgerEntries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          buildingId: 'farm',
+          buildingId: 'canteen',
           category: 'production',
           kind: 'income',
           labelKey: 'finance.ledger.buildingActivityIncome',
-          relatedId: 'farm.marketSurplus',
+          relatedId: 'canteen.supplyContracts',
         }),
       ]),
     );
@@ -422,9 +395,6 @@ describe('weekly simulation actions', () => {
     expect(projection.days).toHaveLength(6);
     expect(projection.treasuryDelta).toBe(
       projection.days.reduce((total, day) => total + day.treasuryDelta, 0),
-    );
-    expect(projection.securityDelta).toBe(
-      projection.days.reduce((total, day) => total + day.securityDelta, 0),
     );
     expect(save.economy.ledgerEntries).toEqual([]);
   });
@@ -489,7 +459,6 @@ describe('weekly simulation actions', () => {
       id: 'running-1-1',
       treasuryDelta: runningReport.days[0].treasuryDelta,
       happinessDelta: runningReport.days[0].happinessDelta,
-      securityDelta: runningReport.days[0].securityDelta,
       rebellionDelta: runningReport.days[0].rebellionDelta,
     });
   });
@@ -577,7 +546,6 @@ describe('weekly simulation actions', () => {
                   treasuryDelta: 10,
                   reputationDelta: 0,
                   happinessDelta: 0,
-                  securityDelta: 0,
                   rebellionDelta: 0,
                   injuredGladiatorIds: [],
                   eventIds: [],
@@ -586,7 +554,6 @@ describe('weekly simulation actions', () => {
               treasuryDelta: 10,
               reputationDelta: 0,
               happinessDelta: 0,
-              securityDelta: 0,
               rebellionDelta: 0,
               injuries: 0,
             },

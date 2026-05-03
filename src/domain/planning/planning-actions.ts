@@ -85,10 +85,7 @@ function createEmptyPoints(): DailyPlanPoints {
     lifeTraining: 0,
     meals: 0,
     sleep: 0,
-    leisure: 0,
-    care: 0,
     production: 0,
-    security: 0,
   };
 }
 
@@ -147,7 +144,6 @@ function createInjuryAlert(gladiatorId: string, createdAt: string): GameAlert {
     titleKey: 'alerts.injury.title',
     descriptionKey: 'alerts.injury.description',
     gladiatorId,
-    buildingId: 'infirmary',
     createdAt,
   };
 }

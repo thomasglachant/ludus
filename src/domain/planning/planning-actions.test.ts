@@ -63,7 +63,7 @@ describe('planning actions', () => {
         expect.objectContaining({
           severity: 'warning',
           titleKey: 'alerts.injury.title',
-          buildingId: 'infirmary',
+          gladiatorId: expect.any(String),
         }),
       ]),
     );
@@ -84,13 +84,13 @@ describe('planning actions', () => {
   it('updates daily macro plan points by activity bucket', () => {
     const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
     const result = updateDailyPlan(save, {
-      activity: 'leisure',
+      activity: 'lifeTraining',
       bucket: 'gladiatorTimePoints',
       dayOfWeek: 'monday',
       points: 0.4,
     });
 
-    expect(result.planning.days.monday.gladiatorTimePoints.leisure).toBe(0);
+    expect(result.planning.days.monday.gladiatorTimePoints.lifeTraining).toBe(0);
   });
 
   it('caps daily macro plan updates to the bucket budget', () => {
@@ -132,7 +132,7 @@ describe('planning actions', () => {
             ...baseSave.planning.days.monday,
             adminPoints: {
               ...baseSave.planning.days.monday.adminPoints,
-              security: 3,
+              production: 3,
             },
             laborPoints: {
               ...baseSave.planning.days.monday.laborPoints,
@@ -144,7 +144,7 @@ describe('planning actions', () => {
     });
 
     expect(save.planning.days.monday.laborPoints.production).toBe(0);
-    expect(save.planning.days.monday.adminPoints.security).toBe(0);
+    expect(save.planning.days.monday.adminPoints.production).toBe(0);
   });
 
   it('selects an unlocked building activity for a daily activity', () => {
@@ -152,21 +152,21 @@ describe('planning actions', () => {
       ...createTestSave(),
       buildings: {
         ...createTestSave().buildings,
-        farm: {
-          ...createTestSave().buildings.farm,
+        canteen: {
+          ...createTestSave().buildings.canteen,
           isPurchased: true,
-          purchasedSkillIds: ['farm.market-surplus'],
+          purchasedSkillIds: ['canteen.supply-contracts'],
         },
       },
     };
     const result = updateDailyPlanBuildingActivitySelection(save, {
       activity: 'production',
-      activityId: 'farm.marketSurplus',
+      activityId: 'canteen.supplyContracts',
       dayOfWeek: 'monday',
     });
 
     expect(result.planning.days.monday.buildingActivitySelections.production).toBe(
-      'farm.marketSurplus',
+      'canteen.supplyContracts',
     );
   });
 
@@ -180,7 +180,7 @@ describe('planning actions', () => {
           monday: {
             ...createTestSave().planning.days.monday,
             buildingActivitySelections: {
-              production: 'farm.marketSurplus' as const,
+              production: 'canteen.supplyContracts' as const,
             },
           },
         },
@@ -188,7 +188,7 @@ describe('planning actions', () => {
     };
     const invalidResult = updateDailyPlanBuildingActivitySelection(save, {
       activity: 'production',
-      activityId: 'farm.exportContracts',
+      activityId: undefined,
       dayOfWeek: 'monday',
     });
     const clearedResult = updateDailyPlanBuildingActivitySelection(save, {

@@ -58,8 +58,6 @@ export const GAME_BALANCE = {
       agilityTraining: 2,
       defenseTraining: 2,
       lifeTraining: 2,
-      leisure: 1,
-      care: 1,
     },
   },
 
@@ -172,20 +170,6 @@ export const GAME_BALANCE = {
           injuryRiskPerPoint: 4,
         },
       },
-      pleasureHall: {
-        // Ludus happiness support granted by Pleasure Hall level 1.
-        1: { happiness: 5 },
-        // Ludus happiness support granted by Pleasure Hall level 2.
-        2: { happiness: 7 },
-      },
-      infirmary: {
-        // Injury-risk reduction granted by Infirmary level 1.
-        1: { injuryRiskReduction: 4 },
-        2: {
-          // Injury-risk reduction granted by Infirmary level 2.
-          injuryRiskReduction: 5,
-        },
-      },
     },
   },
 
@@ -218,10 +202,7 @@ export const GAME_BALANCE = {
     productionIncomePerPoint: 8,
     staffExperiencePerAssignedDay: 1,
     maximumStaffExperienceBonusPercent: 20,
-    targetGuardRatio: 0.5,
-    securityPerGuard: 12,
     rebellionPressureHappinessThreshold: 40,
-    rebellionPressureSecurityThreshold: 45,
     rebellionPressureDailyIncrease: 8,
     rebellionCalmDailyReduction: 4,
     rebellionCriticalThreshold: 80,
@@ -305,17 +286,15 @@ export const GAME_BALANCE = {
     // Number of generated candidates for each staff type each week.
     candidatesPerType: 20,
     // Legacy aggregate staff market count retained for older references.
-    availableStaffCount: 60,
+    availableStaffCount: 40,
     // Candidate type rotation used by weekly staff market generation.
-    typePool: ['slave', 'slave', 'guard', 'trainer'] as const satisfies readonly StaffType[],
+    typePool: ['slave', 'trainer'] as const satisfies readonly StaffType[],
     basePriceByType: {
       slave: 85,
-      guard: 150,
       trainer: 220,
     } as const satisfies Record<StaffType, number>,
     weeklyWageByType: {
       slave: 0,
-      guard: 32,
       trainer: 48,
     } as const satisfies Record<StaffType, number>,
     // Minimum starting building experience assigned to generated staff.

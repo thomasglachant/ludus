@@ -68,10 +68,7 @@ GAME_BALANCE.macroSimulation = {
   productionIncomePerPoint: 8,
   staffExperiencePerAssignedDay: 1,
   maximumStaffExperienceBonusPercent: 20,
-  targetGuardRatio: 0.5,
-  securityPerGuard: 12,
   rebellionPressureHappinessThreshold: 40,
-  rebellionPressureSecurityThreshold: 45,
   rebellionPressureDailyIncrease: 8,
   rebellionCalmDailyReduction: 4,
   rebellionCriticalThreshold: 80,
@@ -86,20 +83,7 @@ Only `baseDailyGladiatorPoints` is active in the current player-facing planner. 
 Current `BuildingId` values:
 
 ```ts
-type BuildingId =
-  | 'domus'
-  | 'trainingGround'
-  | 'canteen'
-  | 'dormitory'
-  | 'infirmary'
-  | 'guardBarracks'
-  | 'farm'
-  | 'pleasureHall'
-  | 'exhibitionGrounds'
-  | 'armory'
-  | 'bookmakerOffice'
-  | 'banquetHall'
-  | 'forgeWorkshop';
+type BuildingId = 'domus' | 'trainingGround' | 'canteen' | 'dormitory';
 ```
 
 Initial owned buildings:
@@ -107,11 +91,9 @@ Initial owned buildings:
 - `domus`;
 - `trainingGround`;
 - `canteen`;
-- `dormitory`;
-- `infirmary`;
-- `guardBarracks`.
+- `dormitory`.
 
-Other buildings start as map-ready future purchases with Domus requirements and purchase costs.
+There are no optional building purchases in the current build.
 
 Buildings must not include a generic `budget` property. They now track:
 
@@ -121,7 +103,7 @@ Buildings must not include a generic `budget` property. They now track:
 
 ## Building Skills
 
-`src/game-data/building-skills.ts` generates 20 skills for each building from the design skill lists.
+`src/game-data/building-skills.ts` generates 20 skills for each current building from the design skill lists.
 
 Tree rule:
 
@@ -131,7 +113,7 @@ Tree rule:
 - tier 3 requires the first tier 2 key skill and building level 3;
 - tier 4 requires the first tier 3 key skill and building level 5.
 
-Skill effects currently map to the building's primary macro purpose, such as income, production, happiness, security, injury risk, reputation or expense reduction.
+Skill effects currently map to the building's primary macro purpose, such as income, production, happiness, injury risk, reputation or expense reduction.
 
 Some skills also expose `unlockedActivities` ids from `src/game-data/building-activities.ts`. These ids use the owning building prefix and are meant for building-specific macro planning options. They are not standalone balance knobs; any resulting simulation benefit should still come from the activity definition, purchased skill state, explicit daily plan selection and current building efficiency.
 
@@ -141,22 +123,20 @@ Daily simulation applies active macro effects from levels, improvements, policie
 
 New saves start without owned staff. The player recruits personnel from the staff market and assigns them manually.
 
-The market generates 20 gladiators, 20 slaves, 20 guards and 20 trainers each week. Buying staff moves a candidate into `staff.members`, selling staff removes assignments and returns a calculated sale value. Staff and gladiator market transactions are recorded in the economy ledger. Market prices scale with generated capability: gladiators use effective skills and reputation, while staff use role, wage and building experience.
+The market generates 20 gladiators, 20 slaves and 20 trainers each week. Buying staff moves a candidate into `staff.members`, selling staff removes assignments and returns a calculated sale value. Staff and gladiator market transactions are recorded in the economy ledger. Market prices scale with generated capability: gladiators use effective skills and reputation, while staff use role, wage and building experience.
 
 ```ts
 GAME_BALANCE.market.availableGladiatorCount = 20;
 GAME_BALANCE.staffMarket.candidatesPerType = 20;
 GAME_BALANCE.staffMarket.weeklyWageByType = {
   slave: 0,
-  guard: 32,
   trainer: 48,
 };
 ```
 
 Staff type rules:
 
-- slaves can work anywhere;
-- guards only work in `guardBarracks`;
+- slaves can work in `canteen` and `dormitory`;
 - trainers only work in `trainingGround`.
 
 Experience in an assigned building grows by `staffExperiencePerAssignedDay` and contributes up to a 20% efficiency bonus.

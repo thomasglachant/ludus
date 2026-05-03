@@ -48,17 +48,15 @@ type RandomSource = () => number;
 
 const staffNamesByType: Record<StaffType, readonly string[]> = {
   slave: ['Syrus', 'Nysa', 'Dama', 'Felix', 'Livia', 'Maro'],
-  guard: ['Varro', 'Marcellus', 'Cassius', 'Nerva', 'Drusus', 'Tarquinius'],
   trainer: ['Brennus', 'Titus', 'Gannicus', 'Oenomaus', 'Priscus', 'Verus'],
 };
 
 const experienceBuildingByType: Record<StaffType, readonly BuildingId[]> = {
-  slave: ['canteen', 'dormitory', 'farm', 'forgeWorkshop'],
-  guard: ['guardBarracks'],
+  slave: ['canteen', 'dormitory'],
   trainer: ['trainingGround'],
 };
 
-const staffMarketTypes: StaffType[] = ['slave', 'guard', 'trainer'];
+const staffMarketTypes: StaffType[] = ['slave', 'trainer'];
 
 function pickIndex(length: number, random: RandomSource) {
   return Math.min(length - 1, Math.floor(random() * length));
@@ -72,6 +70,11 @@ function createStaffVisualId(type: StaffType, random: RandomSource): StaffVisual
 
 function createStaffExperience(type: StaffType, random: RandomSource) {
   const typeBuildings = experienceBuildingByType[type];
+
+  if (typeBuildings.length === 0) {
+    return {};
+  }
+
   const buildingId = typeBuildings[pickIndex(typeBuildings.length, random)];
   const range =
     GAME_BALANCE.staffMarket.maxGeneratedExperience -
@@ -197,7 +200,6 @@ export function calculateStaffSaleValue(staffMember: StaffMember) {
   );
   const typeBaseValue: Record<StaffType, number> = {
     slave: 45,
-    guard: 75,
     trainer: 110,
   };
 

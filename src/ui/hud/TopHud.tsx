@@ -30,7 +30,6 @@ export function TopHud({
   const { t } = useUiStore();
   const dayLabel = t(`days.${save.time.dayOfWeek}`);
   const happinessPercent = Math.round(Math.min(100, Math.max(0, save.ludus.happiness)));
-  const securityPercent = Math.round(Math.min(100, Math.max(0, save.ludus.security)));
   const domusLevel = save.buildings.domus.level;
 
   return (
@@ -83,19 +82,6 @@ export function TopHud({
                 iconSize={TOP_HUD_RESOURCE_ICON_SIZE}
                 label={t('ludus.happiness')}
                 value={save.ludus.happiness}
-                variant="major"
-              />
-            </Tooltip>
-          </div>
-          <div className="top-hud__resource top-hud__resource--meter" data-testid="topbar-security">
-            <Tooltip content={`${t('ludus.security')} ${securityPercent}%`}>
-              <GaugeStatBar
-                className="top-hud__gauge"
-                iconClassName="top-hud__resource-icon"
-                iconName="security"
-                iconSize={TOP_HUD_RESOURCE_ICON_SIZE}
-                label={t('ludus.security')}
-                value={save.ludus.security}
                 variant="major"
               />
             </Tooltip>

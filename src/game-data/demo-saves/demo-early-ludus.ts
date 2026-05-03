@@ -38,22 +38,6 @@ const save = createDemoSave({
       },
       selectedPolicyId: 'balancedTraining',
     }),
-    pleasureHall: createPurchasedBuilding({
-      id: 'pleasureHall',
-      level: 1,
-      configuration: {
-        entertainmentPlanId: 'quietEvenings',
-      },
-      selectedPolicyId: 'quietEvenings',
-    }),
-    infirmary: createPurchasedBuilding({
-      id: 'infirmary',
-      level: 1,
-      configuration: {
-        carePolicyId: 'basicCare',
-      },
-      selectedPolicyId: 'basicCare',
-    }),
   },
   gladiators: [
     {

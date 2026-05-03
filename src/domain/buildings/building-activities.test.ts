@@ -22,21 +22,21 @@ describe('building activities', () => {
       ...createTestSave(),
       buildings: {
         ...createTestSave().buildings,
-        farm: {
-          ...createTestSave().buildings.farm,
+        canteen: {
+          ...createTestSave().buildings.canteen,
           isPurchased: true,
           level: 1,
           efficiency: 100,
-          purchasedSkillIds: ['farm.market-surplus'],
+          purchasedSkillIds: ['canteen.supply-contracts'],
         },
       },
     };
 
-    expect(isBuildingActivityUnlocked(save, 'farm.marketSurplus')).toBe(true);
-    expect(getUnlockedBuildingActivities(save, 'farm')).toEqual(
+    expect(isBuildingActivityUnlocked(save, 'canteen.supplyContracts')).toBe(true);
+    expect(getUnlockedBuildingActivities(save, 'canteen')).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: 'farm.marketSurplus',
+          id: 'canteen.supplyContracts',
           activity: 'production',
         }),
       ]),
@@ -48,18 +48,18 @@ describe('building activities', () => {
       ...createTestSave(),
       buildings: {
         ...createTestSave().buildings,
-        farm: {
-          ...createTestSave().buildings.farm,
+        canteen: {
+          ...createTestSave().buildings.canteen,
           isPurchased: true,
           level: 1,
           efficiency: 50,
-          purchasedSkillIds: ['farm.market-surplus'],
+          purchasedSkillIds: ['canteen.supply-contracts'],
         },
       },
     };
     const plan = createDefaultDailyPlan('monday');
     plan.laborPoints.production = 4;
-    plan.buildingActivitySelections.production = 'farm.marketSurplus';
+    plan.buildingActivitySelections.production = 'canteen.supplyContracts';
 
     expect(calculateBuildingActivityImpact(save, plan).treasuryDelta).toBe(10);
   });
@@ -69,12 +69,12 @@ describe('building activities', () => {
       ...createTestSave(),
       buildings: {
         ...createTestSave().buildings,
-        farm: {
-          ...createTestSave().buildings.farm,
+        canteen: {
+          ...createTestSave().buildings.canteen,
           isPurchased: true,
           level: 1,
           efficiency: 100,
-          purchasedSkillIds: ['farm.market-surplus'],
+          purchasedSkillIds: ['canteen.supply-contracts'],
         },
       },
     };

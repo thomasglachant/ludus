@@ -7,17 +7,8 @@ interface BuildingAvatarProps {
 }
 
 const buildingAvatarIcons: Partial<Record<BuildingId, GameIconName>> = {
-  armory: 'defense',
-  banquetHall: 'morale',
-  bookmakerOffice: 'treasury',
   domus: 'landmark',
   dormitory: 'capacity',
-  exhibitionGrounds: 'victory',
-  farm: 'workforce',
-  forgeWorkshop: 'hammer',
-  guardBarracks: 'defense',
-  infirmary: 'health',
-  pleasureHall: 'morale',
   trainingGround: 'training',
 };
 

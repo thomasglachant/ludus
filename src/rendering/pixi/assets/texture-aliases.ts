@@ -29,14 +29,7 @@ export type PixiRenderLayerId = (typeof PIXI_RENDER_LAYERS)[keyof typeof PIXI_RE
 export const PIXI_HOMEPAGE_PHASES = ['day', 'dusk'] as const;
 export type PixiHomepagePhase = (typeof PIXI_HOMEPAGE_PHASES)[number];
 
-export const PIXI_BUILDING_IDS = [
-  'domus',
-  'canteen',
-  'dormitory',
-  'trainingGround',
-  'pleasureHall',
-  'infirmary',
-] as const;
+export const PIXI_BUILDING_IDS = ['domus', 'canteen', 'dormitory', 'trainingGround'] as const;
 
 export type PixiBuildingId = (typeof PIXI_BUILDING_IDS)[number];
 

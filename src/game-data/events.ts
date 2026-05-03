@@ -17,7 +17,6 @@ export type DailyEventGladiatorSelector = 'any' | 'injured';
 export type DailyEventEffectTemplate =
   | { type: 'changeTreasury'; amount: number }
   | { type: 'changeLudusReputation'; amount: number }
-  | { type: 'changeLudusSecurity'; amount: number }
   | { type: 'changeLudusHappiness'; amount: number }
   | { type: 'changeLudusRebellion'; amount: number }
   | { type: 'removeSelectedGladiator' }
@@ -59,7 +58,6 @@ export interface DailyEventDefinition {
   requiredLudus?: {
     happinessAtMost?: number;
     rebellionAtLeast?: number;
-    securityAtMost?: number;
   };
   priority?: 'critical';
   selectionWeightPercent?: number;
@@ -102,7 +100,6 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
           {
             kind: 'certain',
             effects: [
-              { type: 'changeLudusSecurity', amount: -10 },
               { type: 'changeLudusHappiness', amount: -18 },
               { type: 'changeLudusRebellion', amount: -30 },
               { type: 'changeLudusReputation', amount: -2 },
@@ -167,42 +164,11 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
     ],
   },
   {
-    id: 'medicusOffer',
-    titleKey: 'events.medicusOffer.title',
-    descriptionKey: 'events.medicusOffer.description',
-    triggerActivities: ['care'],
-    gladiatorSelector: 'injured',
-    choices: [
-      {
-        id: 'payMedicus',
-        labelKey: 'events.medicusOffer.payMedicus.label',
-        consequenceKey: 'events.medicusOffer.payMedicus.consequence',
-        consequences: [
-          {
-            kind: 'certain',
-            effects: [
-              { type: 'changeTreasury', amount: -45 },
-              { type: 'changeSelectedGladiatorHealth', amount: 18 },
-            ],
-          },
-        ],
-      },
-      {
-        id: 'declineTreatment',
-        labelKey: 'events.medicusOffer.declineTreatment.label',
-        consequenceKey: 'events.medicusOffer.declineTreatment.consequence',
-        consequences: [
-          { kind: 'certain', effects: [{ type: 'changeSelectedGladiatorMorale', amount: -3 }] },
-        ],
-      },
-    ],
-  },
-  {
     id: 'surplusHarvest',
     titleKey: 'events.surplusHarvest.title',
     descriptionKey: 'events.surplusHarvest.description',
     triggerActivities: ['production'],
-    triggerBuildingActivities: ['farm.marketSurplus', 'farm.exportContracts'],
+    triggerBuildingActivities: ['canteen.supplyContracts'],
     choices: [
       {
         id: 'sellSurplus',
@@ -220,42 +186,6 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
             effects: [
               { type: 'changeTreasury', amount: 25 },
               { type: 'changeLudusReputation', amount: 1 },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'guardCorruption',
-    titleKey: 'events.guardCorruption.title',
-    descriptionKey: 'events.guardCorruption.description',
-    triggerActivities: ['security'],
-    choices: [
-      {
-        id: 'punishGuard',
-        labelKey: 'events.guardCorruption.punishGuard.label',
-        consequenceKey: 'events.guardCorruption.punishGuard.consequence',
-        consequences: [
-          {
-            kind: 'certain',
-            effects: [
-              { type: 'changeTreasury', amount: -15 },
-              { type: 'changeLudusReputation', amount: 2 },
-            ],
-          },
-        ],
-      },
-      {
-        id: 'hideScandal',
-        labelKey: 'events.guardCorruption.hideScandal.label',
-        consequenceKey: 'events.guardCorruption.hideScandal.consequence',
-        consequences: [
-          {
-            kind: 'certain',
-            effects: [
-              { type: 'changeTreasury', amount: -40 },
-              { type: 'changeLudusReputation', amount: -1 },
             ],
           },
         ],

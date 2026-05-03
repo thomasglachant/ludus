@@ -7,7 +7,7 @@ The player is the lanista of a Roman gladiator school. The ludus is managed as a
 The weekly rhythm is:
 
 1. Plan the week through shared daily allocations.
-2. Resolve daily consequences for training, needs, money, staff, security and risks.
+2. Resolve daily consequences for training, needs, money, staff and risks.
 3. Handle blocking events when they appear.
 4. Resolve Sunday arena combat as the weekly climax.
 5. Review reports and start the next week.
@@ -32,8 +32,7 @@ Current visible planning tasks are:
 - `agilityTraining`;
 - `defenseTraining`;
 - `lifeTraining`;
-- `leisure`;
-- `care`.
+- `production`.
 
 The default planning baseline is 6 gladiator time points per day before building effects and roster scaling. Training pressure increases injury risk and can reduce happiness when overdone. Training injuries create a weekly injury state that blocks physical activity and gladiator contract participation until the next week begins. Gladiator health, energy and morale are not daily attributes; they are temporary combat gauges calculated at fight start from aptitudes, especially life.
 
@@ -52,7 +51,7 @@ Each day resolves:
 - staff wages and maintenance costs;
 - staff experience growth;
 - building efficiency updates;
-- happiness, security and rebellion movement;
+- happiness and rebellion movement;
 - ledger entries and current week summary;
 - game over if treasury reaches the defeat threshold.
 
@@ -88,8 +87,7 @@ Staff is stored in `StaffState`.
 
 Types:
 
-- `slave`: can work in any building;
-- `guard`: can only work in `guardBarracks`;
+- `slave`: can work in `canteen` and `dormitory`;
 - `trainer`: can only work in `trainingGround`.
 
 Assigned staff increases building efficiency until the building's required staff count is covered. Extra staff beyond that requirement cannot inflate the base efficiency. Building experience grows slowly each assigned day and can provide up to a 20% efficiency bonus.
@@ -101,8 +99,6 @@ Staff can be unassigned from a building. Staff purchase and sale actions are rec
 The number of owned staff members is capped by Domus level. The current rule grants 3 staff places per Domus level, from 3 at level 1 to 18 at level 6.
 
 The staff market refreshes weekly alongside the gladiator market.
-
-Security is driven primarily by guards. The target balance is roughly one guard per two gladiators.
 
 ## Buildings
 
@@ -119,25 +115,16 @@ Building levels unlock stronger global effects and future feature branches. Skil
 
 Building skills can unlock building-specific macro activities. These activities are specialized planning options that spend the existing daily point pools rather than adding a separate building budget. They must be selected in the daily plan for their matching generic activity before they affect simulation, which prevents every unlocked option from stacking automatically.
 
-Daily simulation applies purchased building, improvement, policy and skill effects directly to macro outcomes. These effects are scaled by operational efficiency, so staffing shortages reduce income, production, security, happiness and other building-driven benefits. Some random events are gated by selected building activities, so a specialized event can only appear when the player actually routed points into that activity.
+Daily simulation applies purchased building, improvement, policy and skill effects directly to macro outcomes. These effects are scaled by operational efficiency, so staffing shortages reduce income, production, happiness and other building-driven benefits. Some random events are gated by selected building activities, so a specialized event can only appear when the player actually routed points into that activity.
 
 Current building ids:
 
 - `domus`;
 - `trainingGround`;
 - `canteen`;
-- `dormitory`;
-- `infirmary`;
-- `guardBarracks`;
-- `farm`;
-- `pleasureHall`;
-- `exhibitionGrounds`;
-- `armory`;
-- `bookmakerOffice`;
-- `banquetHall`;
-- `forgeWorkshop`.
+- `dormitory`.
 
-Domus level controls progressive access. The first save includes the core starting buildings and map slots for later construction.
+The first save includes all current buildings. There are no optional building purchases in the current build.
 
 ## Sunday Arena
 
@@ -161,12 +148,12 @@ Activity-gated examples:
 
 - training accidents, noble humiliation, new technique;
 - fever, recovery, medicus demand;
-- bodyguard offer, army request, contract dispute;
+- army request, contract dispute;
 - grain blight, surplus harvest, weapon defect;
-- escape attempt, guard corruption, riot spark;
+- escape attempt, riot spark;
 - refinancing offer, tax inspection, bookmaker scandal.
 
-Global events may still trigger from debt, security, reputation, rivalry or rebellion state.
+Global events may still trigger from debt, reputation, rivalry or rebellion state.
 
 When rebellion reaches a critical level, a priority rebellion crisis can appear regardless of the weekly activity mix. It offers three resolution paths: pay for calm, repress the riot, or free all gladiators and rebuild the roster.
 

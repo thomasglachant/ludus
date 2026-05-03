@@ -74,18 +74,6 @@ export const BUILDING_PLANNING_ACTIVITY_DEFINITIONS = {
       { amount: -1, kind: 'warning', labelKey: 'weeklyPlan.taskImpacts.injuryRisk' },
     ]),
   ],
-  infirmary: [
-    createGladiatorTask('care', '#4e9f76', [
-      { amount: 1, kind: 'health', labelKey: 'weeklyPlan.taskImpacts.care' },
-      { amount: 1, kind: 'warning', labelKey: 'weeklyPlan.taskImpacts.injuryRiskReduction' },
-    ]),
-  ],
-  pleasureHall: [
-    createGladiatorTask('leisure', '#c16f9b', [
-      { amount: 1, kind: 'morale', labelKey: 'weeklyPlan.taskImpacts.happiness' },
-      { amount: -1, kind: 'warning', labelKey: 'weeklyPlan.taskImpacts.rebellionPressure' },
-    ]),
-  ],
 } as const satisfies Partial<Record<BuildingId, readonly BuildingPlanningActivityDefinition[]>>;
 
 export const PLANNING_ACTIVITY_DEFINITIONS = Object.entries(

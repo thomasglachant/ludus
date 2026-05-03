@@ -37,7 +37,6 @@ export type GameStatus = 'active' | 'lost';
 export interface LudusState {
   treasury: number;
   reputation: number;
-  security: number;
   happiness: number;
   rebellion: number;
   gameStatus: GameStatus;
@@ -64,20 +63,7 @@ The normal ludus progression uses daily and weekly macro resolvers. Minute-by-mi
 ## Buildings
 
 ```ts
-export type BuildingId =
-  | 'domus'
-  | 'trainingGround'
-  | 'canteen'
-  | 'dormitory'
-  | 'infirmary'
-  | 'guardBarracks'
-  | 'farm'
-  | 'pleasureHall'
-  | 'exhibitionGrounds'
-  | 'armory'
-  | 'bookmakerOffice'
-  | 'banquetHall'
-  | 'forgeWorkshop';
+export type BuildingId = 'domus' | 'trainingGround' | 'canteen' | 'dormitory';
 ```
 
 ```ts
@@ -151,10 +137,7 @@ export type DailyPlanActivity =
   | 'lifeTraining'
   | 'meals'
   | 'sleep'
-  | 'leisure'
-  | 'care'
-  | 'production'
-  | 'security';
+  | 'production';
 
 export type DailyPlanPoints = Record<DailyPlanActivity, number>;
 
@@ -177,7 +160,6 @@ export interface DailySimulationSummary {
   treasuryDelta: number;
   reputationDelta: number;
   happinessDelta: number;
-  securityDelta: number;
   rebellionDelta: number;
   injuredGladiatorIds: string[];
   eventIds: string[];
@@ -191,7 +173,6 @@ export interface WeeklyReport {
   treasuryDelta: number;
   reputationDelta: number;
   happinessDelta: number;
-  securityDelta: number;
   rebellionDelta: number;
   injuries: number;
 }
@@ -263,7 +244,7 @@ Current ledger-backed flows include daily macro income and expenses, building ac
 ## Staff
 
 ```ts
-export type StaffType = 'slave' | 'guard' | 'trainer';
+export type StaffType = 'slave' | 'trainer';
 
 export interface StaffMember {
   id: string;

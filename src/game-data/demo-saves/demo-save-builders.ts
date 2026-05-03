@@ -94,7 +94,6 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       isCloudUser: false,
     },
     ludus: {
-      security: 50,
       happiness: 65,
       rebellion: 0,
       gameStatus: 'active',

@@ -548,8 +548,8 @@ function drawLocationDetails(graphics: Graphics, location: LudusMapSceneLocation
   const isArena = location.id === 'arena';
   const wallColor = isArena ? 0x9c6a3d : 0x7b5a3b;
   const floorColor = isArena ? 0xc09352 : 0xbe8c55;
-  const roomColor = location.id === 'infirmary' ? 0xd6c28f : 0xe0b879;
-  const roofColor = location.id === 'pleasureHall' ? 0x9f4438 : 0x8c5130;
+  const roomColor = 0xe0b879;
+  const roofColor = 0x8c5130;
   const inset = isArena ? 42 : 34;
 
   graphics.setFillStyle({ color: 0x2b2118, alpha: 0.2 });

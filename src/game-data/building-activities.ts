@@ -12,7 +12,6 @@ export interface BuildingActivityDefinition {
     treasuryPerPoint?: number;
     reputationPerPoint?: number;
     happinessPerPoint?: number;
-    securityPerPoint?: number;
     rebellionPerPoint?: number;
     injuryRiskReductionPercent?: number;
   };
@@ -40,41 +39,6 @@ export const BUILDING_ACTIVITY_DEFINITIONS: BuildingActivityDefinition[] = [
   createActivity('canteen.supplyContracts', 'canteen', 'canteen.supply-contracts', 'production', {
     treasuryPerPoint: 5,
   }),
-  createActivity(
-    'guardBarracks.nightWatch',
-    'guardBarracks',
-    'guardBarracks.night-watch',
-    'security',
-    { securityPerPoint: 1.5 },
-  ),
-  createActivity(
-    'guardBarracks.rebellionProtocol',
-    'guardBarracks',
-    'guardBarracks.rebellion-protocol',
-    'security',
-    { securityPerPoint: 1, rebellionPerPoint: -0.8 },
-  ),
-  createActivity('farm.marketSurplus', 'farm', 'farm.market-surplus', 'production', {
-    treasuryPerPoint: 5,
-  }),
-  createActivity('farm.exportContracts', 'farm', 'farm.export-contracts', 'production', {
-    treasuryPerPoint: 8,
-    reputationPerPoint: 0.05,
-  }),
-  createActivity(
-    'forgeWorkshop.weaponContracts',
-    'forgeWorkshop',
-    'forgeWorkshop.weapon-contracts',
-    'production',
-    { treasuryPerPoint: 9 },
-  ),
-  createActivity(
-    'forgeWorkshop.legionContract',
-    'forgeWorkshop',
-    'forgeWorkshop.legion-contract',
-    'production',
-    { treasuryPerPoint: 13, reputationPerPoint: 0.1 },
-  ),
 ];
 
 export function getBuildingActivityIdsBySkill(skillId: string): BuildingActivityId[] {

@@ -119,31 +119,6 @@ describe('building actions', () => {
     });
   });
 
-  it('updates efficiency immediately after purchasing an unstaffed building', () => {
-    const save = {
-      ...createTestSave(),
-      ludus: {
-        ...createTestSave().ludus,
-        treasury: 2_000,
-      },
-      buildings: {
-        ...createTestSave().buildings,
-        domus: {
-          ...createTestSave().buildings.domus,
-          level: 3,
-        },
-      },
-    };
-    const result = purchaseBuilding(save, 'farm');
-
-    expect(result.validation).toMatchObject({ isAllowed: true });
-    expect(result.save.buildings.farm).toMatchObject({
-      isPurchased: true,
-      level: 1,
-      efficiency: 25,
-    });
-  });
-
   it('updates efficiency immediately after changing building staff requirements', () => {
     const save = {
       ...createTestSave(),
@@ -302,33 +277,16 @@ describe('building actions', () => {
   });
 
   it('selects a building policy and pays its selection cost', () => {
-    const save = {
-      ...createTestSave(),
-      buildings: {
-        ...createTestSave().buildings,
-        pleasureHall: {
-          ...createTestSave().buildings.pleasureHall,
-          isPurchased: true,
-          level: 2,
-        },
-      },
-    };
-    const result = selectBuildingPolicy(save, 'pleasureHall', 'gamesAndSongs');
+    const save = createTestSave();
+    const result = selectBuildingPolicy(save, 'trainingGround', 'strengthDoctrine');
 
     expect(result.validation).toMatchObject({
       isAllowed: true,
-      cost: 25,
+      cost: 0,
     });
-    expect(result.save.buildings.pleasureHall.selectedPolicyId).toBe('gamesAndSongs');
-    expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 25);
-    expect(result.save.economy.ledgerEntries[0]).toMatchObject({
-      amount: 25,
-      buildingId: 'pleasureHall',
-      category: 'building',
-      kind: 'expense',
-      labelKey: 'finance.ledger.buildingPolicy',
-      relatedId: 'gamesAndSongs',
-    });
+    expect(result.save.buildings.trainingGround.selectedPolicyId).toBe('strengthDoctrine');
+    expect(result.save.ludus.treasury).toBe(save.ludus.treasury);
+    expect(result.save.economy.ledgerEntries).toEqual(save.economy.ledgerEntries);
   });
 
   it('prevents selecting a policy above the current building level', () => {

@@ -37,7 +37,6 @@ const marketTabs: ModalTabItem<MarketTab>[] = [
   { id: 'gladiators', labelKey: 'market.tabs.gladiators' },
   { id: 'slave', labelKey: 'market.tabs.slaves' },
   { id: 'trainer', labelKey: 'market.tabs.trainers' },
-  { id: 'guard', labelKey: 'market.tabs.guards' },
 ];
 
 function MarketAvatar() {

@@ -44,24 +44,6 @@ const save = createDemoSave({
       purchasedImprovementIds: ['sparringRing', 'advancedDoctoreTools'],
       selectedPolicyId: 'brutalDiscipline',
     }),
-    pleasureHall: createPurchasedBuilding({
-      id: 'pleasureHall',
-      level: 6,
-      configuration: {
-        entertainmentPlanId: 'grandEntertainment',
-      },
-      purchasedImprovementIds: ['gameTables', 'musicians', 'privateRooms'],
-      selectedPolicyId: 'grandEntertainment',
-    }),
-    infirmary: createPurchasedBuilding({
-      id: 'infirmary',
-      level: 6,
-      configuration: {
-        carePolicyId: 'intensiveTreatment',
-      },
-      purchasedImprovementIds: ['cleanBandages', 'herbalStock', 'surgicalTools'],
-      selectedPolicyId: 'intensiveTreatment',
-    }),
   },
   gladiators: [
     {

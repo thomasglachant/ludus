@@ -27,16 +27,13 @@ It also contains `buildingActivitySelections`, a per-activity selection map that
 
 All buckets share the same activity keys:
 
-- `training`;
+- `strengthTraining`;
+- `agilityTraining`;
+- `defenseTraining`;
+- `lifeTraining`;
 - `meals`;
 - `sleep`;
-- `leisure`;
-- `care`;
-- `contracts`;
 - `production`;
-- `security`;
-- `maintenance`;
-- `events`.
 
 The plan is global to the ludus. It does not assign individual gladiator routes or per-character routine tasks.
 
@@ -54,7 +51,7 @@ Building skills can expose `unlockedActivities`. These are building-specific mac
 
 Unlocked activities are intended to specialize the existing daily plan buckets. A planning surface can offer them as optional choices inside the relevant gladiator, labor or admin allocation, while the resolver keeps using the same daily budget limits and macro effect pipeline.
 
-Unlocked activities do not apply automatically. A daily plan must select the activity in `buildingActivitySelections` for the matching generic activity, such as selecting `farm.marketSurplus` for `production`. When a selected activity affects simulation, it resolves as a building-driven macro modifier: it depends on the purchased skill, the owning building and the building's current efficiency. It should not bypass staff efficiency, maintenance, event gating or weekly projection rules.
+Unlocked activities do not apply automatically. A daily plan must select the activity in `buildingActivitySelections` for the matching generic activity, such as selecting `canteen.supplyContracts` for `production`. When a selected activity affects simulation, it resolves as a building-driven macro modifier: it depends on the purchased skill, the owning building and the building's current efficiency. It should not bypass staff efficiency, maintenance, event gating or weekly projection rules.
 
 Random events may also require selected building activities. A definition with `triggerBuildingActivities` only becomes eligible when the matching specialized activity is selected and its parent daily activity has allocated points.
 
@@ -73,7 +70,7 @@ It resolves:
 - staff experience growth;
 - building efficiency;
 - active building and skill effects, scaled by building efficiency;
-- happiness, security and rebellion;
+- happiness and rebellion;
 - daily ledger entries;
 - current week ledger summary;
 - macro random events filtered by planned activities;
@@ -90,7 +87,6 @@ Current applied macro effect types:
 - `increaseIncome`: boosts contract income;
 - `increaseProduction`: boosts production income;
 - `reduceExpense`: reduces daily maintenance and staff expenses;
-- `increaseSecurity`: improves daily security movement;
 - `increaseHappiness`: improves daily happiness movement;
 - `decreaseRebellion`: lowers daily rebellion movement;
 - `increaseReputation`: adds reputation from public/admin activity;
@@ -108,7 +104,6 @@ If a random event is created, its id is recorded in the daily summary and the sa
 - treasury delta;
 - reputation delta;
 - happiness delta;
-- security delta;
 - rebellion delta;
 - injury count.
 
@@ -143,7 +138,6 @@ If the current day is Sunday:
 - treasury delta;
 - reputation delta;
 - happiness delta;
-- security delta;
 - rebellion delta;
 - injury count;
 - daily summaries.

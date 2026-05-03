@@ -11,30 +11,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     },
   },
   buildings: {
-    armory: {
-      'level-1': {
-        sourceQuality: 'production',
-        width: 1254,
-        height: 1254,
-        exterior: '/assets/generated/map/buildings/armory.png',
-      },
-    },
-    banquetHall: {
-      'level-1': {
-        sourceQuality: 'production',
-        width: 1254,
-        height: 1254,
-        exterior: '/assets/generated/map/buildings/banquetHall.png',
-      },
-    },
-    bookmakerOffice: {
-      'level-1': {
-        sourceQuality: 'production',
-        width: 1254,
-        height: 1254,
-        exterior: '/assets/generated/map/buildings/bookmakerOffice.png',
-      },
-    },
     canteen: {
       'level-1': {
         sourceQuality: 'production',
@@ -57,54 +33,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
         width: 1254,
         height: 1254,
         exterior: '/assets/generated/map/buildings/dormitory.png',
-      },
-    },
-    exhibitionGrounds: {
-      'level-1': {
-        sourceQuality: 'production',
-        width: 1254,
-        height: 1254,
-        exterior: '/assets/generated/map/buildings/exhibitionGrounds.png',
-      },
-    },
-    farm: {
-      'level-1': {
-        sourceQuality: 'production',
-        width: 1254,
-        height: 1254,
-        exterior: '/assets/generated/map/buildings/farm.png',
-      },
-    },
-    forgeWorkshop: {
-      'level-1': {
-        sourceQuality: 'production',
-        width: 1254,
-        height: 1254,
-        exterior: '/assets/generated/map/buildings/forgeWorkshop.png',
-      },
-    },
-    guardBarracks: {
-      'level-1': {
-        sourceQuality: 'production',
-        width: 1254,
-        height: 1254,
-        exterior: '/assets/generated/map/buildings/guardBarracks.png',
-      },
-    },
-    infirmary: {
-      'level-1': {
-        sourceQuality: 'production',
-        width: 1254,
-        height: 1254,
-        exterior: '/assets/generated/map/buildings/infirmary.png',
-      },
-    },
-    pleasureHall: {
-      'level-1': {
-        sourceQuality: 'production',
-        width: 1254,
-        height: 1254,
-        exterior: '/assets/generated/map/buildings/pleasureHall.png',
       },
     },
     trainingGround: {

@@ -19,8 +19,6 @@ export type {
   BuildingConfiguration,
   DormitoryConfiguration,
   TrainingGroundConfiguration,
-  PleasureHallConfiguration,
-  InfirmaryConfiguration,
   BuildingDefinition,
   BuildingLevelDefinition,
   BuildingImprovementDefinition,

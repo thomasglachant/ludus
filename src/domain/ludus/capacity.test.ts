@@ -103,11 +103,11 @@ describe('ludus capacity', () => {
             buildingExperience: {},
           },
           {
-            id: 'staff-test-guard',
-            name: 'Marcellus',
-            type: 'guard' as const,
-            visualId: 'guard-01' as const,
-            weeklyWage: 25,
+            id: 'staff-test-slave-2',
+            name: 'Felix',
+            type: 'slave' as const,
+            visualId: 'slave-02' as const,
+            weeklyWage: 0,
             buildingExperience: {},
           },
           {

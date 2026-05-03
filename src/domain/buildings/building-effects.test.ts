@@ -44,8 +44,8 @@ describe('building effects', () => {
     expect(BUILDING_SKILLS.find((skill) => skill.id === 'domus.steward-desk')).toMatchObject({
       requiredSkillIds: ['domus.ledger-room', 'domus.contract-shelf', 'domus.staff-registry'],
     });
-    expect(BUILDING_SKILLS.find((skill) => skill.id === 'farm.market-surplus')).toMatchObject({
-      unlockedActivities: ['farm.marketSurplus'],
+    expect(BUILDING_SKILLS.find((skill) => skill.id === 'canteen.supply-contracts')).toMatchObject({
+      unlockedActivities: ['canteen.supplyContracts'],
     });
   });
 
@@ -95,32 +95,32 @@ describe('building effects', () => {
   });
 
   it('makes purchased skill activities detectable and applies their planned impact', () => {
-    const activitySkill = BUILDING_SKILLS.find((skill) => skill.id === 'farm.market-surplus');
+    const activitySkill = BUILDING_SKILLS.find((skill) => skill.id === 'canteen.supply-contracts');
 
     expect(activitySkill).toMatchObject({
-      buildingId: 'farm',
-      unlockedActivities: ['farm.marketSurplus'],
+      buildingId: 'canteen',
+      unlockedActivities: ['canteen.supplyContracts'],
     });
-    expect(isBuildingActivityUnlocked(createTestSave(), 'farm.marketSurplus')).toBe(false);
+    expect(isBuildingActivityUnlocked(createTestSave(), 'canteen.supplyContracts')).toBe(false);
 
     const save = {
       ...createTestSave(),
       buildings: {
         ...createTestSave().buildings,
-        farm: {
-          ...createTestSave().buildings.farm,
+        canteen: {
+          ...createTestSave().buildings.canteen,
           efficiency: 100,
           isPurchased: true,
-          purchasedSkillIds: ['farm.market-surplus'],
+          purchasedSkillIds: ['canteen.supply-contracts'],
         },
       },
     };
 
-    expect(isBuildingActivityUnlocked(save, 'farm.marketSurplus')).toBe(true);
-    expect(getUnlockedBuildingActivities(save, 'farm')).toEqual([
+    expect(isBuildingActivityUnlocked(save, 'canteen.supplyContracts')).toBe(true);
+    expect(getUnlockedBuildingActivities(save, 'canteen')).toEqual([
       expect.objectContaining({
-        id: 'farm.marketSurplus',
-        requiredSkillId: 'farm.market-surplus',
+        id: 'canteen.supplyContracts',
+        requiredSkillId: 'canteen.supply-contracts',
         activity: 'production',
       }),
     ]);
@@ -131,7 +131,7 @@ describe('building effects', () => {
         production: 2,
       },
       buildingActivitySelections: {
-        production: 'farm.marketSurplus',
+        production: 'canteen.supplyContracts',
       },
     });
 

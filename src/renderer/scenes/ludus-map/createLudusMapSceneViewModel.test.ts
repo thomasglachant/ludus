@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { BUILDING_DEFINITIONS, BUILDING_IDS } from '../../../game-data/buildings';
+import { BUILDING_IDS } from '../../../game-data/buildings';
 import { getGridCoordKey } from '../../../domain/map/occupancy';
 import type { GridCoord } from '../../../domain/map/types';
 import { createInitialSave } from '../../../domain/saves/create-initial-save';
@@ -223,47 +223,15 @@ describe('createLudusMapSceneViewModel', () => {
     expect(viewModel.theme.overlayOpacity).toBe(0.28);
   });
 
-  it('omits unpurchased buildings even when the Domus requirement is met', () => {
-    const save = createTestSave();
-    save.buildings.domus.level = 2;
-
-    const viewModel = createViewModel(save);
-
-    expect(viewModel.locations.some((location) => location.id === 'farm')).toBe(false);
-  });
-
-  it('omits unpurchased buildings when the Domus requirement is not met', () => {
-    const viewModel = createViewModel(createTestSave());
-
-    expect(viewModel.locations.some((location) => location.id === 'farm')).toBe(false);
-    expect(viewModel.locations.some((location) => location.id === 'bookmakerOffice')).toBe(false);
-  });
-
-  it('keeps unpurchased map locations hidden without gladiators', () => {
+  it('keeps all current building map locations owned without gladiators', () => {
     const save = createTestSave();
     save.gladiators = [];
-    save.buildings.domus.level = 2;
 
     const viewModel = createViewModel(save);
 
     expect(viewModel.locations.every((location) => location.ownershipStatus === 'owned')).toBe(
       true,
     );
-    expect(viewModel.locations.some((location) => location.id === 'farm')).toBe(false);
-    expect(viewModel.locations.some((location) => location.id === 'bookmakerOffice')).toBe(false);
-  });
-
-  it('shows buildings after purchase', () => {
-    const save = createTestSave();
-    save.buildings.farm.isPurchased = true;
-    save.buildings.farm.level = 1;
-
-    expect(findLocation(createViewModel(save), 'farm')).toMatchObject({
-      isOwned: true,
-      ownershipStatus: 'owned',
-      level: 1,
-      labelSubtitle: 'Level 1',
-    });
   });
 
   it('uses final map sprites for owned buildings and external locations only', () => {
@@ -533,10 +501,8 @@ describe('createLudusMapSceneViewModel', () => {
 
   it('keeps the requested entrance, central Domus and back-row building order', () => {
     const compound = getCompoundGrid();
-    const guardBarracks = findMapLocation('guardBarracks');
     const canteen = findMapLocation('canteen');
     const dormitory = findMapLocation('dormitory');
-    const infirmary = findMapLocation('infirmary');
     const trainingGround = findMapLocation('trainingGround');
     const domus = findMapLocation('domus');
     const compoundCenter = {
@@ -547,42 +513,18 @@ describe('createLudusMapSceneViewModel', () => {
       column: domus.grid.column + domus.grid.columns / 2,
       row: domus.grid.row + domus.grid.rows / 2,
     };
-    const bottom = compound.row + compound.rows - 1;
-    const entranceRowLocations = [guardBarracks];
-    const baseRowLocations = [dormitory, canteen, trainingGround, infirmary];
+    const baseRowLocations = [dormitory, canteen, trainingGround];
     const baseDoorRow = trainingGround.entrance.row;
-    const domusLevelTwoRows = BUILDING_IDS.filter(
-      (buildingId) => BUILDING_DEFINITIONS[buildingId].levels[0].requiredDomusLevel === 2,
-    ).map((buildingId) => findMapLocation(buildingId).grid.row);
-    const firstExpansionRow = Math.min(...domusLevelTwoRows);
 
     expect(Math.abs(domusCenter.column - compoundCenter.column)).toBeLessThanOrEqual(6);
-    expect(Math.abs(domusCenter.row - compoundCenter.row)).toBeLessThanOrEqual(3);
+    expect(Math.abs(domusCenter.row - compoundCenter.row)).toBeLessThanOrEqual(6);
     expect(domus.grid.row).toBeLessThan(trainingGround.grid.row);
-    expect(bottom - (guardBarracks.grid.row + guardBarracks.grid.rows - 1)).toBeLessThanOrEqual(4);
 
     for (const location of baseRowLocations) {
       expect(location.entrance.row).toBe(baseDoorRow);
-      expect(location.grid.row).toBeLessThan(guardBarracks.grid.row);
     }
 
     expect(dormitory.grid.column).toBeLessThan(canteen.grid.column);
     expect(canteen.grid.column).toBeLessThan(trainingGround.grid.column);
-    expect(trainingGround.grid.column).toBeLessThan(infirmary.grid.column);
-
-    for (const buildingId of BUILDING_IDS) {
-      const requiredDomusLevel = BUILDING_DEFINITIONS[buildingId].levels[0].requiredDomusLevel;
-      const location = findMapLocation(buildingId);
-
-      if (!entranceRowLocations.some((rowLocation) => rowLocation.id === buildingId)) {
-        expect(location.grid.row).toBeLessThan(guardBarracks.grid.row);
-      }
-
-      if (requiredDomusLevel < 3) {
-        continue;
-      }
-
-      expect(location.grid.row).toBeLessThan(firstExpansionRow);
-    }
   });
 });

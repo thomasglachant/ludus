@@ -43,7 +43,18 @@ import type { GameSave } from './types';
 import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
-const legacyRemovedBuildingIds = ['office', 'nobleTraining'] as const;
+const legacyRemovedBuildingIds = [
+  'office',
+  'nobleTraining',
+  'infirmary',
+  'farm',
+  'pleasureHall',
+  'exhibitionGrounds',
+  'armory',
+  'bookmakerOffice',
+  'banquetHall',
+  'forgeWorkshop',
+] as const;
 const supportedBuildingIds = [...requiredBuildingIds, ...legacyRemovedBuildingIds];
 const dayOfWeeks = [...DAYS_OF_WEEK];
 const legacySupportedSchemaVersions = [CURRENT_SCHEMA_VERSION];
@@ -82,10 +93,7 @@ const dailyPlanActivities: DailyPlanActivity[] = [
   'lifeTraining',
   'meals',
   'sleep',
-  'leisure',
-  'care',
   'production',
-  'security',
 ];
 const legacyDailyPlanActivities = ['training', 'contracts', 'maintenance', 'events'];
 const supportedDailyPlanPointKeys = [...dailyPlanActivities, ...legacyDailyPlanActivities];
@@ -112,7 +120,7 @@ const economyCategories = [
   'other',
 ];
 const loanIds = ['smallLoan', 'businessLoan', 'patronLoan'];
-const staffTypes = ['slave', 'guard', 'trainer'];
+const staffTypes = ['slave', 'trainer'];
 const legacyRemovedBuildingActivities = [
   {
     activity: 'maintenance',
@@ -134,7 +142,6 @@ const eventConsequenceKinds = ['certain', 'chance', 'oneOf'];
 const eventEffectTypes = [
   'changeTreasury',
   'changeLudusReputation',
-  'changeLudusSecurity',
   'changeLudusHappiness',
   'changeLudusRebellion',
   'removeGladiator',
@@ -512,7 +519,6 @@ function isDailySimulationSummary(value: unknown): value is DailySimulationSumma
     hasNumber(value, 'treasuryDelta') &&
     hasNumber(value, 'reputationDelta') &&
     hasNumber(value, 'happinessDelta') &&
-    hasNumber(value, 'securityDelta') &&
     hasNumber(value, 'rebellionDelta') &&
     isStringArray(value.injuredGladiatorIds) &&
     isStringArray(value.eventIds)
@@ -530,7 +536,6 @@ function isWeeklyReport(value: unknown): value is WeeklyReport {
     hasNumber(value, 'treasuryDelta') &&
     hasNumber(value, 'reputationDelta') &&
     hasNumber(value, 'happinessDelta') &&
-    hasNumber(value, 'securityDelta') &&
     hasNumber(value, 'rebellionDelta') &&
     hasNonNegativeNumber(value, 'injuries')
   );
@@ -847,7 +852,6 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     !isRecord(value.ludus) ||
     !hasNumber(value.ludus, 'treasury') ||
     !hasNumber(value.ludus, 'reputation') ||
-    !hasNumber(value.ludus, 'security') ||
     !hasNumber(value.ludus, 'happiness') ||
     !hasNumber(value.ludus, 'rebellion') ||
     !hasStringFrom(value.ludus, 'gameStatus', gameStatuses)
@@ -1166,7 +1170,6 @@ export function normalizeGameSave(save: GameSave): GameSave {
     ludus: {
       treasury: save.ludus.treasury,
       reputation: save.ludus.reputation,
-      security: save.ludus.security ?? 50,
       happiness: save.ludus.happiness ?? 65,
       rebellion: save.ludus.rebellion ?? 0,
       gameStatus: save.ludus.gameStatus ?? 'active',

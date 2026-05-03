@@ -493,7 +493,7 @@ describe('save validation', () => {
         members: [
           {
             ...save.staff.members[0],
-            visualId: 'guard-01',
+            visualId: 'trainer-01',
           },
         ],
       },

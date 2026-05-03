@@ -9,10 +9,6 @@ function clamp(value: number, minimum: number, maximum: number) {
 }
 
 export function canStaffWorkInBuilding(type: StaffType, buildingId: BuildingId) {
-  if (type === 'guard') {
-    return buildingId === 'guardBarracks';
-  }
-
   if (type === 'trainer') {
     return buildingId === 'trainingGround';
   }

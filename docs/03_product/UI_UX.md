@@ -44,7 +44,6 @@ The HUD shows macro state:
 - clickable treasury;
 - reputation;
 - happiness;
-- security;
 - menu access.
 
 Treasury opens the finance panel directly.
@@ -197,7 +196,7 @@ It shows:
 
 The weekly planning panel includes the shared daily allocation grid. The player edits daily gladiator time points.
 
-Current visible task options are unlocked from owned buildings and building skills. Starting options focus on training, care and other gladiator-time tasks.
+Current visible task options are unlocked from owned buildings and building skills. Starting options focus on training and production tasks.
 
 The panel shows projected daily deltas and an aggregate weekly projection before the player resolves the next step.
 

@@ -18,11 +18,11 @@ function createTestSave(): GameSave {
 
 describe('building unlocks', () => {
   it('returns the configured purchase level for a building', () => {
-    expect(getBuildingPurchaseTargetLevel('farm')).toBe(1);
-    expect(findBuildingPurchaseLevelDefinition('farm')).toMatchObject({
+    expect(getBuildingPurchaseTargetLevel('canteen')).toBe(1);
+    expect(findBuildingPurchaseLevelDefinition('canteen')).toMatchObject({
       level: 1,
-      purchaseCost: 300,
-      requiredDomusLevel: 2,
+      purchaseCost: 120,
+      requiredDomusLevel: 1,
     });
   });
 
@@ -32,29 +32,6 @@ describe('building unlocks', () => {
       purchaseCost: 0,
       requiredDomusLevel: 1,
       status: 'purchased',
-      targetLevel: 1,
-    });
-  });
-
-  it('locks optional buildings until the Domus requirement is met', () => {
-    expect(getBuildingPurchaseAvailability(createTestSave(), 'farm')).toMatchObject({
-      isPurchased: false,
-      purchaseCost: 300,
-      requiredDomusLevel: 2,
-      status: 'locked',
-      targetLevel: 1,
-    });
-  });
-
-  it('marks optional buildings as available when the Domus requirement is met', () => {
-    const save = createTestSave();
-    save.buildings.domus.level = 2;
-
-    expect(getBuildingPurchaseAvailability(save, 'farm')).toMatchObject({
-      isPurchased: false,
-      purchaseCost: 300,
-      requiredDomusLevel: 2,
-      status: 'available',
       targetLevel: 1,
     });
   });

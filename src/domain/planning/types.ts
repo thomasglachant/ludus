@@ -16,10 +16,7 @@ export type DailyPlanActivity =
   | 'lifeTraining'
   | 'meals'
   | 'sleep'
-  | 'leisure'
-  | 'care'
-  | 'production'
-  | 'security';
+  | 'production';
 
 export type DailyPlanPoints = Record<DailyPlanActivity, number>;
 
@@ -42,7 +39,6 @@ export interface DailySimulationSummary {
   treasuryDelta: number;
   reputationDelta: number;
   happinessDelta: number;
-  securityDelta: number;
   rebellionDelta: number;
   injuredGladiatorIds: string[];
   eventIds: string[];
@@ -56,7 +52,6 @@ export interface WeeklyReport {
   treasuryDelta: number;
   reputationDelta: number;
   happinessDelta: number;
-  securityDelta: number;
   rebellionDelta: number;
   injuries: number;
 }

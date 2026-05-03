@@ -30,7 +30,6 @@ describe('createInitialSave', () => {
       });
     }
     expect(save.ludus).toMatchObject({
-      security: 50,
       happiness: 65,
       rebellion: 0,
       gameStatus: 'active',
@@ -43,10 +42,8 @@ describe('createInitialSave', () => {
     expect(save.staff.marketCandidates.length).toBeGreaterThan(0);
     expect(save.buildings.trainingGround.staffAssignmentIds).toEqual([]);
     expect(save.buildings.canteen.staffAssignmentIds).toEqual([]);
-    expect(save.buildings.guardBarracks.staffAssignmentIds).toEqual([]);
     expect(save.buildings.trainingGround.efficiency).toBe(25);
     expect(save.buildings.canteen.efficiency).toBe(25);
-    expect(save.buildings.guardBarracks.efficiency).toBe(25);
     expect(save.planning.days.monday.gladiatorTimePoints.strengthTraining).toBe(0);
     expect(save.buildings.canteen.configuration).toBeUndefined();
     expect(save.buildings.canteen.selectedPolicyId).toBeUndefined();
@@ -54,14 +51,6 @@ describe('createInitialSave', () => {
     expect(save.buildings.trainingGround).toMatchObject({
       configuration: { defaultDoctrineId: 'balancedTraining' },
       selectedPolicyId: 'balancedTraining',
-    });
-    expect(save.buildings.pleasureHall).toMatchObject({
-      configuration: { entertainmentPlanId: 'quietEvenings' },
-      selectedPolicyId: 'quietEvenings',
-    });
-    expect(save.buildings.infirmary).toMatchObject({
-      configuration: { carePolicyId: 'basicCare' },
-      selectedPolicyId: 'basicCare',
     });
     expect(save.map).toMatchObject({
       schemaVersion: 6,

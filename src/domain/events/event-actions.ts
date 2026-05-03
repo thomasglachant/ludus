@@ -130,13 +130,6 @@ function canUseDefinition(save: GameSave, definition: DailyEventDefinition) {
     return false;
   }
 
-  if (
-    definition.requiredLudus?.securityAtMost !== undefined &&
-    save.ludus.security > definition.requiredLudus.securityAtMost
-  ) {
-    return false;
-  }
-
   if (!definition.gladiatorSelector) {
     return true;
   }
@@ -232,7 +225,6 @@ function resolveEffectTemplate(
       return gladiatorId ? { type: 'removeGladiator', gladiatorId } : null;
     case 'changeTreasury':
     case 'changeLudusReputation':
-    case 'changeLudusSecurity':
     case 'changeLudusHappiness':
     case 'changeLudusRebellion':
     case 'releaseAllGladiators':
@@ -449,13 +441,6 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
           save.ludus.reputation + effect.amount,
         ),
       },
-    };
-  }
-
-  if (effect.type === 'changeLudusSecurity') {
-    return {
-      ...save,
-      ludus: { ...save.ludus, security: clamp(save.ludus.security + effect.amount, 0, 100) },
     };
   }
 
