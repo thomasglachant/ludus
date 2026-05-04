@@ -39,17 +39,3 @@ export const TabsTrigger = forwardRef<
 ));
 
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
-
-export const TabsContent = forwardRef<
-  ElementRef<typeof TabsPrimitive.Content>,
-  ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content
-    className={cn('mt-2 focus-visible:outline-3 focus-visible:outline-offset-2', className)}
-    data-slot="tabs-content"
-    ref={ref}
-    {...props}
-  />
-));
-
-TabsContent.displayName = TabsPrimitive.Content.displayName;

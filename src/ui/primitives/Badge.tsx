@@ -1,10 +1,9 @@
-/* eslint-disable react-refresh/only-export-components */
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ElementType, HTMLAttributes } from 'react';
 
 import { cn } from '@/lib/utils';
 
-export const badgeVariants = cva(
+const badgeVariants = cva(
   'inline-flex min-w-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-extrabold leading-none',
   {
     defaultVariants: {

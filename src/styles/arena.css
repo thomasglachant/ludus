@@ -570,14 +570,6 @@
   justify-content: flex-end;
 }
 
-.arena-route__delta--positive {
-  color: #9fda83 !important;
-}
-
-.arena-route__delta--negative {
-  color: #e48673 !important;
-}
-
 .arena-closed-panel__facts {
   display: grid;
   gap: 8px;

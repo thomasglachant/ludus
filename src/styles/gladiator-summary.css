@@ -7,24 +7,6 @@
   border-radius: 10px;
 }
 
-.gladiator-summary--player {
-  border-color: rgba(214, 163, 74, 0.56);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 241, 199, 0.12),
-    0 0 28px rgba(214, 163, 74, 0.2);
-}
-
-.gladiator-summary--light {
-  border: 1px solid rgba(111, 69, 35, 0.34);
-  background:
-    linear-gradient(180deg, rgba(255, 248, 226, 0.92), rgba(236, 205, 143, 0.88)), var(--parchment);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.24),
-    0 12px 22px rgba(81, 53, 31, 0.12);
-}
-
 .gladiator-summary__identity {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

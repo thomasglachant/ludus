@@ -26,11 +26,3 @@ export function getGameSessionRoute(pathname: string) {
     return null;
   }
 }
-
-export function getGameIdFromGameSessionPath(pathname: string) {
-  return getGameSessionRoute(pathname)?.gameId ?? null;
-}
-
-export function isGameSessionPath(pathname: string) {
-  return getGameIdFromGameSessionPath(pathname) !== null;
-}
