@@ -1,43 +1,20 @@
 .arena-route {
-  --arena-route-background: url('/assets/combat/arena-background.webp');
+  --scenic-screen-fallback: #5b3d28;
+  --scenic-screen-center-glow: rgba(214, 163, 74, 0.18);
   position: relative;
   display: grid;
   grid-template-rows: minmax(0, 1fr);
   width: 100%;
   height: 100dvh;
   min-height: 100dvh;
-  overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(8, 6, 4, 0.1), rgba(8, 6, 4, 0.28)),
-    var(--arena-route-background) center / cover no-repeat,
-    #5b3d28;
   color: #fff1c7;
-  isolation: isolate;
 }
 
-.arena-route::before,
 .arena-route::after {
   position: absolute;
   inset: 0;
   content: '';
   pointer-events: none;
-}
-
-.arena-route::before {
-  z-index: -1;
-  background:
-    linear-gradient(
-      90deg,
-      #050403 0,
-      rgba(5, 4, 3, 0.9) 5%,
-      rgba(5, 4, 3, 0.3) 20%,
-      transparent 35%,
-      transparent 65%,
-      rgba(5, 4, 3, 0.3) 80%,
-      rgba(5, 4, 3, 0.9) 95%,
-      #050403 100%
-    ),
-    radial-gradient(circle at 50% 35%, rgba(214, 163, 74, 0.18), transparent 30rem);
 }
 
 .arena-route::after {

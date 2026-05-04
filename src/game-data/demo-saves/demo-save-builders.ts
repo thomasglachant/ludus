@@ -7,7 +7,6 @@ import {
   createDefaultWeeklyPlan,
   synchronizeEconomyProjection,
 } from '../../domain/weekly-simulation/weekly-simulation-actions';
-import { createInitialLudusMapState } from '../map-layout';
 import { getGladiatorVisualIdentity } from '../gladiator-visuals';
 import type {
   BuildingId,
@@ -100,7 +99,6 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       ...input.ludus,
     },
     time,
-    map: createInitialLudusMapState(),
     buildings,
     gladiators,
     economy: createInitialEconomyState(),

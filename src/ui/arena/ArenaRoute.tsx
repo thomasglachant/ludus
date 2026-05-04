@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useState } from 'react';
 import {
   calculateDecimalOdds,
   calculateGladiatorCombatReputation,
@@ -18,6 +18,7 @@ import { CombatReplayView } from '../combat/CombatReplayView';
 import { formatMoneyAmount } from '../formatters/money';
 import { GladiatorSummary } from '../gladiators/GladiatorSummary';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
+import { ScenicScreen } from '../layout/ScenicScreen';
 import { formatSignedValue, getArenaDayViewModel } from './arena-view-model';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
@@ -49,12 +50,6 @@ function getCombatOutcomeTone(combat: CombatState) {
   return combat.consequence.didPlayerWin
     ? 'arena-route__delta--positive'
     : 'arena-route__delta--negative';
-}
-
-function getArenaRouteBackgroundStyle(backgroundPath: string): CSSProperties {
-  return {
-    '--arena-route-background': `url("${backgroundPath}")`,
-  } as CSSProperties;
 }
 
 function getCombatWinnerName(combat: CombatState) {
@@ -452,12 +447,11 @@ export function ArenaRoute({
   const visibleStepIndex = Math.min(currentStepIndex, maxVisibleStepIndex);
   const currentCombat = viewModel.resolvedCombats[visibleStepIndex];
   const arenaBackground = PRODUCTION_VISUAL_ASSET_MANIFEST.locations.arena.combatBackground;
-  const arenaBackgroundStyle = getArenaRouteBackgroundStyle(arenaBackground);
   const isSummary = visibleStepIndex >= totalCombats || totalCombats === 0;
 
   if (!save.arena.arenaDay) {
     return (
-      <section className="arena-route" style={arenaBackgroundStyle}>
+      <ScenicScreen backgroundPath={arenaBackground} className="arena-route">
         <div className="arena-route-panel arena-route-panel--closed">
           <p className="eyebrow">{t('arena.title')}</p>
           <h1>{t('arena.closedTitle')}</h1>
@@ -468,12 +462,12 @@ export function ArenaRoute({
             onClick={onReturnToLudus}
           />
         </div>
-      </section>
+      </ScenicScreen>
     );
   }
 
   return (
-    <section className="arena-route" style={arenaBackgroundStyle}>
+    <ScenicScreen backgroundPath={arenaBackground} className="arena-route">
       <main className="arena-route__stage">
         {activeCombatId ? (
           <CombatReplayView
@@ -513,6 +507,6 @@ export function ArenaRoute({
           </section>
         )}
       </main>
-    </section>
+    </ScenicScreen>
   );
 }

@@ -4,7 +4,6 @@ import type { EconomyState } from '../economy/types';
 import type { EventState } from '../events/types';
 import type { Gladiator } from '../gladiators/types';
 import type { LudusState } from '../ludus/types';
-import type { LudusMapState } from '../map/types';
 import type { MarketState } from '../market/types';
 import type { WeeklyPlanningState } from '../planning/types';
 import type { StaffState } from '../staff/types';
@@ -25,7 +24,6 @@ export interface GameSave {
   player: PlayerProfile;
   ludus: LudusState;
   time: GameTimeState;
-  map: LudusMapState;
   buildings: Record<BuildingId, BuildingState>;
   gladiators: Gladiator[];
   economy: EconomyState;

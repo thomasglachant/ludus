@@ -36,6 +36,7 @@
   --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
   --sans: var(--font-ui);
   --mono: var(--font-mono);
+  --app-max-width: 1440px;
 
   color: var(--text);
   background:
@@ -60,6 +61,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
+  background: #050403;
 }
 
 button,
@@ -111,13 +114,18 @@ h3 {
 
 #root {
   min-height: 100vh;
+  background: #050403;
 }
 
 .app-layout {
-  width: min(1180px, 100%);
+  width: min(var(--app-max-width), 100%);
   min-height: 100vh;
   margin: 0 auto;
   padding: 18px;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(90deg, rgba(240, 223, 184, 0.024) 0 2px, transparent 2px 6px),
+    radial-gradient(circle at 12% 8%, rgba(158, 70, 52, 0.14), transparent 24rem), var(--obsidian);
 }
 
 .screen-shell {
@@ -175,23 +183,12 @@ h3 {
 
 .app-layout--main-menu,
 .app-layout--game-shell {
-  width: 100%;
-  max-width: none;
   min-height: 100vh;
   padding: 0;
 }
 
 body {
-  overflow-x: hidden;
-  background:
-    radial-gradient(circle at 50% -12%, rgba(214, 163, 74, 0.16), transparent 32rem),
-    linear-gradient(180deg, #241a13, var(--obsidian) 48%);
-}
-
-.app-layout {
-  background:
-    repeating-linear-gradient(90deg, rgba(240, 223, 184, 0.024) 0 2px, transparent 2px 6px),
-    radial-gradient(circle at 12% 8%, rgba(158, 70, 52, 0.14), transparent 24rem), var(--obsidian);
+  background: #050403;
 }
 
 .screen-shell {

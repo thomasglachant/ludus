@@ -19,24 +19,7 @@ const buildingsPath = join(root, 'src', 'game-data', 'buildings.ts');
 const generatedAt = '2026-04-28T00:00:00.000Z';
 const checkOnly = process.argv.includes('--check');
 
-const mapFrameKeys = [
-  'map-idle',
-  'map-walk',
-  'map-train',
-  'map-eat',
-  'map-rest',
-  'map-celebrate',
-  'map-healing',
-];
-const combatFrameKeys = [
-  'combat-idle',
-  'combat-attack',
-  'combat-hit',
-  'combat-block',
-  'combat-defeat',
-  'combat-victory',
-];
-const externalMapLocationIds = new Set(['arena', 'market']);
+const externalLocationIds = new Set(['arena', 'market']);
 function toWebPath(path) {
   return `/assets/${relative(publicAssetsRoot, path).split(sep).join('/')}`;
 }
@@ -198,6 +181,13 @@ function buildHomepageManifest() {
   };
 }
 
+function buildLudusManifest() {
+  return {
+    sourceQuality: 'production',
+    background: '/assets/ludus/ludus-background.png',
+  };
+}
+
 function buildBuildingManifest() {
   const activeBuildingIds = new Set(
     parseArrayConstant(readFileSync(buildingsPath, 'utf8'), 'BUILDING_IDS'),
@@ -228,21 +218,17 @@ function buildBuildingManifest() {
     buildings[buildingId][levelId][partName] = toWebPath(path);
   }
 
-  const generatedMapBuildingFiles = listFiles(
-    join(publicAssetsRoot, 'generated', 'map', 'buildings'),
-  ).filter((path) => extname(path) === '.png');
+  const generatedBuildingFiles = listFiles(join(publicAssetsRoot, 'generated', 'buildings')).filter(
+    (path) => extname(path) === '.png',
+  );
 
-  for (const path of generatedMapBuildingFiles) {
-    const buildingId = relative(join(publicAssetsRoot, 'generated', 'map', 'buildings'), path)
+  for (const path of generatedBuildingFiles) {
+    const buildingId = relative(join(publicAssetsRoot, 'generated', 'buildings'), path)
       .split(sep)
       .join('/')
       .replace(/\.png$/, '');
 
-    if (
-      !buildingId ||
-      externalMapLocationIds.has(buildingId) ||
-      !activeBuildingIds.has(buildingId)
-    ) {
+    if (!buildingId || externalLocationIds.has(buildingId) || !activeBuildingIds.has(buildingId)) {
       continue;
     }
 
@@ -267,47 +253,21 @@ function buildBuildingManifest() {
 }
 
 function buildLocationsManifest() {
-  const arenaMapExteriorPath = join(publicAssetsRoot, 'generated', 'map', 'buildings', 'arena.png');
-  const marketMapExteriorPath = join(
-    publicAssetsRoot,
-    'generated',
-    'map',
-    'buildings',
-    'market.png',
-  );
+  const arenaExteriorPath = join(publicAssetsRoot, 'generated', 'buildings', 'arena.png');
+  const marketExteriorPath = join(publicAssetsRoot, 'generated', 'buildings', 'market.png');
 
   return {
     arena: {
       sourceQuality: 'production',
       combatBackground: '/assets/combat/arena-background.webp',
       crowd: '/assets/combat/arena-crowd.webp',
-      ...(existsSync(arenaMapExteriorPath) ? { mapExterior: toWebPath(arenaMapExteriorPath) } : {}),
+      ...(existsSync(arenaExteriorPath) ? { exterior: toWebPath(arenaExteriorPath) } : {}),
     },
     market: {
       sourceQuality: 'production',
-      ...(existsSync(marketMapExteriorPath)
-        ? { mapExterior: toWebPath(marketMapExteriorPath) }
-        : {}),
+      ...(existsSync(marketExteriorPath) ? { exterior: toWebPath(marketExteriorPath) } : {}),
     },
   };
-}
-
-function buildGladiatorFrames(basePath) {
-  const frames = {};
-  for (const frameKey of mapFrameKeys) {
-    frames[frameKey] = [0, 1]
-      .map((frameIndex) => join(basePath, 'map', `${frameKey}-${frameIndex}.png`))
-      .filter(existsSync)
-      .map(toWebPath);
-  }
-  for (const frameKey of combatFrameKeys) {
-    frames[frameKey] = [0, 1]
-      .map((frameIndex) => join(basePath, 'combat', `${frameKey}-${frameIndex}.png`))
-      .filter(existsSync)
-      .map(toWebPath);
-  }
-
-  return frames;
 }
 
 function buildGladiatorManifestEntry(id, variant) {
@@ -318,19 +278,12 @@ function buildGladiatorManifestEntry(id, variant) {
     return null;
   }
 
-  const frames = buildGladiatorFrames(basePath);
-
   return [
     id,
     {
       sourceQuality: 'production',
       portrait: `/assets/gladiators/${id}/portrait.png`,
       ...(existsSync(avatarPath) ? { avatar: toWebPath(avatarPath) } : {}),
-      mapSpritesheet: `/assets/gladiators/${id}/map-spritesheet.png`,
-      mapAtlas: `/assets/gladiators/${id}/map-spritesheet.json`,
-      combatSpritesheet: `/assets/gladiators/${id}/combat-spritesheet.png`,
-      combatAtlas: `/assets/gladiators/${id}/combat-spritesheet.json`,
-      frames,
       ...buildMeta(variant),
       clothingStyle: variant.clothingStyle,
       clothingColor: variant.clothingColor,
@@ -443,6 +396,7 @@ async function run() {
     version: 1,
     sourceQuality: 'production',
     generatedAt,
+    ludus: buildLudusManifest(),
     homepage: buildHomepageManifest(),
     buildings: buildBuildingManifest(),
     locations: buildLocationsManifest(),

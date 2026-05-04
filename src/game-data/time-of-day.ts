@@ -14,14 +14,12 @@ export interface TimeOfDayVisualTheme {
 
 export interface TimeOfDayDefinition {
   phase: TimeOfDayPhase;
-  overlayClassName: string;
   visualTheme: TimeOfDayVisualTheme;
 }
 
 export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
   {
     phase: 'dawn',
-    overlayClassName: 'ludus-map__viewport--dawn',
     visualTheme: {
       skyColor: '#d99a79',
       terrainColor: '#c7a66b',
@@ -36,7 +34,6 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
   },
   {
     phase: 'day',
-    overlayClassName: 'ludus-map__viewport--day',
     visualTheme: {
       skyColor: '#91b9c8',
       terrainColor: '#c4ae71',
@@ -51,7 +48,6 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
   },
   {
     phase: 'dusk',
-    overlayClassName: 'ludus-map__viewport--dusk',
     visualTheme: {
       skyColor: '#7b526d',
       terrainColor: '#a6855c',
@@ -66,7 +62,6 @@ export const TIME_OF_DAY_DEFINITIONS: TimeOfDayDefinition[] = [
   },
   {
     phase: 'night',
-    overlayClassName: 'ludus-map__viewport--night',
     visualTheme: {
       skyColor: '#17283d',
       terrainColor: '#6f6858',

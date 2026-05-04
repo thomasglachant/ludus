@@ -1,36 +1,12 @@
 .main-menu-screen {
-  --main-menu-background: url('/assets/main-menu/main-menu-background-day.webp');
+  --scenic-screen-fallback: #15110d;
+  --scenic-screen-center-glow: rgba(255, 193, 96, 0.16);
   position: relative;
   display: grid;
   place-items: center;
   min-height: 100dvh;
-  overflow: hidden;
   padding: clamp(20px, 4vw, 56px);
-  background: #15110d;
   color: #fff2cf;
-  isolation: isolate;
-}
-
-.main-menu-screen::before {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  content: '';
-  background:
-    linear-gradient(
-      90deg,
-      #050403 0,
-      rgba(5, 4, 3, 0.86) 4%,
-      rgba(5, 4, 3, 0.28) 18%,
-      transparent 32%,
-      transparent 68%,
-      rgba(5, 4, 3, 0.28) 82%,
-      rgba(5, 4, 3, 0.86) 96%,
-      #050403 100%
-    ),
-    var(--main-menu-background) center / cover no-repeat;
-  filter: saturate(1.08) contrast(1.04);
-  image-rendering: pixelated;
 }
 
 .main-menu-screen::after {
@@ -673,22 +649,6 @@
     min-height: 100dvh;
     overflow: auto;
     padding: 18px;
-  }
-
-  .main-menu-screen::before {
-    background:
-      linear-gradient(
-        90deg,
-        #050403 0,
-        rgba(5, 4, 3, 0.72) 3%,
-        rgba(5, 4, 3, 0.18) 16%,
-        transparent 30%,
-        transparent 70%,
-        rgba(5, 4, 3, 0.18) 84%,
-        rgba(5, 4, 3, 0.72) 97%,
-        #050403 100%
-      ),
-      var(--main-menu-background) center / cover no-repeat;
   }
 
   .main-menu-screen__card {

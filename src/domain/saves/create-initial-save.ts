@@ -1,6 +1,5 @@
 import { INITIAL_TREASURY } from '../../game-data/economy';
 import { GAME_BALANCE } from '../../game-data/balance';
-import { createInitialLudusMapState } from '../../game-data/map-layout';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { createInitialBuildings } from '../buildings/initial-buildings';
 import { updateBuildingEfficiencies } from '../buildings/building-staffing';
@@ -46,7 +45,6 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
       dayOfWeek: PROGRESSION_CONFIG.startingDayOfWeek,
       phase: 'planning',
     },
-    map: createInitialLudusMapState(),
     buildings: createInitialBuildings(),
     gladiators: [],
     economy: createInitialEconomyState(),

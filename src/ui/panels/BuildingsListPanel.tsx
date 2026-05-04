@@ -50,7 +50,7 @@ export function BuildingsListPanel({ onClose, onOpenBuilding, save }: BuildingsL
                       },
                     ]}
                     key={buildingId}
-                    openLabel={t('map.openLocation', { name: t(definition.nameKey) })}
+                    openLabel={t('location.open', { name: t(definition.nameKey) })}
                     subtitle={t(definition.descriptionKey)}
                     testId={`buildings-list-${buildingId}`}
                     title={t(definition.nameKey)}

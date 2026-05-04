@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getTimeOfDayDefinition } from '../../game-data/time-of-day';
-import { resolveMapTimeOfDayPhase } from './time-of-day-visuals';
+import { resolveTimeOfDayPhase } from './time-of-day-visuals';
 
 describe('time of day visuals', () => {
   it('selects explicit visual themes without reading a game clock', () => {
@@ -13,11 +13,11 @@ describe('time of day visuals', () => {
     expect(day.skyColor).toBe('#91b9c8');
   });
 
-  it('resolves map themes from the weekly day and macro phase', () => {
+  it('resolves visual themes from the weekly day and macro phase', () => {
     const night = getTimeOfDayDefinition('night').visualTheme;
 
     expect(
-      resolveMapTimeOfDayPhase({
+      resolveTimeOfDayPhase({
         year: 1,
         week: 1,
         dayOfWeek: 'monday',
@@ -25,7 +25,7 @@ describe('time of day visuals', () => {
       }),
     ).toBe('dawn');
     expect(
-      resolveMapTimeOfDayPhase({
+      resolveTimeOfDayPhase({
         year: 2,
         week: 4,
         dayOfWeek: 'thursday',
@@ -33,7 +33,7 @@ describe('time of day visuals', () => {
       }),
     ).toBe('day');
     expect(
-      resolveMapTimeOfDayPhase({
+      resolveTimeOfDayPhase({
         year: 5,
         week: 7,
         dayOfWeek: 'saturday',
@@ -41,7 +41,7 @@ describe('time of day visuals', () => {
       }),
     ).toBe('dusk');
     expect(
-      resolveMapTimeOfDayPhase({
+      resolveTimeOfDayPhase({
         year: 1,
         week: 1,
         dayOfWeek: 'wednesday',

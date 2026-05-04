@@ -4,7 +4,7 @@
 
 This document describes current gameplay data and tunable rules implemented in the codebase.
 
-Numeric balance values live in `src/game-data/balance.ts` under `GAME_BALANCE`. Larger content tables live in dedicated modules such as `buildings.ts`, `building-skills.ts`, `economy.ts`, demo saves and map layout data.
+Numeric balance values live in `src/game-data/balance.ts` under `GAME_BALANCE`. Larger content tables live in dedicated modules such as `buildings.ts`, `building-skills.ts`, `economy.ts` and demo saves.
 
 ## Economy
 

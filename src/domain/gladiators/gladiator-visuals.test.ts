@@ -3,11 +3,9 @@ import {
   createGladiatorVisualIdentity,
   getGladiatorAvatarAssetPath,
   getGladiatorPortraitAssetPath,
-  getProductionGladiatorCombatAnimationAsset,
   getGladiatorVisualIdentity,
 } from '../../game-data/gladiator-visuals';
 import {
-  GLADIATOR_CLASS_FALLBACK_VISUAL_ASSET_IDS,
   GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS,
   GLADIATOR_CLASS_VISUAL_ASSET_IDS,
 } from '../../game-data/visual-assets';
@@ -52,7 +50,7 @@ describe('gladiator class visuals', () => {
     }
   });
 
-  it('uses the class portrait asset while sprites fall back to the mapped class asset set', () => {
+  it('uses the class portrait asset for portrait and avatar rendering', () => {
     const visualIdentity = createGladiatorVisualIdentity('retiarius-seed', {
       skillProfile: { strength: 4, agility: 9, defense: 4, life: 4 },
     });
@@ -62,11 +60,6 @@ describe('gladiator class visuals', () => {
     );
     expect(getGladiatorAvatarAssetPath(visualIdentity)).toBe(
       GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS.retiarius,
-    );
-    expect(
-      getProductionGladiatorCombatAnimationAsset(visualIdentity, 'idle').fallbackFramePaths[0],
-    ).toContain(
-      `/assets/gladiators/${GLADIATOR_CLASS_FALLBACK_VISUAL_ASSET_IDS.retiarius}/combat/combat-idle-0.png`,
     );
   });
 

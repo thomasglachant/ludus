@@ -4,6 +4,10 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
   version: 1,
   sourceQuality: 'production',
   generatedAt: '2026-04-28T00:00:00.000Z',
+  ludus: {
+    sourceQuality: 'production',
+    background: '/assets/ludus/ludus-background.png',
+  },
   homepage: {
     sourceQuality: 'production',
     backgrounds: {
@@ -16,7 +20,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
         sourceQuality: 'production',
         width: 1254,
         height: 1254,
-        exterior: '/assets/generated/map/buildings/canteen.png',
+        exterior: '/assets/generated/buildings/canteen.png',
       },
     },
     domus: {
@@ -24,7 +28,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
         sourceQuality: 'production',
         width: 1254,
         height: 1254,
-        exterior: '/assets/generated/map/buildings/domus.png',
+        exterior: '/assets/generated/buildings/domus.png',
       },
     },
     dormitory: {
@@ -32,7 +36,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
         sourceQuality: 'production',
         width: 1254,
         height: 1254,
-        exterior: '/assets/generated/map/buildings/dormitory.png',
+        exterior: '/assets/generated/buildings/dormitory.png',
       },
     },
     trainingGround: {
@@ -40,7 +44,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
         sourceQuality: 'production',
         width: 1254,
         height: 1254,
-        exterior: '/assets/generated/map/buildings/trainingGround.png',
+        exterior: '/assets/generated/buildings/trainingGround.png',
       },
     },
   },
@@ -49,11 +53,11 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
       sourceQuality: 'production',
       combatBackground: '/assets/combat/arena-background.webp',
       crowd: '/assets/combat/arena-crowd.webp',
-      mapExterior: '/assets/generated/map/buildings/arena.png',
+      exterior: '/assets/generated/buildings/arena.png',
     },
     market: {
       sourceQuality: 'production',
-      mapExterior: '/assets/generated/map/buildings/market.png',
+      exterior: '/assets/generated/buildings/market.png',
     },
   },
   gladiators: {
@@ -61,64 +65,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-01/portrait.png',
       avatar: '/assets/gladiators/gladiator-01/avatar.png',
-      mapSpritesheet: '/assets/gladiators/gladiator-01/map-spritesheet.png',
-      mapAtlas: '/assets/gladiators/gladiator-01/map-spritesheet.json',
-      combatSpritesheet: '/assets/gladiators/gladiator-01/combat-spritesheet.png',
-      combatAtlas: '/assets/gladiators/gladiator-01/combat-spritesheet.json',
-      frames: {
-        'map-idle': [
-          '/assets/gladiators/gladiator-01/map/map-idle-0.png',
-          '/assets/gladiators/gladiator-01/map/map-idle-1.png',
-        ],
-        'map-walk': [
-          '/assets/gladiators/gladiator-01/map/map-walk-0.png',
-          '/assets/gladiators/gladiator-01/map/map-walk-1.png',
-        ],
-        'map-train': [
-          '/assets/gladiators/gladiator-01/map/map-train-0.png',
-          '/assets/gladiators/gladiator-01/map/map-train-1.png',
-        ],
-        'map-eat': [
-          '/assets/gladiators/gladiator-01/map/map-eat-0.png',
-          '/assets/gladiators/gladiator-01/map/map-eat-1.png',
-        ],
-        'map-rest': [
-          '/assets/gladiators/gladiator-01/map/map-rest-0.png',
-          '/assets/gladiators/gladiator-01/map/map-rest-1.png',
-        ],
-        'map-celebrate': [
-          '/assets/gladiators/gladiator-01/map/map-celebrate-0.png',
-          '/assets/gladiators/gladiator-01/map/map-celebrate-1.png',
-        ],
-        'map-healing': [
-          '/assets/gladiators/gladiator-01/map/map-healing-0.png',
-          '/assets/gladiators/gladiator-01/map/map-healing-1.png',
-        ],
-        'combat-idle': [
-          '/assets/gladiators/gladiator-01/combat/combat-idle-0.png',
-          '/assets/gladiators/gladiator-01/combat/combat-idle-1.png',
-        ],
-        'combat-attack': [
-          '/assets/gladiators/gladiator-01/combat/combat-attack-0.png',
-          '/assets/gladiators/gladiator-01/combat/combat-attack-1.png',
-        ],
-        'combat-hit': [
-          '/assets/gladiators/gladiator-01/combat/combat-hit-0.png',
-          '/assets/gladiators/gladiator-01/combat/combat-hit-1.png',
-        ],
-        'combat-block': [
-          '/assets/gladiators/gladiator-01/combat/combat-block-0.png',
-          '/assets/gladiators/gladiator-01/combat/combat-block-1.png',
-        ],
-        'combat-defeat': [
-          '/assets/gladiators/gladiator-01/combat/combat-defeat-0.png',
-          '/assets/gladiators/gladiator-01/combat/combat-defeat-1.png',
-        ],
-        'combat-victory': [
-          '/assets/gladiators/gladiator-01/combat/combat-victory-0.png',
-          '/assets/gladiators/gladiator-01/combat/combat-victory-1.png',
-        ],
-      },
       paletteId: 'madderRed-olive',
       bodyType: 'compact',
       hairStyle: 'cropped',
@@ -135,64 +81,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-02/portrait.png',
       avatar: '/assets/gladiators/gladiator-02/avatar.png',
-      mapSpritesheet: '/assets/gladiators/gladiator-02/map-spritesheet.png',
-      mapAtlas: '/assets/gladiators/gladiator-02/map-spritesheet.json',
-      combatSpritesheet: '/assets/gladiators/gladiator-02/combat-spritesheet.png',
-      combatAtlas: '/assets/gladiators/gladiator-02/combat-spritesheet.json',
-      frames: {
-        'map-idle': [
-          '/assets/gladiators/gladiator-02/map/map-idle-0.png',
-          '/assets/gladiators/gladiator-02/map/map-idle-1.png',
-        ],
-        'map-walk': [
-          '/assets/gladiators/gladiator-02/map/map-walk-0.png',
-          '/assets/gladiators/gladiator-02/map/map-walk-1.png',
-        ],
-        'map-train': [
-          '/assets/gladiators/gladiator-02/map/map-train-0.png',
-          '/assets/gladiators/gladiator-02/map/map-train-1.png',
-        ],
-        'map-eat': [
-          '/assets/gladiators/gladiator-02/map/map-eat-0.png',
-          '/assets/gladiators/gladiator-02/map/map-eat-1.png',
-        ],
-        'map-rest': [
-          '/assets/gladiators/gladiator-02/map/map-rest-0.png',
-          '/assets/gladiators/gladiator-02/map/map-rest-1.png',
-        ],
-        'map-celebrate': [
-          '/assets/gladiators/gladiator-02/map/map-celebrate-0.png',
-          '/assets/gladiators/gladiator-02/map/map-celebrate-1.png',
-        ],
-        'map-healing': [
-          '/assets/gladiators/gladiator-02/map/map-healing-0.png',
-          '/assets/gladiators/gladiator-02/map/map-healing-1.png',
-        ],
-        'combat-idle': [
-          '/assets/gladiators/gladiator-02/combat/combat-idle-0.png',
-          '/assets/gladiators/gladiator-02/combat/combat-idle-1.png',
-        ],
-        'combat-attack': [
-          '/assets/gladiators/gladiator-02/combat/combat-attack-0.png',
-          '/assets/gladiators/gladiator-02/combat/combat-attack-1.png',
-        ],
-        'combat-hit': [
-          '/assets/gladiators/gladiator-02/combat/combat-hit-0.png',
-          '/assets/gladiators/gladiator-02/combat/combat-hit-1.png',
-        ],
-        'combat-block': [
-          '/assets/gladiators/gladiator-02/combat/combat-block-0.png',
-          '/assets/gladiators/gladiator-02/combat/combat-block-1.png',
-        ],
-        'combat-defeat': [
-          '/assets/gladiators/gladiator-02/combat/combat-defeat-0.png',
-          '/assets/gladiators/gladiator-02/combat/combat-defeat-1.png',
-        ],
-        'combat-victory': [
-          '/assets/gladiators/gladiator-02/combat/combat-victory-0.png',
-          '/assets/gladiators/gladiator-02/combat/combat-victory-1.png',
-        ],
-      },
       paletteId: 'madderRed-tan',
       bodyType: 'lean',
       hairStyle: 'clothWrap',
@@ -209,64 +97,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-03/portrait.png',
       avatar: '/assets/gladiators/gladiator-03/avatar.png',
-      mapSpritesheet: '/assets/gladiators/gladiator-03/map-spritesheet.png',
-      mapAtlas: '/assets/gladiators/gladiator-03/map-spritesheet.json',
-      combatSpritesheet: '/assets/gladiators/gladiator-03/combat-spritesheet.png',
-      combatAtlas: '/assets/gladiators/gladiator-03/combat-spritesheet.json',
-      frames: {
-        'map-idle': [
-          '/assets/gladiators/gladiator-03/map/map-idle-0.png',
-          '/assets/gladiators/gladiator-03/map/map-idle-1.png',
-        ],
-        'map-walk': [
-          '/assets/gladiators/gladiator-03/map/map-walk-0.png',
-          '/assets/gladiators/gladiator-03/map/map-walk-1.png',
-        ],
-        'map-train': [
-          '/assets/gladiators/gladiator-03/map/map-train-0.png',
-          '/assets/gladiators/gladiator-03/map/map-train-1.png',
-        ],
-        'map-eat': [
-          '/assets/gladiators/gladiator-03/map/map-eat-0.png',
-          '/assets/gladiators/gladiator-03/map/map-eat-1.png',
-        ],
-        'map-rest': [
-          '/assets/gladiators/gladiator-03/map/map-rest-0.png',
-          '/assets/gladiators/gladiator-03/map/map-rest-1.png',
-        ],
-        'map-celebrate': [
-          '/assets/gladiators/gladiator-03/map/map-celebrate-0.png',
-          '/assets/gladiators/gladiator-03/map/map-celebrate-1.png',
-        ],
-        'map-healing': [
-          '/assets/gladiators/gladiator-03/map/map-healing-0.png',
-          '/assets/gladiators/gladiator-03/map/map-healing-1.png',
-        ],
-        'combat-idle': [
-          '/assets/gladiators/gladiator-03/combat/combat-idle-0.png',
-          '/assets/gladiators/gladiator-03/combat/combat-idle-1.png',
-        ],
-        'combat-attack': [
-          '/assets/gladiators/gladiator-03/combat/combat-attack-0.png',
-          '/assets/gladiators/gladiator-03/combat/combat-attack-1.png',
-        ],
-        'combat-hit': [
-          '/assets/gladiators/gladiator-03/combat/combat-hit-0.png',
-          '/assets/gladiators/gladiator-03/combat/combat-hit-1.png',
-        ],
-        'combat-block': [
-          '/assets/gladiators/gladiator-03/combat/combat-block-0.png',
-          '/assets/gladiators/gladiator-03/combat/combat-block-1.png',
-        ],
-        'combat-defeat': [
-          '/assets/gladiators/gladiator-03/combat/combat-defeat-0.png',
-          '/assets/gladiators/gladiator-03/combat/combat-defeat-1.png',
-        ],
-        'combat-victory': [
-          '/assets/gladiators/gladiator-03/combat/combat-victory-0.png',
-          '/assets/gladiators/gladiator-03/combat/combat-victory-1.png',
-        ],
-      },
       paletteId: 'madderRed-bronze',
       bodyType: 'broad',
       hairStyle: 'bronzeGalea',
@@ -283,64 +113,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-04/portrait.png',
       avatar: '/assets/gladiators/gladiator-04/avatar.png',
-      mapSpritesheet: '/assets/gladiators/gladiator-04/map-spritesheet.png',
-      mapAtlas: '/assets/gladiators/gladiator-04/map-spritesheet.json',
-      combatSpritesheet: '/assets/gladiators/gladiator-04/combat-spritesheet.png',
-      combatAtlas: '/assets/gladiators/gladiator-04/combat-spritesheet.json',
-      frames: {
-        'map-idle': [
-          '/assets/gladiators/gladiator-04/map/map-idle-0.png',
-          '/assets/gladiators/gladiator-04/map/map-idle-1.png',
-        ],
-        'map-walk': [
-          '/assets/gladiators/gladiator-04/map/map-walk-0.png',
-          '/assets/gladiators/gladiator-04/map/map-walk-1.png',
-        ],
-        'map-train': [
-          '/assets/gladiators/gladiator-04/map/map-train-0.png',
-          '/assets/gladiators/gladiator-04/map/map-train-1.png',
-        ],
-        'map-eat': [
-          '/assets/gladiators/gladiator-04/map/map-eat-0.png',
-          '/assets/gladiators/gladiator-04/map/map-eat-1.png',
-        ],
-        'map-rest': [
-          '/assets/gladiators/gladiator-04/map/map-rest-0.png',
-          '/assets/gladiators/gladiator-04/map/map-rest-1.png',
-        ],
-        'map-celebrate': [
-          '/assets/gladiators/gladiator-04/map/map-celebrate-0.png',
-          '/assets/gladiators/gladiator-04/map/map-celebrate-1.png',
-        ],
-        'map-healing': [
-          '/assets/gladiators/gladiator-04/map/map-healing-0.png',
-          '/assets/gladiators/gladiator-04/map/map-healing-1.png',
-        ],
-        'combat-idle': [
-          '/assets/gladiators/gladiator-04/combat/combat-idle-0.png',
-          '/assets/gladiators/gladiator-04/combat/combat-idle-1.png',
-        ],
-        'combat-attack': [
-          '/assets/gladiators/gladiator-04/combat/combat-attack-0.png',
-          '/assets/gladiators/gladiator-04/combat/combat-attack-1.png',
-        ],
-        'combat-hit': [
-          '/assets/gladiators/gladiator-04/combat/combat-hit-0.png',
-          '/assets/gladiators/gladiator-04/combat/combat-hit-1.png',
-        ],
-        'combat-block': [
-          '/assets/gladiators/gladiator-04/combat/combat-block-0.png',
-          '/assets/gladiators/gladiator-04/combat/combat-block-1.png',
-        ],
-        'combat-defeat': [
-          '/assets/gladiators/gladiator-04/combat/combat-defeat-0.png',
-          '/assets/gladiators/gladiator-04/combat/combat-defeat-1.png',
-        ],
-        'combat-victory': [
-          '/assets/gladiators/gladiator-04/combat/combat-victory-0.png',
-          '/assets/gladiators/gladiator-04/combat/combat-victory-1.png',
-        ],
-      },
       paletteId: 'madderRed-dark',
       bodyType: 'tall',
       hairStyle: 'crestedHelmet',
@@ -357,64 +129,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-05/portrait.png',
       avatar: '/assets/gladiators/gladiator-05/avatar.png',
-      mapSpritesheet: '/assets/gladiators/gladiator-05/map-spritesheet.png',
-      mapAtlas: '/assets/gladiators/gladiator-05/map-spritesheet.json',
-      combatSpritesheet: '/assets/gladiators/gladiator-05/combat-spritesheet.png',
-      combatAtlas: '/assets/gladiators/gladiator-05/combat-spritesheet.json',
-      frames: {
-        'map-idle': [
-          '/assets/gladiators/gladiator-05/map/map-idle-0.png',
-          '/assets/gladiators/gladiator-05/map/map-idle-1.png',
-        ],
-        'map-walk': [
-          '/assets/gladiators/gladiator-05/map/map-walk-0.png',
-          '/assets/gladiators/gladiator-05/map/map-walk-1.png',
-        ],
-        'map-train': [
-          '/assets/gladiators/gladiator-05/map/map-train-0.png',
-          '/assets/gladiators/gladiator-05/map/map-train-1.png',
-        ],
-        'map-eat': [
-          '/assets/gladiators/gladiator-05/map/map-eat-0.png',
-          '/assets/gladiators/gladiator-05/map/map-eat-1.png',
-        ],
-        'map-rest': [
-          '/assets/gladiators/gladiator-05/map/map-rest-0.png',
-          '/assets/gladiators/gladiator-05/map/map-rest-1.png',
-        ],
-        'map-celebrate': [
-          '/assets/gladiators/gladiator-05/map/map-celebrate-0.png',
-          '/assets/gladiators/gladiator-05/map/map-celebrate-1.png',
-        ],
-        'map-healing': [
-          '/assets/gladiators/gladiator-05/map/map-healing-0.png',
-          '/assets/gladiators/gladiator-05/map/map-healing-1.png',
-        ],
-        'combat-idle': [
-          '/assets/gladiators/gladiator-05/combat/combat-idle-0.png',
-          '/assets/gladiators/gladiator-05/combat/combat-idle-1.png',
-        ],
-        'combat-attack': [
-          '/assets/gladiators/gladiator-05/combat/combat-attack-0.png',
-          '/assets/gladiators/gladiator-05/combat/combat-attack-1.png',
-        ],
-        'combat-hit': [
-          '/assets/gladiators/gladiator-05/combat/combat-hit-0.png',
-          '/assets/gladiators/gladiator-05/combat/combat-hit-1.png',
-        ],
-        'combat-block': [
-          '/assets/gladiators/gladiator-05/combat/combat-block-0.png',
-          '/assets/gladiators/gladiator-05/combat/combat-block-1.png',
-        ],
-        'combat-defeat': [
-          '/assets/gladiators/gladiator-05/combat/combat-defeat-0.png',
-          '/assets/gladiators/gladiator-05/combat/combat-defeat-1.png',
-        ],
-        'combat-victory': [
-          '/assets/gladiators/gladiator-05/combat/combat-victory-0.png',
-          '/assets/gladiators/gladiator-05/combat/combat-victory-1.png',
-        ],
-      },
       paletteId: 'madderRed-olive',
       bodyType: 'stocky',
       hairStyle: 'ironMask',
@@ -431,64 +145,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-06/portrait.png',
       avatar: '/assets/gladiators/gladiator-06/avatar.png',
-      mapSpritesheet: '/assets/gladiators/gladiator-06/map-spritesheet.png',
-      mapAtlas: '/assets/gladiators/gladiator-06/map-spritesheet.json',
-      combatSpritesheet: '/assets/gladiators/gladiator-06/combat-spritesheet.png',
-      combatAtlas: '/assets/gladiators/gladiator-06/combat-spritesheet.json',
-      frames: {
-        'map-idle': [
-          '/assets/gladiators/gladiator-06/map/map-idle-0.png',
-          '/assets/gladiators/gladiator-06/map/map-idle-1.png',
-        ],
-        'map-walk': [
-          '/assets/gladiators/gladiator-06/map/map-walk-0.png',
-          '/assets/gladiators/gladiator-06/map/map-walk-1.png',
-        ],
-        'map-train': [
-          '/assets/gladiators/gladiator-06/map/map-train-0.png',
-          '/assets/gladiators/gladiator-06/map/map-train-1.png',
-        ],
-        'map-eat': [
-          '/assets/gladiators/gladiator-06/map/map-eat-0.png',
-          '/assets/gladiators/gladiator-06/map/map-eat-1.png',
-        ],
-        'map-rest': [
-          '/assets/gladiators/gladiator-06/map/map-rest-0.png',
-          '/assets/gladiators/gladiator-06/map/map-rest-1.png',
-        ],
-        'map-celebrate': [
-          '/assets/gladiators/gladiator-06/map/map-celebrate-0.png',
-          '/assets/gladiators/gladiator-06/map/map-celebrate-1.png',
-        ],
-        'map-healing': [
-          '/assets/gladiators/gladiator-06/map/map-healing-0.png',
-          '/assets/gladiators/gladiator-06/map/map-healing-1.png',
-        ],
-        'combat-idle': [
-          '/assets/gladiators/gladiator-06/combat/combat-idle-0.png',
-          '/assets/gladiators/gladiator-06/combat/combat-idle-1.png',
-        ],
-        'combat-attack': [
-          '/assets/gladiators/gladiator-06/combat/combat-attack-0.png',
-          '/assets/gladiators/gladiator-06/combat/combat-attack-1.png',
-        ],
-        'combat-hit': [
-          '/assets/gladiators/gladiator-06/combat/combat-hit-0.png',
-          '/assets/gladiators/gladiator-06/combat/combat-hit-1.png',
-        ],
-        'combat-block': [
-          '/assets/gladiators/gladiator-06/combat/combat-block-0.png',
-          '/assets/gladiators/gladiator-06/combat/combat-block-1.png',
-        ],
-        'combat-defeat': [
-          '/assets/gladiators/gladiator-06/combat/combat-defeat-0.png',
-          '/assets/gladiators/gladiator-06/combat/combat-defeat-1.png',
-        ],
-        'combat-victory': [
-          '/assets/gladiators/gladiator-06/combat/combat-victory-0.png',
-          '/assets/gladiators/gladiator-06/combat/combat-victory-1.png',
-        ],
-      },
       paletteId: 'madderRed-tan',
       bodyType: 'compact',
       hairStyle: 'curly',
@@ -505,64 +161,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-07/portrait.png',
       avatar: '/assets/gladiators/gladiator-07/avatar.png',
-      mapSpritesheet: '/assets/gladiators/gladiator-07/map-spritesheet.png',
-      mapAtlas: '/assets/gladiators/gladiator-07/map-spritesheet.json',
-      combatSpritesheet: '/assets/gladiators/gladiator-07/combat-spritesheet.png',
-      combatAtlas: '/assets/gladiators/gladiator-07/combat-spritesheet.json',
-      frames: {
-        'map-idle': [
-          '/assets/gladiators/gladiator-07/map/map-idle-0.png',
-          '/assets/gladiators/gladiator-07/map/map-idle-1.png',
-        ],
-        'map-walk': [
-          '/assets/gladiators/gladiator-07/map/map-walk-0.png',
-          '/assets/gladiators/gladiator-07/map/map-walk-1.png',
-        ],
-        'map-train': [
-          '/assets/gladiators/gladiator-07/map/map-train-0.png',
-          '/assets/gladiators/gladiator-07/map/map-train-1.png',
-        ],
-        'map-eat': [
-          '/assets/gladiators/gladiator-07/map/map-eat-0.png',
-          '/assets/gladiators/gladiator-07/map/map-eat-1.png',
-        ],
-        'map-rest': [
-          '/assets/gladiators/gladiator-07/map/map-rest-0.png',
-          '/assets/gladiators/gladiator-07/map/map-rest-1.png',
-        ],
-        'map-celebrate': [
-          '/assets/gladiators/gladiator-07/map/map-celebrate-0.png',
-          '/assets/gladiators/gladiator-07/map/map-celebrate-1.png',
-        ],
-        'map-healing': [
-          '/assets/gladiators/gladiator-07/map/map-healing-0.png',
-          '/assets/gladiators/gladiator-07/map/map-healing-1.png',
-        ],
-        'combat-idle': [
-          '/assets/gladiators/gladiator-07/combat/combat-idle-0.png',
-          '/assets/gladiators/gladiator-07/combat/combat-idle-1.png',
-        ],
-        'combat-attack': [
-          '/assets/gladiators/gladiator-07/combat/combat-attack-0.png',
-          '/assets/gladiators/gladiator-07/combat/combat-attack-1.png',
-        ],
-        'combat-hit': [
-          '/assets/gladiators/gladiator-07/combat/combat-hit-0.png',
-          '/assets/gladiators/gladiator-07/combat/combat-hit-1.png',
-        ],
-        'combat-block': [
-          '/assets/gladiators/gladiator-07/combat/combat-block-0.png',
-          '/assets/gladiators/gladiator-07/combat/combat-block-1.png',
-        ],
-        'combat-defeat': [
-          '/assets/gladiators/gladiator-07/combat/combat-defeat-0.png',
-          '/assets/gladiators/gladiator-07/combat/combat-defeat-1.png',
-        ],
-        'combat-victory': [
-          '/assets/gladiators/gladiator-07/combat/combat-victory-0.png',
-          '/assets/gladiators/gladiator-07/combat/combat-victory-1.png',
-        ],
-      },
       paletteId: 'madderRed-umber',
       bodyType: 'lean',
       hairStyle: 'clothWrap',
@@ -579,64 +177,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-08/portrait.png',
       avatar: '/assets/gladiators/gladiator-08/avatar.png',
-      mapSpritesheet: '/assets/gladiators/gladiator-08/map-spritesheet.png',
-      mapAtlas: '/assets/gladiators/gladiator-08/map-spritesheet.json',
-      combatSpritesheet: '/assets/gladiators/gladiator-08/combat-spritesheet.png',
-      combatAtlas: '/assets/gladiators/gladiator-08/combat-spritesheet.json',
-      frames: {
-        'map-idle': [
-          '/assets/gladiators/gladiator-08/map/map-idle-0.png',
-          '/assets/gladiators/gladiator-08/map/map-idle-1.png',
-        ],
-        'map-walk': [
-          '/assets/gladiators/gladiator-08/map/map-walk-0.png',
-          '/assets/gladiators/gladiator-08/map/map-walk-1.png',
-        ],
-        'map-train': [
-          '/assets/gladiators/gladiator-08/map/map-train-0.png',
-          '/assets/gladiators/gladiator-08/map/map-train-1.png',
-        ],
-        'map-eat': [
-          '/assets/gladiators/gladiator-08/map/map-eat-0.png',
-          '/assets/gladiators/gladiator-08/map/map-eat-1.png',
-        ],
-        'map-rest': [
-          '/assets/gladiators/gladiator-08/map/map-rest-0.png',
-          '/assets/gladiators/gladiator-08/map/map-rest-1.png',
-        ],
-        'map-celebrate': [
-          '/assets/gladiators/gladiator-08/map/map-celebrate-0.png',
-          '/assets/gladiators/gladiator-08/map/map-celebrate-1.png',
-        ],
-        'map-healing': [
-          '/assets/gladiators/gladiator-08/map/map-healing-0.png',
-          '/assets/gladiators/gladiator-08/map/map-healing-1.png',
-        ],
-        'combat-idle': [
-          '/assets/gladiators/gladiator-08/combat/combat-idle-0.png',
-          '/assets/gladiators/gladiator-08/combat/combat-idle-1.png',
-        ],
-        'combat-attack': [
-          '/assets/gladiators/gladiator-08/combat/combat-attack-0.png',
-          '/assets/gladiators/gladiator-08/combat/combat-attack-1.png',
-        ],
-        'combat-hit': [
-          '/assets/gladiators/gladiator-08/combat/combat-hit-0.png',
-          '/assets/gladiators/gladiator-08/combat/combat-hit-1.png',
-        ],
-        'combat-block': [
-          '/assets/gladiators/gladiator-08/combat/combat-block-0.png',
-          '/assets/gladiators/gladiator-08/combat/combat-block-1.png',
-        ],
-        'combat-defeat': [
-          '/assets/gladiators/gladiator-08/combat/combat-defeat-0.png',
-          '/assets/gladiators/gladiator-08/combat/combat-defeat-1.png',
-        ],
-        'combat-victory': [
-          '/assets/gladiators/gladiator-08/combat/combat-victory-0.png',
-          '/assets/gladiators/gladiator-08/combat/combat-victory-1.png',
-        ],
-      },
       paletteId: 'madderRed-dark',
       bodyType: 'broad',
       hairStyle: 'bronzeGalea',
@@ -653,64 +193,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-09/portrait.png',
       avatar: '/assets/gladiators/gladiator-09/avatar.png',
-      mapSpritesheet: '/assets/gladiators/gladiator-09/map-spritesheet.png',
-      mapAtlas: '/assets/gladiators/gladiator-09/map-spritesheet.json',
-      combatSpritesheet: '/assets/gladiators/gladiator-09/combat-spritesheet.png',
-      combatAtlas: '/assets/gladiators/gladiator-09/combat-spritesheet.json',
-      frames: {
-        'map-idle': [
-          '/assets/gladiators/gladiator-09/map/map-idle-0.png',
-          '/assets/gladiators/gladiator-09/map/map-idle-1.png',
-        ],
-        'map-walk': [
-          '/assets/gladiators/gladiator-09/map/map-walk-0.png',
-          '/assets/gladiators/gladiator-09/map/map-walk-1.png',
-        ],
-        'map-train': [
-          '/assets/gladiators/gladiator-09/map/map-train-0.png',
-          '/assets/gladiators/gladiator-09/map/map-train-1.png',
-        ],
-        'map-eat': [
-          '/assets/gladiators/gladiator-09/map/map-eat-0.png',
-          '/assets/gladiators/gladiator-09/map/map-eat-1.png',
-        ],
-        'map-rest': [
-          '/assets/gladiators/gladiator-09/map/map-rest-0.png',
-          '/assets/gladiators/gladiator-09/map/map-rest-1.png',
-        ],
-        'map-celebrate': [
-          '/assets/gladiators/gladiator-09/map/map-celebrate-0.png',
-          '/assets/gladiators/gladiator-09/map/map-celebrate-1.png',
-        ],
-        'map-healing': [
-          '/assets/gladiators/gladiator-09/map/map-healing-0.png',
-          '/assets/gladiators/gladiator-09/map/map-healing-1.png',
-        ],
-        'combat-idle': [
-          '/assets/gladiators/gladiator-09/combat/combat-idle-0.png',
-          '/assets/gladiators/gladiator-09/combat/combat-idle-1.png',
-        ],
-        'combat-attack': [
-          '/assets/gladiators/gladiator-09/combat/combat-attack-0.png',
-          '/assets/gladiators/gladiator-09/combat/combat-attack-1.png',
-        ],
-        'combat-hit': [
-          '/assets/gladiators/gladiator-09/combat/combat-hit-0.png',
-          '/assets/gladiators/gladiator-09/combat/combat-hit-1.png',
-        ],
-        'combat-block': [
-          '/assets/gladiators/gladiator-09/combat/combat-block-0.png',
-          '/assets/gladiators/gladiator-09/combat/combat-block-1.png',
-        ],
-        'combat-defeat': [
-          '/assets/gladiators/gladiator-09/combat/combat-defeat-0.png',
-          '/assets/gladiators/gladiator-09/combat/combat-defeat-1.png',
-        ],
-        'combat-victory': [
-          '/assets/gladiators/gladiator-09/combat/combat-victory-0.png',
-          '/assets/gladiators/gladiator-09/combat/combat-victory-1.png',
-        ],
-      },
       paletteId: 'madderRed-olive',
       bodyType: 'tall',
       hairStyle: 'crestedHelmet',
@@ -727,64 +209,6 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
       sourceQuality: 'production',
       portrait: '/assets/gladiators/gladiator-10/portrait.png',
       avatar: '/assets/gladiators/gladiator-10/avatar.png',
-      mapSpritesheet: '/assets/gladiators/gladiator-10/map-spritesheet.png',
-      mapAtlas: '/assets/gladiators/gladiator-10/map-spritesheet.json',
-      combatSpritesheet: '/assets/gladiators/gladiator-10/combat-spritesheet.png',
-      combatAtlas: '/assets/gladiators/gladiator-10/combat-spritesheet.json',
-      frames: {
-        'map-idle': [
-          '/assets/gladiators/gladiator-10/map/map-idle-0.png',
-          '/assets/gladiators/gladiator-10/map/map-idle-1.png',
-        ],
-        'map-walk': [
-          '/assets/gladiators/gladiator-10/map/map-walk-0.png',
-          '/assets/gladiators/gladiator-10/map/map-walk-1.png',
-        ],
-        'map-train': [
-          '/assets/gladiators/gladiator-10/map/map-train-0.png',
-          '/assets/gladiators/gladiator-10/map/map-train-1.png',
-        ],
-        'map-eat': [
-          '/assets/gladiators/gladiator-10/map/map-eat-0.png',
-          '/assets/gladiators/gladiator-10/map/map-eat-1.png',
-        ],
-        'map-rest': [
-          '/assets/gladiators/gladiator-10/map/map-rest-0.png',
-          '/assets/gladiators/gladiator-10/map/map-rest-1.png',
-        ],
-        'map-celebrate': [
-          '/assets/gladiators/gladiator-10/map/map-celebrate-0.png',
-          '/assets/gladiators/gladiator-10/map/map-celebrate-1.png',
-        ],
-        'map-healing': [
-          '/assets/gladiators/gladiator-10/map/map-healing-0.png',
-          '/assets/gladiators/gladiator-10/map/map-healing-1.png',
-        ],
-        'combat-idle': [
-          '/assets/gladiators/gladiator-10/combat/combat-idle-0.png',
-          '/assets/gladiators/gladiator-10/combat/combat-idle-1.png',
-        ],
-        'combat-attack': [
-          '/assets/gladiators/gladiator-10/combat/combat-attack-0.png',
-          '/assets/gladiators/gladiator-10/combat/combat-attack-1.png',
-        ],
-        'combat-hit': [
-          '/assets/gladiators/gladiator-10/combat/combat-hit-0.png',
-          '/assets/gladiators/gladiator-10/combat/combat-hit-1.png',
-        ],
-        'combat-block': [
-          '/assets/gladiators/gladiator-10/combat/combat-block-0.png',
-          '/assets/gladiators/gladiator-10/combat/combat-block-1.png',
-        ],
-        'combat-defeat': [
-          '/assets/gladiators/gladiator-10/combat/combat-defeat-0.png',
-          '/assets/gladiators/gladiator-10/combat/combat-defeat-1.png',
-        ],
-        'combat-victory': [
-          '/assets/gladiators/gladiator-10/combat/combat-victory-0.png',
-          '/assets/gladiators/gladiator-10/combat/combat-victory-1.png',
-        ],
-      },
       paletteId: 'madderRed-bronze',
       bodyType: 'stocky',
       hairStyle: 'ironMask',

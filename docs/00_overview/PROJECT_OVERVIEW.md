@@ -37,7 +37,7 @@ The ludus grows through future optional building purchases, level upgrades, impr
 
 ### Buildings
 
-Buildings are strategic systems and map locations. Base buildings start available, while future optional buildings may matter through purchase costs. All buildings should matter through upgrades, improvements, weekly policies, special actions, capacity constraints, action stations and visible progression.
+Buildings are strategic systems and the default entry points for play. Base buildings start available, while future optional buildings may matter through purchase costs. All buildings should matter through upgrades, improvements, weekly policies, special actions, capacity constraints, action stations and visible progression.
 
 The removed 1-to-10 building budget system must not return unless a future design decision explicitly restores it.
 
@@ -55,8 +55,8 @@ Money and reputation connect the whole game. The player earns rewards through ar
 - Local save is available from the first playable version.
 - Cloud save is represented through an abstraction and can remain mocked until the backend decision is made.
 - The UI supports French and English through i18n keys.
-- The default player interface is map-first and full-screen.
+- The default player interface is building-first and full-screen.
 
 ## Long-Term Direction
 
-`ludus` should become a cozy but tense management game where the school visibly grows, gladiators become recognizable, Sunday feels consequential and the player can understand the state of the ludus by watching the map before opening detailed panels.
+`ludus` should become a cozy but tense management game where the school visibly grows, gladiators become recognizable, Sunday feels consequential and the player can understand the state of the ludus from the buildings overview before opening detailed panels.

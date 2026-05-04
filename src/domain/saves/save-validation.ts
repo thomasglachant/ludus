@@ -5,10 +5,6 @@ import { updateBuildingEfficiencies } from '../buildings/building-staffing';
 import { createInitialEconomyState, updateCurrentWeekSummary } from '../economy/economy-actions';
 import { createInitialStaffState, synchronizeStaffAssignments } from '../staff/staff-actions';
 import { createDefaultWeeklyPlan } from '../weekly-simulation/weekly-simulation-actions';
-import {
-  createInitialLudusMapState,
-  LUDUS_MAP_STATE_SCHEMA_VERSION,
-} from '../../game-data/map-layout';
 import { DAYS_OF_WEEK } from '../../game-data/time';
 import type { BuildingId } from '../buildings/types';
 import type { ArenaDayState, CombatState } from '../combat/types';
@@ -38,7 +34,6 @@ import type {
   StaffType,
 } from '../staff/types';
 import type { DayOfWeek } from '../time/types';
-import type { LudusMapPlacement, LudusMapState, LudusMapTileOverride } from '../map/types';
 import type { GameSave } from './types';
 import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 
@@ -60,7 +55,6 @@ const dayOfWeeks = [...DAYS_OF_WEEK];
 const legacySupportedSchemaVersions = [CURRENT_SCHEMA_VERSION];
 const gamePhases = ['planning', 'simulation', 'event', 'arena', 'report', 'gameOver'];
 const gameStatuses = ['active', 'lost'];
-const mapPlacementKinds = ['building', 'prop', 'road', 'wall'];
 const arenaRanks = [
   'bronze3',
   'bronze2',
@@ -214,52 +208,12 @@ function isStringArray(value: unknown) {
   return Array.isArray(value) && value.every((item) => typeof item === 'string');
 }
 
-function isGridCoord(value: unknown) {
-  return isRecord(value) && hasNumber(value, 'column') && hasNumber(value, 'row');
-}
-
 function isStringNumberRecord(value: unknown) {
   return (
     isRecord(value) &&
     Object.values(value).every(
       (recordValue) => typeof recordValue === 'string' || typeof recordValue === 'number',
     )
-  );
-}
-
-function isMapTileOverride(value: unknown): value is LudusMapTileOverride {
-  return (
-    isRecord(value) &&
-    isGridCoord(value.coord) &&
-    (value.terrainId === undefined || typeof value.terrainId === 'string') &&
-    (value.groundId === undefined || typeof value.groundId === 'string')
-  );
-}
-
-function isMapPlacement(value: unknown): value is LudusMapPlacement {
-  return (
-    isRecord(value) &&
-    hasString(value, 'id') &&
-    hasStringFrom(value, 'kind', mapPlacementKinds) &&
-    hasString(value, 'definitionId') &&
-    isGridCoord(value.origin) &&
-    (value.rotation === undefined ||
-      value.rotation === 0 ||
-      value.rotation === 90 ||
-      value.rotation === 180 ||
-      value.rotation === 270)
-  );
-}
-
-function isMapState(value: unknown): value is LudusMapState {
-  return (
-    isRecord(value) &&
-    value.schemaVersion === LUDUS_MAP_STATE_SCHEMA_VERSION &&
-    hasString(value, 'gridId') &&
-    Array.isArray(value.placements) &&
-    Array.isArray(value.editedTiles) &&
-    value.placements.every(isMapPlacement) &&
-    value.editedTiles.every(isMapTileOverride)
   );
 }
 
@@ -863,14 +817,6 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     return false;
   }
 
-  if (
-    value.schemaVersion === CURRENT_SCHEMA_VERSION &&
-    value.map !== undefined &&
-    !isRecord(value.map)
-  ) {
-    return false;
-  }
-
   const buildings = value.buildings;
 
   if (!isRecord(buildings)) {
@@ -892,10 +838,6 @@ function isSupportedGameSave(value: unknown): value is GameSave {
 
 export function isGameSave(value: unknown): value is GameSave {
   return isSupportedGameSave(value) && value.schemaVersion === CURRENT_SCHEMA_VERSION;
-}
-
-function normalizeMapState(mapState: unknown): LudusMapState {
-  return isMapState(mapState) ? mapState : createInitialLudusMapState();
 }
 
 const legacyCanteenImprovementIds = new Set(['betterKitchen', 'proteinRations', 'grainStorage']);
@@ -1156,13 +1098,13 @@ function normalizeStaffState(staffState?: StaffState): StaffState {
 }
 
 export function normalizeGameSave(save: GameSave): GameSave {
-  const saveWithOptionalMap = save as GameSave & { gameId?: unknown; map?: unknown };
+  const saveWithLegacyFields = save as GameSave & { gameId?: unknown; map?: unknown };
   const defaultWeeklyPlan = createDefaultWeeklyPlan(save.time.year, save.time.week);
   const normalizedSave: GameSave & { contracts?: unknown; settings?: unknown } = {
     ...save,
     schemaVersion: CURRENT_SCHEMA_VERSION,
     gameId:
-      typeof saveWithOptionalMap.gameId === 'string' ? saveWithOptionalMap.gameId : save.saveId,
+      typeof saveWithLegacyFields.gameId === 'string' ? saveWithLegacyFields.gameId : save.saveId,
     player: {
       ludusName: save.player.ludusName,
       isCloudUser: save.player.isCloudUser,
@@ -1180,7 +1122,6 @@ export function normalizeGameSave(save: GameSave): GameSave {
       dayOfWeek: save.time.dayOfWeek,
       phase: save.time.phase ?? 'planning',
     },
-    map: normalizeMapState(saveWithOptionalMap.map),
     buildings: normalizeBuildings(save.buildings),
     gladiators: save.gladiators.map(normalizeGladiator),
     economy: normalizeEconomyState(save.economy),
@@ -1212,6 +1153,7 @@ export function normalizeGameSave(save: GameSave): GameSave {
 
   delete normalizedSave.settings;
   delete normalizedSave.contracts;
+  delete (normalizedSave as GameSave & { map?: unknown }).map;
   delete (normalizedSave.arena as GameSave['arena'] & { betting?: unknown }).betting;
   delete (normalizedSave.arena as GameSave['arena'] & { pendingCombats?: unknown }).pendingCombats;
 

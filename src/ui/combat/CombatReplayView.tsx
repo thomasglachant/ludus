@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   calculateDecimalOdds,
   calculateProjectedWinChance,
@@ -10,15 +10,10 @@ import { CardBlured } from '../components/CardBlured';
 import { CTAButton } from '../components/CTAButton';
 import { ImpactList } from '../components/ImpactList';
 import { GameIcon } from '../icons/GameIcon';
+import { CombatArenaStage } from './CombatArenaStage';
 import { CombatLog } from './CombatLog';
 import { CombatPlaybackBar } from './CombatPlaybackBar';
 import { getCombatReplayCombat, getCombatReplayViewModel } from './combat-replay-view-model';
-
-const PixiCombatArenaStage = lazy(() =>
-  import('./PixiCombatArenaStage').then((module) => ({
-    default: module.PixiCombatArenaStage,
-  })),
-);
 
 interface CombatReplayViewProps {
   combatId?: string;
@@ -165,13 +160,7 @@ export function CombatReplayView({
             />
           </div>
         </div>
-        <Suspense
-          fallback={
-            <p className="combat-replay__stage-loading empty-state">{t('common.loading')}</p>
-          }
-        >
-          <PixiCombatArenaStage viewModel={viewModel} />
-        </Suspense>
+        <CombatArenaStage viewModel={viewModel} />
         {viewModel.isComplete ? (
           <CardBlured as="section" className="combat-replay__result-overlay">
             <div className="combat-replay__result-title">

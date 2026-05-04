@@ -5,34 +5,18 @@ import { GLADIATOR_VISUAL_VARIANT_LIMIT } from './gladiator-visual-variants';
 
 export type VisualAssetSourceQuality = 'production';
 export type HomepageBackgroundPhase = 'day' | 'dusk';
-export type MapFrameKey =
-  | 'map-idle'
-  | 'map-walk'
-  | 'map-train'
-  | 'map-eat'
-  | 'map-rest'
-  | 'map-celebrate'
-  | 'map-healing';
-export type CombatFrameKey =
-  | 'combat-idle'
-  | 'combat-attack'
-  | 'combat-hit'
-  | 'combat-block'
-  | 'combat-defeat'
-  | 'combat-victory';
-export type GladiatorFrameKey = MapFrameKey | CombatFrameKey;
 export type VisualLocationId = 'arena' | 'market';
 
 export interface ArenaLocationAssetSet {
   sourceQuality?: VisualAssetSourceQuality;
   combatBackground: string;
   crowd: string;
-  mapExterior?: string;
+  exterior?: string;
 }
 
 export interface MarketLocationAssetSet {
   sourceQuality?: VisualAssetSourceQuality;
-  mapExterior?: string;
+  exterior?: string;
 }
 
 export interface VisualLocationAssetMap {
@@ -54,11 +38,6 @@ export interface GladiatorAssetSet {
   sourceQuality?: VisualAssetSourceQuality;
   portrait: string;
   avatar?: string;
-  mapSpritesheet?: string;
-  mapAtlas?: string;
-  combatSpritesheet?: string;
-  combatAtlas?: string;
-  frames: Partial<Record<GladiatorFrameKey, string[]>>;
   paletteId: string;
   bodyType: string;
   hairStyle: string;
@@ -76,6 +55,10 @@ export interface VisualAssetManifest {
   version: 1;
   sourceQuality: VisualAssetSourceQuality;
   generatedAt: string;
+  ludus: {
+    background: string;
+    sourceQuality?: VisualAssetSourceQuality;
+  };
   homepage: {
     sourceQuality?: VisualAssetSourceQuality;
     backgrounds: Partial<Record<HomepageBackgroundPhase, string>>;
@@ -145,8 +128,8 @@ export function getBuildingAssetSet(buildingId: BuildingId, level: number) {
   );
 }
 
-export function getMapLocationAssetPath(locationId: VisualLocationId) {
-  return VISUAL_ASSET_MANIFEST.locations[locationId].mapExterior;
+export function getLocationAssetPath(locationId: VisualLocationId) {
+  return VISUAL_ASSET_MANIFEST.locations[locationId].exterior;
 }
 
 export function getFallbackGladiatorAssetSet(classId?: GladiatorClassId) {

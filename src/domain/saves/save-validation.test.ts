@@ -175,26 +175,6 @@ describe('save validation', () => {
     expect(parsed?.gladiators[0]).not.toHaveProperty('mapMovement');
   });
 
-  it('regenerates old map states from current-schema saves', () => {
-    const save = createJsonClone(createTestSave());
-    const transitionalSave = {
-      ...save,
-      map: {
-        ...save.map,
-        schemaVersion: 1,
-        placements: [],
-      },
-    };
-
-    const parsed = parseGameSave(JSON.stringify(transitionalSave));
-
-    expect(parsed).not.toBeNull();
-    expect(parsed?.map.schemaVersion).toBe(6);
-    expect(parsed?.map.placements.some((placement) => placement.definitionId === 'domus')).toBe(
-      true,
-    );
-  });
-
   it('migrates removed office and noble training building references', () => {
     const save = createJsonClone(createTestSave());
     const transitionalSave = {

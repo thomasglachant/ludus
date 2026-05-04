@@ -21,15 +21,16 @@ visible building art, memorable gladiator portraits and theatrical arena sprites
 
 ## Core Pillars
 
-### Map-First World
+### Building-First World
 
-The map is the player's main mental model. It should occupy most of the normal
-game screen and remain visible behind focused modals when possible.
+The building overview is the player's main mental model. It should occupy most
+of the normal game screen and remain visible behind focused modals when
+possible.
 
 Future features should answer where they live in the world:
 
 - a building or external location should open the feature;
-- the map should show relevant feedback;
+- the building overview should show relevant feedback;
 - new systems should not become disconnected full-page tables in the
   player-facing experience.
 
@@ -61,17 +62,15 @@ ornamental detail.
 Time-of-day mood is gameplay-readable rather than clock-driven: week state and
 macro phase choose dawn, day, dusk or night through the domain time visuals.
 
-### Pixel-Perfect Scene Rules
+### Pixel-Perfect Asset Rules
 
-Player-facing Pixi scenes must render pixel art crisply:
+Player-facing pixel art must render crisply:
 
 - authored pixel-art textures use nearest-neighbor sampling only;
-- sprites, particles and debug hit shapes should use rounded pixel positions
-  where this does not hide meaningful motion;
+- sprites and UI images should use rounded pixel positions where this does not
+  hide meaningful motion;
 - small prop, combatant and ambient sprites should keep integer display scales
   whenever their intended size is close to the native asset size;
-- camera zoom should step through readable presets rather than arbitrary smooth
-  scale values;
 - blur, interpolation, anisotropic filtering and mipmapped smoothing are not
   acceptable for pixel-art assets;
 
@@ -94,13 +93,8 @@ The ludus should feel active even when the player is not clicking constantly.
 Required motion language:
 
 - subtle banner flutter, time-of-day ambience and arena crowd hints;
-- two-frame or short-loop combat idle/attack motion;
-- ambient map animation on buildings, props, shadows and countryside details;
-- depth sorting based on vertical scene position;
-- PixiJS animation loops for the living map and combat scenes;
+- small CSS transitions for interactive building and combat states;
 - static equivalent states under `prefers-reduced-motion`.
-
-React must not run per-frame ambient animation state.
 
 ## Main Menu
 
@@ -118,9 +112,9 @@ It should show:
 Load and Options open as modal overlays. Language selection belongs in Options,
 not as a permanent main-menu switcher.
 
-## Main Map
+## Main Buildings View
 
-The map should depict the ludus as a small Roman school complex:
+The building overview should depict the ludus as a small Roman school complex:
 
 - Domus;
 - Canteen;
@@ -128,81 +122,29 @@ The map should depict the ludus as a small Roman school complex:
 - Training Ground;
 - Pleasure Hall;
 - Infirmary;
-- Market as an external location;
-- Arena as an external location;
-- paths, readable terrain, flags/banners and activity areas;
-- construction slots for locked or available buildings.
+- Market and Arena as external destinations;
+- readable alerts, staffing status and activity areas.
 
-Map layout, buildings, paths, flag/banner elements, hit areas, external
-locations, time themes and asset paths belong in `src/game-data` or adjacent
-visual data modules.
+Buildings, destinations, time themes and asset paths belong in `src/game-data`
+or adjacent visual data modules.
 
-### Map Regeneration Constraints
+The current ludus target is a building-first React interface with visible
+pixel-art buildings, readable alerts, staffing state and stable interaction
+zones.
 
-When regenerating `src/game-data/map-layout.ts`, preserve these constraints:
+Required main scene behavior:
 
-- the ludus interior must be large enough to host every possible building;
-- the ludus must be surrounded by a stone wall;
-- the ludus ground must be sand;
-- no building may touch the wall: keep at least one empty tile around the wall;
-- buildings may not touch each other: keep at least one empty tile between
-  buildings;
-- the ludus entrance is at the bottom, with a two-tile-wide road and a matching
-  wall opening with no stone blocking the passage;
-- the stone wall around the ludus must stay rectangular, except for the
-  two-tile-wide bottom gate opening;
-- roads may not touch stone wall cells, except for the exact two-tile gate
-  passage;
-- internal roads and buildings must leave one empty tile before the stone wall
-  line, so the wall and ludus boundary stay two cells away from interior
-  elements outside the gate passage;
-- the stone wall rectangle should be as tight as possible around the interior
-  buildings and roads while preserving every spacing rule;
-- the complete map should end ten tiles after the lowest building footprint;
-- the arena and market are external locations outside the ludus walls;
-- the arena and market must connect to the road that branches from the bottom
-  road before it enters the ludus;
-- main roads may not touch buildings: keep at least one empty tile between road
-  corridors and building footprints;
-- every building has a south-facing door;
-- every building door must connect to the road network through a short
-  south-facing access tile or landing, while the main road still stays offset
-  from the building footprint;
-- every building must be reachable from the ludus entrance through roads;
-- use as few road tiles as possible while keeping the layout readable and fully
-  connected;
-- later-unlocked buildings should sit deeper in the ludus to avoid early visible
-  gaps near the entrance;
-- the Domus should sit near the center of the ludus;
-- the entrance row inside the ludus should contain the Guard Barracks;
-- the row above should contain the Dormitory, Canteen, Training Ground and
-  Infirmary;
-- the remaining buildings should be placed on the rows above.
-
-The map target is a living PixiJS-rendered scene: a rich 2D or isometric
-pixel-art ludus with visible buildings, readable terrain, ambient effects and
-stable interaction zones.
-
-Required map scene behavior:
-
-- the map shows the ludus as a managed town, not individual gladiator movement;
-- building ownership, construction slots and level states are visually readable;
-- scene layers use depth sorting so lower objects appear in front of higher
-  ones;
-- banners, shadows, crowd hints and time-of-day ambience make the ludus feel
-  inhabited;
+- the overview shows the ludus as a managed school, not a generic dashboard;
+- building ownership, level, efficiency, staffing and alerts are visually
+  readable;
+- building cards keep a strong sense of place through assets and Roman material
+  styling;
 - `prefers-reduced-motion` disables non-essential animation while preserving
   readable state.
 
-PixiJS is the preferred renderer for player-facing game scenes, including the
-living map and combat presentation, while React keeps the surrounding HUD,
-panels, modals and routing. The previous DOM/CSS map renderer is no longer part
-of the normal player experience.
-
-The visual target is a dense Roman map-first scene with a dark bronze HUD,
-parchment panels, clear building silhouettes, visible construction states and
-theatrical arena presentation. Final quality comes from the current production
-pixel-art spritesheets, backgrounds and building assets.
+The visual target is a dense Roman building-first scene with a dark bronze HUD,
+parchment panels, clear building silhouettes and theatrical arena presentation.
+Final quality comes from the current production backgrounds and building assets.
 
 ## Visual Acceptance Checklist
 
@@ -210,7 +152,7 @@ Before accepting player-facing visual work, verify:
 
 - [ ] no debug grid is visible in the normal player experience;
 - [ ] final building art is not made mainly from SVG primitives;
-- [ ] the map, combat screen and homepage preserve the intended composition,
+- [ ] the buildings overview, combat screen and homepage preserve the intended composition,
       mood, materials, density and game feel.
 
 ## Time Of Day
@@ -224,11 +166,9 @@ The game supports four visual phases:
 
 Each phase should define:
 
-- map background asset;
-- terrain, sky, overlay and lighting values;
+- background and lighting values;
 - sprite brightness;
-- ambient element visibility;
-- ambient animation speed.
+- readable building contrast.
 
 Dawn and dusk should feel warm. Day should maximize readability. Night should be
 darker while preserving readable building silhouettes and interaction targets.
@@ -260,7 +200,6 @@ Gladiators should be memorable people, not rows of stats.
 Each gladiator should resolve to:
 
 - a portrait asset for gladiator lists, details, market and combat;
-- combat sprite frames for arena presentation;
 - stable visual identity metadata such as palette, body type, hair style and
   armor style.
 
@@ -276,13 +215,15 @@ The combat presentation should include:
 
 - a full arena background with crowd and sand;
 - left and right combatant panels;
-- central fighter sprites with combat-only health bars;
+- central combatant portraits for the current React arena presentation;
 - combat skills, condition, odds and core fighter attributes;
 - visible fatigue/energy feedback during combat only;
 - combat log progression;
 - result, reward and consequence summary.
 
 The first playable presentation can replay resolved combat turns one by one.
+Future arena work may revisit dedicated animated combatants, but that is outside
+the current implementation.
 Combat formulas, rewards and consequences remain in domain modules.
 
 ## Asset Source Of Truth
@@ -303,12 +244,10 @@ Run `npm run generate:assets` after asset changes. CI and the pre-commit hook ru
 `npm run check:assets` to verify that the committed manifest matches the generated
 output.
 
-Typed access to manifests belongs in `src/game-data/visual-assets.ts`,
-`src/rendering/pixi/assets` and adjacent visual modules such as:
+Typed access to manifests belongs in `src/game-data/visual-assets.ts` and
+adjacent visual modules such as:
 
 - `src/game-data/gladiator-visuals.ts`;
-- `src/game-data/gladiator-animations.ts`;
-- `src/game-data/map-visuals.ts`;
 - `src/game-data/time-of-day.ts`.
 
 Do not duplicate the full manifest in documentation. Document concepts and
@@ -319,17 +258,6 @@ boundaries here; keep asset paths in data.
 Final visual quality depends on authored pixel-art assets that enter through the
 manifest and game-data boundaries.
 
-Map asset priorities:
-
-- create authored pixel-art tiles for the grid map;
-- normalize tile size and map scale;
-- create terrain tile sets for countryside, paths, sand, stone and building
-  foundations;
-- create time-of-day background variants for dawn, day, dusk and night;
-- create ambient sprite variants for flags, banners and crowd hints;
-- create authored building and external-location detail inside the core scene
-  assets instead of standalone map clutter.
-
 Building asset priorities:
 
 - create building sprites for Domus, Canteen, Dormitory, Training Ground,
@@ -338,30 +266,20 @@ Building asset priorities:
 - define consistent anchor points, hit zones and label offsets;
 - add optional activity stations for future visual feedback.
 
-Gladiator combat sprite priorities:
-
-- define a sprite charter for proportions, palette, shadow and outline;
-- normalize directions and frame dimensions;
-- create combat spritesheets by visual identity and equipment silhouette;
-- create frames for idle, attack, parry, impact, victory and defeat states;
-- keep deterministic visual identity resolution for saves that lack explicit
-  identity metadata.
-
 Combat asset priorities:
 
 - create a complete arena background with crowd, sand, gates and lighting;
-- create combat spritesheets for idle, attack, dodge, parry, impact, victory and
-  defeat;
-- create equipment variants that remain readable at combat scale;
-- define animation timing and impact readability guidelines.
+- keep combatant portraits readable at arena scale;
+- keep deterministic visual identity resolution for saves that lack explicit
+  identity metadata;
+- defer any future animated combatant charter and timing guidelines to a
+  dedicated arena rebuild.
 
 Integration rules:
 
 - asset paths belong in the visual manifests and `src/game-data`;
-- React and Pixi components must not hardcode individual asset paths;
-- renderer work must not duplicate combat, simulation or building rules;
-- any future renderer fallback must be debug-only and use the same renderer
-  view-models.
+- React components must not hardcode individual asset paths;
+- presentation work must not duplicate combat, simulation or building rules.
 
 ## Constraints
 
@@ -370,16 +288,14 @@ Integration rules:
 - React components render state and dispatch actions; they do not own gameplay
   formulas.
 - Game rules and balance stay in `src/domain` and `src/game-data`.
-- Map layout, visual definitions, animation definitions and asset paths stay
-  data-driven.
-- Future UI must preserve the game-first, map-first direction.
+- Visual definitions, animation definitions and asset paths stay data-driven.
+- Future UI must preserve the game-first, building-first direction.
 
 ## Still Open
 
 The following remain product or production decisions:
 
 - final hand-authored art pipeline beyond current generated fallback scaffolding;
-- exact tile size and final map dimensions;
 - depth of building interiors and roof hiding;
 - modular portrait/sprite generation versus curated variants;
 - exact scope for future debug-only renderer inspection tools;

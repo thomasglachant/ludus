@@ -1,18 +1,15 @@
-import { lazy, Suspense, useCallback } from 'react';
-import type { MapLocationDefinition } from '../../game-data/map-layout';
+import { useCallback } from 'react';
+import type { BuildingId } from '../../domain/types';
+import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
+import { BuildingsOverview } from '../buildings/BuildingsOverview';
 import { TopHud } from '../hud/TopHud';
+import { ScenicScreen } from '../layout/ScenicScreen';
 import { BottomNavigationBar } from '../navigation/BottomNavigationBar';
 import type { ContextPanelKind } from './game-shell-types';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
 import { DebugOverlay } from '../debug/DebugOverlay';
-
-const PixiLudusMap = lazy(() =>
-  import('../map/PixiLudusMap').then((module) => ({
-    default: module.PixiLudusMap,
-  })),
-);
 
 export function GameShell() {
   const {
@@ -56,25 +53,9 @@ export function GameShell() {
     [currentSave, navigate, openModal],
   );
 
-  const selectLocation = useCallback(
-    (location: MapLocationDefinition) => {
-      if (!currentSave) {
-        return;
-      }
-
-      if (location.kind === 'building') {
-        openModal({ buildingId: location.id, kind: 'building' });
-        return;
-      }
-
-      if (location.id === 'arena' && currentSave.arena.arenaDay) {
-        navigate('arena', { gameId: currentSave.gameId });
-        return;
-      }
-
-      openModal({ kind: location.id === 'market' ? 'market' : 'arena' });
-    },
-    [currentSave, navigate, openModal],
+  const selectBuilding = useCallback(
+    (buildingId: BuildingId) => openModal({ buildingId, kind: 'building' }),
+    [openModal],
   );
 
   const selectGladiator = useCallback(
@@ -86,16 +67,16 @@ export function GameShell() {
 
   if (!currentSave) {
     return (
-      <section className="game-shell">
+      <ScenicScreen backgroundPath={VISUAL_ASSET_MANIFEST.ludus.background} className="game-shell">
         <p className={errorKey ? 'form-error' : 'empty-state'}>
           {t(errorKey ?? (isLoading ? 'common.loading' : 'loadGame.error'))}
         </p>
-      </section>
+      </ScenicScreen>
     );
   }
 
   return (
-    <section className="game-shell">
+    <ScenicScreen backgroundPath={VISUAL_ASSET_MANIFEST.ludus.background} className="game-shell">
       <TopHud
         clockLabel={gameClockLabel}
         isPaused={isGamePaused}
@@ -111,10 +92,14 @@ export function GameShell() {
           openModal({ kind: 'finance' });
         }}
       />
-      <main className="game-shell__map-stage">
-        <Suspense fallback={<p className="empty-state">{t('common.loading')}</p>}>
-          <PixiLudusMap save={currentSave} onLocationSelect={selectLocation} />
-        </Suspense>
+      <main className="game-shell__main-stage">
+        <BuildingsOverview
+          save={currentSave}
+          onOpenArena={() => openPanel('arena')}
+          onOpenBuilding={selectBuilding}
+          onOpenMarket={() => openModal({ kind: 'market' })}
+          onOpenPlanning={() => openModal({ kind: 'weeklyPlanning' })}
+        />
       </main>
       <BottomNavigationBar
         activePanelKind={activePanelKind}
@@ -129,6 +114,6 @@ export function GameShell() {
         onGladiatorSelect={selectGladiator}
       />
       <DebugOverlay />
-    </section>
+    </ScenicScreen>
   );
 }

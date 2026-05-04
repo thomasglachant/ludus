@@ -143,7 +143,7 @@ export function StaffDetailPanel({ save, staffMember }: StaffDetailPanelProps) {
                     value: `${assignedBuilding.efficiency}%`,
                   },
                 ]}
-                openLabel={t('map.openLocation', { name: assignedBuildingName })}
+                openLabel={t('location.open', { name: assignedBuildingName })}
                 subtitle={t(assignedBuildingDefinition.descriptionKey)}
                 title={assignedBuildingName}
                 onOpen={() => pushModal({ buildingId: assignedBuilding.id, kind: 'building' })}

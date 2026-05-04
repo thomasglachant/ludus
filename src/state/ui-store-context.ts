@@ -129,7 +129,6 @@ export type UiModalState = UiModalRequest & { id: string };
 export interface UiStoreValue {
   activeModal: UiModalState | null;
   modalStack: UiModalState[];
-  isPixiDebugEnabled: boolean;
   language: LanguageCode;
   screen: ScreenName;
   backModal(): void;
@@ -140,7 +139,6 @@ export interface UiStoreValue {
   openFormModal(request: FormModalRequest): void;
   pushModal(request: UiModalRequest): void;
   replaceModal(request: UiModalRequest): void;
-  togglePixiDebug(): void;
   setLanguage(language: LanguageCode): void;
   navigate(screen: ScreenName, options?: { gameId?: string; preserveModal?: boolean }): void;
   t(key: string, params?: Record<string, string | number>): string;

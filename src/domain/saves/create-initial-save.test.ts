@@ -52,11 +52,6 @@ describe('createInitialSave', () => {
       configuration: { defaultDoctrineId: 'balancedTraining' },
       selectedPolicyId: 'balancedTraining',
     });
-    expect(save.map).toMatchObject({
-      schemaVersion: 6,
-      gridId: 'default-ludus-grid',
-    });
-    expect(save.map.placements.some((placement) => placement.definitionId === 'domus')).toBe(true);
     expect(getLudusGladiatorCapacity(save)).toBe(1);
     expect(save.gladiators).toEqual([]);
     expect(save.market.availableGladiators).toHaveLength(MARKET_CONFIG.availableGladiatorCount);

@@ -14,7 +14,6 @@ export interface GameSave {
   player: PlayerProfile;
   ludus: LudusState;
   time: GameTimeState;
-  map: LudusMapState;
   buildings: Record<BuildingId, BuildingState>;
   gladiators: Gladiator[];
   market: MarketState;

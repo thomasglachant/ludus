@@ -22,10 +22,6 @@ vi.mock('../../state/ui-store-context', () => ({
   useUiStore: () => useUiStoreMock(),
 }));
 
-vi.mock('../map/PixiLudusMap', () => ({
-  PixiLudusMap: () => <div data-testid="pixi-ludus-map" />,
-}));
-
 function createTestSave() {
   return createInitialSave({
     ludusName: 'Test Ludus',
@@ -84,7 +80,6 @@ function createUiStore(): UiStoreValue {
   return {
     activeModal: null,
     modalStack: [],
-    isPixiDebugEnabled: false,
     language: 'en',
     screen: 'ludus',
     backModal: vi.fn(),
@@ -95,7 +90,6 @@ function createUiStore(): UiStoreValue {
     openFormModal: vi.fn(),
     pushModal: vi.fn(),
     replaceModal: vi.fn(),
-    togglePixiDebug: vi.fn(),
     setLanguage: vi.fn(),
     navigate,
     t: (key, params) => (params ? `${key}:${JSON.stringify(params)}` : key),

@@ -10,14 +10,13 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run src/domain src/persistence src/i18n/i18n.test.ts src/renderer/scenes/ludus-map src/ui",
-    "test:watch": "vitest src/domain src/persistence src/i18n/i18n.test.ts src/renderer/scenes/ludus-map src/ui",
+    "test": "vitest run src/domain src/persistence src/i18n/i18n.test.ts src/ui",
+    "test:watch": "vitest src/domain src/persistence src/i18n/i18n.test.ts src/ui",
     "format": "prettier --write .",
     "prepare": "husky"
   },
   "dependencies": {
     "@remixicon/react": "^4.9.0",
-    "pixi.js": "^8.18.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
   },

@@ -2,7 +2,7 @@
 
 ## Stack
 
-The application is a browser game built with Vite, React, TypeScript, Vitest and PixiJS.
+The application is a browser game built with Vite, React, TypeScript and Vitest.
 
 ## Layer Responsibilities
 
@@ -16,7 +16,6 @@ Current macro data includes:
 - `buildings.ts`: building definitions and unlock data;
 - `building-skills.ts`: generated four-tier skill trees;
 - `economy.ts`: loan definitions;
-- `map-layout.ts`: map slots and visual placement data;
 - demo saves.
 
 New tunable gameplay numbers should start in `GAME_BALANCE`.
@@ -55,7 +54,7 @@ React renders the game shell, panels and modals. Components display state and ca
 
 Current macro UI surfaces include:
 
-- map-first `GameShell`;
+- building-first `GameShell`;
 - macro `TopHud`;
 - bottom navigation for Buildings, Gladiators, Planning, Finances and Events;
 - `FinancePanel`;
@@ -63,17 +62,6 @@ Current macro UI surfaces include:
 - `GladiatorsListPanel`;
 - `StaffListPanel`;
 - enriched `BuildingPanel` tabs.
-
-### `src/renderer`
-
-PixiJS renders the map and combat presentation.
-
-The ludus map renders a city management scene with buildings, buildable slots,
-ambience, hit zones and time-of-day visuals. The visual time of day is resolved
-from saved week state in `src/domain/time/time-of-day-visuals.ts`, then rendered
-by Pixi. Pixi also drives combat presentation.
-
-Renderer code must not contain game rules or mutate saves.
 
 ### `src/persistence`
 

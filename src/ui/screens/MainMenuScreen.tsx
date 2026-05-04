@@ -1,9 +1,9 @@
-import type { CSSProperties } from 'react';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { MenuCard, MenuCardBrandTitle } from '../components/MenuCard';
 import { GameIcon } from '../icons/GameIcon';
+import { ScenicScreen } from '../layout/ScenicScreen';
 import { LoadGameContent } from '../modals/LoadGameModal';
 import { NewGameForm } from './NewGameScreen';
 
@@ -12,12 +12,9 @@ type MainMenuPanel = 'newGame' | 'loadGame' | 'options';
 export function MainMenuScreen() {
   const { t } = useUiStore();
   const backgroundPath = VISUAL_ASSET_MANIFEST.homepage.backgrounds.day;
-  const mainMenuStyle = {
-    '--main-menu-background': `url("${backgroundPath}")`,
-  } as CSSProperties;
 
   return (
-    <section className="main-menu-screen" style={mainMenuStyle}>
+    <ScenicScreen backgroundPath={backgroundPath} className="main-menu-screen">
       <MenuCard<MainMenuPanel>
         actions={[
           {
@@ -62,6 +59,6 @@ export function MainMenuScreen() {
         }}
         title={<MenuCardBrandTitle>{t('app.title')}</MenuCardBrandTitle>}
       />
-    </section>
+    </ScenicScreen>
   );
 }

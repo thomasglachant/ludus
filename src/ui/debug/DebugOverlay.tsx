@@ -33,7 +33,7 @@ function isMenuItem(item: DebugItem): item is DebugMenuItem {
 
 export function DebugOverlay() {
   const { currentSave, adjustDebugTreasury } = useGameStore();
-  const { isPixiDebugEnabled, t, togglePixiDebug } = useUiStore();
+  const { t } = useUiStore();
   const [isOpen, setIsOpen] = useState(false);
   const [menuStack, setMenuStack] = useState<DebugMenuId[]>(['root']);
   const isDebugAvailable = Boolean(featureFlags.enableDebugUi && currentSave);
@@ -43,14 +43,7 @@ export function DebugOverlay() {
       root: {
         id: 'root',
         title: t('debug.title'),
-        items: [
-          { id: 'treasury', label: t('debug.treasury'), menuId: 'treasury' },
-          {
-            id: 'pixi-debug',
-            label: t(isPixiDebugEnabled ? 'debug.pixiDebugOn' : 'debug.pixiDebugOff'),
-            onSelect: togglePixiDebug,
-          },
-        ],
+        items: [{ id: 'treasury', label: t('debug.treasury'), menuId: 'treasury' }],
       },
       treasury: {
         id: 'treasury',
@@ -62,7 +55,7 @@ export function DebugOverlay() {
         })),
       },
     }),
-    [adjustDebugTreasury, isPixiDebugEnabled, t, togglePixiDebug],
+    [adjustDebugTreasury, t],
   );
 
   if (!isDebugAvailable || !isOpen) {

@@ -2,9 +2,9 @@
 
 ## Interface Goal
 
-The player interface supports macro management without becoming a dashboard. The default experience remains a full-screen, map-first game shell.
+The player interface supports macro management without becoming a dashboard. The default experience is a full-screen, building-first game shell.
 
-The map is the primary interaction space. Panels and modals expose details only when requested.
+Buildings are the primary interaction space. Panels and modals expose details only when requested.
 
 All visible UI text must use i18n keys and support French and English.
 
@@ -15,7 +15,7 @@ Target structure:
 ```tsx
 <GameShell>
   <TopHud />
-  <PixiLudusMap />
+  <BuildingsOverview />
   <BottomNavigation />
   <ModalHost />
   <ToastAndAlertLayer />
@@ -50,25 +50,18 @@ Treasury opens the finance panel directly.
 
 Macro progression is handled through planning and resolve actions.
 
-## Map
+## Buildings Overview
 
-The map remains the center of the game shell.
+The buildings overview remains the center of the game shell.
 
 It displays:
 
 - current buildings;
-- unpurchased building slots;
-- external locations such as market and arena;
-- roads, walls and scenic ambience;
-- time-of-day visual theming.
+- alerts attached to buildings;
+- staffing and efficiency status;
+- quick access to market and arena.
 
-The map time-of-day theme is derived from saved week state: Monday/report reads
-as dawn, normal weekdays read as day, late-week/Sunday arena reads as dusk, and
-blocking events or game over read as night.
-
-Map interactions focus on locations, construction and management panels.
-
-Building positions and visual styles are data-driven through `src/game-data/map-layout.ts`.
+Building interactions focus on opening the management panels quickly while preserving the Roman pixel-art direction through assets, HUD styling and parchment/bronze panels.
 
 ## Building Panels
 
@@ -212,7 +205,7 @@ This keeps the main screen scalable as the school grows.
 
 Staff is available through the `Staff` list panel, staff detail modals and market recruitment tabs.
 
-This keeps assignment review separate from recruitment while preserving the map-first shell.
+This keeps assignment review separate from recruitment while preserving the building-first shell.
 
 ## Events
 
@@ -224,8 +217,8 @@ The Roman pixel-art direction remains:
 
 - dark bronze and stone HUDs;
 - parchment-like panels;
-- warm countryside map;
-- visible buildings and construction slots;
+- warm ludus backdrop;
+- visible buildings and management entry points;
 - theatrical arena combat presentation.
 
 Debug or dashboard-style UI must remain behind debug flags or dedicated debug routes.

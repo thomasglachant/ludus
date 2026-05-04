@@ -1,9 +1,10 @@
 @import './styles/foundation.css';
 @import './styles/controls.css';
+@import './styles/scenic-screen.css';
 @import './styles/main-menu.css';
 @import './styles/game-shell.css';
 @import './styles/hud.css';
-@import './styles/map.css';
+@import './styles/buildings-overview.css';
 @import './styles/roster.css';
 @import './styles/staff.css';
 @import './styles/gladiator-summary.css';

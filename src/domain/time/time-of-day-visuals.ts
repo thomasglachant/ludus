@@ -18,6 +18,6 @@ const GAME_PHASE_TIME_OF_DAY: Partial<Record<GamePhase, TimeOfDayPhase>> = {
   report: 'dawn',
 };
 
-export function resolveMapTimeOfDayPhase(time: GameTimeState): TimeOfDayPhase {
+export function resolveTimeOfDayPhase(time: GameTimeState): TimeOfDayPhase {
   return GAME_PHASE_TIME_OF_DAY[time.phase] ?? DAY_OF_WEEK_TIME_OF_DAY[time.dayOfWeek];
 }

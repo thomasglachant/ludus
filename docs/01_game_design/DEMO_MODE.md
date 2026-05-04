@@ -6,11 +6,11 @@ Demo mode is a durable developer-only feature for loading predefined static save
 
 Demo mode is useful for:
 
-- testing the map-first player interface;
+- testing the building-first player interface;
 - testing building visuals at different progression levels;
 - testing portrait-based gladiator lists;
 - testing centered feature modals;
-- testing time-of-day themes;
+- testing visual density and building states;
 - testing market and arena external locations;
 - reproducing gameplay states without manually recreating a save.
 
@@ -89,7 +89,7 @@ Expected state:
 - 3 owned beginner gladiators with stable portraits and combat visual identities;
 - 5 predefined market candidates;
 - no active Sunday combats;
-- simple map state, dawn map theme and low UI density.
+- simple building overview state and low UI density.
 
 ### Mid Demo
 
@@ -105,7 +105,6 @@ Expected state:
 - Domus capacity large enough for the roster and market test purchases;
 - 5 predefined market candidates;
 - active weekly planning recommendations;
-- day map theme;
 - at least one contextual alert.
 
 ### Advanced Demo
@@ -122,7 +121,7 @@ Expected state:
 - Domus capacity at the maximum roster size;
 - 5 predefined market candidates;
 - multiple active alerts;
-- dusk map theme and late-progression visual coverage.
+- late-progression visual coverage.
 
 The advanced demo must verify that the gladiator list panel remains readable with 6 gladiators and that Playwright can advance from Saturday planning into the Sunday arena state without relying on random setup.
 
@@ -133,7 +132,7 @@ Demo saves must be useful for UI and visual testing.
 Each demo gladiator must include a stable visual identity:
 
 - portrait asset id;
-- combat sprite asset id;
+- stable visual asset id for combat portrait presentation;
 - optional palette or variation metadata.
 
 ```ts
@@ -156,16 +155,14 @@ export interface GladiatorVisualIdentity {
 
 Demo saves should help test:
 
-- map layout;
 - building visuals;
 - gladiator portraits;
-- combat sprite references;
+- combat visual identity references;
 - centered feature modals;
-- time-of-day themes derived from saved day and macro phase;
 - market and arena external locations;
 - Playwright selectors.
 
-Map layout and visual definitions must be data-driven. Demo saves may reference visual ids, but React components should not hardcode building positions, asset ids or player-facing text.
+Visual definitions must be data-driven. Demo saves may reference visual ids, but React components should not hardcode asset ids or player-facing text.
 
 ## Data Rules
 
@@ -210,13 +207,13 @@ Stable `data-testid` values should exist for:
 - demo save load action;
 - active demo indicator;
 - top HUD;
-- ludus map;
-- building locations;
+- buildings overview;
+- building cards;
 - gladiator list panel;
 - gladiator portrait cards;
 - modal host;
-- market location;
-- arena location.
+- market action;
+- arena action.
 
 The exact selector names may follow existing project conventions.
 
@@ -260,7 +257,7 @@ Future browser smoke tests may cover:
 - demo mode hidden when disabled;
 - each demo route blocked when disabled;
 - each demo route loads when enabled;
-- early, mid and advanced map states render;
+- early, mid and advanced building overview states render;
 - portrait-based gladiator list renders;
 - advanced demo gladiator list remains readable with 6 gladiators;
 - feature modals can open from stable selectors.
@@ -274,8 +271,8 @@ Demo mode is valid when:
 - three demo templates are available: `demo-early-ludus`, `demo-mid-ludus` and `demo-advanced-ludus`;
 - demo templates start local saves with stable game state;
 - demo gladiators have portraits;
-- demo gladiators have combat sprite references;
-- demo buildings appear on the map;
+- demo gladiators have stable combat visual identity references;
+- demo buildings appear in the buildings overview;
 - Playwright can open each demo directly;
 - the advanced demo can test panel density with 6 gladiators;
 - demo templates are static and deterministic;
