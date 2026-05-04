@@ -489,7 +489,6 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
     gladiators,
     arena: {
       ...save.arena,
-      currentCombatId: resolvedCombats[0]?.id,
       resolvedCombats,
       isArenaDayActive: true,
     },
@@ -526,33 +525,8 @@ export function startArenaDay(save: GameSave, random: RandomSource = Math.random
       arenaDay: {
         year: resolvedSave.time.year,
         week: resolvedSave.time.week,
-        phase: 'intro',
+        phase: 'summary',
         presentedCombatIds: [],
-      },
-    },
-  };
-}
-
-export function markArenaCombatPresented(save: GameSave, combatId: string): GameSave {
-  const arenaDay = save.arena.arenaDay;
-
-  if (!arenaDay || arenaDay.presentedCombatIds.includes(combatId)) {
-    return save;
-  }
-
-  const presentedCombatIds = [...arenaDay.presentedCombatIds, combatId];
-  const allCombatsPresented = save.arena.resolvedCombats.every((combat) =>
-    presentedCombatIds.includes(combat.id),
-  );
-
-  return {
-    ...save,
-    arena: {
-      ...save.arena,
-      arenaDay: {
-        ...arenaDay,
-        phase: allCombatsPresented ? 'summary' : 'intro',
-        presentedCombatIds,
       },
     },
   };

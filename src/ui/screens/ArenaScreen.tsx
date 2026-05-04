@@ -3,8 +3,7 @@ import { useUiStore } from '../../state/ui-store-context';
 import { ArenaRoute } from '../arena/ArenaRoute';
 
 export function ArenaScreen() {
-  const { completeSundayArenaDay, currentSave, errorKey, isLoading, markArenaCombatPresented } =
-    useGameStore();
+  const { completeSundayArenaDay, currentSave, errorKey, isLoading } = useGameStore();
   const { navigate, t } = useUiStore();
 
   if (!currentSave) {
@@ -21,7 +20,6 @@ export function ArenaScreen() {
     <ArenaRoute
       save={currentSave}
       onCompleteArenaDay={completeSundayArenaDay}
-      onMarkCombatPresented={markArenaCombatPresented}
       onReturnToLudus={() => navigate('ludus', { gameId: currentSave.gameId })}
     />
   );

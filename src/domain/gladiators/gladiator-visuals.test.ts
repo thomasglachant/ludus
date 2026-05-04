@@ -78,4 +78,15 @@ describe('gladiator class visuals', () => {
       GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS.secutor,
     );
   });
+
+  it('uses class assets for seed-only visual identities', () => {
+    const visualIdentity = createGladiatorVisualIdentity('seed-only');
+
+    expect(Object.values(GLADIATOR_CLASS_VISUAL_ASSET_IDS)).toContain(
+      visualIdentity.portraitAssetId,
+    );
+    expect(getGladiatorAvatarAssetPath(visualIdentity)).toMatch(
+      /^\/assets\/gladiators\/classes\/.+-avatar\.png$/,
+    );
+  });
 });

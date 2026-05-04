@@ -4,6 +4,7 @@ import {
   ARENA_REWARDS,
   ARENA_VICTORY_ODDS_REWARD_MULTIPLIER,
 } from '../../game-data/combat';
+import { GLADIATOR_CLASS_VISUAL_ASSET_IDS } from '../../game-data/visual-assets';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave, Gladiator } from '../types';
 import {
@@ -133,7 +134,9 @@ describe('combat actions', () => {
       playerDecimalOdds,
       opponentDecimalOdds,
     });
-    expect(combat.opponent.visualIdentity?.portraitAssetId).toMatch(/^gladiator-/);
+    expect(Object.values(GLADIATOR_CLASS_VISUAL_ASSET_IDS)).toContain(
+      combat.opponent.visualIdentity?.portraitAssetId,
+    );
     expect(combat.consequence.didPlayerWin).toBe(true);
     expect(combat.consequence.playerReward).toBe(expectedWinnerReward);
   });
@@ -208,7 +211,6 @@ describe('combat actions', () => {
       'silver3',
       'gold1',
     ]);
-    expect(resolved.arena.currentCombatId).toBe(resolved.arena.resolvedCombats[0].id);
   });
 
   it('activates an empty Sunday arena day without rewards when no gladiator is eligible', () => {
@@ -216,7 +218,6 @@ describe('combat actions', () => {
     const resolved = resolveArenaDay(save, () => 0);
 
     expect(resolved.arena).toMatchObject({
-      currentCombatId: undefined,
       isArenaDayActive: true,
       resolvedCombats: [],
     });

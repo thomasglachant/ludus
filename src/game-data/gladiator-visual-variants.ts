@@ -1,7 +1,5 @@
 import type { GladiatorClassId } from '../domain/gladiators/types';
 
-export const GLADIATOR_VISUAL_VARIANT_LIMIT = 10;
-
 export const GLADIATOR_CLOTHING_STYLES = [
   'subligaculum',
   'linenTunic',

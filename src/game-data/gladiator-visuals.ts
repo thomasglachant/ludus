@@ -4,6 +4,7 @@ import type {
   GladiatorSkillProfile,
   GladiatorVisualIdentity,
 } from '../domain/gladiators/types';
+import { GLADIATOR_CLASS_IDS } from '../domain/gladiators/types';
 import {
   createGladiatorVisualVariantSet,
   type GladiatorClothingStyle,
@@ -14,7 +15,6 @@ import {
   getGladiatorClassPortraitAssetPath,
   getGladiatorClassVisualAssetId,
   getGladiatorAssetSet,
-  GLADIATOR_VISUAL_ASSET_IDS,
 } from './visual-assets';
 import type { GladiatorAssetSet } from './visual-assets';
 
@@ -56,6 +56,10 @@ function resolveClassId(options?: GladiatorVisualIdentityOptions) {
   );
 }
 
+function resolveFallbackClassId(seed: string) {
+  return GLADIATOR_CLASS_IDS[getStableIndex(seed, GLADIATOR_CLASS_IDS.length)];
+}
+
 function createVisualIdentity(
   assetId: string,
   manifestAssetSet: GladiatorAssetSet | undefined,
@@ -84,10 +88,8 @@ export function createGladiatorVisualIdentity(
   seed: string,
   options?: GladiatorVisualIdentityOptions,
 ): GladiatorVisualIdentity {
-  const classId = resolveClassId(options);
-  const visualAssetId = classId
-    ? getGladiatorClassVisualAssetId(classId)
-    : GLADIATOR_VISUAL_ASSET_IDS[getStableIndex(seed, GLADIATOR_VISUAL_ASSET_IDS.length)];
+  const classId = resolveClassId(options) ?? resolveFallbackClassId(seed);
+  const visualAssetId = getGladiatorClassVisualAssetId(classId);
   const assetSet = getGladiatorAssetSet(visualAssetId);
   const variants = createGladiatorVisualVariantSet(seed, classId);
 
@@ -102,7 +104,7 @@ export function getGladiatorVisualIdentity(
   const classId = resolveClassId(options);
 
   if (!classId) {
-    return visualIdentity ?? createGladiatorVisualIdentity(seed);
+    return visualIdentity?.classId ? visualIdentity : createGladiatorVisualIdentity(seed);
   }
 
   return createGladiatorVisualIdentity(seed, {
@@ -141,7 +143,6 @@ export function getGladiatorAvatarAssetPath(visualIdentity: GladiatorVisualIdent
     generatedPortraitAssetSet?.avatar ??
     classAvatarPath ??
     generatedPortraitAssetSet?.portrait ??
-    fallbackAssetSet.avatar ??
-    fallbackAssetSet.portrait
+    fallbackAssetSet.avatar
   );
 }

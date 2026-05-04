@@ -54,6 +54,41 @@
   box-shadow:
     inset 0 0 0 1px rgba(255, 246, 222, 0.08),
     0 30px 80px rgba(0, 0, 0, 0.56);
+  scrollbar-color: rgba(238, 186, 92, 0.78) rgba(7, 5, 4, 0.42);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.arena-route-panel::-webkit-scrollbar {
+  width: 10px;
+}
+
+.arena-route-panel::-webkit-scrollbar-track {
+  border: 1px solid rgba(214, 163, 74, 0.14);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 212, 0.055), rgba(255, 244, 212, 0.018)),
+    rgba(7, 5, 4, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 188, 0.08),
+    inset 0 -1px 0 rgba(121, 70, 31, 0.18);
+}
+
+.arena-route-panel::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(7, 5, 4, 0.7);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 232, 174, 0.86), rgba(190, 128, 50, 0.82)),
+    rgba(238, 186, 92, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 222, 0.34),
+    0 0 10px rgba(214, 163, 74, 0.14);
+}
+
+.arena-route-panel::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 240, 197, 0.95), rgba(214, 163, 74, 0.9)),
+    rgba(238, 186, 92, 0.9);
 }
 
 .arena-route-panel--closed {
@@ -282,9 +317,11 @@
   grid-row: 1;
 }
 
-.arena-route-intel__card p,
-.arena-route-intel__card dt {
-  color: #d7bd84;
+.arena-route-fighter-stack--winner .gladiator-summary {
+  border-color: rgba(126, 204, 112, 0.4);
+  box-shadow:
+    inset 0 0 0 1px rgba(126, 204, 112, 0.16),
+    0 0 32px rgba(126, 204, 112, 0.22);
 }
 
 .arena-route-versus {
@@ -306,87 +343,19 @@
   text-shadow: 0 8px 18px rgba(0, 0, 0, 0.48);
 }
 
-.arena-route-reward-impacts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
+.arena-route-bout-outcome {
+  display: inline-flex;
   align-items: center;
+  gap: 12px;
   min-width: 0;
 }
 
-.arena-route-reward-impacts__group {
-  display: grid;
-  align-content: center;
-  gap: 6px;
-  min-height: 62px;
-  padding-left: 14px;
-  border-left: 1px solid rgba(214, 163, 74, 0.22);
-}
-
-.arena-route-reward-impacts__group:first-child {
-  padding-left: 0;
-  border-left: 0;
-}
-
-.arena-route-reward-impacts__group + .arena-route-reward-impacts__group {
-  margin-left: 16px;
-  padding-left: 16px;
-}
-
-.arena-route-reward-impacts__group h2 {
-  margin: 0;
-  color: #d7bd84;
-  font-size: 0.72rem;
-  font-weight: 850;
-}
-
-.arena-route-reward-impacts .impact-indicator {
+.arena-route-bout-outcome .impact-indicator {
   color: #fff1c7;
 }
 
-.arena-route-reward-impacts .impact-indicator__amount {
+.arena-route-bout-outcome .impact-indicator__amount {
   font-size: 0.95rem;
-}
-
-.arena-route-bout-result-intel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.arena-route-intel__card {
-  display: grid;
-  gap: 12px;
-  padding: 14px;
-  border: 1px solid rgba(214, 163, 74, 0.22);
-  border-radius: 10px;
-  background: rgba(255, 241, 199, 0.055);
-}
-
-.arena-route-intel__card--result {
-  border-color: rgba(120, 196, 107, 0.35);
-}
-
-.arena-route-intel__card header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.arena-route-intel__card strong,
-.arena-route-intel__card dd {
-  color: #fff1c7;
-}
-
-.arena-route-purse-list {
-  display: grid;
-  gap: 8px;
-}
-
-.arena-route-purse-list div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
 }
 
 .arena-route-panel--bout-preview .arena-route-actions--footer,
@@ -398,6 +367,38 @@
 .arena-route-primary-cta {
   min-width: min(280px, 100%);
   font-size: 0.95rem;
+}
+
+.arena-route-log-toggle {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid rgba(214, 163, 74, 0.28);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(28, 22, 16, 0.9), rgba(13, 10, 8, 0.86)), rgba(15, 11, 8, 0.76);
+  color: #f7e6b3;
+  font-weight: 900;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 222, 0.08),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28);
+}
+
+.arena-route-log-toggle:hover {
+  border-color: rgba(255, 221, 142, 0.78);
+  color: #fff1c7;
+}
+
+.arena-route-combat-log {
+  display: grid;
+  min-height: 360px;
+}
+
+.arena-route-combat-log .combat-replay-log {
+  min-height: 360px;
 }
 
 .arena-route-day-results-bar {
@@ -513,6 +514,24 @@
   height: 30px;
 }
 
+.arena-route-day-result-card__fighter-portrait {
+  position: relative;
+}
+
+.arena-route-day-result-card__fighter-portrait--winner::before {
+  position: absolute;
+  inset: -7px;
+  z-index: 0;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(126, 204, 112, 0.45), transparent 70%);
+  content: '';
+}
+
+.arena-route-day-result-card__fighter-portrait .gladiator-portrait {
+  position: relative;
+  z-index: 1;
+}
+
 .arena-route-day-result-card__fighter-button {
   display: inline-flex;
   min-width: 0;
@@ -546,7 +565,7 @@
 }
 
 .arena-route-day-result-card__result-icon {
-  justify-self: end;
+  justify-self: center;
 }
 
 .arena-route-day-result-card__impacts {
@@ -578,7 +597,6 @@
 @media (max-width: 980px) {
   .arena-route-step-header,
   .arena-route-bout-layout,
-  .arena-route-intel,
   .arena-route-day-result-card {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -640,7 +658,7 @@
     align-items: stretch;
   }
 
-  .arena-route-reward-impacts__group {
+  .arena-route-bout-outcome {
     flex: 1 1 180px;
   }
 }

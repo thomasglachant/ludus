@@ -1,7 +1,6 @@
 import type { BuildingId } from '../domain/buildings/types';
-import type { GladiatorClassId } from '../domain/gladiators/types';
+import { GLADIATOR_CLASS_IDS, type GladiatorClassId } from '../domain/gladiators/types';
 import { PRODUCTION_VISUAL_ASSET_MANIFEST as generatedProductionVisualAssetManifest } from './generated/asset-manifest.production';
-import { GLADIATOR_VISUAL_VARIANT_LIMIT } from './gladiator-visual-variants';
 
 export type VisualAssetSourceQuality = 'production';
 export type HomepageBackgroundPhase = 'day' | 'dusk';
@@ -10,7 +9,6 @@ export type VisualLocationId = 'arena' | 'market';
 export interface ArenaLocationAssetSet {
   sourceQuality?: VisualAssetSourceQuality;
   combatBackground: string;
-  crowd: string;
   exterior?: string;
 }
 
@@ -75,21 +73,10 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST: VisualAssetManifest =
 
 export const VISUAL_ASSET_MANIFEST: VisualAssetManifest = PRODUCTION_VISUAL_ASSET_MANIFEST;
 
-export const GLADIATOR_VISUAL_ASSET_IDS = Object.keys(VISUAL_ASSET_MANIFEST.gladiators).slice(
-  0,
-  GLADIATOR_VISUAL_VARIANT_LIMIT,
-);
-
 export const GLADIATOR_CLASS_VISUAL_ASSET_IDS = {
   murmillo: 'gladiator-class-murmillo',
   retiarius: 'gladiator-class-retiarius',
   secutor: 'gladiator-class-secutor',
-} as const satisfies Record<GladiatorClassId, string>;
-
-export const GLADIATOR_CLASS_FALLBACK_VISUAL_ASSET_IDS = {
-  murmillo: 'gladiator-03',
-  retiarius: 'gladiator-02',
-  secutor: 'gladiator-05',
 } as const satisfies Record<GladiatorClassId, string>;
 
 export const GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS = {
@@ -98,12 +85,61 @@ export const GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS = {
   secutor: '/assets/gladiators/classes/secutor-avatar.png',
 } as const satisfies Record<GladiatorClassId, string>;
 
+export const DEFAULT_GLADIATOR_CLASS_ID = GLADIATOR_CLASS_IDS[0];
+
+export const GLADIATOR_CLASS_ASSET_SETS = {
+  murmillo: {
+    sourceQuality: 'production',
+    portrait: GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS.murmillo,
+    avatar: GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS.murmillo,
+    paletteId: 'madderRed-bronze',
+    bodyType: 'broad',
+    hairStyle: 'bronzeGalea',
+    armorStyle: 'bronze',
+    clothingStyle: 'bronzeCuirass',
+    clothingColor: 'madderRed',
+    hairAndBeardStyle: 'cropped',
+    headwearStyle: 'bronzeGalea',
+    bodyBuildStyle: 'broad',
+    skinTone: 'bronze',
+    markingStyle: 'browScar',
+  },
+  retiarius: {
+    sourceQuality: 'production',
+    portrait: GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS.retiarius,
+    avatar: GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS.retiarius,
+    paletteId: 'linenWhite-tan',
+    bodyType: 'lean',
+    hairStyle: 'curly',
+    armorStyle: 'linenTunic',
+    clothingStyle: 'linenTunic',
+    clothingColor: 'linenWhite',
+    hairAndBeardStyle: 'curly',
+    headwearStyle: 'none',
+    bodyBuildStyle: 'lean',
+    skinTone: 'tan',
+    markingStyle: 'cheekScar',
+  },
+  secutor: {
+    sourceQuality: 'production',
+    portrait: GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS.secutor,
+    avatar: GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS.secutor,
+    paletteId: 'indigo-umber',
+    bodyType: 'stocky',
+    hairStyle: 'ironMask',
+    armorStyle: 'paddedManica',
+    clothingStyle: 'paddedManica',
+    clothingColor: 'indigo',
+    hairAndBeardStyle: 'shaved',
+    headwearStyle: 'ironMask',
+    bodyBuildStyle: 'stocky',
+    skinTone: 'umber',
+    markingStyle: 'arenaDust',
+  },
+} as const satisfies Record<GladiatorClassId, GladiatorAssetSet>;
+
 export function getGladiatorClassVisualAssetId(classId: GladiatorClassId) {
   return GLADIATOR_CLASS_VISUAL_ASSET_IDS[classId];
-}
-
-export function getGladiatorClassFallbackVisualAssetId(classId: GladiatorClassId) {
-  return GLADIATOR_CLASS_FALLBACK_VISUAL_ASSET_IDS[classId];
 }
 
 export function getGladiatorClassPortraitAssetPath(classId: GladiatorClassId) {
@@ -111,7 +147,12 @@ export function getGladiatorClassPortraitAssetPath(classId: GladiatorClassId) {
 }
 
 export function getGladiatorAssetSet(assetId: string): GladiatorAssetSet | undefined {
-  return VISUAL_ASSET_MANIFEST.gladiators[assetId];
+  const classEntry = Object.entries(GLADIATOR_CLASS_VISUAL_ASSET_IDS).find(
+    ([, classAssetId]) => classAssetId === assetId,
+  );
+  const classId = classEntry?.[0] as GladiatorClassId | undefined;
+
+  return classId ? GLADIATOR_CLASS_ASSET_SETS[classId] : VISUAL_ASSET_MANIFEST.gladiators[assetId];
 }
 
 export function getBuildingAssetSet(buildingId: BuildingId, level: number) {
@@ -133,16 +174,5 @@ export function getLocationAssetPath(locationId: VisualLocationId) {
 }
 
 export function getFallbackGladiatorAssetSet(classId?: GladiatorClassId) {
-  const classFallbackAssetId = classId
-    ? getGladiatorClassFallbackVisualAssetId(classId)
-    : undefined;
-  const fallbackAssetSet =
-    (classFallbackAssetId ? getGladiatorAssetSet(classFallbackAssetId) : undefined) ??
-    getGladiatorAssetSet(GLADIATOR_VISUAL_ASSET_IDS[0]);
-
-  if (!fallbackAssetSet) {
-    throw new Error('Missing fallback gladiator visual asset set.');
-  }
-
-  return fallbackAssetSet;
+  return GLADIATOR_CLASS_ASSET_SETS[classId ?? DEFAULT_GLADIATOR_CLASS_ID];
 }

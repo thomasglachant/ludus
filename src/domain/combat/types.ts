@@ -12,7 +12,6 @@ export type ArenaRank =
   | 'gold1';
 
 export interface ArenaState {
-  currentCombatId?: string;
   arenaDay?: ArenaDayState;
   resolvedCombats: CombatState[];
   isArenaDayActive: boolean;

@@ -6,10 +6,10 @@ import { CardScrollArea } from '../components/CardScrollArea';
 import { ImpactIndicator } from '../components/ImpactIndicator';
 import { ImpactList } from '../components/ImpactList';
 import { GameIcon } from '../icons/GameIcon';
-import type { CombatReplayViewModel } from './combat-replay-view-model';
+import type { CombatLogViewModel } from './combat-log-view-model';
 
 interface CombatLogProps {
-  viewModel: CombatReplayViewModel;
+  viewModel: CombatLogViewModel;
 }
 
 type CombatLogSide = 'left' | 'right';
@@ -40,7 +40,7 @@ interface CombatResultColumnViewModel {
   side: CombatLogSide;
 }
 
-function getCombatantReward(viewModel: CombatReplayViewModel, combatantId: string) {
+function getCombatantReward(viewModel: CombatLogViewModel, combatantId: string) {
   const didCombatantWin = viewModel.combat.winnerId === combatantId;
 
   return didCombatantWin
@@ -48,7 +48,7 @@ function getCombatantReward(viewModel: CombatReplayViewModel, combatantId: strin
     : viewModel.combat.reward.loserReward;
 }
 
-function getCombatResultColumns(viewModel: CombatReplayViewModel): CombatResultColumnViewModel[] {
+function getCombatResultColumns(viewModel: CombatLogViewModel): CombatResultColumnViewModel[] {
   const player = viewModel.combat.gladiator;
   const opponent = viewModel.combat.opponent;
 
@@ -69,14 +69,11 @@ function getCombatResultColumns(viewModel: CombatReplayViewModel): CombatResultC
   ];
 }
 
-function getTurnParticipantSide(
-  viewModel: CombatReplayViewModel,
-  combatantId: string,
-): CombatLogSide {
+function getTurnParticipantSide(viewModel: CombatLogViewModel, combatantId: string): CombatLogSide {
   return viewModel.combat.gladiator.id === combatantId ? 'left' : 'right';
 }
 
-function getCombatLogTurns(viewModel: CombatReplayViewModel): CombatLogTurnViewModel[] {
+function getCombatLogTurns(viewModel: CombatLogViewModel): CombatLogTurnViewModel[] {
   return viewModel.visibleTurns.map((turn) => {
     const attackerSide = getTurnParticipantSide(viewModel, turn.attackerId);
     const defenderSide = getTurnParticipantSide(viewModel, turn.defenderId);
@@ -102,7 +99,7 @@ function getCombatLogTurns(viewModel: CombatReplayViewModel): CombatLogTurnViewM
   });
 }
 
-function getCombatWinnerAndLoser(viewModel: CombatReplayViewModel) {
+function getCombatWinnerAndLoser(viewModel: CombatLogViewModel) {
   const player = viewModel.combat.gladiator;
   const opponent = viewModel.combat.opponent;
   const isPlayerWinner = viewModel.combat.winnerId === player.id;
@@ -209,7 +206,7 @@ function CombatantTurnColumn({
   );
 }
 
-function CombatWinnerLine({ viewModel }: { viewModel: CombatReplayViewModel }) {
+function CombatWinnerLine({ viewModel }: { viewModel: CombatLogViewModel }) {
   const { t } = useUiStore();
   const { loserName, winnerName } = getCombatWinnerAndLoser(viewModel);
 

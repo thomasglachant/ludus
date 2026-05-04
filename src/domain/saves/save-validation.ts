@@ -376,7 +376,6 @@ function isArenaDayState(value: unknown): value is ArenaDayState {
 function isArenaState(value: unknown) {
   return (
     isRecord(value) &&
-    hasOptionalString(value, 'currentCombatId') &&
     (value.arenaDay === undefined || isArenaDayState(value.arenaDay)) &&
     Array.isArray(value.resolvedCombats) &&
     value.resolvedCombats.every(isCombatState) &&

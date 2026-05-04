@@ -7,7 +7,6 @@ import {
   buyoutLoan as buyoutLoanAction,
   takeLoan as takeLoanAction,
 } from '../domain/economy/economy-actions';
-import { markArenaCombatPresented as markArenaCombatPresentedAction } from '../domain/combat/combat-actions';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { getGameSessionRoute } from '../app/routes';
 import { featureFlags } from '../config/features';
@@ -411,13 +410,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     [applyPlayerChange],
   );
 
-  const markArenaCombatPresented = useCallback(
-    (combatId: string) => {
-      applyPlayerChange((save) => markArenaCombatPresentedAction(save, combatId));
-    },
-    [applyPlayerChange],
-  );
-
   const completeSundayArenaDay = useCallback(() => {
     applyPlayerChange((save) => completeSundayArenaDayAction(save));
   }, [applyPlayerChange]);
@@ -702,7 +694,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       resolveGameEventChoice,
       triggerDebugDailyEvent,
       adjustDebugTreasury,
-      markArenaCombatPresented,
       completeSundayArenaDay,
       advanceWeekStep: advanceWeekStepAction,
       toggleGamePause,
@@ -747,7 +738,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     toggleGamePause,
     updateDailyPlan,
     updateDailyPlanBuildingActivitySelection,
-    markArenaCombatPresented,
     currentSave,
     completeSundayArenaDay,
     sellGladiatorAction,

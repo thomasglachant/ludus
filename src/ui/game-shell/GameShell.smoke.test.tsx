@@ -65,7 +65,6 @@ function createGameStore(): GameStoreValue {
     resolveGameEventChoice: vi.fn(),
     triggerDebugDailyEvent: vi.fn(),
     adjustDebugTreasury: vi.fn(),
-    markArenaCombatPresented: vi.fn(),
     completeSundayArenaDay: vi.fn(),
     advanceWeekStep: vi.fn(),
     toggleGamePause: vi.fn(),

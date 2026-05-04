@@ -496,7 +496,7 @@ describe('weekly simulation actions', () => {
     expect(result.arena.arenaDay).toMatchObject({
       year: 1,
       week: 1,
-      phase: 'intro',
+      phase: 'summary',
     });
   });
 

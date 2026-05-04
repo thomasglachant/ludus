@@ -948,7 +948,6 @@ export function completeSundayArenaDay(
     arena: {
       ...save.arena,
       arenaDay: undefined,
-      currentCombatId: undefined,
       isArenaDayActive: false,
     },
   };
