@@ -598,8 +598,7 @@
 
 .form-panel,
 .settings-panel,
-.save-list,
-.panel {
+.save-list {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -679,65 +678,11 @@
   color: #7d231c;
 }
 
-.panel,
 .save-card {
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.94);
-}
-
-.save-card--demo > div {
-  display: grid;
-  gap: 6px;
-}
-
-.tag-list {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  padding: 0;
-  list-style: none;
-}
-
-.tag-list li {
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 0.76rem;
-  font-weight: 850;
-}
-
-.panel--summary {
-  background: var(--surface);
-}
-
-.stat-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.stat-list div {
-  min-height: 72px;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface-muted);
-}
-
-.stat-list dt {
-  color: var(--text-muted);
-  font-size: 0.82rem;
-  font-weight: 750;
-}
-
-.stat-list dd {
-  margin-top: 4px;
-  color: var(--text);
-  font-size: 1.2rem;
-  font-weight: 850;
 }
 
 .save-card {
@@ -765,10 +710,6 @@
 
   .action-button {
     width: 100%;
-  }
-
-  .stat-list {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -859,8 +800,7 @@
   color: #2b2118;
 }
 
-.save-card,
-.panel {
+.save-card {
   border: 1px solid rgba(111, 69, 35, 0.42);
   border-radius: 6px;
   background:

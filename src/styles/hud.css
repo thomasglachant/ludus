@@ -71,8 +71,7 @@
   justify-content: center;
 }
 
-.top-hud__time,
-.top-hud__phase {
+.top-hud__time {
   display: grid;
   min-height: 44px;
   align-items: center;
@@ -135,11 +134,6 @@
   justify-content: center;
   color: #d6a34a;
   font-size: 0.74rem;
-}
-
-.top-hud__phase {
-  color: #78c46b;
-  text-transform: uppercase;
 }
 
 .top-hud__actions {

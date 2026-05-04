@@ -9,12 +9,7 @@ import type {
 } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { CTAButton } from '../components/CTAButton';
-import {
-  formatLedgerEntryAmount,
-  getLedgerEntryCategoryLabel,
-  getLedgerEntryContextLabel,
-  getLedgerEntryDateLabel,
-} from '../formatters/ledger';
+import { LedgerEntryList } from '../components/LedgerEntryList';
 import { formatMoneyAmount } from '../formatters/money';
 import { EmptyState, MetricList, NoticeBox, SectionCard } from '../components/shared';
 import { ParchmentPanel } from '../game/GamePanel';
@@ -309,46 +304,12 @@ export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelPro
       {activeTab === 'ledger' ? (
         <ModalTabPanel>
           <ModalSection titleKey="finance.ledgerTitle">
-            {recentLedgerEntries.length > 0 ? (
-              <div className="finance-ledger">
-                <p className="context-panel__muted">
-                  {t('finance.ledgerShowing', { count: recentLedgerEntries.length })}
-                </p>
-                <div className="finance-ledger-list">
-                  {recentLedgerEntries.map((entry) => {
-                    const context = getLedgerEntryContextLabel(entry, t);
-
-                    return (
-                      <ParchmentPanel
-                        as="article"
-                        className={`finance-entry finance-entry--${entry.kind}`}
-                        density="compact"
-                        key={entry.id}
-                      >
-                        <span className={`finance-entry__kind finance-entry__kind--${entry.kind}`}>
-                          {t(`finance.ledgerKind.${entry.kind}`)}
-                        </span>
-                        <div className="finance-entry__main">
-                          <strong>{t(entry.labelKey)}</strong>
-                          {context ? <span>{context}</span> : null}
-                        </div>
-                        <div className="finance-entry__meta">
-                          <span>{getLedgerEntryCategoryLabel(entry, t)}</span>
-                          <span>{getLedgerEntryDateLabel(entry, t)}</span>
-                        </div>
-                        <strong
-                          className={`finance-entry__amount finance-entry__amount--${entry.kind}`}
-                        >
-                          {formatLedgerEntryAmount(entry)}
-                        </strong>
-                      </ParchmentPanel>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <EmptyState messageKey="finance.noLedger" />
-            )}
+            <div className="finance-ledger">
+              <p className="context-panel__muted">
+                {t('finance.ledgerShowing', { count: recentLedgerEntries.length })}
+              </p>
+              <LedgerEntryList entries={recentLedgerEntries} emptyMessageKey="finance.noLedger" />
+            </div>
           </ModalSection>
         </ModalTabPanel>
       ) : null}

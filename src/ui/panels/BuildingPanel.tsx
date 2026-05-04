@@ -5,6 +5,7 @@ import { useUiStore } from '../../state/ui-store-context';
 import { BuildingAvatar } from '../buildings/BuildingAvatar';
 import { CTAButton } from '../components/CTAButton';
 import { EntityList, EntityListRow } from '../components/EntityList';
+import { LedgerEntryList } from '../components/LedgerEntryList';
 import {
   Badge,
   CostSummary,
@@ -14,7 +15,7 @@ import {
   SectionCard,
 } from '../components/shared';
 import { formatMoneyAmount } from '../formatters/money';
-import { getLedgerEntryAmount, getLedgerEntryMeta } from '../formatters/ledger';
+import { getLedgerEntryAmount } from '../formatters/ledger';
 import { GameIcon } from '../icons/GameIcon';
 import { BuildingActionModalContent } from '../modals/BuildingActionModalContent';
 import {
@@ -776,44 +777,18 @@ export function BuildingPanel({
             ]}
           />
           <ModalSection titleKey="buildingPanel.financeIncomeTitle">
-            <EntityList emptyMessageKey="buildingPanel.noBuildingIncome">
-              {visibleBuildingIncomeEntries.map((entry) => (
-                <EntityListRow
-                  info={[
-                    {
-                      iconName: 'treasury',
-                      id: 'amount',
-                      label: t('finance.ledgerKind.income'),
-                      tone: 'positive',
-                      value: formatMoneyAmount(getLedgerEntryAmount(entry)),
-                    },
-                  ]}
-                  key={entry.id}
-                  subtitle={getLedgerEntryMeta(entry, t)}
-                  title={t(entry.labelKey)}
-                />
-              ))}
-            </EntityList>
+            <LedgerEntryList
+              entries={visibleBuildingIncomeEntries}
+              emptyMessageKey="buildingPanel.noBuildingIncome"
+              variant="compact"
+            />
           </ModalSection>
           <ModalSection titleKey="buildingPanel.financeExpenseTitle">
-            <EntityList emptyMessageKey="buildingPanel.noBuildingExpenses">
-              {visibleBuildingExpenseEntries.map((entry) => (
-                <EntityListRow
-                  info={[
-                    {
-                      iconName: 'treasury',
-                      id: 'amount',
-                      label: t('finance.ledgerKind.expense'),
-                      tone: 'danger',
-                      value: formatMoneyAmount(getLedgerEntryAmount(entry)),
-                    },
-                  ]}
-                  key={entry.id}
-                  subtitle={getLedgerEntryMeta(entry, t)}
-                  title={t(entry.labelKey)}
-                />
-              ))}
-            </EntityList>
+            <LedgerEntryList
+              entries={visibleBuildingExpenseEntries}
+              emptyMessageKey="buildingPanel.noBuildingExpenses"
+              variant="compact"
+            />
           </ModalSection>
         </ModalTabPanel>
       ) : null}

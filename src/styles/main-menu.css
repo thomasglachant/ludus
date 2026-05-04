@@ -482,15 +482,6 @@
   background: rgba(12, 8, 6, 0.38);
 }
 
-.save-card__date {
-  display: block;
-}
-
-.save-card__date time {
-  color: #f7ddb1;
-  font-weight: 850;
-}
-
 .main-menu-screen__panel-body .notice-row,
 .main-menu-screen__panel-body .save-card,
 .main-menu-screen__panel-body .empty-state,
@@ -517,12 +508,6 @@
   button
   span:not(.language-switcher__flag) {
   color: rgba(255, 240, 197, 0.72);
-}
-
-.main-menu-screen__panel-body .tag-list li {
-  border-color: rgba(231, 185, 97, 0.3);
-  background: rgba(255, 221, 139, 0.1);
-  color: #f7ddb1;
 }
 
 .main-menu-screen__panel-body .language-switcher__choices {
