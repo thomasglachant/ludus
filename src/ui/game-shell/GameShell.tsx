@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import type { BuildingId } from '../../domain/types';
-import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 import { BuildingsOverview } from '../buildings/BuildingsOverview';
@@ -67,7 +66,7 @@ export function GameShell() {
 
   if (!currentSave) {
     return (
-      <ScenicScreen backgroundPath={VISUAL_ASSET_MANIFEST.ludus.background} className="game-shell">
+      <ScenicScreen className="game-shell">
         <p className={errorKey ? 'form-error' : 'empty-state'}>
           {t(errorKey ?? (isLoading ? 'common.loading' : 'loadGame.error'))}
         </p>
@@ -76,7 +75,7 @@ export function GameShell() {
   }
 
   return (
-    <ScenicScreen backgroundPath={VISUAL_ASSET_MANIFEST.ludus.background} className="game-shell">
+    <ScenicScreen className="game-shell">
       <TopHud
         clockLabel={gameClockLabel}
         isPaused={isGamePaused}

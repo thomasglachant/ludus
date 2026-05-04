@@ -125,7 +125,7 @@
 .bottom-navigation {
   position: absolute;
   bottom: 18px;
-  left: max(18px, calc((100vw - var(--app-max-width)) / 2 + 18px));
+  left: 18px;
   z-index: 22;
   display: flex;
   grid-column: 1 / -1;

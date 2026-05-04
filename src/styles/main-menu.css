@@ -1,9 +1,7 @@
 .main-menu-screen {
-  --scenic-screen-fallback: #15110d;
-  --scenic-screen-center-glow: rgba(255, 193, 96, 0.16);
-  position: relative;
   display: grid;
   place-items: center;
+  position: relative;
   min-height: 100dvh;
   padding: clamp(20px, 4vw, 56px);
   color: #fff2cf;

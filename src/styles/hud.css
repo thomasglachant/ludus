@@ -3,9 +3,8 @@
   display: grid;
   position: absolute;
   top: 0;
-  right: auto;
-  left: 50%;
-  width: min(100%, var(--app-max-width));
+  right: 0;
+  left: 0;
   grid-column: 1 / -1;
   grid-template-columns: minmax(220px, 1fr) minmax(0, auto) minmax(220px, 1fr);
   grid-template-areas: 'brand center actions';
@@ -13,7 +12,6 @@
   align-items: center;
   padding: 14px 18px;
   pointer-events: none;
-  transform: translateX(-50%);
 }
 
 .top-hud > * {

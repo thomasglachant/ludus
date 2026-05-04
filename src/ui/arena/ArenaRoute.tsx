@@ -4,7 +4,6 @@ import {
   calculateProjectedWinChance,
 } from '../../domain/combat/combat-actions';
 import type { CombatState, GameSave } from '../../domain/types';
-import { PRODUCTION_VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
 import { CardBlured } from '../components/CardBlured';
@@ -386,7 +385,6 @@ export function ArenaRoute({ onCompleteArenaDay, onReturnToLudus, save }: ArenaR
   const totalCombats = viewModel.resolvedCombats.length;
   const visibleStepIndex = Math.min(currentStepIndex, totalCombats);
   const currentCombat = viewModel.resolvedCombats[visibleStepIndex];
-  const arenaBackground = PRODUCTION_VISUAL_ASSET_MANIFEST.locations.arena.combatBackground;
   const isSummary = visibleStepIndex >= totalCombats || totalCombats === 0;
 
   const toggleCombatLog = (combatId: string) => {
@@ -405,7 +403,7 @@ export function ArenaRoute({ onCompleteArenaDay, onReturnToLudus, save }: ArenaR
 
   if (!save.arena.arenaDay) {
     return (
-      <ScenicScreen backgroundPath={arenaBackground} className="arena-route">
+      <ScenicScreen className="arena-route">
         <div className="arena-route-panel arena-route-panel--closed">
           <p className="eyebrow">{t('arena.title')}</p>
           <h1>{t('arena.closedTitle')}</h1>
@@ -421,7 +419,7 @@ export function ArenaRoute({ onCompleteArenaDay, onReturnToLudus, save }: ArenaR
   }
 
   return (
-    <ScenicScreen backgroundPath={arenaBackground} className="arena-route">
+    <ScenicScreen className="arena-route">
       <main className="arena-route__stage">
         {isSummary ? (
           totalCombats > 0 ? (

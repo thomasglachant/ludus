@@ -1,4 +1,3 @@
-import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { MenuCard, MenuCardBrandTitle } from '../components/MenuCard';
@@ -11,10 +10,9 @@ type MainMenuPanel = 'newGame' | 'loadGame' | 'options';
 
 export function MainMenuScreen() {
   const { t } = useUiStore();
-  const backgroundPath = VISUAL_ASSET_MANIFEST.homepage.backgrounds.day;
 
   return (
-    <ScenicScreen backgroundPath={backgroundPath} className="main-menu-screen">
+    <ScenicScreen className="main-menu-screen">
       <MenuCard<MainMenuPanel>
         actions={[
           {

@@ -37,6 +37,7 @@
   --sans: var(--font-ui);
   --mono: var(--font-mono);
   --app-max-width: 1440px;
+  --app-scene-max-width: 1600px;
 
   color: var(--text);
   background:
@@ -118,14 +119,27 @@ h3 {
 }
 
 .app-layout {
-  width: min(var(--app-max-width), 100%);
+  --app-layout-scene-background: none;
+  position: relative;
+  width: min(100%, var(--app-max-width));
   min-height: 100vh;
   margin: 0 auto;
-  padding: 18px;
-  overflow: hidden;
-  background:
-    repeating-linear-gradient(90deg, rgba(240, 223, 184, 0.024) 0 2px, transparent 2px 6px),
-    radial-gradient(circle at 12% 8%, rgba(158, 70, 52, 0.14), transparent 24rem), var(--obsidian);
+  overflow: visible;
+  background: #050403;
+  isolation: isolate;
+}
+
+.app-layout__scene {
+  position: absolute;
+  inset: 0 auto 0 50%;
+  z-index: 0;
+  display: block;
+  width: min(100vw, var(--app-scene-max-width));
+  height: 100%;
+  background: var(--app-layout-scene-background) center / cover no-repeat;
+  filter: brightness(0.58) saturate(0.88) contrast(0.96);
+  pointer-events: none;
+  transform: translateX(-50%);
 }
 
 .screen-shell {
@@ -165,7 +179,7 @@ h3 {
 
 @media (max-width: 560px) {
   .app-layout {
-    padding: 12px;
+    min-height: 100vh;
   }
 
   .screen-shell {
@@ -183,11 +197,7 @@ h3 {
 
 .app-layout--main-menu,
 .app-layout--game-shell {
-  width: 100%;
   min-height: 100vh;
-  max-width: none;
-  margin: 0;
-  padding: 0;
 }
 
 body {
