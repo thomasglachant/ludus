@@ -18,6 +18,8 @@ const generatedAt = '2026-04-28T00:00:00.000Z';
 const checkOnly = process.argv.includes('--check');
 
 const externalLocationIds = new Set(['arena', 'market']);
+const productionRasterExtensions = new Set(['.webp']);
+
 function toWebPath(path) {
   return `/assets/${relative(publicAssetsRoot, path).split(sep).join('/')}`;
 }
@@ -44,17 +46,58 @@ function sortObjectEntries(object) {
   );
 }
 
-function readPngSize(path) {
-  const buffer = readFileSync(path);
+function readUint24LE(buffer, offset) {
+  return buffer[offset] | (buffer[offset + 1] << 8) | (buffer[offset + 2] << 16);
+}
 
-  if (buffer.toString('ascii', 1, 4) !== 'PNG') {
-    throw new Error(`Expected PNG asset: ${path}`);
+function readWebpSize(path, buffer) {
+  if (buffer.toString('ascii', 0, 4) !== 'RIFF' || buffer.toString('ascii', 8, 12) !== 'WEBP') {
+    throw new Error(`Expected WebP asset: ${path}`);
   }
 
-  return {
-    width: buffer.readUInt32BE(16),
-    height: buffer.readUInt32BE(20),
-  };
+  let offset = 12;
+  while (offset + 8 <= buffer.length) {
+    const chunkType = buffer.toString('ascii', offset, offset + 4);
+    const chunkSize = buffer.readUInt32LE(offset + 4);
+    const chunkDataOffset = offset + 8;
+
+    if (chunkType === 'VP8X') {
+      return {
+        width: readUint24LE(buffer, chunkDataOffset + 4) + 1,
+        height: readUint24LE(buffer, chunkDataOffset + 7) + 1,
+      };
+    }
+
+    if (chunkType === 'VP8 ') {
+      return {
+        width: buffer.readUInt16LE(chunkDataOffset + 6) & 0x3fff,
+        height: buffer.readUInt16LE(chunkDataOffset + 8) & 0x3fff,
+      };
+    }
+
+    if (chunkType === 'VP8L') {
+      const bits = buffer.readUInt32LE(chunkDataOffset + 1);
+      return {
+        width: (bits & 0x3fff) + 1,
+        height: ((bits >> 14) & 0x3fff) + 1,
+      };
+    }
+
+    offset = chunkDataOffset + chunkSize + (chunkSize % 2);
+  }
+
+  throw new Error(`Unsupported WebP asset: ${path}`);
+}
+
+function readRasterSize(path) {
+  const buffer = readFileSync(path);
+  const extension = extname(path);
+
+  if (extension === '.webp') {
+    return readWebpSize(path, buffer);
+  }
+
+  throw new Error(`Unsupported raster asset: ${path}`);
 }
 
 function parseArrayConstant(source, name) {
@@ -89,9 +132,11 @@ function buildHomepageManifest() {
 }
 
 function buildLudusManifest() {
+  const webpBackgroundPath = join(publicAssetsRoot, 'ludus', 'ludus-background.webp');
+
   return {
     sourceQuality: 'production',
-    background: '/assets/ludus/ludus-background.png',
+    background: toWebPath(webpBackgroundPath),
   };
 }
 
@@ -99,8 +144,8 @@ function buildBuildingManifest() {
   const activeBuildingIds = new Set(
     parseArrayConstant(readFileSync(buildingsPath, 'utf8'), 'BUILDING_IDS'),
   );
-  const buildingFiles = listFiles(join(publicAssetsRoot, 'buildings')).filter(
-    (path) => extname(path) === '.png',
+  const buildingFiles = listFiles(join(publicAssetsRoot, 'buildings')).filter((path) =>
+    productionRasterExtensions.has(extname(path)),
   );
   const buildings = {};
 
@@ -109,13 +154,13 @@ function buildBuildingManifest() {
       relative(join(publicAssetsRoot, 'buildings'), path)
         .split(sep)
         .join('/')
-        .match(/^([^/]+)\/(level-\d+)\/([^/]+)\.png$/) ?? [];
+        .match(/^([^/]+)\/(level-\d+)\/([^/]+)\.webp$/) ?? [];
 
     if (!buildingId || !activeBuildingIds.has(buildingId) || !levelId || !partName) {
       continue;
     }
 
-    const size = readPngSize(path);
+    const size = readRasterSize(path);
     buildings[buildingId] ??= {};
     buildings[buildingId][levelId] ??= {
       sourceQuality: 'production',
@@ -126,20 +171,20 @@ function buildBuildingManifest() {
   }
 
   const generatedBuildingFiles = listFiles(join(publicAssetsRoot, 'generated', 'buildings')).filter(
-    (path) => extname(path) === '.png',
+    (path) => productionRasterExtensions.has(extname(path)),
   );
 
   for (const path of generatedBuildingFiles) {
     const buildingId = relative(join(publicAssetsRoot, 'generated', 'buildings'), path)
       .split(sep)
       .join('/')
-      .replace(/\.png$/, '');
+      .replace(/\.webp$/, '');
 
     if (!buildingId || externalLocationIds.has(buildingId) || !activeBuildingIds.has(buildingId)) {
       continue;
     }
 
-    const size = readPngSize(path);
+    const size = readRasterSize(path);
     buildings[buildingId] ??= {};
     buildings[buildingId]['level-1'] ??= {
       sourceQuality: 'production',
@@ -160,8 +205,8 @@ function buildBuildingManifest() {
 }
 
 function buildLocationsManifest() {
-  const arenaExteriorPath = join(publicAssetsRoot, 'generated', 'buildings', 'arena.png');
-  const marketExteriorPath = join(publicAssetsRoot, 'generated', 'buildings', 'market.png');
+  const arenaExteriorPath = join(publicAssetsRoot, 'generated', 'buildings', 'arena.webp');
+  const marketExteriorPath = join(publicAssetsRoot, 'generated', 'buildings', 'market.webp');
 
   return {
     arena: {
@@ -182,7 +227,7 @@ function buildGladiatorManifest() {
 
 function buildUiManifest() {
   const uiFiles = listFiles(join(publicAssetsRoot, 'ui')).filter((path) =>
-    ['.png', '.svg'].includes(extname(path)),
+    ['.webp', '.svg'].includes(extname(path)),
   );
 
   return Object.fromEntries(
@@ -191,7 +236,7 @@ function buildUiManifest() {
         const id = relative(join(publicAssetsRoot, 'ui'), path)
           .split(sep)
           .join('/')
-          .replace(/\.(png|svg)$/, '');
+          .replace(/\.(webp|svg)$/, '');
         return [id, toWebPath(path)];
       })
       .sort(([left], [right]) => left.localeCompare(right)),

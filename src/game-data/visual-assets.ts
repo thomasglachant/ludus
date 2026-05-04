@@ -80,9 +80,9 @@ export const GLADIATOR_CLASS_VISUAL_ASSET_IDS = {
 } as const satisfies Record<GladiatorClassId, string>;
 
 export const GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS = {
-  murmillo: '/assets/gladiators/classes/murmillo-avatar.png',
-  retiarius: '/assets/gladiators/classes/retiarius-avatar.png',
-  secutor: '/assets/gladiators/classes/secutor-avatar.png',
+  murmillo: '/assets/gladiators/classes/murmillo-avatar.webp',
+  retiarius: '/assets/gladiators/classes/retiarius-avatar.webp',
+  secutor: '/assets/gladiators/classes/secutor-avatar.webp',
 } as const satisfies Record<GladiatorClassId, string>;
 
 export const DEFAULT_GLADIATOR_CLASS_ID = GLADIATOR_CLASS_IDS[0];

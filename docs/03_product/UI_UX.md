@@ -8,6 +8,16 @@ Buildings are the primary interaction space. Panels and modals expose details on
 
 All visible UI text must use i18n keys and support French and English.
 
+Reusable UI primitives are the default implementation path. Before creating a
+feature-local component, check whether an existing shared component, modal
+framework primitive, list row, metric component, CTA, card or layout wrapper can
+express the interaction.
+
+One-off components are allowed only when the implementation has an explicit
+component contract: why existing primitives do not fit, what props and state the
+component owns, whether it is expected to become reusable later, and which
+shared styles or primitives it still relies on.
+
 ## Main Game Shell
 
 Target structure:
@@ -61,7 +71,7 @@ It displays:
 - staffing and efficiency status;
 - quick access to market and arena.
 
-Building interactions focus on opening the management panels quickly while preserving the Roman pixel-art direction through assets, HUD styling and parchment/bronze panels.
+Building interactions focus on opening the management panels quickly while preserving the Roman American comic / BD-inspired direction through assets, HUD styling and parchment/bronze panels.
 
 ## Building Panels
 
@@ -213,12 +223,14 @@ Events remain focused modal or panel interactions. Activity-gated events should 
 
 ## Visual Direction
 
-The Roman pixel-art direction remains:
+The Roman American comic / BD-inspired direction remains:
 
 - dark bronze and stone HUDs;
 - parchment-like panels;
 - warm ludus backdrop;
 - visible buildings and management entry points;
+- bold readable silhouettes;
+- simple color masses with qualitative illustrative detail;
 - theatrical arena combat presentation.
 
 Debug or dashboard-style UI must remain behind debug flags or dedicated debug routes.

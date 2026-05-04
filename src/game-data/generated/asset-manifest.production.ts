@@ -6,7 +6,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
   generatedAt: '2026-04-28T00:00:00.000Z',
   ludus: {
     sourceQuality: 'production',
-    background: '/assets/ludus/ludus-background.png',
+    background: '/assets/ludus/ludus-background.webp',
   },
   homepage: {
     sourceQuality: 'production',
@@ -20,7 +20,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
         sourceQuality: 'production',
         width: 1254,
         height: 1254,
-        exterior: '/assets/generated/buildings/canteen.png',
+        exterior: '/assets/generated/buildings/canteen.webp',
       },
     },
     domus: {
@@ -28,7 +28,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
         sourceQuality: 'production',
         width: 1254,
         height: 1254,
-        exterior: '/assets/generated/buildings/domus.png',
+        exterior: '/assets/generated/buildings/domus.webp',
       },
     },
     dormitory: {
@@ -36,7 +36,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
         sourceQuality: 'production',
         width: 1254,
         height: 1254,
-        exterior: '/assets/generated/buildings/dormitory.png',
+        exterior: '/assets/generated/buildings/dormitory.webp',
       },
     },
     trainingGround: {
@@ -44,7 +44,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
         sourceQuality: 'production',
         width: 1254,
         height: 1254,
-        exterior: '/assets/generated/buildings/trainingGround.png',
+        exterior: '/assets/generated/buildings/trainingGround.webp',
       },
     },
   },
@@ -52,15 +52,15 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     arena: {
       sourceQuality: 'production',
       combatBackground: '/assets/combat/arena-background.webp',
-      exterior: '/assets/generated/buildings/arena.png',
+      exterior: '/assets/generated/buildings/arena.webp',
     },
     market: {
       sourceQuality: 'production',
-      exterior: '/assets/generated/buildings/market.png',
+      exterior: '/assets/generated/buildings/market.webp',
     },
   },
   gladiators: {},
   ui: {
-    'laurel-left': '/assets/ui/laurel-left.png',
+    'laurel-left': '/assets/ui/laurel-left.webp',
   },
 } as const satisfies VisualAssetManifest;

@@ -16,13 +16,13 @@ export const STAFF_VISUAL_IDS_BY_TYPE = {
 export const STAFF_VISUAL_ASSET_PATHS = Object.fromEntries(
   Object.values(STAFF_VISUAL_IDS_BY_TYPE)
     .flat()
-    .map((visualId) => [visualId, `/assets/generated/staff/${visualId}.png`]),
+    .map((visualId) => [visualId, `/assets/generated/staff/${visualId}.webp`]),
 ) as Record<StaffVisualId, string>;
 
 export const STAFF_AVATAR_ASSET_PATHS = Object.fromEntries(
   Object.values(STAFF_VISUAL_IDS_BY_TYPE)
     .flat()
-    .map((visualId) => [visualId, `/assets/generated/staff/avatars/${visualId}.png`]),
+    .map((visualId) => [visualId, `/assets/generated/staff/avatars/${visualId}.webp`]),
 ) as Record<StaffVisualId, string>;
 
 export function getStaffVisualIdsForType(type: StaffType) {

@@ -86,7 +86,7 @@ describe('gladiator class visuals', () => {
       visualIdentity.portraitAssetId,
     );
     expect(getGladiatorAvatarAssetPath(visualIdentity)).toMatch(
-      /^\/assets\/gladiators\/classes\/.+-avatar\.png$/,
+      /^\/assets\/gladiators\/classes\/.+-avatar\.webp$/,
     );
   });
 });

@@ -115,7 +115,6 @@
   width: clamp(38px, 6.6vw, 56px);
   height: clamp(88px, 13vw, 128px);
   object-fit: contain;
-  image-rendering: pixelated;
   opacity: 0.94;
   filter: drop-shadow(0 7px 14px rgba(0, 0, 0, 0.42));
 }

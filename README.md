@@ -57,4 +57,5 @@ npm run test
 - React components do not contain complex game logic.
 - The project should remain easy to rebalance.
 - The default player interface is map-first, not dashboard-first.
+- The visual direction is Roman American comic / BD-inspired, with generated production images referenced as WebP.
 - Documentation describes the implementation that exists now; roadmap planning lives outside the repository.

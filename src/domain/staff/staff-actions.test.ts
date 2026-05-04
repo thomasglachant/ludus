@@ -88,9 +88,15 @@ describe('staff actions', () => {
         ),
       ).toBe(true);
       expect(
+        visualIds.every((visualId) => getStaffVisualAssetPath(visualId).endsWith('.webp')),
+      ).toBe(true);
+      expect(
         visualIds.every((visualId) =>
           getStaffAvatarAssetPath(visualId).startsWith('/assets/generated/staff/avatars/'),
         ),
+      ).toBe(true);
+      expect(
+        visualIds.every((visualId) => getStaffAvatarAssetPath(visualId).endsWith('.webp')),
       ).toBe(true);
     }
   });

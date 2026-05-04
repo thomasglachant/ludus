@@ -5,8 +5,8 @@ This document is the durable source of truth for the player-facing visual direct
 
 ## Visual Vision
 
-`ludus` should feel like a handcrafted Roman pixel-art management game where the
-player manages a living gladiator school in the countryside.
+`ludus` should feel like a handcrafted Roman comic-book management game where
+the player manages a living gladiator school in the countryside.
 
 The player should understand at first glance:
 
@@ -17,7 +17,15 @@ The player should understand at first glance:
 
 The tone is warm, readable and game-like: dark Roman HUDs, bronze and stone
 frames, parchment panels, red banners, gold accents, countryside terrain,
-visible building art, memorable gladiator portraits and theatrical arena sprites.
+visible building art, memorable gladiator portraits and theatrical arena
+presentation.
+
+The visual style moves away from strict retro pixel art toward an American
+comic / BD-inspired look: bold readable silhouettes, confident ink-like shapes,
+simple color masses and high-quality illustrative details. Colors should stay
+simple and readable at gameplay scale, but assets should include enough crafted
+detail, texture and lighting cues to feel premium rather than flat or
+placeholder-like.
 
 ## Core Pillars
 
@@ -34,7 +42,7 @@ Future features should answer where they live in the world:
 - new systems should not become disconnected full-page tables in the
   player-facing experience.
 
-### Roman Pixel-Art Material Language
+### Roman Comic Material Language
 
 The interface and assets should use:
 
@@ -43,7 +51,7 @@ The interface and assets should use:
 - parchment surfaces for panels, modals and repeated cards;
 - bronze, gold and ochre borders/highlights;
 - red banners, laurels and Roman motifs where useful;
-- readable pixel-art buildings, portraits, sprites and icons.
+- readable comic-inspired buildings, portraits, combatants and icons.
 
 ### Strategic Readability
 
@@ -56,23 +64,23 @@ The visuals should support management decisions. The player should quickly read:
 - where the Market and Arena are located;
 - which action is currently being asked of the player.
 
-Pixel art should favor strong silhouettes and stable interaction targets over
-ornamental detail.
+Player-facing art should favor strong silhouettes and stable interaction targets
+over ornamental detail.
 
 Time-of-day mood is gameplay-readable rather than clock-driven: week state and
 macro phase choose dawn, day, dusk or night through the domain time visuals.
 
-### Pixel-Perfect Asset Rules
+### Crisp Asset Rules
 
-Player-facing pixel art must render crisply:
+Player-facing art must render crisply:
 
-- authored pixel-art textures use nearest-neighbor sampling only;
-- sprites and UI images should use rounded pixel positions where this does not
-  hide meaningful motion;
-- small prop, combatant and ambient sprites should keep integer display scales
-  whenever their intended size is close to the native asset size;
-- blur, interpolation, anisotropic filtering and mipmapped smoothing are not
-  acceptable for pixel-art assets;
+- generated and authored raster images must be delivered as WebP for production
+  use before they are referenced by the application;
+- source or work-in-progress PNG files may exist only as local intermediates and
+  should not be referenced by player-facing UI;
+- assets should keep sharp silhouettes and stable interaction targets at their
+  intended display size;
+- avoid blurry scaling, muddy detail and visible compression artifacts.
 
 ### Warm Progression
 
@@ -102,7 +110,7 @@ The main menu is a full-screen game menu, not a landing page.
 
 It should show:
 
-- a large illustrated or generated pixel-art ludus scene;
+- a large illustrated or generated Roman comic ludus scene;
 - a strong `LUDUS` brand area;
 - left-side primary actions for New Game, Load and Options;
 - a visible demo indicator only when demo mode is enabled;
@@ -128,9 +136,8 @@ The building overview should depict the ludus as a small Roman school complex:
 Buildings, destinations, time themes and asset paths belong in `src/game-data`
 or adjacent visual data modules.
 
-The current ludus target is a building-first React interface with visible
-pixel-art buildings, readable alerts, staffing state and stable interaction
-zones.
+The current ludus target is a building-first React interface with visible Roman
+comic buildings, readable alerts, staffing state and stable interaction zones.
 
 Required main scene behavior:
 
@@ -144,7 +151,8 @@ Required main scene behavior:
 
 The visual target is a dense Roman building-first scene with a dark bronze HUD,
 parchment panels, clear building silhouettes and theatrical arena presentation.
-Final quality comes from the current production backgrounds and building assets.
+Final quality comes from production backgrounds and building assets that follow
+the Roman American comic / BD-inspired direction.
 
 ## Visual Acceptance Checklist
 
@@ -228,7 +236,7 @@ Combat formulas, rewards and consequences remain in domain modules.
 
 ## Asset Source Of Truth
 
-Production pixel-art assets live under:
+Production art assets live under:
 
 ```text
 public/assets/
@@ -244,6 +252,10 @@ Run `npm run generate:assets` after asset changes. CI and the pre-commit hook ru
 `npm run check:assets` to verify that the committed manifest matches the generated
 output.
 
+All generated production images must be converted to WebP before being
+referenced by the application. React components must reference assets through
+manifests and game-data visual definitions, never through hardcoded image paths.
+
 Typed access to manifests belongs in `src/game-data/visual-assets.ts` and
 adjacent visual modules such as:
 
@@ -255,8 +267,13 @@ boundaries here; keep asset paths in data.
 
 ## Production Asset Priorities
 
-Final visual quality depends on authored pixel-art assets that enter through the
-manifest and game-data boundaries.
+Final visual quality depends on authored or generated comic-style assets that
+enter through the manifest and game-data boundaries.
+
+Generated asset prompts should explicitly request the Roman American comic /
+BD-inspired style, simple readable colors, strong silhouettes and qualitative
+crafted details. Generated assets must be reviewed at in-game scale before
+acceptance.
 
 Building asset priorities:
 
@@ -290,6 +307,8 @@ Integration rules:
 - Game rules and balance stay in `src/domain` and `src/game-data`.
 - Visual definitions, animation definitions and asset paths stay data-driven.
 - Future UI must preserve the game-first, building-first direction.
+- Reusable UI primitives are the default; one-off components require an explicit
+  component contract before implementation.
 
 ## Still Open
 

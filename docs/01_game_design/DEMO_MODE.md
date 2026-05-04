@@ -164,6 +164,10 @@ Demo saves should help test:
 
 Visual definitions must be data-driven. Demo saves may reference visual ids, but React components should not hardcode asset ids or player-facing text.
 
+Demo visual references should resolve through the production visual manifest.
+Generated demo-facing images must follow the project art direction and use WebP
+when referenced by the application.
+
 ## Data Rules
 
 Demo saves must not call random generation on load.
