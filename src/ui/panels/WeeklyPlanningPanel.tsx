@@ -94,7 +94,7 @@ const activityIcons: Partial<Record<DailyPlanActivity, GameIconName>> = {
   defenseTraining: 'defense',
   lifeTraining: 'health',
   meals: 'happiness',
-  sleep: 'timeNight',
+  sleep: 'energy',
 };
 
 function getActivityIcon(activity: DailyPlanActivity): GameIconName {

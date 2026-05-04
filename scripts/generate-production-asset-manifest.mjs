@@ -114,10 +114,7 @@ function parseArrayConstant(source, name) {
 function buildHomepageManifest() {
   const lastSaveThumbnailPath = join(publicAssetsRoot, 'main-menu', 'last-save-thumbnail.webp');
   const backgrounds = Object.fromEntries(
-    [
-      ['day', join(publicAssetsRoot, 'main-menu', 'main-menu-background-day.webp')],
-      ['dusk', join(publicAssetsRoot, 'main-menu', 'main-menu-background-dusk.webp')],
-    ]
+    [['main', join(publicAssetsRoot, 'main-menu', 'main-menu-background.webp')]]
       .filter(([, path]) => existsSync(path))
       .map(([phase, path]) => [phase, toWebPath(path)]),
   );

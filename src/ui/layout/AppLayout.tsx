@@ -13,7 +13,7 @@ function getSceneBackgroundPath(screen: ScreenName) {
     return VISUAL_ASSET_MANIFEST.locations.arena.combatBackground;
   }
 
-  return VISUAL_ASSET_MANIFEST.homepage.backgrounds.day;
+  return VISUAL_ASSET_MANIFEST.homepage.backgrounds.main;
 }
 
 function getAppLayoutStyle(screen: ScreenName): CSSProperties {

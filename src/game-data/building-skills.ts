@@ -76,7 +76,7 @@ const skillNamesByBuilding = {
     'Straw Bedding',
     'Clean Mats',
     'Quiet Rules',
-    'Night Lamps',
+    'Safe Lamps',
     'Shared Quarters',
     'Wooden Beds',
     'Noise Screens',
@@ -141,6 +141,13 @@ const skillEffectPatternsByBuilding = {
   ],
 } satisfies Record<BuildingId, SkillEffectPatternRow>;
 
+const legacySkillIdSegmentsByBuildingAndName: Partial<Record<BuildingId, Record<string, string>>> =
+  {
+    dormitory: {
+      'Safe Lamps': 'night-lamps',
+    },
+  };
+
 function createSkillEffect(
   buildingId: BuildingId,
   tier: number,
@@ -162,14 +169,20 @@ function slugify(name: string) {
     .replace(/^-|-$/g, '');
 }
 
+function getSkillIdSegment(buildingId: BuildingId, name: string) {
+  return legacySkillIdSegmentsByBuildingAndName[buildingId]?.[name] ?? slugify(name);
+}
+
 function createSkillTree(buildingId: BuildingId, names: readonly string[]) {
-  const firstTierSkillIds = names.slice(0, 5).map((name) => `${buildingId}.${slugify(name)}`);
-  const firstSecondTierSkillId = `${buildingId}.${slugify(names[5])}`;
-  const firstThirdTierSkillId = `${buildingId}.${slugify(names[10])}`;
+  const firstTierSkillIds = names
+    .slice(0, 5)
+    .map((name) => `${buildingId}.${getSkillIdSegment(buildingId, name)}`);
+  const firstSecondTierSkillId = `${buildingId}.${getSkillIdSegment(buildingId, names[5])}`;
+  const firstThirdTierSkillId = `${buildingId}.${getSkillIdSegment(buildingId, names[10])}`;
 
   return names.map((name, index): BuildingSkillDefinition => {
     const tier = Math.floor(index / 5) + 1;
-    const id = `${buildingId}.${slugify(name)}`;
+    const id = `${buildingId}.${getSkillIdSegment(buildingId, name)}`;
     const requiredSkillIds =
       tier === 1
         ? undefined

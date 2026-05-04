@@ -3,7 +3,7 @@ import { GLADIATOR_CLASS_IDS, type GladiatorClassId } from '../domain/gladiators
 import { PRODUCTION_VISUAL_ASSET_MANIFEST as generatedProductionVisualAssetManifest } from './generated/asset-manifest.production';
 
 export type VisualAssetSourceQuality = 'production';
-export type HomepageBackgroundPhase = 'day' | 'dusk';
+export type HomepageBackgroundId = 'main';
 export type VisualLocationId = 'arena' | 'market';
 
 export interface ArenaLocationAssetSet {
@@ -59,7 +59,7 @@ export interface VisualAssetManifest {
   };
   homepage: {
     sourceQuality?: VisualAssetSourceQuality;
-    backgrounds: Partial<Record<HomepageBackgroundPhase, string>>;
+    backgrounds: Partial<Record<HomepageBackgroundId, string>>;
     lastSaveThumbnail?: string;
   };
   buildings: Partial<Record<BuildingId, Record<string, BuildingAssetSet>>>;

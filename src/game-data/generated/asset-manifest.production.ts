@@ -11,7 +11,7 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
   homepage: {
     sourceQuality: 'production',
     backgrounds: {
-      day: '/assets/main-menu/main-menu-background-day.webp',
+      main: '/assets/main-menu/main-menu-background.webp',
     },
   },
   buildings: {

@@ -59,16 +59,12 @@ The visuals should support management decisions. The player should quickly read:
 
 - which buildings are owned, locked or upgraded;
 - roster condition, planning risks and blocked macro actions;
-- current time-of-day mood;
 - alerts, condition risks and blocked actions;
 - where the Market and Arena are located;
 - which action is currently being asked of the player.
 
 Player-facing art should favor strong silhouettes and stable interaction targets
 over ornamental detail.
-
-Time-of-day mood is gameplay-readable rather than clock-driven: week state and
-macro phase choose dawn, day, dusk or night through the domain time visuals.
 
 ### Crisp Asset Rules
 
@@ -100,7 +96,7 @@ The ludus should feel active even when the player is not clicking constantly.
 
 Required motion language:
 
-- subtle banner flutter, time-of-day ambience and arena crowd hints;
+- subtle banner flutter, ambient ludus motion and arena crowd hints;
 - small CSS transitions for interactive building and combat states;
 - static equivalent states under `prefers-reduced-motion`.
 
@@ -133,8 +129,8 @@ The building overview should depict the ludus as a small Roman school complex:
 - Market and Arena as external destinations;
 - readable alerts, staffing status and activity areas.
 
-Buildings, destinations, time themes and asset paths belong in `src/game-data`
-or adjacent visual data modules.
+Buildings, destinations and asset paths belong in `src/game-data` or adjacent
+visual data modules.
 
 The current ludus target is a building-first React interface with visible Roman
 comic buildings, readable alerts, staffing state and stable interaction zones.
@@ -162,24 +158,6 @@ Before accepting player-facing visual work, verify:
 - [ ] final building art is not made mainly from SVG primitives;
 - [ ] the buildings overview, combat screen and homepage preserve the intended composition,
       mood, materials, density and game feel.
-
-## Time Of Day
-
-The game supports four visual phases:
-
-- dawn;
-- day;
-- dusk;
-- night.
-
-Each phase should define:
-
-- background and lighting values;
-- sprite brightness;
-- readable building contrast.
-
-Dawn and dusk should feel warm. Day should maximize readability. Night should be
-darker while preserving readable building silhouettes and interaction targets.
 
 ## Building Visuals
 
@@ -260,7 +238,6 @@ Typed access to manifests belongs in `src/game-data/visual-assets.ts` and
 adjacent visual modules such as:
 
 - `src/game-data/gladiator-visuals.ts`;
-- `src/game-data/time-of-day.ts`.
 
 Do not duplicate the full manifest in documentation. Document concepts and
 boundaries here; keep asset paths in data.

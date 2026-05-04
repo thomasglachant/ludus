@@ -204,7 +204,7 @@ export const demoAdvancedLudus: DemoSaveDefinition = {
   nameKey: 'demoSaves.advanced.name',
   descriptionKey: 'demoSaves.advanced.description',
   stageKey: 'demoSaves.stage.advanced',
-  tags: ['demoSaves.tags.denseRoster', 'demoSaves.tags.dusk'],
+  tags: ['demoSaves.tags.denseRoster', 'demoSaves.tags.weeklyPlanning'],
   save,
   preferredRoute: 'ludus',
   preferredCameraTarget: 'arena',

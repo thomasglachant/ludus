@@ -47,6 +47,11 @@ describe('building effects', () => {
     expect(BUILDING_SKILLS.find((skill) => skill.id === 'canteen.supply-contracts')).toMatchObject({
       unlockedActivities: ['canteen.supplyContracts'],
     });
+    expect(BUILDING_SKILLS.find((skill) => skill.id === 'dormitory.night-lamps')).toMatchObject({
+      descriptionKey: 'buildingSkills.dormitory.night-lamps.description',
+      name: 'Safe Lamps',
+    });
+    expect(BUILDING_SKILLS.find((skill) => skill.id === 'dormitory.safe-lamps')).toBeUndefined();
   });
 
   it('includes purchased building skill effects in active effects', () => {
