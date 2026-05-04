@@ -1,5 +1,6 @@
 import type { BuildingEffectType, BuildingId } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
+import { BuildingAvatar } from '../buildings/BuildingAvatar';
 import { formatMoneyAmount } from '../formatters/money';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import type { BuildingActionEffectPreview } from '../view-models/building-panel-view-model';
@@ -45,6 +46,7 @@ function getEffectValue(
 }
 
 export function BuildingActionModalContent({
+  buildingId,
   buildingNameKey,
   cost,
   costTitleKey,
@@ -58,6 +60,9 @@ export function BuildingActionModalContent({
   return (
     <div className="building-action-modal">
       <div className="building-action-modal__summary">
+        <div className="building-action-modal__avatar">
+          <BuildingAvatar buildingId={buildingId} level={currentLevel} />
+        </div>
         <div className="building-action-modal__copy">
           <strong>{t(buildingNameKey)}</strong>
           <p>{t(descriptionKey)}</p>

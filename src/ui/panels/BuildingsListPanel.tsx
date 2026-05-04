@@ -34,7 +34,9 @@ export function BuildingsListPanel({ onClose, onOpenBuilding, save }: BuildingsL
 
                 return (
                   <EntityListRow
-                    avatar={<BuildingAvatar buildingId={buildingId} size="small" />}
+                    avatar={
+                      <BuildingAvatar buildingId={buildingId} level={building.level} size="small" />
+                    }
                     info={[
                       {
                         iconName: 'landmark',

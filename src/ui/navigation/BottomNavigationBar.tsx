@@ -34,6 +34,11 @@ const navigationItems: Array<{
     badge: (save) => save.staff.members.length,
   },
   {
+    panelKind: 'market',
+    labelKey: 'navigation.market',
+    iconName: 'shoppingCart',
+  },
+  {
     panelKind: 'weeklyPlanning',
     labelKey: 'navigation.weeklyPlanning',
     iconName: 'weeklyPlanning',

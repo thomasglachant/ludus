@@ -104,7 +104,13 @@ export function StaffDetailPanel({ save, staffMember }: StaffDetailPanelProps) {
             <EntityList emptyMessageKey="staff.noBuildingExperience">
               {experienceEntries.map(([experienceBuildingId, experience]) => (
                 <EntityListRow
-                  avatar={<BuildingAvatar buildingId={experienceBuildingId} size="small" />}
+                  avatar={
+                    <BuildingAvatar
+                      buildingId={experienceBuildingId}
+                      level={save.buildings[experienceBuildingId].level}
+                      size="small"
+                    />
+                  }
                   info={[
                     {
                       iconName: 'workforce',
@@ -128,7 +134,13 @@ export function StaffDetailPanel({ save, staffMember }: StaffDetailPanelProps) {
           {assignedBuilding && assignedBuildingDefinition ? (
             <EntityList>
               <EntityListRow
-                avatar={<BuildingAvatar buildingId={assignedBuilding.id} size="small" />}
+                avatar={
+                  <BuildingAvatar
+                    buildingId={assignedBuilding.id}
+                    level={assignedBuilding.level}
+                    size="small"
+                  />
+                }
                 info={[
                   {
                     iconName: 'landmark',

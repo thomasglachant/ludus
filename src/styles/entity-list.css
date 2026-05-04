@@ -106,17 +106,9 @@
   border-radius: 8px;
 }
 
-.entity-list-row__avatar .building-modal-avatar::before {
-  bottom: 9px;
-  border-width: 2px 2px 5px;
-}
-
-.entity-list-row__avatar .building-modal-avatar::after {
-  top: 10px;
-}
-
-.entity-list-row__avatar .building-modal-avatar svg {
-  margin-top: 14px;
+.entity-list-row__avatar .building-modal-avatar__asset {
+  max-width: 94%;
+  max-height: 50px;
 }
 
 .entity-list-row__identity {

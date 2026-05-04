@@ -141,7 +141,7 @@
 
 .bottom-navigation__items {
   display: grid;
-  grid-template-columns: repeat(6, 78px);
+  grid-template-columns: repeat(7, 78px);
   gap: 0;
 }
 
@@ -213,7 +213,7 @@
   }
 
   .bottom-navigation__items {
-    grid-template-columns: repeat(6, minmax(62px, 1fr));
+    grid-template-columns: repeat(7, minmax(62px, 1fr));
     gap: 6px;
     width: 100%;
   }

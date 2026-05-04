@@ -94,9 +94,7 @@ export function GameShell() {
       <main className="game-shell__main-stage">
         <BuildingsOverview
           save={currentSave}
-          onOpenArena={() => openPanel('arena')}
           onOpenBuilding={selectBuilding}
-          onOpenMarket={() => openModal({ kind: 'market' })}
           onOpenPlanning={() => openModal({ kind: 'weeklyPlanning' })}
         />
       </main>

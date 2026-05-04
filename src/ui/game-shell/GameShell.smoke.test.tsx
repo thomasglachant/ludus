@@ -140,10 +140,12 @@ describe('GameShell smoke flows', () => {
     click(getButton(container, 'bottom-navigation-weeklyPlanning'));
     click(getButton(container, 'bottom-navigation-finance'));
     click(getButton(container, 'bottom-navigation-buildingsList'));
+    click(getButton(container, 'bottom-navigation-market'));
 
     expect(openModal).toHaveBeenNthCalledWith(1, { kind: 'weeklyPlanning' });
     expect(openModal).toHaveBeenNthCalledWith(2, { kind: 'finance' });
     expect(openModal).toHaveBeenNthCalledWith(3, { kind: 'buildingsList' });
+    expect(openModal).toHaveBeenNthCalledWith(4, { kind: 'market' });
   });
 
   it('opens finances from the treasury button', () => {

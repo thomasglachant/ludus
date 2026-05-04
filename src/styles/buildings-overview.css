@@ -44,8 +44,6 @@
   text-transform: uppercase;
 }
 
-.buildings-overview__planning-button,
-.buildings-overview__destinations button,
 .buildings-overview__alert-list button {
   display: inline-flex;
   min-height: 42px;
@@ -60,17 +58,6 @@
   cursor: pointer;
   font-weight: 900;
   box-shadow: inset 0 1px 0 rgba(255, 246, 222, 0.08);
-}
-
-.buildings-overview__planning-button strong {
-  display: grid;
-  min-width: 24px;
-  height: 24px;
-  place-items: center;
-  border-radius: 999px;
-  background: #b55339;
-  color: #fff9e7;
-  font-size: 0.76rem;
 }
 
 .buildings-overview__content {
@@ -215,7 +202,6 @@
 }
 
 .building-overview-card__metrics span,
-.buildings-overview__summary-list span,
 .buildings-overview__alert {
   display: inline-flex;
   min-height: 32px;
@@ -237,9 +223,7 @@
   min-width: 0;
 }
 
-.buildings-overview__summary,
-.buildings-overview__alerts,
-.buildings-overview__destinations {
+.buildings-overview__alerts {
   display: grid;
   gap: 12px;
   padding: 16px;
@@ -252,19 +236,15 @@
     0 14px 26px rgba(8, 6, 4, 0.24);
 }
 
-.buildings-overview__summary-list,
-.buildings-overview__alert-list,
-.buildings-overview__destinations {
+.buildings-overview__alert-list {
   align-content: start;
 }
 
-.buildings-overview__summary-list,
 .buildings-overview__alert-list {
   display: grid;
   gap: 8px;
 }
 
-.buildings-overview__summary-list span,
 .buildings-overview__alert {
   justify-content: flex-start;
 }
@@ -284,18 +264,13 @@
   color: #d7bd84;
 }
 
-.buildings-overview__destinations button {
-  justify-content: flex-start;
-  width: 100%;
-}
-
 @media (max-width: 1080px) {
   .buildings-overview__content {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .buildings-overview__side-panel {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -307,11 +282,6 @@
   .buildings-overview__header {
     display: grid;
     align-items: stretch;
-  }
-
-  .buildings-overview__planning-button {
-    justify-content: space-between;
-    width: 100%;
   }
 
   .buildings-overview__grid,

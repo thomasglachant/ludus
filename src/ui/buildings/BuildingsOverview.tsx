@@ -2,14 +2,11 @@ import type { BuildingId, GameAlert, GameSave } from '../../domain/types';
 import { BUILDING_DEFINITIONS, BUILDING_IDS } from '../../game-data/buildings';
 import { getBuildingAssetSet } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
-import { formatMoneyAmount } from '../formatters/money';
 import { GameIcon } from '../icons/GameIcon';
 
 interface BuildingsOverviewProps {
   save: GameSave;
-  onOpenArena(): void;
   onOpenBuilding(buildingId: BuildingId): void;
-  onOpenMarket(): void;
   onOpenPlanning(): void;
 }
 
@@ -30,9 +27,7 @@ function getHighestAlertSeverity(alerts: GameAlert[]) {
 }
 
 export function BuildingsOverview({
-  onOpenArena,
   onOpenBuilding,
-  onOpenMarket,
   onOpenPlanning,
   save,
 }: BuildingsOverviewProps) {
@@ -49,15 +44,6 @@ export function BuildingsOverview({
           <span className="buildings-overview__eyebrow">{t('buildingsOverview.eyebrow')}</span>
           <h1>{t('buildingsOverview.title')}</h1>
         </div>
-        <button
-          className="buildings-overview__planning-button"
-          type="button"
-          onClick={onOpenPlanning}
-        >
-          <GameIcon name="weeklyPlanning" size={22} />
-          <span>{t('buildingsOverview.reviewPlanning')}</span>
-          {save.planning.alerts.length > 0 ? <strong>{save.planning.alerts.length}</strong> : null}
-        </button>
       </div>
 
       <div className="buildings-overview__content">
@@ -133,30 +119,6 @@ export function BuildingsOverview({
         </div>
 
         <aside className="buildings-overview__side-panel">
-          <section className="buildings-overview__summary">
-            <h2>{t('buildingsOverview.statusTitle')}</h2>
-            <div className="buildings-overview__summary-list">
-              <span>
-                <GameIcon name="treasury" size={18} />
-                {t('buildingsOverview.treasuryValue', {
-                  amount: formatMoneyAmount(save.ludus.treasury),
-                })}
-              </span>
-              <span>
-                <GameIcon name="reputation" size={18} />
-                {t('buildingsOverview.reputationValue', { value: save.ludus.reputation })}
-              </span>
-              <span>
-                <GameIcon name="happiness" size={18} />
-                {t('buildingsOverview.happinessValue', { value: save.ludus.happiness })}
-              </span>
-              <span>
-                <GameIcon name="capacity" size={18} />
-                {t('buildingsOverview.rosterValue', { count: save.gladiators.length })}
-              </span>
-            </div>
-          </section>
-
           <section className="buildings-overview__alerts">
             <h2>{t('buildingsOverview.alertsTitle')}</h2>
             {save.planning.alerts.length > 0 ? (
@@ -179,18 +141,6 @@ export function BuildingsOverview({
             ) : (
               <p>{t('buildingsOverview.noAlerts')}</p>
             )}
-          </section>
-
-          <section className="buildings-overview__destinations">
-            <h2>{t('buildingsOverview.destinationsTitle')}</h2>
-            <button type="button" onClick={onOpenMarket}>
-              <GameIcon name="shoppingCart" size={20} />
-              <span>{t('navigation.market')}</span>
-            </button>
-            <button type="button" onClick={onOpenArena}>
-              <GameIcon name="record" size={20} />
-              <span>{t('navigation.arena')}</span>
-            </button>
           </section>
         </aside>
       </div>

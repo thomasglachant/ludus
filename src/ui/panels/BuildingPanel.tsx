@@ -264,7 +264,7 @@ export function BuildingPanel({
   return (
     <ModalContentFrame>
       <ModalHeroCard
-        avatar={<BuildingAvatar buildingId={buildingId} />}
+        avatar={<BuildingAvatar buildingId={buildingId} level={viewModel.level} />}
         descriptionKey={viewModel.descriptionKey}
         eyebrowKey="buildings.panelTitle"
         level={viewModel.level}
