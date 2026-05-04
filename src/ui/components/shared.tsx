@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useUiStore } from '../../state/ui-store-context';
+import { WaxTabletTabs } from '../game/WaxTabletTabs';
 
 interface PanelShellProps {
   children: ReactNode;
@@ -105,20 +106,13 @@ export function Tabs<T extends string>({
   const { t } = useUiStore();
 
   return (
-    <div className="context-panel__tabs" role="tablist" aria-label={t(ariaLabelKey)}>
-      {items.map((item) => (
-        <button
-          aria-selected={selectedId === item.id}
-          className={selectedId === item.id ? 'is-selected' : ''}
-          key={item.id}
-          role="tab"
-          type="button"
-          onClick={() => onSelect(item.id)}
-        >
-          {t(item.labelKey)}
-        </button>
-      ))}
-    </div>
+    <WaxTabletTabs
+      ariaLabel={t(ariaLabelKey)}
+      items={items.map((item) => ({ ...item, label: t(item.labelKey) }))}
+      listClassName="context-panel__tabs"
+      selectedId={selectedId}
+      onSelect={onSelect}
+    />
   );
 }
 

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { RomanButton, type RomanButtonTone } from '../game/RomanButton';
 
 interface ActionButtonProps {
   label: string;
@@ -19,16 +20,20 @@ export function ActionButton({
   testId,
   onClick,
 }: ActionButtonProps) {
+  const tone: RomanButtonTone =
+    variant === 'primary' ? 'primary' : variant === 'ghost' ? 'ghost' : 'secondary';
+
   return (
-    <button
+    <RomanButton
       className={`action-button action-button--${variant}`}
       data-testid={testId}
       disabled={disabled}
+      icon={icon}
+      tone={tone}
       type={type}
       onClick={onClick}
     >
-      {icon}
       <span>{label}</span>
-    </button>
+    </RomanButton>
   );
 }

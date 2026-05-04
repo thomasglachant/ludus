@@ -4,6 +4,10 @@
 
 The application is a browser game built with Vite, React, TypeScript and Vitest.
 
+The UI migration target uses Tailwind CSS for styling, shadcn/ui-style
+composition for reusable component APIs and Radix UI or React Aria for
+accessibility primitives where appropriate.
+
 ## Layer Responsibilities
 
 ### `src/game-data`
@@ -51,6 +55,27 @@ Gameplay progression runs through explicit macro actions, primarily daily and we
 ### `src/ui`
 
 React renders the game shell, panels and modals. Components display state and call store/domain actions. They must not hardcode visible text or gameplay formulas.
+
+The target UI hierarchy is:
+
+- `src/ui/primitives`: accessible low-level primitives, Tailwind variants and
+  adapters around shadcn/ui, Radix UI or React Aria APIs. This layer has no game
+  concepts, store access or feature-specific copy.
+- `src/ui/game`: reusable Ludus components that compose primitives into the
+  Roman-themed game language. Core contracts include `RomanButton`,
+  `ParchmentModal`, `StonePanel`, `ParchmentPanel`, `WaxTabletTabs`,
+  `ResourceBadge`, `TreasuryBadge`, `ReputationBadge` and `GamePanel`.
+- `src/ui/screens`: route, screen and modal surfaces that bind store state,
+  selectors, actions and view models, then compose `src/ui/game` components.
+
+Dependency direction is `src/ui/screens -> src/ui/game -> src/ui/primitives`.
+Lower layers must not import screens, feature state or domain services.
+
+Reuse is mandatory by default. Before adding feature-local UI, check whether a
+screen can be built from the existing game components, modal/list frameworks,
+shared panels, badges, tabs, buttons or primitives. A one-off component needs a
+short contract describing the gap, owned props/state, reuse expectation and
+shared building blocks.
 
 Current macro UI surfaces include:
 

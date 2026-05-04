@@ -1,6 +1,7 @@
 import type { GameIconName } from '../icons/GameIcon';
 import { GameIcon } from '../icons/GameIcon';
 import { useUiStore } from '../../state/ui-store-context';
+import { GamePanel } from '../game/GamePanel';
 
 type UserAlertLevel = 'info' | 'warning' | 'error';
 
@@ -23,13 +24,15 @@ export function UserAlert({
   const role = level === 'info' ? 'status' : 'alert';
 
   return (
-    <div
+    <GamePanel
+      as="div"
       className={['user-alert', `user-alert--${level}`, className].filter(Boolean).join(' ')}
+      density="compact"
       data-testid={testId}
       role={role}
     >
       <GameIcon className="user-alert__icon" color="currentColor" name={iconName} size={22} />
       <span>{t(messageKey)}</span>
-    </div>
+    </GamePanel>
   );
 }

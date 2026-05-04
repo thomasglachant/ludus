@@ -3,7 +3,9 @@ import { generateLudusName } from '../../domain/ludus/name-generator';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 import { ActionButton } from '../components/ActionButton';
+import { RomanButton } from '../game/RomanButton';
 import { GameIcon } from '../icons/GameIcon';
+import { Input } from '../primitives/Input';
 import { AppModal } from './AppModal';
 
 interface NewGameModalProps {
@@ -69,22 +71,24 @@ export function NewGameModal({ isActive = true, onBack, onClose }: NewGameModalP
         <label>
           <span>{t('newGame.ludusName')}</span>
           <div className="form-field-with-action">
-            <input
+            <Input
               autoComplete="organization"
               data-testid="new-game-ludus-name"
               placeholder={t('newGame.ludusNamePlaceholder')}
               value={ludusName}
               onChange={(event) => updateLudusName(event.target.value)}
             />
-            <button
+            <RomanButton
               aria-label={t('newGame.randomLudusName')}
               className="form-random-button"
               data-testid="new-game-random-ludus-name"
+              size="icon"
+              tone="ghost"
               type="button"
               onClick={() => updateLudusName(generateLudusName(ludusName))}
             >
               <GameIcon name="dice" size={18} />
-            </button>
+            </RomanButton>
           </div>
         </label>
         {showValidation ? <p className="form-error">{t('newGame.validation')}</p> : null}

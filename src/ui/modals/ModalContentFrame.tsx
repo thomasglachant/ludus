@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useUiStore } from '../../state/ui-store-context';
+import { WaxTabletTabs } from '../game/WaxTabletTabs';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 type TranslationParams = Record<string, string | number>;
@@ -62,14 +63,6 @@ interface ModalSectionProps {
 
 interface ModalActionDockProps {
   children: ReactNode;
-}
-
-function formatTabCount(item: ModalTabItem<string>) {
-  if (item.count === undefined) {
-    return null;
-  }
-
-  return item.countMax === undefined ? item.count : `${item.count}/${item.countMax}`;
 }
 
 export function ModalContentFrame({ children, className }: ModalContentFrameProps) {
@@ -149,25 +142,13 @@ export function ModalTabs<T extends string>({
   const { t } = useUiStore();
 
   return (
-    <div className="modal-tabs" role="tablist" aria-label={t(ariaLabelKey)}>
-      {items.map((item) => {
-        const count = formatTabCount(item);
-
-        return (
-          <button
-            aria-selected={selectedId === item.id}
-            className={selectedId === item.id ? 'is-selected' : ''}
-            key={item.id}
-            role="tab"
-            type="button"
-            onClick={() => onSelect(item.id)}
-          >
-            <span>{t(item.labelKey)}</span>
-            {count === null ? null : <strong>{count}</strong>}
-          </button>
-        );
-      })}
-    </div>
+    <WaxTabletTabs
+      ariaLabel={t(ariaLabelKey)}
+      items={items.map((item) => ({ ...item, label: t(item.labelKey) }))}
+      listClassName="modal-tabs"
+      selectedId={selectedId}
+      onSelect={onSelect}
+    />
   );
 }
 

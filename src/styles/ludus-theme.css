@@ -1,0 +1,68 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: var(--obsidian);
+  --foreground: var(--text);
+  --card: var(--parchment-light);
+  --card-foreground: var(--text);
+  --popover: var(--parchment-light);
+  --popover-foreground: var(--text);
+  --secondary: var(--stone);
+  --secondary-foreground: #fff1c7;
+  --muted: var(--surface-muted);
+  --muted-foreground: var(--text-muted);
+  --destructive: var(--danger);
+  --destructive-foreground: #fff9e7;
+  --input: rgba(111, 69, 35, 0.54);
+  --ring: rgba(214, 163, 74, 0.54);
+  --radius: 0.5rem;
+  --ludus-radius-sm: 0.375rem;
+  --ludus-radius-md: 0.5rem;
+  --ludus-radius-lg: 0.625rem;
+  --ludus-shadow-panel:
+    inset 0 0 0 2px rgba(255, 248, 226, 0.32), inset 0 0 0 7px rgba(111, 69, 35, 0.22),
+    0 24px 48px rgba(8, 6, 4, 0.36);
+  --ludus-shadow-raised: inset 0 -3px 0 rgba(111, 69, 35, 0.16), 0 8px 18px rgba(20, 14, 10, 0.18);
+  --ludus-texture-parchment:
+    linear-gradient(180deg, rgba(255, 246, 222, 0.98), rgba(229, 203, 145, 0.98)),
+    repeating-linear-gradient(0deg, rgba(111, 69, 35, 0.04) 0 1px, transparent 1px 6px),
+    var(--parchment);
+  --ludus-texture-stone:
+    linear-gradient(180deg, rgba(47, 39, 30, 0.99), rgba(25, 21, 17, 0.99)), var(--obsidian-raised);
+  --ludus-texture-glass:
+    linear-gradient(180deg, rgba(255, 244, 212, 0.08), rgba(255, 244, 212, 0.015)),
+    rgba(7, 5, 4, 0.7);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: #fff6dc;
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: #fff9e7;
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-display);
+  --font-mono: var(--font-mono);
+  --radius-sm: var(--ludus-radius-sm);
+  --radius-md: var(--ludus-radius-md);
+  --radius-lg: var(--ludus-radius-lg);
+  --shadow-ludus-panel: var(--ludus-shadow-panel);
+  --shadow-ludus-raised: var(--ludus-shadow-raised);
+}

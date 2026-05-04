@@ -13,6 +13,7 @@ import { GladiatorDetailPanel } from '../panels/GladiatorDetailPanel';
 import { StaffListPanel } from '../panels/StaffListPanel';
 import { StaffDetailPanel } from '../panels/StaffDetailPanel';
 import { WeeklyPlanningPanel } from '../panels/WeeklyPlanningPanel';
+import { Input } from '../primitives/Input';
 import { AppModal } from './AppModal';
 import { GameMenuModal } from './GameMenuModal';
 import { LoadGameModal } from './LoadGameModal';
@@ -124,7 +125,7 @@ function FormDialog({
         {modal.fields.map((field) => (
           <label key={field.id}>
             <span>{t(field.labelKey)}</span>
-            <input
+            <Input
               autoComplete={field.autoComplete}
               placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined}
               required={field.required}

@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
+import { GamePanel } from '../game/GamePanel';
 
 interface CardBluredProps extends HTMLAttributes<HTMLElement> {
   as?: 'article' | 'aside' | 'div' | 'section';
@@ -12,8 +13,13 @@ export function CardBlured({
   ...props
 }: CardBluredProps) {
   return (
-    <Component className={['card-blured', className].filter(Boolean).join(' ')} {...props}>
+    <GamePanel
+      as={Component}
+      className={['card-blured', className].filter(Boolean).join(' ')}
+      surface="glass"
+      {...props}
+    >
       {children}
-    </Component>
+    </GamePanel>
   );
 }

@@ -34,6 +34,8 @@ import {
   type ImpactIndicatorTone,
 } from '../components/ImpactIndicator';
 import { formatNumber } from '../formatters/number';
+import { ParchmentPanel, StonePanel } from '../game/GamePanel';
+import { RomanButton } from '../game/RomanButton';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface WeeklyPlanningPanelProps {
@@ -446,7 +448,12 @@ export function WeeklyPlanningPanel({
         </div>
       </header>
 
-      <section className="weekly-planner__summary" aria-label={t('weeklyPlan.weekProjectionTitle')}>
+      <ParchmentPanel
+        as="section"
+        className="weekly-planner__summary"
+        density="compact"
+        aria-label={t('weeklyPlan.weekProjectionTitle')}
+      >
         <div className="weekly-planner__summary-heading">
           <div>
             <strong>
@@ -476,16 +483,18 @@ export function WeeklyPlanningPanel({
             </span>
           ))}
         </div>
-      </section>
+      </ParchmentPanel>
 
       <div className="weekly-planner__workspace">
-        <aside
+        <ParchmentPanel
+          as="aside"
           className={[
             'weekly-planner__palette',
             isPaletteDropTarget ? 'weekly-planner__palette--drop-target' : null,
           ]
             .filter(Boolean)
             .join(' ')}
+          density="compact"
           aria-label={t('weeklyPlan.paletteTitle')}
           onDragLeave={() => setIsPaletteDropTarget(false)}
           onDragOver={(event) => {
@@ -508,7 +517,12 @@ export function WeeklyPlanningPanel({
             const budget = getDailyPlanBucketBudget(save, group.bucket);
 
             return (
-              <section className="weekly-planner__task-group" key={group.bucket}>
+              <ParchmentPanel
+                as="section"
+                className="weekly-planner__task-group"
+                density="compact"
+                key={group.bucket}
+              >
                 <header>
                   <GameIcon name={group.iconName} size={18} />
                   <strong>{t(group.labelKey)}</strong>
@@ -517,9 +531,11 @@ export function WeeklyPlanningPanel({
                 <div className="weekly-planner__task-list">
                   {tasks.map((task) => (
                     <div className="weekly-planner__task-card-wrap" key={task.activity}>
-                      <div
+                      <ParchmentPanel
+                        as="div"
                         aria-label={t(`weeklyPlan.activities.${task.activity}`)}
                         className="weekly-planner__task-card"
+                        density="compact"
                         draggable
                         role="button"
                         style={getTaskStyle(task)}
@@ -534,15 +550,15 @@ export function WeeklyPlanningPanel({
                         <GameIcon name={getActivityIcon(task.activity)} size={20} />
                         <span>{t(`weeklyPlan.activities.${task.activity}`)}</span>
                         <strong>{t('weeklyPlan.taskCost', { points: task.defaultPoints })}</strong>
-                      </div>
+                      </ParchmentPanel>
                       <TaskImpactPopover task={task} t={t} />
                     </div>
                   ))}
                 </div>
-              </section>
+              </ParchmentPanel>
             );
           })}
-        </aside>
+        </ParchmentPanel>
 
         <div className="weekly-planner__days" aria-label={t('weeklyPlan.daysGridLabel')}>
           {playableDays.map((dayOfWeek) => {
@@ -554,7 +570,8 @@ export function WeeklyPlanningPanel({
             const isDropTarget = dragOverDay === dayOfWeek && !isPast;
 
             return (
-              <article
+              <ParchmentPanel
+                as="article"
                 className={[
                   'weekly-planner__day',
                   isPast ? 'weekly-planner__day--past' : null,
@@ -566,6 +583,7 @@ export function WeeklyPlanningPanel({
                 ]
                   .filter(Boolean)
                   .join(' ')}
+                density="compact"
                 key={dayOfWeek}
                 onClick={() => {
                   if (!isPast) {
@@ -634,7 +652,12 @@ export function WeeklyPlanningPanel({
                     );
 
                     return (
-                      <section className="weekly-planner__bucket" key={group.bucket}>
+                      <ParchmentPanel
+                        as="section"
+                        className="weekly-planner__bucket"
+                        density="compact"
+                        key={group.bucket}
+                      >
                         <header>
                           <span>{t(group.labelKey)}</span>
                           <strong>
@@ -663,8 +686,10 @@ export function WeeklyPlanningPanel({
                             );
 
                             return (
-                              <div
+                              <ParchmentPanel
+                                as="div"
                                 className="weekly-planner__assignment"
+                                density="compact"
                                 draggable={!isPast && value > 0}
                                 key={`${dayOfWeek}-${task.activity}`}
                                 style={getTaskStyle(task)}
@@ -686,31 +711,39 @@ export function WeeklyPlanningPanel({
                                   <span>{t(`weeklyPlan.activities.${task.activity}`)}</span>
                                 </div>
                                 <div className="weekly-planner__assignment-controls">
-                                  <button
+                                  <RomanButton
                                     aria-label={t('weeklyPlan.decreaseTask', {
                                       activity: t(`weeklyPlan.activities.${task.activity}`),
                                     })}
+                                    density="compact"
                                     disabled={isPast || value <= 0}
+                                    size="icon"
+                                    style={{ height: 'auto', minHeight: 30, width: '100%' }}
+                                    tone="secondary"
                                     type="button"
                                     onClick={() =>
                                       changeTaskPoints(dayOfWeek, task, value - task.defaultPoints)
                                     }
                                   >
                                     -
-                                  </button>
+                                  </RomanButton>
                                   <strong className="weekly-planner__assignment-points">
                                     {formatNumber(unitCount)}
                                   </strong>
-                                  <button
+                                  <RomanButton
                                     aria-label={t('weeklyPlan.increaseTask', {
                                       activity: t(`weeklyPlan.activities.${task.activity}`),
                                     })}
+                                    density="compact"
                                     disabled={isPast}
+                                    size="icon"
+                                    style={{ height: 'auto', minHeight: 30, width: '100%' }}
+                                    tone="secondary"
                                     type="button"
                                     onClick={() => addTaskPoints(dayOfWeek, task)}
                                   >
                                     +
-                                  </button>
+                                  </RomanButton>
                                 </div>
                                 {specializedActivities.length > 0 ? (
                                   <label className="weekly-planner__specialty">
@@ -745,19 +778,23 @@ export function WeeklyPlanningPanel({
                                   </label>
                                 ) : null}
                                 <TaskImpactPopover task={task} t={t} />
-                              </div>
+                              </ParchmentPanel>
                             );
                           })}
                         </div>
-                      </section>
+                      </ParchmentPanel>
                     );
                   })}
                 </div>
-              </article>
+              </ParchmentPanel>
             );
           })}
 
-          <article className="weekly-planner__day weekly-planner__day--arena">
+          <StonePanel
+            as="article"
+            className="weekly-planner__day weekly-planner__day--arena"
+            density="compact"
+          >
             <header className="weekly-planner__day-header">
               <div>
                 <span>{t('weeklyPlan.arenaDayEyebrow')}</span>
@@ -766,7 +803,7 @@ export function WeeklyPlanningPanel({
               <GameIcon name="victory" size={18} />
             </header>
             <p>{t('weeklyPlan.arenaDayDescription')}</p>
-          </article>
+          </StonePanel>
         </div>
       </div>
     </section>

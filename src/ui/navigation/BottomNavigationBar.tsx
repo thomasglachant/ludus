@@ -1,6 +1,7 @@
 import type { GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import type { ContextPanelKind } from '../game-shell/game-shell-types';
+import { RomanButton } from '../game/RomanButton';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface BottomNavigationBarProps {
@@ -64,18 +65,20 @@ export function BottomNavigationBar({
           const badge = item.badge?.(save);
 
           return (
-            <button
+            <RomanButton
               aria-label={t(item.labelKey)}
               className={activePanelKind === item.panelKind ? 'is-selected' : ''}
               data-testid={`bottom-navigation-${item.panelKind}`}
               key={item.panelKind}
+              density="compact"
+              tone="ghost"
               type="button"
               onClick={() => onOpenPanel(item.panelKind)}
             >
               <GameIcon name={item.iconName} size={36} />
               <span>{t(item.labelKey)}</span>
               {badge ? <strong>{badge}</strong> : null}
-            </button>
+            </RomanButton>
           );
         })}
       </div>

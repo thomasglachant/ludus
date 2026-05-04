@@ -16,6 +16,7 @@ import { EmptyState } from '../components/shared';
 import { CombatLog } from '../combat/CombatLog';
 import { getCombatLogViewModel } from '../combat/combat-log-view-model';
 import { GladiatorSummary } from '../gladiators/GladiatorSummary';
+import { RomanButton } from '../game/RomanButton';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import { ScenicScreen } from '../layout/ScenicScreen';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
@@ -65,15 +66,16 @@ function getCombatOdds(combat: CombatState) {
 
 function CombatIndexButton({ disabled = false, iconName, label, onClick }: CombatIndexButtonProps) {
   return (
-    <button
+    <RomanButton
       aria-label={label}
       className="arena-route-stepper__button"
       disabled={disabled}
-      type="button"
+      size="icon"
+      tone="secondary"
       onClick={onClick}
     >
       <GameIcon name={iconName} size={18} />
-    </button>
+    </RomanButton>
   );
 }
 
@@ -202,10 +204,10 @@ function BoutOverviewView({
         </div>
       </div>
       <div className="arena-route-actions arena-route-actions--footer">
-        <button className="arena-route-log-toggle" type="button" onClick={onToggleLog}>
+        <RomanButton className="arena-route-log-toggle" tone="secondary" onClick={onToggleLog}>
           <GameIcon color="currentColor" name={isLogOpen ? 'close' : 'view'} size={18} />
           <span>{t(isLogOpen ? 'arenaRoute.hideCombatLog' : 'arenaRoute.showCombatLog')}</span>
-        </button>
+        </RomanButton>
       </div>
       {isLogOpen ? (
         <div className="arena-route-combat-log">
@@ -264,13 +266,13 @@ function CombatResultRow({ combat, onOpenCombat }: { combat: CombatState; onOpen
         >
           <GladiatorPortrait gladiator={combat.gladiator} size="small" />
         </div>
-        <button
+        <RomanButton
           className="arena-route-day-result-card__fighter-button"
-          type="button"
+          tone="ghost"
           onClick={onOpenCombat}
         >
           <span>{combat.gladiator.name}</span>
-        </button>
+        </RomanButton>
       </div>
       <CombatImpactList combat={combat} />
       <GameIcon

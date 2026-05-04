@@ -1,5 +1,7 @@
 import { Children, type ReactNode } from 'react';
 import { useUiStore } from '../../state/ui-store-context';
+import { GamePanel } from '../game/GamePanel';
+import { RomanButton } from '../game/RomanButton';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import { CTAButton } from './CTAButton';
 import { IconValueStat } from './IconValueStat';
@@ -96,7 +98,7 @@ function EntityListAction({ action }: { action: EntityListActionItem }) {
   }
 
   return (
-    <button
+    <RomanButton
       className="entity-list-row__button"
       data-testid={action.testId}
       disabled={action.disabled}
@@ -104,7 +106,7 @@ function EntityListAction({ action }: { action: EntityListActionItem }) {
       onClick={handleClick}
     >
       {content}
-    </button>
+    </RomanButton>
   );
 }
 
@@ -112,10 +114,10 @@ export function EntityListEmpty({ messageKey = 'common.emptyList', testId }: Ent
   const { t } = useUiStore();
 
   return (
-    <div className="entity-list-empty" data-testid={testId}>
+    <GamePanel as="div" className="entity-list-empty" density="compact" data-testid={testId}>
       <GameIcon name="folderOpen" size={22} />
       <p>{t(messageKey)}</p>
-    </div>
+    </GamePanel>
   );
 }
 

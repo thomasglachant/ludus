@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { GameIcon, type GameIconName } from '../icons/GameIcon';
+import type { GameIconName } from '../icons/GameIcon';
+import { RomanButton } from '../game/RomanButton';
 
 interface CTAButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   amountMoney?: ReactNode;
@@ -16,16 +17,16 @@ export function CTAButton({
   ...props
 }: CTAButtonProps) {
   return (
-    <button className={['cta-button', className].filter(Boolean).join(' ')} type={type} {...props}>
+    <RomanButton
+      amountClassName="cta-button__amount"
+      amountMoney={amountMoney}
+      className={['cta-button', className].filter(Boolean).join(' ')}
+      moneyIconName={moneyIconName}
+      tone="secondary"
+      type={type}
+      {...props}
+    >
       {children}
-      {amountMoney === undefined ? null : (
-        <span className="cta-button__amount">
-          <span>(</span>
-          <strong>{amountMoney}</strong>
-          <GameIcon name={moneyIconName} size={15} />
-          <span>)</span>
-        </span>
-      )}
-    </button>
+    </RomanButton>
   );
 }

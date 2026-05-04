@@ -18,6 +18,58 @@ component contract: why existing primitives do not fit, what props and state the
 component owns, whether it is expected to become reusable later, and which
 shared styles or primitives it still relies on.
 
+## UI Component Hierarchy
+
+The Tailwind + shadcn/ui migration keeps the UI layers explicit and reusable.
+Dependency direction is one-way: `src/ui/screens` composes `src/ui/game`,
+which composes `src/ui/primitives`.
+
+- `src/ui/primitives` contains the lowest-level accessible primitives, Tailwind
+  variants and adapters around shadcn/ui, Radix UI or React Aria APIs. These
+  components have no game vocabulary, store access, domain rules or
+  feature-specific i18n keys.
+- `src/ui/game` contains reusable Ludus components that express the Roman
+  American comic / BD-inspired visual language. They compose primitives into
+  buttons, panels, tabs, badges and modal bodies. They may know generic game
+  concepts such as resources, but they do not compute gameplay or read stores.
+- `src/ui/screens` contains route, screen and modal surfaces. Screens bind store
+  state, selectors, actions and view models, then compose `src/ui/game`
+  components into the player experience.
+
+Reuse rule: use the highest shared component that fits before creating anything
+new. Screens should first reach for `src/ui/game`; game components should first
+reach for `src/ui/primitives`. Feature-local UI is allowed only after a short
+contract explains the gap, owned props/state, reuse expectation and shared
+building blocks.
+
+## Ludus Component Contracts
+
+The migration uses short, stable contracts for Ludus-themed components:
+
+- `RomanButton`: default themed command component for primary, secondary,
+  destructive, ghost and icon actions. It composes the primitive button and CTA
+  treatments, accepts i18n-rendered content, optional icons, disabled/loading
+  states and optional resource or money affordances. Parents own actions.
+- `ParchmentModal`: themed modal body wrapper used inside the modal stack or the
+  chosen accessible dialog primitive. It owns parchment visual structure,
+  title/description slots, body/footer layout and action placement. Modal state,
+  focus policy and stack behavior stay with the modal infrastructure.
+- `StonePanel` / `ParchmentPanel`: reusable visual containers. `StonePanel` is
+  for HUD, navigation, operational controls and high-contrast overlays.
+  `ParchmentPanel` is for readable entity content, forms and detail surfaces.
+  Both expose header/body/footer slots and density variants; avoid nesting them.
+- `WaxTabletTabs`: accessible themed tabs for modal and screen sections. It
+  receives controlled tab state, i18n labels, optional icons, badges/counts and
+  hidden/disabled states. Tabs that do not apply should be hidden.
+- `ResourceBadge` / `TreasuryBadge` / `ReputationBadge`: compact icon-backed
+  resource facts. `ResourceBadge` is generic; resource-specific badges provide
+  icon, tone and formatting defaults plus optional click behavior such as opening
+  finance. Values are computed upstream.
+- `GamePanel`: reusable screen-level panel frame for building, list, finance and
+  planning surfaces. It provides title, action, filter, content and footer slots
+  with consistent spacing over scenic backgrounds. It does not fetch state or
+  implement feature logic.
+
 ## Main Game Shell
 
 Target structure:
@@ -94,6 +146,10 @@ The panel shows ownership, level, efficiency, current effects, staff assignment,
 ## Modal Framework
 
 `AppModal` remains the outer accessibility shell for focus, backdrop, title, close and back behavior. Modal content should use the internal framework components from `src/ui/modals/ModalContentFrame.tsx` for consistent item details.
+
+`ParchmentModal` is the Ludus-themed modal body contract for the Tailwind +
+shadcn/ui migration. It should complement the modal stack instead of replacing
+stack semantics or entity drilldown behavior.
 
 Shared modal content components:
 

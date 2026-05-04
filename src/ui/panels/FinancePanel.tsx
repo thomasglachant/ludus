@@ -17,6 +17,7 @@ import {
 } from '../formatters/ledger';
 import { formatMoneyAmount } from '../formatters/money';
 import { EmptyState, MetricList, NoticeBox, SectionCard } from '../components/shared';
+import { ParchmentPanel } from '../game/GamePanel';
 import { GameIcon } from '../icons/GameIcon';
 import {
   ModalContentFrame,
@@ -318,8 +319,10 @@ export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelPro
                     const context = getLedgerEntryContextLabel(entry, t);
 
                     return (
-                      <article
+                      <ParchmentPanel
+                        as="article"
                         className={`finance-entry finance-entry--${entry.kind}`}
+                        density="compact"
                         key={entry.id}
                       >
                         <span className={`finance-entry__kind finance-entry__kind--${entry.kind}`}>
@@ -338,7 +341,7 @@ export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelPro
                         >
                           {formatLedgerEntryAmount(entry)}
                         </strong>
-                      </article>
+                      </ParchmentPanel>
                     );
                   })}
                 </div>
@@ -373,7 +376,12 @@ export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelPro
                     const canBuyout = save.ludus.treasury >= loan.remainingBalance;
 
                     return (
-                      <article className="finance-loan-card" key={loan.id}>
+                      <ParchmentPanel
+                        as="article"
+                        className="finance-loan-card"
+                        density="compact"
+                        key={loan.id}
+                      >
                         <strong>{t(`finance.loans.${loan.definitionId}.name`)}</strong>
                         <MetricList
                           columns={3}
@@ -412,7 +420,7 @@ export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelPro
                             <span>{t('finance.buyoutLoan')}</span>
                           </CTAButton>
                         </div>
-                      </article>
+                      </ParchmentPanel>
                     );
                   })}
                 </div>
@@ -429,8 +437,10 @@ export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelPro
                 const canTake = hasRequiredDomusLevel && !isAlreadyActive;
 
                 return (
-                  <article
+                  <ParchmentPanel
+                    as="article"
                     className="planning-card planning-card--shell finance-loan-offer"
+                    density="normal"
                     key={loan.id}
                   >
                     <strong>{t(loan.labelKey)}</strong>
@@ -473,7 +483,7 @@ export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelPro
                         <span>{t('finance.takeLoan')}</span>
                       </CTAButton>
                     </div>
-                  </article>
+                  </ParchmentPanel>
                 );
               })}
             </div>

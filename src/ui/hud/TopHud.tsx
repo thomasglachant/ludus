@@ -4,6 +4,7 @@ import { GaugeStatBar } from '../components/GaugeStatBar';
 import { Tooltip } from '../components/Tooltip';
 import { formatMoneyAmount } from '../formatters/money';
 import { formatNumber } from '../formatters/number';
+import { RomanButton } from '../game/RomanButton';
 import { GameIcon } from '../icons/GameIcon';
 
 interface TopHudProps {
@@ -35,22 +36,28 @@ export function TopHud({
   return (
     <header className="top-hud" data-testid="topbar">
       <div className="top-hud__brand">
-        <button className="top-hud__ludus-card" type="button" onClick={onOpenDomus}>
+        <RomanButton
+          className="top-hud__ludus-card"
+          tone="ghost"
+          type="button"
+          onClick={onOpenDomus}
+        >
           <strong>{save.player.ludusName}</strong>
           <span>
             {t('common.level', { level: domusLevel })} ·{' '}
             {t('ludus.reputationValue', { value: save.ludus.reputation })}
           </span>
-        </button>
+        </RomanButton>
       </div>
 
       <div className="top-hud__center">
         <div className="top-hud__resources" aria-label={t('topBar.resources')}>
           <Tooltip content={t('common.treasury')}>
-            <button
+            <RomanButton
               aria-label={t('finance.open')}
               className="top-hud__resource top-hud__resource--button"
               data-testid="topbar-treasury"
+              tone="ghost"
               type="button"
               onClick={onOpenFinance}
             >
@@ -60,7 +67,7 @@ export function TopHud({
               <span className="top-hud__resource-value">
                 {formatMoneyAmount(save.ludus.treasury)}
               </span>
-            </button>
+            </RomanButton>
           </Tooltip>
           <Tooltip content={t('ludus.reputation')}>
             <div className="top-hud__resource" data-testid="topbar-reputation">
@@ -91,15 +98,17 @@ export function TopHud({
 
       <div className="top-hud__actions">
         <div className="top-hud__time" data-testid="topbar-time">
-          <button
+          <RomanButton
             aria-label={t(isPaused ? 'topBar.resume' : 'topBar.pause')}
             className="top-hud__time-action"
+            size="icon"
             title={t(isPaused ? 'topBar.resume' : 'topBar.pause')}
+            tone="ghost"
             type="button"
             onClick={onTogglePause}
           >
             <GameIcon name={isPaused ? 'play' : 'pause'} size={22} />
-          </button>
+          </RomanButton>
           <span className="top-hud__date-lines">
             <span>
               <strong className="top-hud__clock">{clockLabel}</strong>
@@ -111,18 +120,20 @@ export function TopHud({
               <span>{t('topBar.year', { year: save.time.year })}</span>
             </span>
           </span>
-          <button
+          <RomanButton
             aria-label={t('topBar.openGameMenu')}
             className="top-hud__time-action"
             data-testid="topbar-menu-button"
+            size="icon"
             title={t('topBar.openGameMenu')}
+            tone="ghost"
             type="button"
             onClick={onOpenMenu}
           >
             <span aria-hidden="true" className="top-hud__menu-icon">
               <GameIcon color="currentColor" name="menu" size={22} />
             </span>
-          </button>
+          </RomanButton>
         </div>
       </div>
     </header>
