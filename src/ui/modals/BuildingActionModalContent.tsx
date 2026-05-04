@@ -27,8 +27,7 @@ const effectIcons: Record<BuildingEffectType, GameIconName> = {
   decreaseRebellion: 'warning',
   increaseIncome: 'treasury',
   reduceExpense: 'treasury',
-  increaseProduction: 'workforce',
-  increaseStaffEfficiency: 'workforce',
+  increaseProduction: 'energy',
   increaseStrength: 'strength',
   reduceInjuryRisk: 'defense',
 };

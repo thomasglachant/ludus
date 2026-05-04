@@ -54,7 +54,6 @@ export function BuildingsOverview({
             const assetSet = getBuildingAssetSet(buildingId, building.level);
             const alerts = getBuildingAlerts(save, buildingId);
             const alertSeverity = getHighestAlertSeverity(alerts);
-            const requiredStaff = definition.requiredStaffByLevel?.[building.level] ?? 0;
 
             return (
               <button
@@ -97,15 +96,6 @@ export function BuildingsOverview({
                     <span>
                       <GameIcon name="landmark" size={16} />
                       {t('buildingsOverview.levelValue', { level: building.level })}
-                    </span>
-                    <span>
-                      <GameIcon name="workforce" size={16} />
-                      {requiredStaff > 0
-                        ? t('buildingsOverview.staffValue', {
-                            current: building.staffAssignmentIds.length,
-                            required: requiredStaff,
-                          })
-                        : t('buildingsOverview.noStaffRequired')}
                     </span>
                     <span>
                       <GameIcon name="energy" size={16} />

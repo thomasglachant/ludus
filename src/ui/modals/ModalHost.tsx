@@ -10,8 +10,6 @@ import { BuildingsListPanel } from '../panels/BuildingsListPanel';
 import { FinancePanel } from '../panels/FinancePanel';
 import { GladiatorsListPanel } from '../panels/GladiatorsListPanel';
 import { GladiatorDetailPanel } from '../panels/GladiatorDetailPanel';
-import { StaffListPanel } from '../panels/StaffListPanel';
-import { StaffDetailPanel } from '../panels/StaffDetailPanel';
 import { WeeklyPlanningPanel } from '../panels/WeeklyPlanningPanel';
 import { Input } from '../primitives/Input';
 import { AppModal } from './AppModal';
@@ -147,7 +145,6 @@ function FormDialog({
 function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModalState }) {
   const {
     currentSave,
-    assignStaffToBuilding,
     buyoutLoan,
     hasUnsavedChanges,
     isLoading,
@@ -159,7 +156,6 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
     saveCurrentGame,
     selectBuildingPolicy,
     sellGladiator,
-    sellStaff,
     takeLoan,
     updateDailyPlan,
     updateDailyPlanBuildingActivitySelection,
@@ -186,24 +182,6 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
       messageParams: { name: gladiator.name },
       onConfirm: () => sellGladiator(gladiator.id),
       testId: 'market-sell-confirm-dialog',
-      titleKey: 'market.sellConfirmationTitle',
-    });
-  };
-
-  const requestSellStaff = (staffId: string) => {
-    const staffMember = currentSave?.staff.members.find((candidate) => candidate.id === staffId);
-
-    if (!staffMember) {
-      return;
-    }
-
-    openConfirmModal({
-      kind: 'confirm',
-      confirmLabelKey: 'market.sell',
-      messageKey: 'market.sellStaffConfirmation',
-      messageParams: { name: staffMember.name },
-      onConfirm: () => sellStaff(staffMember.id),
-      testId: 'market-sell-staff-confirm-dialog',
       titleKey: 'market.sellConfirmationTitle',
     });
   };
@@ -261,7 +239,6 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
           onPurchaseBuilding={purchaseBuilding}
           onPurchaseBuildingImprovement={purchaseBuildingImprovement}
           onPurchaseBuildingSkill={purchaseBuildingSkill}
-          onAssignStaffToBuilding={assignStaffToBuilding}
           onSelectBuildingPolicy={selectBuildingPolicy}
           onUpgradeBuilding={upgradeBuilding}
         />
@@ -310,27 +287,6 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
     );
   }
 
-  if (modal.kind === 'staffList') {
-    return (
-      <AppModal
-        isActive={isActive}
-        size="xl"
-        testId="staff-list-modal"
-        titleKey="staff.listTitle"
-        onClose={closeModal}
-      >
-        <StaffListPanel
-          save={currentSave}
-          onClose={closeModal}
-          onOpenStaff={(staffId) => {
-            pushModal({ kind: 'staff', staffId });
-          }}
-          onSellStaff={requestSellStaff}
-        />
-      </AppModal>
-    );
-  }
-
   if (modal.kind === 'finance') {
     return (
       <AppModal
@@ -363,28 +319,6 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
         onClose={closeModal}
       >
         <GladiatorDetailPanel gladiator={gladiator} save={currentSave} onClose={closeModal} />
-      </AppModal>
-    );
-  }
-
-  if (modal.kind === 'staff') {
-    const staffMember = currentSave.staff.members.find(
-      (candidate) => candidate.id === modal.staffId,
-    );
-
-    if (!staffMember) {
-      return null;
-    }
-
-    return (
-      <AppModal
-        isActive={isActive}
-        size="lg"
-        testId="staff-modal"
-        title={staffMember.name}
-        onClose={closeModal}
-      >
-        <StaffDetailPanel save={currentSave} staffMember={staffMember} />
       </AppModal>
     );
   }

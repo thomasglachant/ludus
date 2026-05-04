@@ -1,5 +1,5 @@
 import { getAvailableLudusGladiatorPlaces } from '../../domain/ludus/capacity';
-import type { MarketGladiator, StaffMarketCandidate } from '../../domain/types';
+import type { MarketGladiator } from '../../domain/types';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
 import { UserAlert } from '../components/UserAlert';
@@ -14,7 +14,7 @@ interface MarketModalProps {
 }
 
 export function MarketModal({ isActive, onBack, onClose }: MarketModalProps) {
-  const { buyMarketGladiator, buyMarketStaff, currentSave } = useGameStore();
+  const { buyMarketGladiator, currentSave } = useGameStore();
   const { openConfirmModal } = useUiStore();
 
   if (!currentSave) {
@@ -32,20 +32,6 @@ export function MarketModal({ isActive, onBack, onClose }: MarketModalProps) {
       },
       onConfirm: () => buyMarketGladiator(candidate.id),
       testId: 'market-buy-confirm-dialog',
-      titleKey: 'market.buyConfirmationTitle',
-    });
-  };
-  const requestBuyStaff = (candidate: StaffMarketCandidate) => {
-    openConfirmModal({
-      kind: 'confirm',
-      confirmLabelKey: 'market.buy',
-      messageKey: 'market.buyStaffConfirmation',
-      messageParams: {
-        name: candidate.name,
-        price: formatMoneyAmount(candidate.price),
-      },
-      onConfirm: () => buyMarketStaff(candidate.id),
-      testId: 'market-buy-staff-confirm-dialog',
       titleKey: 'market.buyConfirmationTitle',
     });
   };
@@ -69,7 +55,7 @@ export function MarketModal({ isActive, onBack, onClose }: MarketModalProps) {
           testId="market-capacity-full-notice"
         />
       ) : null}
-      <MarketContent save={currentSave} onBuy={requestBuy} onBuyStaff={requestBuyStaff} />
+      <MarketContent save={currentSave} onBuy={requestBuy} />
     </AppModal>
   );
 }

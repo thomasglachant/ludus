@@ -22,7 +22,6 @@ export function createInitialBuildings(): Record<BuildingId, BuildingState> {
       efficiency: definition.startsPurchased ? 100 : 0,
       purchasedImprovementIds: [],
       purchasedSkillIds: [],
-      staffAssignmentIds: [],
     };
 
     if (configuration) {

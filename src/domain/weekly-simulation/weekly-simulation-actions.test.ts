@@ -5,7 +5,6 @@ import { takeLoan } from '../economy/economy-actions';
 import type { Gladiator } from '../gladiators/types';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
-import { synchronizeStaffAssignments } from '../staff/staff-actions';
 import {
   completeSundayArenaDay,
   createDefaultDailyPlan,
@@ -48,26 +47,6 @@ function createTestSave(overrides: Partial<GameSave> = {}): GameSave {
   };
 }
 
-function withAssignedTrainer(save: GameSave, trainingGroundExperience = 10): GameSave {
-  return synchronizeStaffAssignments({
-    ...save,
-    staff: {
-      ...save.staff,
-      members: [
-        {
-          id: 'staff-test-trainer',
-          name: 'Titus',
-          type: 'trainer',
-          visualId: 'trainer-01',
-          weeklyWage: 35,
-          assignedBuildingId: 'trainingGround',
-          buildingExperience: { trainingGround: trainingGroundExperience },
-        },
-      ],
-    },
-  });
-}
-
 function withCompleteWeeklyPlanning(save: GameSave): GameSave {
   const gladiatorCount = save.gladiators.length;
   const plannedDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
@@ -81,7 +60,7 @@ function withCompleteWeeklyPlanning(save: GameSave): GameSave {
         strengthTraining: 3 * gladiatorCount,
         agilityTraining: 2 * gladiatorCount,
         defenseTraining: 1 * gladiatorCount,
-        lifeTraining: 1 * gladiatorCount,
+        lifeTraining: 2 * gladiatorCount,
         meals: 0,
         sleep: 0,
       },
@@ -275,36 +254,6 @@ describe('weekly simulation actions', () => {
     );
   });
 
-  it('caps staff experience efficiency at twenty percent', () => {
-    const save = withAssignedTrainer(createTestSave(), 1_000);
-
-    const plan = createDefaultDailyPlan('monday');
-    plan.laborPoints.production = 0;
-    const result = resolveDailyPlan(save, plan, () => 1);
-
-    expect(result.save.buildings.trainingGround.efficiency).toBe(120);
-  });
-
-  it('uses building staff requirements by level for efficiency', () => {
-    const baseSave = createTestSave();
-    const save = withAssignedTrainer({
-      ...baseSave,
-      buildings: {
-        ...baseSave.buildings,
-        trainingGround: {
-          ...baseSave.buildings.trainingGround,
-          level: 3,
-        },
-      },
-    });
-    const plan = createDefaultDailyPlan('monday');
-    plan.laborPoints.production = 0;
-
-    const result = resolveDailyPlan(save, plan, () => 1);
-
-    expect(result.save.buildings.trainingGround.efficiency).toBe(61);
-  });
-
   it('applies planned gladiator building effects during daily resolution', () => {
     const save = createTestSave({
       gladiators: [createGladiator({ life: 50 })],
@@ -417,7 +366,6 @@ describe('weekly simulation actions', () => {
     const projection = projectWeeklyEconomy(save);
 
     expect(projection.net).toBe(0);
-    expect(projection.expenseByCategory.staff ?? 0).toBe(0);
   });
 
   it('keeps an empty ludus neutral before manual planning', () => {
@@ -522,7 +470,6 @@ describe('weekly simulation actions', () => {
       remainingBalance: loan.weeklyPayment * loan.durationWeeks - loan.weeklyPayment,
       remainingWeeks: loan.durationWeeks - 1,
     });
-    expect(result.staff.marketCandidates[0].id).toBe('staff-market-1-2-slave-1');
     expect(result.economy.ledgerEntries[0]).toMatchObject({
       kind: 'expense',
       amount: loan.weeklyPayment,

@@ -127,18 +127,18 @@ The building overview should depict the ludus as a small Roman school complex:
 - Pleasure Hall;
 - Infirmary;
 - Market and Arena as external destinations;
-- readable alerts, staffing status and activity areas.
+- readable alerts, activity areas.
 
 Buildings, destinations and asset paths belong in `src/game-data` or adjacent
 visual data modules.
 
 The current ludus target is a building-first React interface with visible Roman
-comic buildings, readable alerts, staffing state and stable interaction zones.
+comic buildings, readable alerts, stable interaction zones.
 
 Required main scene behavior:
 
 - the overview shows the ludus as a managed school, not a generic dashboard;
-- building ownership, level, efficiency, staffing and alerts are visually
+- building ownership, level, efficiency, alerts are visually
   readable;
 - building cards keep a strong sense of place through assets and Roman material
   styling;
@@ -177,7 +177,7 @@ Buildings must not be represented as plain text-only rectangles in the normal
 player UI.
 
 The removed 1-to-10 building budget system must not return. Building depth
-comes from upgrades, improvements, policies, staffing and explicit choices.
+comes from upgrades, improvements, policies, explicit choices.
 
 ## Gladiator Identity
 

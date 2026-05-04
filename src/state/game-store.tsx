@@ -19,11 +19,6 @@ import {
 } from '../domain/buildings/building-actions';
 import { buyMarketGladiator, sellGladiator } from '../domain/market/market-actions';
 import {
-  assignStaffToBuilding as assignStaffToBuildingAction,
-  buyMarketStaff as buyMarketStaffAction,
-  sellStaff as sellStaffAction,
-} from '../domain/staff/staff-actions';
-import {
   completeSundayArenaDay as completeSundayArenaDayAction,
   resolveWeekStep,
   synchronizeEconomyProjection,
@@ -362,20 +357,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     [applyPlayerChange],
   );
 
-  const buyMarketStaff = useCallback(
-    (candidateId: string) => {
-      applyPlayerChange((save) => buyMarketStaffAction(save, candidateId).save);
-    },
-    [applyPlayerChange],
-  );
-
-  const sellStaff = useCallback(
-    (staffId: string) => {
-      applyPlayerChange((save) => sellStaffAction(save, staffId).save);
-    },
-    [applyPlayerChange],
-  );
-
   const updateDailyPlan = useCallback(
     (update: DailyPlanUpdate) => {
       applyPlayerChange((save) => updateDailyPlanAction(save, update));
@@ -439,13 +420,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const buyoutLoan = useCallback(
     (loanInstanceId: string) => {
       applyPlayerChange((save) => buyoutLoanAction(save, loanInstanceId).save);
-    },
-    [applyPlayerChange],
-  );
-
-  const assignStaffToBuilding = useCallback(
-    (staffId: string, buildingId?: BuildingId) => {
-      applyPlayerChange((save) => assignStaffToBuildingAction(save, staffId, buildingId).save);
     },
     [applyPlayerChange],
   );
@@ -687,8 +661,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       upgradeBuilding: upgradeBuildingAction,
       buyMarketGladiator: buyMarketGladiatorAction,
       sellGladiator: sellGladiatorAction,
-      buyMarketStaff,
-      sellStaff,
       updateDailyPlan,
       updateDailyPlanBuildingActivitySelection,
       resolveGameEventChoice,
@@ -699,17 +671,14 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       toggleGamePause,
       takeLoan,
       buyoutLoan,
-      assignStaffToBuilding,
       clearError,
     };
   }, [
     adjustDebugTreasury,
     advanceWeekStepAction,
     activeModal,
-    assignStaffToBuilding,
     buyoutLoan,
     buyMarketGladiatorAction,
-    buyMarketStaff,
     changeLanguage,
     clearError,
     createNewGame,
@@ -741,7 +710,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     currentSave,
     completeSundayArenaDay,
     sellGladiatorAction,
-    sellStaff,
     selectBuildingPolicyAction,
     upgradeBuildingAction,
   ]);

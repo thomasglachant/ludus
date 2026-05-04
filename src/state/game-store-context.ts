@@ -41,8 +41,6 @@ export interface GameStoreValue {
   upgradeBuilding(buildingId: BuildingId): void;
   buyMarketGladiator(candidateId: string): void;
   sellGladiator(gladiatorId: string): void;
-  buyMarketStaff(candidateId: string): void;
-  sellStaff(staffId: string): void;
   updateDailyPlan(update: DailyPlanUpdate): void;
   updateDailyPlanBuildingActivitySelection(update: DailyPlanBuildingActivitySelectionUpdate): void;
   resolveGameEventChoice(eventId: string, choiceId: string): void;
@@ -53,7 +51,6 @@ export interface GameStoreValue {
   toggleGamePause(): void;
   takeLoan(loanId: LoanId): void;
   buyoutLoan(loanInstanceId: string): void;
-  assignStaffToBuilding(staffId: string, buildingId?: BuildingId): void;
   clearError(): void;
 }
 

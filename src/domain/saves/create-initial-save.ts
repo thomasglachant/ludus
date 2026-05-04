@@ -2,10 +2,9 @@ import { INITIAL_TREASURY } from '../../game-data/economy';
 import { GAME_BALANCE } from '../../game-data/balance';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { createInitialBuildings } from '../buildings/initial-buildings';
-import { updateBuildingEfficiencies } from '../buildings/building-staffing';
+import { updateBuildingEfficiencies } from '../buildings/building-efficiency';
 import { createInitialEconomyState } from '../economy/economy-actions';
 import { createMarketState } from '../market/market-actions';
-import { createInitialStaffState, synchronizeStaffAssignments } from '../staff/staff-actions';
 import {
   createDefaultWeeklyPlan,
   synchronizeEconomyProjection,
@@ -48,7 +47,6 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     buildings: createInitialBuildings(),
     gladiators: [],
     economy: createInitialEconomyState(),
-    staff: createInitialStaffState(),
     market: createMarketState(PROGRESSION_CONFIG.startingYear, PROGRESSION_CONFIG.startingWeek),
     arena: {
       resolvedCombats: [],
@@ -65,7 +63,5 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     },
   };
 
-  return synchronizeEconomyProjection(
-    updateBuildingEfficiencies(synchronizeStaffAssignments(save)),
-  );
+  return synchronizeEconomyProjection(updateBuildingEfficiencies(save));
 }

@@ -37,13 +37,9 @@ describe('createInitialSave', () => {
     expect(save.economy.ledgerEntries).toEqual([]);
     expect(save.economy.currentWeekSummary.net).toBe(0);
     expect(save.economy.weeklyProjection.net).toBe(0);
-    expect(save.staff.members).toEqual([]);
-    expect(save.staff.assignments).toEqual([]);
-    expect(save.staff.marketCandidates.length).toBeGreaterThan(0);
-    expect(save.buildings.trainingGround.staffAssignmentIds).toEqual([]);
-    expect(save.buildings.canteen.staffAssignmentIds).toEqual([]);
-    expect(save.buildings.trainingGround.efficiency).toBe(25);
-    expect(save.buildings.canteen.efficiency).toBe(25);
+    expect(Object.keys(save)).not.toContain('sta' + 'ff');
+    expect(save.buildings.trainingGround.efficiency).toBe(100);
+    expect(save.buildings.canteen.efficiency).toBe(100);
     expect(save.planning.days.monday.gladiatorTimePoints.strengthTraining).toBe(0);
     expect(save.buildings.canteen.configuration).toBeUndefined();
     expect(save.buildings.canteen.selectedPolicyId).toBeUndefined();

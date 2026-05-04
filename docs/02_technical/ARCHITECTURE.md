@@ -32,7 +32,6 @@ Important macro modules:
 
 - `weekly-simulation/weekly-simulation-actions.ts`: daily and weekly macro resolution, including finance projections from the weekly plan;
 - `economy/economy-actions.ts`: ledger summaries, loans and buyouts;
-- `staff/staff-actions.ts`: staff market actions, sales, assignments and type rules;
 - `planning/planning-actions.ts`: shared daily plan updates, alerts and macro recommendations;
 - `combat/combat-actions.ts`: Sunday combat resolution.
 
@@ -48,7 +47,6 @@ The store exposes macro actions such as:
 - `updateDailyPlan`;
 - `takeLoan`;
 - `buyoutLoan`;
-- `assignStaffToBuilding`.
 
 Gameplay progression runs through explicit macro actions, primarily daily and weekly resolution.
 
@@ -85,7 +83,6 @@ Current macro UI surfaces include:
 - `FinancePanel`;
 - `BuildingsListPanel`;
 - `GladiatorsListPanel`;
-- `StaffListPanel`;
 - enriched `BuildingPanel` tabs.
 
 ### `src/persistence`
@@ -100,7 +97,7 @@ All visible UI copy uses i18n keys in French and English.
 
 ## Save Compatibility
 
-`CURRENT_SCHEMA_VERSION` is the only supported schema. The save validator rejects older schemas cleanly. Demo saves are generated with the current schema and include economy, staff and weekly planning state.
+`CURRENT_SCHEMA_VERSION` is the only supported schema. The save validator rejects older schemas cleanly. Demo saves are generated with the current schema and include economy and weekly planning state.
 
 ## Testing
 
@@ -111,8 +108,6 @@ Current test focus:
 - arena reward ledger entries;
 - building and gladiator market ledger entries;
 - economy loans, projections and buyout;
-- staff assignment rules;
-- staff ledger entries for purchase and sale;
 - event treasury ledger entries and debt defeat;
 - weekly simulation daily/weekly resolution;
 - save validation and persistence;

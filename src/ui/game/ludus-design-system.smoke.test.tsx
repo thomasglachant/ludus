@@ -158,7 +158,7 @@ describe('Ludus design system smoke flows', () => {
         ariaLabel={tabsLabel}
         items={[
           { id: 'overview', label: 'Overview' },
-          { count: 2, countMax: 4, id: 'staff', label: 'Staff' },
+          { count: 2, countMax: 4, id: 'upgrades', label: 'Upgrades' },
         ]}
         selectedId="overview"
         onSelect={onSelect}
@@ -173,7 +173,7 @@ describe('Ludus design system smoke flows', () => {
 
     click(tabButtons[1]);
 
-    expect(onSelect).toHaveBeenCalledWith('staff');
+    expect(onSelect).toHaveBeenCalledWith('upgrades');
   });
 
   it('keeps Tooltip wrapper compatibility while adding the Radix primitive', () => {

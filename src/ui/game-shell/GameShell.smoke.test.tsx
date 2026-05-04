@@ -58,8 +58,6 @@ function createGameStore(): GameStoreValue {
     upgradeBuilding: vi.fn(),
     buyMarketGladiator: vi.fn(),
     sellGladiator: vi.fn(),
-    buyMarketStaff: vi.fn(),
-    sellStaff: vi.fn(),
     updateDailyPlan: vi.fn(),
     updateDailyPlanBuildingActivitySelection: vi.fn(),
     resolveGameEventChoice: vi.fn(),
@@ -70,7 +68,6 @@ function createGameStore(): GameStoreValue {
     toggleGamePause: vi.fn(),
     takeLoan: vi.fn(),
     buyoutLoan: vi.fn(),
-    assignStaffToBuilding: vi.fn(),
     clearError: vi.fn(),
   };
 }

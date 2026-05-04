@@ -52,7 +52,7 @@ describe('building actions', () => {
     expect(result.save.buildings.canteen).toMatchObject({
       isPurchased: true,
       level: 1,
-      efficiency: 25,
+      efficiency: 100,
     });
     expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 120);
     expect(result.save.economy.ledgerEntries[0]).toMatchObject({
@@ -119,7 +119,7 @@ describe('building actions', () => {
     });
   });
 
-  it('updates efficiency immediately after changing building staff requirements', () => {
+  it('keeps purchased building efficiency stable after upgrades', () => {
     const save = {
       ...createTestSave(),
       ludus: {
@@ -144,7 +144,7 @@ describe('building actions', () => {
       isAllowed: true,
       targetLevel: 3,
     });
-    expect(result.save.buildings.trainingGround.efficiency).toBe(25);
+    expect(result.save.buildings.trainingGround.efficiency).toBe(100);
   });
 
   it('gates non-domus upgrades behind the required Domus level', () => {
@@ -254,7 +254,7 @@ describe('building actions', () => {
     expect(validation).toMatchObject({
       isAllowed: false,
       reason: 'missingSkillPrerequisite',
-      missingSkillIds: ['domus.ledger-room', 'domus.contract-shelf', 'domus.staff-registry'],
+      missingSkillIds: ['domus.ledger-room', 'domus.contract-shelf', 'domus.estate-registry'],
     });
   });
 

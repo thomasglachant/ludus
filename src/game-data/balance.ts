@@ -1,6 +1,5 @@
 import type { ArenaRank } from '../domain/combat/types';
 import type { GladiatorTrait } from '../domain/gladiators/types';
-import type { StaffType } from '../domain/staff/types';
 import type { DayOfWeek } from '../domain/time/types';
 
 export const GAME_BALANCE = {
@@ -110,12 +109,6 @@ export const GAME_BALANCE = {
       minimumGladiators: 1,
       // Maximum owned gladiator capacity granted by Domus progression.
       maximumGladiators: 6,
-      // Minimum staff capacity when Domus is available.
-      minimumStaff: 3,
-      // Maximum staff capacity granted by Domus progression.
-      maximumStaff: 18,
-      // Staff places granted per Domus level.
-      staffPerDomusLevel: 3,
     },
     levelEffects: {
       domus: {
@@ -141,8 +134,8 @@ export const GAME_BALANCE = {
         3: { dailyGladiatorPoints: 3, happiness: 2 },
         // Passive daily gladiator planning points and rebellion support granted by Dormitory level 4.
         4: { dailyGladiatorPoints: 4, rebellionReduction: 2 },
-        // Passive daily gladiator planning points and staff support granted by Dormitory level 5.
-        5: { dailyGladiatorPoints: 5, staffEfficiency: 5 },
+        // Passive daily gladiator planning points and happiness support granted by Dormitory level 5.
+        5: { dailyGladiatorPoints: 5, happiness: 4 },
       },
       canteen: {
         // Passive daily gladiator planning points granted by Canteen level 1.
@@ -200,8 +193,6 @@ export const GAME_BALANCE = {
     },
     heavyScheduleHappinessPenalty: 2,
     productionIncomePerPoint: 8,
-    staffExperiencePerAssignedDay: 1,
-    maximumStaffExperienceBonusPercent: 20,
     rebellionPressureHappinessThreshold: 40,
     rebellionPressureDailyIncrease: 8,
     rebellionCalmDailyReduction: 4,
@@ -280,31 +271,6 @@ export const GAME_BALANCE = {
       // Trait making the gladiator thematically stoic.
       'stoic',
     ] as const satisfies readonly GladiatorTrait[],
-  },
-
-  staffMarket: {
-    // Number of generated candidates for each staff type each week.
-    candidatesPerType: 20,
-    // Legacy aggregate staff market count retained for older references.
-    availableStaffCount: 40,
-    // Candidate type rotation used by weekly staff market generation.
-    typePool: ['slave', 'trainer'] as const satisfies readonly StaffType[],
-    basePriceByType: {
-      slave: 85,
-      trainer: 220,
-    } as const satisfies Record<StaffType, number>,
-    weeklyWageByType: {
-      slave: 0,
-      trainer: 48,
-    } as const satisfies Record<StaffType, number>,
-    // Minimum starting building experience assigned to generated staff.
-    minGeneratedExperience: 2,
-    // Maximum starting building experience assigned to generated staff.
-    maxGeneratedExperience: 10,
-    // Denarii added to staff market price per generated building experience point.
-    experiencePriceMultiplier: 8,
-    // Fraction of weekly wage added to staff market price.
-    weeklyWagePriceMultiplier: 2,
   },
 
   arena: {

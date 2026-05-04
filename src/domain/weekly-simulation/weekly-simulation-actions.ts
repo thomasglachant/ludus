@@ -3,12 +3,11 @@ import { DAYS_OF_WEEK } from '../../game-data/time';
 import {
   calculateBuildingEfficiency,
   updateBuildingEfficiencies,
-} from '../buildings/building-staffing';
+} from '../buildings/building-efficiency';
 import { hasActiveWeeklyInjury } from '../gladiators/injuries';
 import { addSkillTrainingProgress } from '../gladiators/skills';
 import type { Gladiator } from '../gladiators/types';
 import { createMarketState } from '../market/market-actions';
-import { generateStaffMarketCandidates } from '../staff/staff-actions';
 import type { GameSave } from '../saves/types';
 import type { DayOfWeek } from '../time/types';
 import { startArenaDay } from '../combat/combat-actions';
@@ -150,15 +149,6 @@ function getFocusedTrainingGain(
   );
 }
 
-function getAssignedStaffCount(save: GameSave, type: 'trainer' | 'slave') {
-  return save.staff.members.filter(
-    (member) =>
-      member.type === type &&
-      member.assignedBuildingId &&
-      save.buildings[member.assignedBuildingId].isPurchased,
-  ).length;
-}
-
 function getLudusEffectValue(
   save: GameSave,
   type: BuildingEffect['type'],
@@ -210,10 +200,6 @@ function getPercentMultiplier(percent: number) {
 
 function canGladiatorPerformPhysicalActivities(gladiator: Gladiator, year: number, week: number) {
   return !hasActiveWeeklyInjury(gladiator, year, week);
-}
-
-function getExpenseMultiplier(reductionPercent: number) {
-  return clamp(1 - reductionPercent / 100, 0.45, 1);
 }
 
 function getFinanceCategoryForActivity(activity: DailyPlanActivity): EconomyCategory {
@@ -349,9 +335,7 @@ function resolveDailyPlanInternal(
   const buildingActivityContributions = getBuildingActivityContributions(operationalSave, plan);
   const buildingActivityImpact = calculateBuildingActivityImpact(operationalSave, plan);
   const trainingEfficiency =
-    1 +
-    getAssignedStaffCount(operationalSave, 'trainer') * 0.08 +
-    calculateBuildingEfficiency(operationalSave, 'trainingGround') * 0.1;
+    1 + calculateBuildingEfficiency(operationalSave, 'trainingGround') * 0.1;
   const modifiers: DailyGladiatorModifiers = {
     injuryRiskReductionPercent:
       getAllGladiatorsEffectValue(operationalSave, 'reduceInjuryRisk') +
@@ -387,16 +371,11 @@ function resolveDailyPlanInternal(
   );
   const productionEfficiency = getPurchasedBuildingMaxEfficiency(operationalSave, ['canteen']);
   const productionBonusPercent = getLudusEffectValue(operationalSave, 'increaseProduction');
-  const expenseReductionPercent = getLudusEffectValue(operationalSave, 'reduceExpense');
   const productionIncome = Math.round(
     getPoints(plan, 'production') *
       GAME_BALANCE.macroSimulation.productionIncomePerPoint *
       productionEfficiency *
       getPercentMultiplier(productionBonusPercent),
-  );
-  const staffCost = operationalSave.staff.members.reduce(
-    (total, member) => total + member.weeklyWage / 7,
-    0,
   );
   const gladiatorPointDivisor = Math.max(1, operationalSave.gladiators.length);
   const totalTrainingPressurePoints = getTrainingPressurePoints(plan);
@@ -465,13 +444,7 @@ function resolveDailyPlanInternal(
       .filter((entry) => entry.amount > 0)
       .map((entry) => ({ ...entry, amount: entry.amount })),
   ].filter((entry) => entry.amount > 0);
-  const staffExpense = Math.round(staffCost * getExpenseMultiplier(expenseReductionPercent));
   const expenseEntries: DailyLedgerDraft[] = [
-    {
-      amount: staffExpense,
-      category: 'staff' as EconomyCategory,
-      labelKey: 'finance.ledger.dailyExpenses',
-    },
     ...buildingActivityLedgerEntries
       .filter((entry) => entry.amount < 0)
       .map((entry) => ({ ...entry, amount: Math.abs(entry.amount) })),
@@ -499,22 +472,6 @@ function resolveDailyPlanInternal(
       rebellion: clamp(operationalSave.ludus.rebellion + rebellionDelta, 0, 100),
     },
     gladiators: gladiatorResults.map((result) => result.gladiator),
-    staff: {
-      ...operationalSave.staff,
-      members: operationalSave.staff.members.map((member) =>
-        member.assignedBuildingId
-          ? {
-              ...member,
-              buildingExperience: {
-                ...member.buildingExperience,
-                [member.assignedBuildingId]:
-                  (member.buildingExperience[member.assignedBuildingId] ?? 0) +
-                  GAME_BALANCE.macroSimulation.staffExperiencePerAssignedDay,
-              },
-            }
-          : member,
-      ),
-    },
   });
 
   if (options.recordLedger) {
@@ -970,10 +927,6 @@ export function completeSundayArenaDay(
       phase: 'report',
     },
     market: createMarketState(nextWeek.year, nextWeek.week, random),
-    staff: {
-      ...paidLoans.staff,
-      marketCandidates: generateStaffMarketCandidates(nextWeek.year, nextWeek.week, random),
-    },
     planning: {
       ...createDefaultWeeklyPlan(nextWeek.year, nextWeek.week),
       reports: [report, ...archivedReports].slice(0, 8),

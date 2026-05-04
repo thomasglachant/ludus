@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { getRequiredStaffCount } from '../../domain/buildings/building-staffing';
 import type { BuildingId, GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { BuildingAvatar } from '../buildings/BuildingAvatar';
 import { CTAButton } from '../components/CTAButton';
-import { EntityList, EntityListRow } from '../components/EntityList';
 import { LedgerEntryList } from '../components/LedgerEntryList';
 import {
   Badge,
@@ -27,7 +25,6 @@ import {
   ModalTabs,
   type ModalTabItem,
 } from '../modals/ModalContentFrame';
-import { StaffPortrait } from '../staff/StaffPortrait';
 import {
   type BuildingPanelViewModel,
   createBuildingPanelViewModel,
@@ -41,12 +38,11 @@ interface BuildingPanelProps {
   onPurchaseBuilding(buildingId: BuildingId): void;
   onPurchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
   onPurchaseBuildingSkill(buildingId: BuildingId, skillId: string): void;
-  onAssignStaffToBuilding(staffId: string, buildingId?: BuildingId): void;
   onSelectBuildingPolicy(buildingId: BuildingId, policyId: string): void;
   onUpgradeBuilding(buildingId: BuildingId): void;
 }
 
-type BuildingPanelTab = 'overview' | 'configuration' | 'upgrades' | 'staff' | 'finance';
+type BuildingPanelTab = 'overview' | 'configuration' | 'upgrades' | 'finance';
 
 type BuildingPanelSkill = BuildingPanelViewModel['skills'][number];
 type BuildingSkillState = 'available' | 'locked' | 'purchased';
@@ -92,20 +88,13 @@ export function BuildingPanel({
   onPurchaseBuilding,
   onPurchaseBuildingImprovement,
   onPurchaseBuildingSkill,
-  onAssignStaffToBuilding,
   onSelectBuildingPolicy,
   onUpgradeBuilding,
 }: BuildingPanelProps) {
-  const { openConfirmModal, pushModal, t } = useUiStore();
+  const { openConfirmModal, t } = useUiStore();
   const [activeTab, setActiveTab] = useState<BuildingPanelTab>('overview');
   const viewModel = createBuildingPanelViewModel(save, buildingId, t);
   const ludusCapacity = buildingId === 'dormitory' ? createLudusCapacityViewModel(save) : null;
-  const requiredStaffCount = getRequiredStaffCount(save, buildingId);
-  const assignedStaff = save.staff.members.filter(
-    (staffMember) => staffMember.assignedBuildingId === buildingId,
-  );
-  const assignedStaffCount = assignedStaff.length;
-  const hasStaffRequirement = requiredStaffCount > 0;
   const buildingLedgerEntries = save.economy.ledgerEntries.filter(
     (entry) => entry.buildingId === buildingId,
   );
@@ -151,16 +140,6 @@ export function BuildingPanel({
             countMax: viewModel.improvements.length + viewModel.skills.length,
             id: 'upgrades' as const,
             labelKey: 'buildingPanel.tabs.upgrades',
-          },
-        ]
-      : []),
-    ...(hasStaffRequirement
-      ? [
-          {
-            count: assignedStaffCount,
-            countMax: requiredStaffCount,
-            id: 'staff' as const,
-            labelKey: 'buildingPanel.tabs.staff',
           },
         ]
       : []),
@@ -272,13 +251,9 @@ export function BuildingPanel({
         levelLabelKey="buildingPanel.level"
         metrics={[
           {
-            iconName: 'workforce',
+            iconName: 'energy',
             id: 'efficiency',
             labelKey: 'buildingPanel.efficiency',
-            tone:
-              hasStaffRequirement && assignedStaffCount < requiredStaffCount
-                ? 'warning'
-                : 'neutral',
             value: `${save.buildings[buildingId].efficiency}%`,
           },
           {
@@ -287,23 +262,6 @@ export function BuildingPanel({
             labelKey: actionCostLabelKey,
             value: actionCostLabel,
           },
-          ...(hasStaffRequirement
-            ? [
-                {
-                  iconName: 'workforce' as const,
-                  id: 'assigned-staff',
-                  labelKey: 'staff.assignmentCapacity',
-                  tone:
-                    assignedStaffCount < requiredStaffCount
-                      ? ('warning' as const)
-                      : ('positive' as const),
-                  value: t('staff.assignmentCapacityValue', {
-                    current: assignedStaffCount,
-                    required: requiredStaffCount,
-                  }),
-                },
-              ]
-            : []),
         ]}
         titleKey={viewModel.nameKey}
       />
@@ -317,15 +275,6 @@ export function BuildingPanel({
 
       {selectedTab === 'overview' ? (
         <ModalTabPanel>
-          {hasStaffRequirement && assignedStaffCount < requiredStaffCount ? (
-            <NoticeBox tone="warning">
-              {t('buildingPanel.staffShortageWarning', {
-                current: assignedStaffCount,
-                efficiency: save.buildings[buildingId].efficiency,
-                required: requiredStaffCount,
-              })}
-            </NoticeBox>
-          ) : null}
           <SectionCard titleKey="buildings.currentEffects">
             <EffectList effects={viewModel.effects} />
           </SectionCard>
@@ -701,65 +650,6 @@ export function BuildingPanel({
               </div>
             </ModalSection>
           ) : null}
-        </ModalTabPanel>
-      ) : null}
-
-      {selectedTab === 'staff' ? (
-        <ModalTabPanel>
-          {assignedStaffCount < requiredStaffCount ? (
-            <NoticeBox tone="warning">
-              {t('buildingPanel.staffShortageWarning', {
-                current: assignedStaffCount,
-                efficiency: save.buildings[buildingId].efficiency,
-                required: requiredStaffCount,
-              })}
-            </NoticeBox>
-          ) : null}
-          <MetricList
-            items={[
-              {
-                labelKey: 'staff.assignmentCapacity',
-                value: t('staff.assignmentCapacityValue', {
-                  current: assignedStaffCount,
-                  required: requiredStaffCount,
-                }),
-              },
-            ]}
-          />
-          <EntityList emptyMessageKey="buildingPanel.noAssignedStaff">
-            {assignedStaff.map((staffMember) => (
-              <EntityListRow
-                actions={[
-                  {
-                    iconName: 'userMinus',
-                    id: 'unassign',
-                    label: t('staff.unassign'),
-                    onClick: () => onAssignStaffToBuilding(staffMember.id),
-                  },
-                ]}
-                avatar={<StaffPortrait staffMember={staffMember} />}
-                info={[
-                  {
-                    iconName: 'treasury',
-                    id: 'weekly-wage',
-                    label: t('staff.weeklyWage'),
-                    value: formatMoneyAmount(staffMember.weeklyWage),
-                  },
-                  {
-                    iconName: 'workforce',
-                    id: 'experience',
-                    label: t('staff.experience'),
-                    value: staffMember.buildingExperience[buildingId] ?? 0,
-                  },
-                ]}
-                key={staffMember.id}
-                openLabel={t('staff.openDetailsFor', { name: staffMember.name })}
-                subtitle={t(`staff.types.${staffMember.type}`)}
-                title={staffMember.name}
-                onOpen={() => pushModal({ kind: 'staff', staffId: staffMember.id })}
-              />
-            ))}
-          </EntityList>
         </ModalTabPanel>
       ) : null}
 

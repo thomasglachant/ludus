@@ -42,7 +42,7 @@ describe('building effects', () => {
       { type: 'increaseHappiness', value: 1.5, target: 'ludus' },
     ]);
     expect(BUILDING_SKILLS.find((skill) => skill.id === 'domus.steward-desk')).toMatchObject({
-      requiredSkillIds: ['domus.ledger-room', 'domus.contract-shelf', 'domus.staff-registry'],
+      requiredSkillIds: ['domus.ledger-room', 'domus.contract-shelf', 'domus.estate-registry'],
     });
     expect(BUILDING_SKILLS.find((skill) => skill.id === 'canteen.supply-contracts')).toMatchObject({
       unlockedActivities: ['canteen.supplyContracts'],

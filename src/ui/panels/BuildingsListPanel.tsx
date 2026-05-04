@@ -45,7 +45,7 @@ export function BuildingsListPanel({ onClose, onOpenBuilding, save }: BuildingsL
                         value: building.level,
                       },
                       {
-                        iconName: 'workforce',
+                        iconName: 'energy',
                         id: 'efficiency',
                         label: t('buildingPanel.efficiency'),
                         value: `${building.efficiency}%`,

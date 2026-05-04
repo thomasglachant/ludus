@@ -20,7 +20,6 @@ export interface GameSave {
   arena: ArenaState;
   planning: WeeklyPlanningState;
   economy: EconomyState;
-  staff: StaffState;
   events: EventState;
   metadata?: SaveMetadata;
 }
@@ -73,13 +72,12 @@ export interface BuildingState {
   configuration?: BuildingConfiguration;
   purchasedImprovementIds: string[];
   purchasedSkillIds: string[];
-  staffAssignmentIds: string[];
   efficiency: number;
   selectedPolicyId?: string;
 }
 ```
 
-Buildings do not have capacity. Their operational strength is represented by `efficiency`, which is recalculated from purchase state, level, assigned staff and staff experience.
+Buildings do not have capacity. Their operational strength is represented by `efficiency`, which is recalculated from purchase state and level.
 
 ## Gladiators
 
@@ -187,7 +185,6 @@ export type EconomyCategory =
   | 'contracts'
   | 'production'
   | 'market'
-  | 'staff'
   | 'maintenance'
   | 'food'
   | 'medicine'
@@ -238,41 +235,7 @@ export interface EconomyState {
 
 Player-facing treasury changes should go through ledger entries. `currentWeekSummary` is derived from ledger entries already recorded for the current year/week. `weeklyProjection` is a forward-looking estimate from the current weekly plan and active loan repayments, so one-shot ledger entries such as taking a loan are not counted as future income.
 
-Current ledger-backed flows include daily macro income and expenses, building activity income, loans, loan buyout and repayment, event treasury choices, arena rewards, staff purchase and sale, gladiator purchase and sale, and building purchase, upgrade, improvement, policy and skill costs.
-
-## Staff
-
-```ts
-export type StaffType = 'slave' | 'trainer';
-
-export interface StaffMember {
-  id: string;
-  name: string;
-  type: StaffType;
-  weeklyWage: number;
-  assignedBuildingId?: BuildingId;
-  buildingExperience: Partial<Record<BuildingId, number>>;
-}
-
-export interface StaffMarketCandidate extends StaffMember {
-  price: number;
-}
-
-export interface StaffAssignment {
-  buildingId: BuildingId;
-  staffIds: string[];
-}
-
-export interface StaffState {
-  members: StaffMember[];
-  marketCandidates: StaffMarketCandidate[];
-  assignments: StaffAssignment[];
-}
-```
-
-`getLudusStaffCapacity` derives the owned staff limit from Domus level. Staff market purchases use `validateStaffMarketPurchase`, which rejects purchases when the capacity is full.
-
-`getRequiredStaffCount(save, buildingId)` derives the building requirement from `requiredStaffByLevel`. `validateStaffAssignment` prevents invalid staff types, unpurchased buildings and assignments beyond the requirement. Unassigning a staff member is valid and clears both the staff member and the mirrored building assignment.
+Current ledger-backed flows include daily macro income and expenses, building activity income, loans, loan buyout and repayment, event treasury choices, arena rewards, gladiator purchase and sale, and building purchase, upgrade, improvement, policy and skill costs.
 
 ## Arena Rewards
 

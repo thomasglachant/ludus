@@ -28,12 +28,6 @@ const navigationItems: Array<{
     badge: (save) => save.gladiators.length,
   },
   {
-    panelKind: 'staffList',
-    labelKey: 'navigation.staff',
-    iconName: 'workforce',
-    badge: (save) => save.staff.members.length,
-  },
-  {
     panelKind: 'market',
     labelKey: 'navigation.market',
     iconName: 'shoppingCart',

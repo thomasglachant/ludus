@@ -7,7 +7,6 @@ export interface BuildingState {
   configuration?: BuildingConfiguration;
   purchasedImprovementIds: string[];
   purchasedSkillIds: string[];
-  staffAssignmentIds: string[];
   efficiency: number;
   selectedPolicyId?: string;
 }
@@ -28,8 +27,6 @@ export interface BuildingDefinition {
   descriptionKey: string;
   startsPurchased: boolean;
   startsAtLevel: number;
-  staffType?: 'slave' | 'trainer';
-  requiredStaffByLevel?: Record<number, number>;
   levels: BuildingLevelDefinition[];
   improvementIds: string[];
 }
@@ -99,8 +96,7 @@ export type BuildingEffectType =
   | 'decreaseRebellion'
   | 'increaseIncome'
   | 'reduceExpense'
-  | 'increaseProduction'
-  | 'increaseStaffEfficiency';
+  | 'increaseProduction';
 
 export interface BuildingEffect {
   type: BuildingEffectType;

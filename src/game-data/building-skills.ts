@@ -9,7 +9,7 @@ const skillNamesByBuilding = {
   domus: [
     'Ledger Room',
     'Contract Shelf',
-    'Staff Registry',
+    'Estate Registry',
     'Treasury Lockbox',
     'Reception Atrium',
     'Steward Desk',
@@ -47,7 +47,7 @@ const skillNamesByBuilding = {
     'Elite Conditioning',
     'Champion Method',
     'Brutal Efficiency',
-    'Master Trainer Doctrine',
+    'Master Drill Doctrine',
     'Public Drill',
   ],
   canteen: [
@@ -114,7 +114,7 @@ const skillEffectPatternsByBuilding = {
   domus: [
     { type: 'reduceExpense', target: 'ludus', values: [1, 1.5, 2, 2.5] },
     { type: 'increaseIncome', target: 'ludus', values: [0.5, 1, 1.5, 2] },
-    { type: 'increaseStaffEfficiency', target: 'ludus', values: [0.5, 1, 1.5, 2] },
+    { type: 'increaseHappiness', target: 'ludus', values: [0.5, 1, 1.5, 2] },
     { type: 'increaseReputation', target: 'ludus', values: [0.25, 0.5, 0.75, 1] },
     { type: 'decreaseRebellion', target: 'ludus', values: [0.5, 1, 1.5, 2] },
   ],

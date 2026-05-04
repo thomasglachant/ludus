@@ -28,7 +28,6 @@ export function GameShell() {
     activeModal?.kind === 'weeklyPlanning' ||
     activeModal?.kind === 'buildingsList' ||
     activeModal?.kind === 'gladiatorsList' ||
-    activeModal?.kind === 'staffList' ||
     activeModal?.kind === 'finance' ||
     activeModal?.kind === 'events' ||
     activeModal?.kind === 'market' ||

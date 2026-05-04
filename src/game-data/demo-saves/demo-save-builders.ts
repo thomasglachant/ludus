@@ -2,7 +2,6 @@ import { synchronizePlanning } from '../../domain/planning/planning-actions';
 import { CURRENT_SCHEMA_VERSION } from '../../domain/saves/create-initial-save';
 import { createInitialBuildings } from '../../domain/buildings/initial-buildings';
 import { createInitialEconomyState } from '../../domain/economy/economy-actions';
-import { createInitialStaffState } from '../../domain/staff/staff-actions';
 import {
   createDefaultWeeklyPlan,
   synchronizeEconomyProjection,
@@ -42,7 +41,6 @@ export function createPurchasedBuilding(
     efficiency: building.efficiency ?? 100,
     purchasedImprovementIds: building.purchasedImprovementIds ?? [],
     purchasedSkillIds: building.purchasedSkillIds ?? [],
-    staffAssignmentIds: building.staffAssignmentIds ?? [],
   };
 }
 
@@ -102,7 +100,6 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     buildings,
     gladiators,
     economy: createInitialEconomyState(),
-    staff: createInitialStaffState(),
     market: {
       year: time.year,
       week: time.week,

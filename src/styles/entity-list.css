@@ -94,7 +94,6 @@
 }
 
 .entity-list-row__avatar .gladiator-portrait,
-.entity-list-row__avatar .staff-portrait,
 .entity-list-row__avatar .building-modal-avatar {
   flex: 0 0 auto;
   width: 56px;

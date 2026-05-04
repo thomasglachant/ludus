@@ -6,7 +6,7 @@ import {
   createLedgerEntry,
   updateCurrentWeekSummary,
 } from '../economy/economy-actions';
-import { updateBuildingEfficiencies } from './building-staffing';
+import { updateBuildingEfficiencies } from './building-efficiency';
 import {
   findBuildingPurchaseLevelDefinition,
   getBuildingPurchaseTargetLevel,

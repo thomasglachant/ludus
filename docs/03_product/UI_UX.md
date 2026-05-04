@@ -90,7 +90,6 @@ Bottom navigation entries:
 
 - Buildings;
 - Gladiators;
-- Staff;
 - Planning;
 - Finances;
 - Events.
@@ -120,7 +119,7 @@ It displays:
 
 - current buildings;
 - alerts attached to buildings;
-- staffing and efficiency status;
+- efficiency status;
 - quick access to market and arena.
 
 Building interactions focus on opening the management panels quickly while preserving the Roman American comic / BD-inspired direction through assets, HUD styling and parchment/bronze panels.
@@ -136,12 +135,9 @@ Building modal tabs are ordered as:
 - Overview;
 - Configuration, only when the building has policies or specialized activities;
 - Upgrades, only when the building has improvements or a skill tree;
-- Staff, only when the building uses assigned staff;
 - Finances.
 
-The Staff tab only lists staff currently assigned to that building. It must not show the full staff roster. Staff assignment and recruitment live in dedicated staff or market surfaces.
-
-The panel shows ownership, level, efficiency, current effects, staff assignment, generated skill tree entries and relevant planning/ledger context.
+The panel shows ownership, level, efficiency, current effects, generated skill tree entries and relevant planning/ledger context.
 
 ## Modal Framework
 
@@ -155,7 +151,7 @@ Shared modal content components:
 
 - `ModalContentFrame` wraps the modal body content and provides the common spacing rhythm.
 - `ModalHeroCard` renders the item identity block with avatar, eyebrow, title, description, optional level and a configurable metric strip.
-- `ModalTabs` renders tab navigation with optional count badges, including values such as assigned staff over maximum staff.
+- `ModalTabs` renders tab navigation with optional count badges, including count badges for progress values.
 - `ModalTabPanel` wraps the active tab content.
 - `ModalSection` groups related content inside a tab with a consistent heading style.
 - `ModalActionDock` centers primary CTAs at the bottom of a modal tab.
@@ -180,10 +176,9 @@ Building detail template:
 - Overview contains advanced characteristics, current effects, capacity details when relevant and the build or upgrade CTA.
 - Configuration contains policies and specialized activities; hide the tab when neither exists.
 - Upgrades contains purchased and available improvements plus the building skill tree; hide the tab when no upgrade data exists.
-- Staff shows the assigned count in the tab label, warns when the building is understaffed and lists only assigned staff; clicking assigned staff opens the staff detail modal.
 - Finances shows building-specific gains, costs and recent ledger entries.
 
-Personnel and gladiator detail template:
+Gladiator detail template:
 
 - Use the same hero card structure with portrait, name, short description and key stats.
 - Use tabs for overview, assignment or planning, progression and finances only when those sections exist.
@@ -266,12 +261,6 @@ The panel exposes a `Resolve next day` action that calls the weekly macro step.
 Gladiators are available through the `Gladiators` list panel and building context.
 
 This keeps the main screen scalable as the school grows.
-
-## Staff
-
-Staff is available through the `Staff` list panel, staff detail modals and market recruitment tabs.
-
-This keeps assignment review separate from recruitment while preserving the building-first shell.
 
 ## Events
 

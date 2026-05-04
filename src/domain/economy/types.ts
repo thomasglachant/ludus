@@ -8,7 +8,6 @@ export type EconomyCategory =
   | 'contracts'
   | 'production'
   | 'market'
-  | 'staff'
   | 'maintenance'
   | 'food'
   | 'medicine'

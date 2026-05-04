@@ -24,7 +24,6 @@ import {
   RiMedalFill,
   RiPauseFill,
   RiPlayFill,
-  RiPulseFill,
   RiSaveFill,
   RiSettings3Fill,
   RiShoppingCartFill,
@@ -92,7 +91,6 @@ export const GAME_ICON_DEFINITIONS = {
   view: { Icon: RiEyeFill, color: '#d6a34a' },
   warning: { Icon: RiSparklingFill, color: '#d39942' },
   weeklyPlanning: { Icon: RiCalendarCheckFill, color: '#d6a34a' },
-  workforce: { Icon: RiPulseFill, color: '#c19b57' },
 } satisfies Record<string, GameIconDefinition>;
 
 export type GameIconName = keyof typeof GAME_ICON_DEFINITIONS;

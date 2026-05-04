@@ -54,14 +54,6 @@ export type {
   WeeklyProjection,
 } from './economy/types';
 export type {
-  StaffAssignment,
-  StaffMarketCandidate,
-  StaffMember,
-  StaffState,
-  StaffType,
-  StaffVisualId,
-} from './staff/types';
-export type {
   DailyPlanUpdate,
   DailyPlanBuildingActivitySelectionUpdate,
 } from './planning/planning-actions';

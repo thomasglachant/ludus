@@ -66,8 +66,6 @@ GAME_BALANCE.macroSimulation = {
   },
   heavyScheduleHappinessPenalty: 2,
   productionIncomePerPoint: 8,
-  staffExperiencePerAssignedDay: 1,
-  maximumStaffExperienceBonusPercent: 20,
   rebellionPressureHappinessThreshold: 40,
   rebellionPressureDailyIncrease: 8,
   rebellionCalmDailyReduction: 4,
@@ -98,7 +96,6 @@ There are no optional building purchases in the current build.
 Buildings must not include a generic `budget` property. They now track:
 
 - `purchasedSkillIds`;
-- `staffAssignmentIds`;
 - `efficiency`.
 
 ## Building Skills
@@ -117,41 +114,7 @@ Skill effects currently map to the building's primary macro purpose, such as inc
 
 Some skills also expose `unlockedActivities` ids from `src/game-data/building-activities.ts`. These ids use the owning building prefix and are meant for building-specific macro planning options. They are not standalone balance knobs; any resulting simulation benefit should still come from the activity definition, purchased skill state, explicit daily plan selection and current building efficiency.
 
-Daily simulation applies active macro effects from levels, improvements, policies and skills. Effect values are scaled by `BuildingState.efficiency`, so a building operating at 75% staff efficiency only contributes 75% of its building-driven macro benefit.
-
-## Staff
-
-New saves start without owned staff. The player recruits personnel from the staff market and assigns them manually.
-
-The market generates 20 gladiators, 20 slaves and 20 trainers each week. Buying staff moves a candidate into `staff.members`, selling staff removes assignments and returns a calculated sale value. Staff and gladiator market transactions are recorded in the economy ledger. Market prices scale with generated capability: gladiators use effective skills and reputation, while staff use role, wage and building experience.
-
-```ts
-GAME_BALANCE.market.availableGladiatorCount = 20;
-GAME_BALANCE.staffMarket.candidatesPerType = 20;
-GAME_BALANCE.staffMarket.weeklyWageByType = {
-  slave: 0,
-  trainer: 48,
-};
-```
-
-Staff type rules:
-
-- slaves can work in `canteen` and `dormitory`;
-- trainers only work in `trainingGround`.
-
-Experience in an assigned building grows by `staffExperiencePerAssignedDay` and contributes up to a 20% efficiency bonus.
-
-Staff assignments are mirrored in `StaffState.assignments` and `BuildingState.staffAssignmentIds`. Simulation efficiency reads `requiredStaffByLevel` from `BUILDING_DEFINITIONS`; buildings without staff requirements remain fully efficient when purchased.
-
-Staff capacity is governed by Domus level:
-
-```ts
-GAME_BALANCE.buildings.capacity.minimumStaff = 3;
-GAME_BALANCE.buildings.capacity.staffPerDomusLevel = 3;
-GAME_BALANCE.buildings.capacity.maximumStaff = 18;
-```
-
-The staff market rejects purchases when no staff place remains.
+Daily simulation applies active macro effects from levels, improvements, policies and skills. Effect values are scaled by `BuildingState.efficiency`.
 
 ## Events
 

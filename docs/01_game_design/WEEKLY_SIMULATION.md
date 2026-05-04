@@ -51,7 +51,7 @@ Building skills can expose `unlockedActivities`. These are building-specific mac
 
 Unlocked activities are intended to specialize the existing daily plan buckets. A planning surface can offer them as optional choices inside the relevant gladiator, labor or admin allocation, while the resolver keeps using the same daily budget limits and macro effect pipeline.
 
-Unlocked activities do not apply automatically. A daily plan must select the activity in `buildingActivitySelections` for the matching generic activity, such as selecting `canteen.supplyContracts` for `production`. When a selected activity affects simulation, it resolves as a building-driven macro modifier: it depends on the purchased skill, the owning building and the building's current efficiency. It should not bypass staff efficiency, maintenance, event gating or weekly projection rules.
+Unlocked activities do not apply automatically. A daily plan must select the activity in `buildingActivitySelections` for the matching generic activity, such as selecting `canteen.supplyContracts` for `production`. When a selected activity affects simulation, it resolves as a building-driven macro modifier: it depends on the purchased skill, the owning building and the building's current efficiency. It should not bypass maintenance, event gating or weekly projection rules.
 
 Random events may also require selected building activities. A definition with `triggerBuildingActivities` only becomes eligible when the matching specialized activity is selected and its parent daily activity has allocated points.
 
@@ -66,8 +66,6 @@ It resolves:
 - injury chance;
 - contract income;
 - production income;
-- maintenance and staff costs;
-- staff experience growth;
 - building efficiency;
 - active building and skill effects, scaled by building efficiency;
 - happiness and rebellion;
@@ -78,7 +76,7 @@ It resolves:
 
 Gladiators below `GAME_BALANCE.macroSimulation.physicalActivityHealthThreshold` are unavailable for incompatible physical work. They do not gain training progress from planned training, and they reduce gladiator contract income because their share of the roster is unavailable. If a gladiator is injured during training, that day also grants no training progress for that gladiator and `Gladiator.weeklyInjury` blocks physical activity for the rest of the current week.
 
-Macro effects are read from purchased building levels, improvements, policies and skills. Effects are multiplied by the current `BuildingState.efficiency`, so an understaffed building only contributes part of its benefit. Staff efficiency bonuses are evaluated without that scaling so they can improve the efficiency calculation itself.
+Macro effects are read from purchased building levels, improvements, policies and skills. Effects are multiplied by the current `BuildingState.efficiency`.
 
 The weekly financial projection is recalculated separately from the current ledger. It estimates the current plan's income and expenses from daily simulation drafts, includes upcoming active loan repayments, and excludes one-shot entries that already happened this week. Projection paths must not write ledger entries or create random events.
 
@@ -86,12 +84,11 @@ Current applied macro effect types:
 
 - `increaseIncome`: boosts contract income;
 - `increaseProduction`: boosts production income;
-- `reduceExpense`: reduces daily maintenance and staff expenses;
+- `reduceExpense`: reduces daily maintenance expenses;
 - `increaseHappiness`: improves daily happiness movement;
 - `decreaseRebellion`: lowers daily rebellion movement;
 - `increaseReputation`: adds reputation from public/admin activity;
 - `reduceInjuryRisk`: lowers training injury chance;
-- `increaseStaffEfficiency`: improves operational efficiency for staffed buildings.
 
 If a random event is created, its id is recorded in the daily summary and the save enters `event` phase. `resolveWeekStep` will not advance again while pending events remain. Event definitions can be gated by broad `triggerActivities`, specific `triggerBuildingActivities`, or remain global. Treasury changes caused by event choices are recorded in the financial ledger and can trigger debt defeat.
 

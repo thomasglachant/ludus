@@ -82,8 +82,6 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     descriptionKey: 'buildings.trainingGround.description',
     startsPurchased: true,
     startsAtLevel: 1,
-    staffType: 'trainer',
-    requiredStaffByLevel: { 1: 1, 2: 1, 3: 2, 4: 2, 5: 3 },
     levels: [
       {
         level: 1,
@@ -121,7 +119,7 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
       },
       createLevel(3, 3, [{ type: 'increaseReputation', value: 2, target: 'ludus' }]),
       createLevel(4, 4, [{ type: 'reduceInjuryRisk', value: 4, target: 'allGladiators' }]),
-      createLevel(5, 5, [{ type: 'increaseStaffEfficiency', value: 5, target: 'ludus' }]),
+      createLevel(5, 5, [{ type: 'increaseReputation', value: 4, target: 'ludus' }]),
     ],
     improvementIds: ['sparringRing', 'advancedDoctoreTools'],
   },
@@ -131,8 +129,6 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     descriptionKey: 'buildings.canteen.description',
     startsPurchased: true,
     startsAtLevel: 1,
-    staffType: 'slave',
-    requiredStaffByLevel: { 1: 1, 2: 1, 3: 2, 4: 2, 5: 3 },
     levels: [
       {
         level: 1,
@@ -203,8 +199,6 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     descriptionKey: 'buildings.dormitory.description',
     startsPurchased: true,
     startsAtLevel: 1,
-    staffType: 'slave',
-    requiredStaffByLevel: { 1: 1, 2: 1, 3: 2, 4: 2, 5: 3 },
     levels: [
       {
         level: 1,
@@ -271,8 +265,8 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
           target: 'ludus',
         },
         {
-          type: 'increaseStaffEfficiency',
-          value: GAME_BALANCE.buildings.levelEffects.dormitory[5].staffEfficiency,
+          type: 'increaseHappiness',
+          value: GAME_BALANCE.buildings.levelEffects.dormitory[5].happiness,
           target: 'ludus',
         },
       ]),

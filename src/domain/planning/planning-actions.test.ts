@@ -102,7 +102,7 @@ describe('planning actions', () => {
       points: 20,
     });
 
-    expect(result.planning.days.monday.gladiatorTimePoints.strengthTraining).toBe(7);
+    expect(result.planning.days.monday.gladiatorTimePoints.strengthTraining).toBe(8);
     expect(
       getDailyPlanBucketRemaining(result, result.planning.days.monday, 'gladiatorTimePoints'),
     ).toBe(0);

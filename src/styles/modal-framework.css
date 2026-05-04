@@ -49,10 +49,6 @@
   overflow: hidden;
 }
 
-.modal-hero-card__avatar .staff-portrait {
-  transform: scale(1.18);
-}
-
 .finance-modal-avatar {
   position: relative;
   display: grid;

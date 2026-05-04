@@ -207,24 +207,6 @@ describe('save validation', () => {
           },
         },
       },
-      staff: {
-        ...save.staff,
-        members: [
-          {
-            id: 'staff-legacy-trainer',
-            name: 'Titus',
-            type: 'trainer',
-            visualId: 'trainer-01',
-            weeklyWage: 35,
-            assignedBuildingId: 'nobleTraining',
-            buildingExperience: {
-              nobleTraining: 30,
-              trainingGround: 10,
-            },
-          },
-        ],
-        assignments: [{ buildingId: 'nobleTraining', staffIds: ['staff-legacy-trainer'] }],
-      },
     };
 
     const parsed = parseGameSave(JSON.stringify(transitionalSave));
@@ -233,9 +215,6 @@ describe('save validation', () => {
     expect(parsed?.buildings).not.toHaveProperty('office');
     expect(parsed?.buildings).not.toHaveProperty('nobleTraining');
     expect(parsed?.planning.days.monday.buildingActivitySelections).toEqual({});
-    expect(parsed?.staff.members[0].assignedBuildingId).toBeUndefined();
-    expect(parsed?.staff.members[0].buildingExperience).toEqual({ trainingGround: 10 });
-    expect(parsed?.staff.assignments).toEqual([]);
   });
 
   it('rejects malformed arena day checkpoints', () => {
@@ -443,43 +422,5 @@ describe('save validation', () => {
 
     expect(parsed?.economy.currentWeekSummary.incomeByCategory.event).toBe(80);
     expect(parsed?.economy.currentWeekSummary.net).toBe(80);
-  });
-
-  it('rejects malformed staff records', () => {
-    const save = createJsonClone(createTestSave());
-    const malformedSave = {
-      ...save,
-      staff: {
-        ...save.staff,
-        members: [
-          {
-            ...save.staff.members[0],
-            type: 'scribe',
-          },
-        ],
-      },
-    };
-
-    expect(isGameSave(malformedSave)).toBe(false);
-    expect(parseGameSave(JSON.stringify(malformedSave))).toBeNull();
-  });
-
-  it('rejects staff visual ids that do not match the staff type', () => {
-    const save = createJsonClone(createTestSave());
-    const malformedSave = {
-      ...save,
-      staff: {
-        ...save.staff,
-        members: [
-          {
-            ...save.staff.members[0],
-            visualId: 'trainer-01',
-          },
-        ],
-      },
-    };
-
-    expect(isGameSave(malformedSave)).toBe(false);
-    expect(parseGameSave(JSON.stringify(malformedSave))).toBeNull();
   });
 });

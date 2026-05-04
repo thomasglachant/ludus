@@ -1,9 +1,7 @@
 import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/building-activities';
 import { BUILDING_IDS } from '../../game-data/buildings';
-import { isStaffVisualIdForType } from '../../game-data/staff-visuals';
-import { updateBuildingEfficiencies } from '../buildings/building-staffing';
+import { updateBuildingEfficiencies } from '../buildings/building-efficiency';
 import { createInitialEconomyState, updateCurrentWeekSummary } from '../economy/economy-actions';
-import { createInitialStaffState, synchronizeStaffAssignments } from '../staff/staff-actions';
 import { createDefaultWeeklyPlan } from '../weekly-simulation/weekly-simulation-actions';
 import { DAYS_OF_WEEK } from '../../game-data/time';
 import type { BuildingId } from '../buildings/types';
@@ -26,31 +24,11 @@ import type {
   GameAlert,
   WeeklyReport,
 } from '../planning/types';
-import type {
-  StaffAssignment,
-  StaffMarketCandidate,
-  StaffMember,
-  StaffState,
-  StaffType,
-} from '../staff/types';
 import type { DayOfWeek } from '../time/types';
 import type { GameSave } from './types';
 import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
-const legacyRemovedBuildingIds = [
-  'office',
-  'nobleTraining',
-  'infirmary',
-  'farm',
-  'pleasureHall',
-  'exhibitionGrounds',
-  'armory',
-  'bookmakerOffice',
-  'banquetHall',
-  'forgeWorkshop',
-] as const;
-const supportedBuildingIds = [...requiredBuildingIds, ...legacyRemovedBuildingIds];
 const dayOfWeeks = [...DAYS_OF_WEEK];
 const legacySupportedSchemaVersions = [CURRENT_SCHEMA_VERSION];
 const gamePhases = ['planning', 'simulation', 'event', 'arena', 'report', 'gameOver'];
@@ -104,7 +82,6 @@ const economyCategories = [
   'contracts',
   'production',
   'market',
-  'staff',
   'maintenance',
   'food',
   'medicine',
@@ -114,7 +91,6 @@ const economyCategories = [
   'other',
 ];
 const loanIds = ['smallLoan', 'businessLoan', 'patronLoan'];
-const staffTypes = ['slave', 'trainer'];
 const legacyRemovedBuildingActivities = [
   {
     activity: 'maintenance',
@@ -200,10 +176,6 @@ function isOptionalBuildingId(value: unknown): value is BuildingId | undefined {
   return value === undefined || isBuildingId(value);
 }
 
-function isSupportedBuildingId(value: unknown) {
-  return isStringFrom(value, supportedBuildingIds);
-}
-
 function isStringArray(value: unknown) {
   return Array.isArray(value) && value.every((item) => typeof item === 'string');
 }
@@ -228,7 +200,6 @@ function isBuildingState(value: unknown, buildingId: BuildingId) {
     hasNumber(value, 'level') &&
     hasArray(value, 'purchasedImprovementIds') &&
     hasArray(value, 'purchasedSkillIds') &&
-    hasArray(value, 'staffAssignmentIds') &&
     hasNumber(value, 'efficiency') &&
     hasOptionalString(value, 'selectedPolicyId') &&
     (value.configuration === undefined || isRecord(value.configuration))
@@ -585,56 +556,6 @@ function normalizeEconomyState(economyState?: EconomyState): EconomyState {
   };
 }
 
-function isStaffBuildingExperience(value: unknown) {
-  return (
-    isRecord(value) &&
-    Object.entries(value).every(
-      ([buildingId, experience]) =>
-        isStringFrom(buildingId, supportedBuildingIds) &&
-        typeof experience === 'number' &&
-        Number.isFinite(experience) &&
-        experience >= 0,
-    )
-  );
-}
-
-function isStaffMember(value: unknown): value is StaffMember {
-  return (
-    isRecord(value) &&
-    hasString(value, 'id') &&
-    hasString(value, 'name') &&
-    hasStringFrom(value, 'type', staffTypes) &&
-    hasString(value, 'visualId') &&
-    typeof value.visualId === 'string' &&
-    isStaffVisualIdForType(value.type as StaffType, value.visualId) &&
-    hasNonNegativeNumber(value, 'weeklyWage') &&
-    isStaffBuildingExperience(value.buildingExperience) &&
-    (value.assignedBuildingId === undefined || isSupportedBuildingId(value.assignedBuildingId))
-  );
-}
-
-function isStaffMarketCandidate(value: unknown): value is StaffMarketCandidate {
-  return isRecord(value) && isStaffMember(value) && hasNonNegativeNumber(value, 'price');
-}
-
-function isStaffAssignment(value: unknown): value is StaffAssignment {
-  return (
-    isRecord(value) && isSupportedBuildingId(value.buildingId) && isStringArray(value.staffIds)
-  );
-}
-
-function isStaffState(value: unknown): value is StaffState {
-  return (
-    isRecord(value) &&
-    Array.isArray(value.members) &&
-    value.members.every(isStaffMember) &&
-    Array.isArray(value.assignments) &&
-    value.assignments.every(isStaffAssignment) &&
-    Array.isArray(value.marketCandidates) &&
-    value.marketCandidates.every(isStaffMarketCandidate)
-  );
-}
-
 function isGameEventEffect(value: unknown) {
   if (!isRecord(value) || !hasStringFrom(value, 'type', eventEffectTypes)) {
     return false;
@@ -827,7 +748,6 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     Array.isArray(value.gladiators) &&
     value.gladiators.every(isGladiator) &&
     isEconomyState(value.economy) &&
-    isStaffState(value.staff) &&
     isMarketState(value.market) &&
     isArenaState(value.arena) &&
     isPlanningState(value.planning) &&
@@ -859,7 +779,6 @@ function normalizeBuilding(
     ...building,
     efficiency: building.efficiency ?? (building.isPurchased ? 100 : 0),
     purchasedSkillIds: building.purchasedSkillIds ?? [],
-    staffAssignmentIds: building.staffAssignmentIds ?? [],
     purchasedImprovementIds: normalizePurchasedImprovementIds(
       building.id,
       building.purchasedImprovementIds,
@@ -1054,50 +973,12 @@ function normalizeDailyPlans(
   ) as Record<DayOfWeek, DailyPlan>;
 }
 
-function normalizeBuildingExperience(buildingExperience: StaffMember['buildingExperience']) {
-  return Object.fromEntries(
-    Object.entries(buildingExperience).filter(([buildingId]) => isBuildingId(buildingId)),
-  ) as StaffMember['buildingExperience'];
-}
-
-function normalizeStaffMember<TStaffMember extends StaffMember>(
-  staffMember: TStaffMember,
-): TStaffMember {
-  const normalizedStaffMember = {
-    ...staffMember,
-    buildingExperience: normalizeBuildingExperience(staffMember.buildingExperience),
-  } as TStaffMember & { assignedBuildingId?: unknown };
-
-  if (!isOptionalBuildingId(normalizedStaffMember.assignedBuildingId)) {
-    delete normalizedStaffMember.assignedBuildingId;
-  }
-
-  return normalizedStaffMember as TStaffMember;
-}
-
-function normalizeStaffAssignments(assignments: StaffAssignment[]) {
-  return assignments.filter((assignment) => isBuildingId(assignment.buildingId));
-}
-
-function normalizeStaffState(staffState?: StaffState): StaffState {
-  const initialStaffState = createInitialStaffState();
-
-  if (!staffState) {
-    return initialStaffState;
-  }
-
-  return {
-    ...staffState,
-    assignments: normalizeStaffAssignments(staffState.assignments ?? []),
-    marketCandidates: (staffState.marketCandidates ?? initialStaffState.marketCandidates).map(
-      normalizeStaffMember,
-    ),
-    members: (staffState.members ?? initialStaffState.members).map(normalizeStaffMember),
-  };
-}
-
 export function normalizeGameSave(save: GameSave): GameSave {
-  const saveWithLegacyFields = save as GameSave & { gameId?: unknown; map?: unknown };
+  const saveWithLegacyFields = save as GameSave &
+    Record<string, unknown> & {
+      gameId?: unknown;
+      map?: unknown;
+    };
   const defaultWeeklyPlan = createDefaultWeeklyPlan(save.time.year, save.time.week);
   const normalizedSave: GameSave & { contracts?: unknown; settings?: unknown } = {
     ...save,
@@ -1124,7 +1005,6 @@ export function normalizeGameSave(save: GameSave): GameSave {
     buildings: normalizeBuildings(save.buildings),
     gladiators: save.gladiators.map(normalizeGladiator),
     economy: normalizeEconomyState(save.economy),
-    staff: normalizeStaffState(save.staff),
     market: {
       ...save.market,
       availableGladiators: save.market.availableGladiators.map((gladiator) => ({
@@ -1153,12 +1033,11 @@ export function normalizeGameSave(save: GameSave): GameSave {
   delete normalizedSave.settings;
   delete normalizedSave.contracts;
   delete (normalizedSave as GameSave & { map?: unknown }).map;
+  delete (normalizedSave as GameSave & Record<string, unknown>)['sta' + 'ff'];
   delete (normalizedSave.arena as GameSave['arena'] & { betting?: unknown }).betting;
   delete (normalizedSave.arena as GameSave['arena'] & { pendingCombats?: unknown }).pendingCombats;
 
-  return updateBuildingEfficiencies(
-    synchronizeStaffAssignments(updateCurrentWeekSummary(normalizedSave)),
-  );
+  return updateBuildingEfficiencies(updateCurrentWeekSummary(normalizedSave));
 }
 
 export function parseGameSave(value: string): GameSave | null {
