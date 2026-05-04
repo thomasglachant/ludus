@@ -1,7 +1,8 @@
 .scenic-screen {
   --scenic-screen-background: none;
   --scenic-screen-fallback: #15110d;
-  --scenic-screen-side-shadow: rgba(5, 4, 3, 0.9);
+  --scenic-screen-max-width: var(--app-max-width);
+  --scenic-screen-side-shadow: rgba(47, 29, 15, 0.62);
   --scenic-screen-center-glow: rgba(214, 163, 74, 0.16);
   position: relative;
   overflow: hidden;
@@ -10,36 +11,44 @@
   isolation: isolate;
 }
 
-.scenic-screen::before,
-.scenic-screen::after {
+.scenic-screen__backdrop,
+.scenic-screen__picture {
   position: absolute;
-  inset: 0;
-  content: '';
+  display: block;
   pointer-events: none;
 }
 
-.scenic-screen::before {
-  z-index: -2;
-  background:
-    linear-gradient(
-      90deg,
-      #050403 0,
-      var(--scenic-screen-side-shadow) 5%,
-      rgba(5, 4, 3, 0.34) 20%,
-      transparent 35%,
-      transparent 65%,
-      rgba(5, 4, 3, 0.34) 80%,
-      var(--scenic-screen-side-shadow) 95%,
-      #050403 100%
-    ),
-    var(--scenic-screen-background) center / cover no-repeat;
-  filter: saturate(1.06) contrast(1.03);
+.scenic-screen__backdrop {
+  inset: -36px;
+  z-index: 0;
+  background: var(--scenic-screen-background) center / cover no-repeat;
+  filter: blur(26px) saturate(1.02) brightness(0.38) contrast(1.04);
+  transform: scale(1.04);
 }
 
-.scenic-screen::after {
-  z-index: -1;
+.scenic-screen__picture {
+  inset: 0 auto 0 50%;
+  z-index: 0;
+  left: 50%;
+  width: min(100%, var(--scenic-screen-max-width));
+  transform: translateX(-50%);
   background:
     radial-gradient(circle at 50% 46%, var(--scenic-screen-center-glow), transparent 34rem),
+    linear-gradient(
+      90deg,
+      rgba(10, 7, 5, 0.74),
+      rgba(47, 29, 15, 0.46) 5%,
+      rgba(47, 29, 15, 0.16) 13%,
+      transparent 24%,
+      transparent 76%,
+      rgba(47, 29, 15, 0.16) 87%,
+      rgba(47, 29, 15, 0.46) 95%,
+      rgba(10, 7, 5, 0.74)
+    ),
     linear-gradient(180deg, rgba(10, 7, 5, 0.22), rgba(10, 7, 5, 0.08) 44%, rgba(10, 7, 5, 0.38)),
-    repeating-linear-gradient(90deg, rgba(240, 223, 184, 0.026) 0 1px, transparent 1px 5px);
+    repeating-linear-gradient(90deg, rgba(240, 223, 184, 0.026) 0 1px, transparent 1px 5px),
+    var(--scenic-screen-background) center / cover no-repeat;
+  box-shadow:
+    0 0 96px rgba(5, 4, 3, 0.72),
+    0 0 34px rgba(47, 29, 15, 0.44);
 }

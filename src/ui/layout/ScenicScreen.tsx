@@ -24,6 +24,8 @@ export function ScenicScreen({ backgroundPath, children, className, testId }: Sc
       data-testid={testId}
       style={getScenicBackgroundStyle(backgroundPath)}
     >
+      <span aria-hidden="true" className="scenic-screen__backdrop" />
+      <span aria-hidden="true" className="scenic-screen__picture" />
       {children}
     </section>
   );
