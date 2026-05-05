@@ -2,8 +2,58 @@ import type {
   BuildingImprovementDefinition,
   BuildingPolicyDefinition,
 } from '../domain/buildings/types';
+import { GAME_BALANCE } from './balance';
 
 export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
+  {
+    id: 'dormitoryExtraBunk1',
+    buildingId: 'dormitory',
+    nameKey: 'improvements.dormitoryExtraBunk1.name',
+    descriptionKey: 'improvements.dormitoryExtraBunk1.description',
+    cost: GAME_BALANCE.buildings.capacity.additionalPlaceCosts[0],
+    requiredBuildingLevel: 1,
+    effects: [{ type: 'increaseCapacity', value: 1, target: 'ludus' }],
+  },
+  {
+    id: 'dormitoryExtraBunk2',
+    buildingId: 'dormitory',
+    nameKey: 'improvements.dormitoryExtraBunk2.name',
+    descriptionKey: 'improvements.dormitoryExtraBunk2.description',
+    cost: GAME_BALANCE.buildings.capacity.additionalPlaceCosts[1],
+    requiredBuildingLevel: 2,
+    requiredImprovementIds: ['dormitoryExtraBunk1'],
+    effects: [{ type: 'increaseCapacity', value: 1, target: 'ludus' }],
+  },
+  {
+    id: 'dormitoryExtraBunk3',
+    buildingId: 'dormitory',
+    nameKey: 'improvements.dormitoryExtraBunk3.name',
+    descriptionKey: 'improvements.dormitoryExtraBunk3.description',
+    cost: GAME_BALANCE.buildings.capacity.additionalPlaceCosts[2],
+    requiredBuildingLevel: 3,
+    requiredImprovementIds: ['dormitoryExtraBunk2'],
+    effects: [{ type: 'increaseCapacity', value: 1, target: 'ludus' }],
+  },
+  {
+    id: 'dormitoryExtraBunk4',
+    buildingId: 'dormitory',
+    nameKey: 'improvements.dormitoryExtraBunk4.name',
+    descriptionKey: 'improvements.dormitoryExtraBunk4.description',
+    cost: GAME_BALANCE.buildings.capacity.additionalPlaceCosts[3],
+    requiredBuildingLevel: 4,
+    requiredImprovementIds: ['dormitoryExtraBunk3'],
+    effects: [{ type: 'increaseCapacity', value: 1, target: 'ludus' }],
+  },
+  {
+    id: 'dormitoryExtraBunk5',
+    buildingId: 'dormitory',
+    nameKey: 'improvements.dormitoryExtraBunk5.name',
+    descriptionKey: 'improvements.dormitoryExtraBunk5.description',
+    cost: GAME_BALANCE.buildings.capacity.additionalPlaceCosts[4],
+    requiredBuildingLevel: 5,
+    requiredImprovementIds: ['dormitoryExtraBunk4'],
+    effects: [{ type: 'increaseCapacity', value: 1, target: 'ludus' }],
+  },
   {
     id: 'strawBeds',
     buildingId: 'dormitory',

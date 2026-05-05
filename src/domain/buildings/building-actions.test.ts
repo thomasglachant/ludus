@@ -269,11 +269,18 @@ describe('building actions', () => {
     });
   });
 
-  it('does not let dormitory improvements change Domus-governed capacity', () => {
+  it('lets Dormitory capacity improvements increase gladiator capacity when purchased', () => {
+    const save = createTestSave();
+    const result = purchaseBuildingImprovement(save, 'dormitory', 'dormitoryExtraBunk1');
+
+    expect(getLudusGladiatorCapacity(save)).toBe(1);
+    expect(getLudusGladiatorCapacity(result.save)).toBe(2);
+  });
+
+  it('keeps non-capacity Dormitory improvements from changing gladiator capacity', () => {
     const save = createTestSave();
     const result = purchaseBuildingImprovement(save, 'dormitory', 'strawBeds');
 
-    expect(getLudusGladiatorCapacity(save)).toBe(1);
     expect(getLudusGladiatorCapacity(result.save)).toBe(1);
   });
 

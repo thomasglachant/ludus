@@ -37,6 +37,7 @@ Important macro modules:
 - `gladiators/progression.ts`: XP-derived level selectors and skill point allocation rules;
 - `economy/economy-actions.ts`: ledger summaries, loans and buyouts;
 - `planning/planning-actions.ts`: shared daily plan updates, validation and macro recommendations;
+- `ludus/capacity.ts`: Dormitory-driven gladiator roster capacity selectors;
 - `market/market-actions.ts`: market generation, purchase, sale and experience-based price calculation;
 - `combat/combat-actions.ts`: Sunday combat resolution and combat XP awards.
 
@@ -117,7 +118,7 @@ Current test focus:
 - building validation and macro building state;
 - integer gladiator skills and XP-derived levels;
 - training and combat XP awards;
-- central alerts for ludus planning, Domus recruitment, gladiator skill points and visible status effects;
+- central alerts for ludus planning, Dormitory roster capacity, gladiator skill points and visible status effects;
 - skill point spending rules;
 - market prices based exclusively on experience;
 - combat rewards without participation payouts;

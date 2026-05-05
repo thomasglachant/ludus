@@ -56,7 +56,7 @@ describe('createInitialSave', () => {
       expect.arrayContaining([
         expect.objectContaining({
           actionKind: 'openMarket',
-          buildingId: 'domus',
+          buildingId: 'dormitory',
           titleKey: 'alerts.openRegister.title',
         }),
       ]),

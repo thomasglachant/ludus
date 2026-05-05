@@ -100,7 +100,7 @@ describe('GameStoreProvider alerts refresh', () => {
     localStorage.clear();
   });
 
-  it('refreshes Domus alerts immediately after a Domus upgrade', async () => {
+  it('refreshes Dormitory alerts immediately after buying a Dormitory place', async () => {
     const { container, getStore, root } = await renderStore();
     await createGame(getStore);
     const candidateId = getStore().currentSave!.market.availableGladiators[0].id;
@@ -115,15 +115,15 @@ describe('GameStoreProvider alerts refresh', () => {
 
     act(() => {
       getStore().takeLoan('smallLoan');
-      getStore().upgradeBuilding('domus');
+      getStore().purchaseBuildingImprovement('dormitory', 'dormitoryExtraBunk1');
     });
 
     expect(getStore().currentSave!.planning.alerts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: 'alert-domus-open-register',
+          id: 'alert-dormitory-open-register',
           actionKind: 'openMarket',
-          buildingId: 'domus',
+          buildingId: 'dormitory',
         }),
       ]),
     );
@@ -192,7 +192,7 @@ describe('GameStoreProvider alerts refresh', () => {
     expect(getStore().currentSave!.planning.alerts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: 'alert-domus-open-register',
+          id: 'alert-dormitory-open-register',
         }),
       ]),
     );

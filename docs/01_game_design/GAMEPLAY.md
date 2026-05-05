@@ -104,6 +104,8 @@ Buildings no longer have capacity. Capacity is not used as the way to limit buil
 - purchased skill ids;
 - optional configuration and selected policy.
 
+Roster capacity is a separate Ludus limit driven by the Dormitory. A purchased Dormitory provides one base gladiator place, and each extra roster place is a Dormitory improvement that must be bought after the required Dormitory level is unlocked. Upgrading the Dormitory never recruits or grants an extra gladiator automatically.
+
 Building levels unlock stronger global effects and future feature branches. Skill trees contain four tiers of five skills per building. Tier 2 requires three tier 1 skills, tier 3 requires building level 3, and tier 4 requires building level 5 plus the key tier 3 branch.
 
 Building skills can unlock building-specific macro activities. These activities are specialized planning options that spend the existing daily point pools rather than adding a separate building budget. They must be selected in the daily plan for their matching generic activity before they affect simulation, which prevents every unlocked option from stacking automatically.

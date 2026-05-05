@@ -149,31 +149,31 @@ describe('alert actions', () => {
     }
   });
 
-  it('generates a Domus building alert when a recruitable market gladiator can be hired', () => {
+  it('generates a Dormitory building alert when a recruitable market gladiator can be hired', () => {
     const save = refreshGameAlerts(withoutAlerts(createTestSave()));
 
     expect(save.planning.alerts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: 'alert-domus-open-register',
+          id: 'alert-dormitory-open-register',
           severity: 'warning',
           titleKey: 'alerts.openRegister.title',
           actionKind: 'openMarket',
-          buildingId: 'domus',
+          buildingId: 'dormitory',
         }),
       ]),
     );
   });
 
-  it('uses info severity for the Domus alert when the roster is not empty', () => {
+  it('uses info severity for the Dormitory alert when the roster is not empty', () => {
     const baseSave = withoutAlerts(withGladiators(createTestSave(), [createGladiator()]));
     const save = refreshGameAlerts({
       ...baseSave,
       buildings: {
         ...baseSave.buildings,
-        domus: {
-          ...baseSave.buildings.domus,
-          level: 2,
+        dormitory: {
+          ...baseSave.buildings.dormitory,
+          purchasedImprovementIds: ['dormitoryExtraBunk1'],
         },
       },
     });
@@ -181,14 +181,14 @@ describe('alert actions', () => {
     expect(save.planning.alerts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: 'alert-domus-open-register',
+          id: 'alert-dormitory-open-register',
           severity: 'info',
         }),
       ]),
     );
   });
 
-  it('does not generate a Domus alert without place, market stock or treasury', () => {
+  it('does not generate a Dormitory alert without place, market stock or treasury', () => {
     const fullSave = refreshGameAlerts(
       withoutAlerts(withGladiators(createTestSave(), [createGladiator()])),
     );

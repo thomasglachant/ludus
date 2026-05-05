@@ -52,6 +52,10 @@ function createUiStore(): UiStoreValue {
         return 'Domus';
       }
 
+      if (key === 'buildings.dormitory.name') {
+        return 'Dormitory';
+      }
+
       if (key === 'test.alert.building') {
         return 'Maintenance needed';
       }
@@ -229,12 +233,12 @@ describe('SideMenu', () => {
     const onOpenBuilding = vi.fn();
     const onOpenMarket = vi.fn();
     const marketAlert: GameAlert = {
-      id: 'alert-domus-open-register',
+      id: 'alert-dormitory-open-register',
       severity: 'info',
       titleKey: 'alerts.openRegister.title',
       descriptionKey: 'alerts.openRegister.description',
       actionKind: 'openMarket',
-      buildingId: 'domus',
+      buildingId: 'dormitory',
       createdAt: '2026-05-01T08:00:00.000Z',
     };
     const save = createTestSave({
@@ -245,7 +249,7 @@ describe('SideMenu', () => {
     });
     const { container, root } = renderSideMenu(save, { onOpenBuilding, onOpenMarket });
 
-    const alertButton = getAlertButton(container, 'Domus');
+    const alertButton = getAlertButton(container, 'Dormitory');
     expect(alertButton.textContent).toContain('Open register');
     expect(alertButton.querySelector('.building-modal-avatar')).not.toBeNull();
 

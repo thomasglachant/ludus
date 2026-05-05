@@ -82,6 +82,8 @@ export interface BuildingState {
 
 Buildings do not have a generic operational efficiency percentage. Their contribution comes from level, purchased improvements, selected policies and purchased skills.
 
+Gladiator roster capacity is derived by `src/domain/ludus/capacity.ts` from the Dormitory: one base place when the Dormitory is purchased, plus bought Dormitory `increaseCapacity` improvements, capped by `GAME_BALANCE.buildings.capacity.maximumGladiators`. Domus level is not part of this capacity calculation.
+
 ## Gladiators
 
 ```ts
@@ -252,7 +254,7 @@ Untargeted alerts are global Ludus alerts. `buildingId` attaches an alert to a b
 The central alert engine currently evaluates:
 
 - ludus rules for empty or incomplete weekly planning;
-- building rules for the Domus open register when capacity and affordable market stock exist;
+- building rules for the Dormitory open register when roster capacity and affordable market stock exist;
 - gladiator rules for unassigned skill points and visible active status effects.
 
 Future global rules such as low happiness or low treasury should be added to `ludusAlertRules` in `src/domain/alerts/alert-actions.ts`, then covered with i18n keys and tests. They should not require store or UI changes when they follow the existing `GameAlert` shape.

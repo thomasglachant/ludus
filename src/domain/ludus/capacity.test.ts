@@ -11,6 +11,14 @@ function createTestSave() {
   });
 }
 
+const capacityImprovementIds = [
+  'dormitoryExtraBunk1',
+  'dormitoryExtraBunk2',
+  'dormitoryExtraBunk3',
+  'dormitoryExtraBunk4',
+  'dormitoryExtraBunk5',
+];
+
 function withDomusLevel(save: GameSave, level: number): GameSave {
   return {
     ...save,
@@ -24,14 +32,52 @@ function withDomusLevel(save: GameSave, level: number): GameSave {
   };
 }
 
+function withDormitoryLevel(save: GameSave, level: number): GameSave {
+  return {
+    ...save,
+    buildings: {
+      ...save.buildings,
+      dormitory: {
+        ...save.buildings.dormitory,
+        level,
+      },
+    },
+  };
+}
+
+function withDormitoryCapacityImprovements(save: GameSave, count: number): GameSave {
+  return {
+    ...save,
+    buildings: {
+      ...save.buildings,
+      dormitory: {
+        ...save.buildings.dormitory,
+        purchasedImprovementIds: capacityImprovementIds.slice(0, count),
+      },
+    },
+  };
+}
+
 describe('ludus capacity', () => {
-  it('uses the Domus level as the gladiator capacity', () => {
+  it('uses the Dormitory base place plus purchased capacity improvements', () => {
     expect(getLudusGladiatorCapacity(createTestSave())).toBe(1);
-    expect(getLudusGladiatorCapacity(withDomusLevel(createTestSave(), 4))).toBe(4);
+    expect(getLudusGladiatorCapacity(withDormitoryCapacityImprovements(createTestSave(), 3))).toBe(
+      4,
+    );
+  });
+
+  it('ignores Domus level when calculating gladiator capacity', () => {
+    expect(getLudusGladiatorCapacity(withDomusLevel(createTestSave(), 4))).toBe(1);
+  });
+
+  it('does not grant capacity from Dormitory levels alone', () => {
+    expect(getLudusGladiatorCapacity(withDormitoryLevel(createTestSave(), 5))).toBe(1);
   });
 
   it('caps gladiator capacity at six', () => {
-    expect(getLudusGladiatorCapacity(withDomusLevel(createTestSave(), 8))).toBe(6);
+    expect(getLudusGladiatorCapacity(withDormitoryCapacityImprovements(createTestSave(), 5))).toBe(
+      6,
+    );
   });
 
   it('ignores legacy purchased bed configuration', () => {
@@ -42,21 +88,22 @@ describe('ludus capacity', () => {
         ...baseSave.buildings,
         domus: {
           ...baseSave.buildings.domus,
-          level: 2,
+          level: 6,
         },
         dormitory: {
           ...baseSave.buildings.dormitory,
+          level: 5,
           configuration: { purchasedBeds: 12 },
         },
       },
     };
 
-    expect(getLudusGladiatorCapacity(save)).toBe(2);
+    expect(getLudusGladiatorCapacity(save)).toBe(1);
   });
 
   it('reports available capacity from the current roster size', () => {
     const save = {
-      ...withDomusLevel(createTestSave(), 3),
+      ...withDormitoryCapacityImprovements(createTestSave(), 2),
       gladiators: [
         {
           id: 'gladiator-test',

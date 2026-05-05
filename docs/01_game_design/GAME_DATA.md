@@ -129,6 +129,18 @@ Buildings must not include a generic `budget` property. They now track:
 - `purchasedSkillIds`;
 - level, improvements, policies and selected skills.
 
+Roster capacity is a Ludus-level recruitment limit owned by the Dormitory, not a generic building usage capacity. The purchased Dormitory grants one base gladiator place. Additional places are bought through Dormitory improvements:
+
+```ts
+GAME_BALANCE.buildings.capacity = {
+  minimumGladiators: 1,
+  maximumGladiators: 6,
+  additionalPlaceCosts: [120, 220, 420, 800, 1500],
+};
+```
+
+`dormitoryExtraBunk1` through `dormitoryExtraBunk5` each add `increaseCapacity +1`, are chained as prerequisites, and require Dormitory levels 1 through 5 respectively. Dormitory level upgrades unlock those purchases but do not grant the place automatically.
+
 ## Building Skills
 
 `src/game-data/building-skills.ts` generates 20 skills for each current building from the design skill lists.

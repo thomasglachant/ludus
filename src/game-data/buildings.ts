@@ -31,48 +31,12 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
     startsPurchased: true,
     startsAtLevel: 1,
     levels: [
-      createLevel(1, 1, [
-        {
-          type: 'increaseCapacity',
-          value: GAME_BALANCE.buildings.levelEffects.domus[1].capacity,
-          target: 'ludus',
-        },
-      ]),
-      createLevel(2, 1, [
-        {
-          type: 'increaseCapacity',
-          value: GAME_BALANCE.buildings.levelEffects.domus[2].capacity,
-          target: 'ludus',
-        },
-      ]),
-      createLevel(3, 2, [
-        {
-          type: 'increaseCapacity',
-          value: GAME_BALANCE.buildings.levelEffects.domus[3].capacity,
-          target: 'ludus',
-        },
-      ]),
-      createLevel(4, 3, [
-        {
-          type: 'increaseCapacity',
-          value: GAME_BALANCE.buildings.levelEffects.domus[4].capacity,
-          target: 'ludus',
-        },
-      ]),
-      createLevel(5, 4, [
-        {
-          type: 'increaseCapacity',
-          value: GAME_BALANCE.buildings.levelEffects.domus[5].capacity,
-          target: 'ludus',
-        },
-      ]),
-      createLevel(6, 5, [
-        {
-          type: 'increaseCapacity',
-          value: GAME_BALANCE.buildings.levelEffects.domus[6].capacity,
-          target: 'ludus',
-        },
-      ]),
+      createLevel(1, 1),
+      createLevel(2, 1),
+      createLevel(3, 2),
+      createLevel(4, 3),
+      createLevel(5, 4),
+      createLevel(6, 5),
     ],
     improvementIds: [],
   },
@@ -273,7 +237,16 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         },
       ]),
     ],
-    improvementIds: ['strawBeds', 'woodenBeds', 'quietQuarters'],
+    improvementIds: [
+      'dormitoryExtraBunk1',
+      'dormitoryExtraBunk2',
+      'dormitoryExtraBunk3',
+      'dormitoryExtraBunk4',
+      'dormitoryExtraBunk5',
+      'strawBeds',
+      'woodenBeds',
+      'quietQuarters',
+    ],
   },
 };
 

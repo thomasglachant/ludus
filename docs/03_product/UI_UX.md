@@ -171,7 +171,7 @@ Global Ludus alerts currently cover weekly planning:
 - empty planning is critical and opens the weekly planning panel, but does not block the week;
 - incomplete planning is a warning and opens the weekly planning panel, but does not block the week.
 
-Building alerts badge the related building and show its avatar in the right alert rail. The Domus open register alert appears when the Ludus has space and at least one affordable recruit in the market; clicking it opens the market.
+Building alerts badge the related building and show its avatar in the side alert menu. The Dormitory open register alert appears when the Ludus has roster space and at least one affordable recruit in the market; clicking it opens the market.
 
 Gladiator alerts show the gladiator portrait and open the relevant gladiator surface when possible. Current rules cover unassigned skill points and visible status effects.
 

@@ -88,12 +88,12 @@ function createIncompletePlanningAlert(createdAt: string): GameAlert {
 
 function createOpenRegisterAlert(save: GameSave, createdAt: string): GameAlert {
   return {
-    id: 'alert-domus-open-register',
+    id: 'alert-dormitory-open-register',
     severity: save.gladiators.length === 0 ? 'warning' : 'info',
     titleKey: 'alerts.openRegister.title',
     descriptionKey: 'alerts.openRegister.description',
     actionKind: 'openMarket',
-    buildingId: 'domus',
+    buildingId: 'dormitory',
     createdAt,
   };
 }
@@ -129,7 +129,7 @@ export const ludusAlertRules: AlertRule[] = [
 
 export const buildingAlertRules: AlertRule[] = [
   {
-    id: 'domus-open-register',
+    id: 'dormitory-open-register',
     scope: 'building',
     evaluate(save, context) {
       const hasAvailablePlace = getAvailableLudusGladiatorPlaces(save) > 0;

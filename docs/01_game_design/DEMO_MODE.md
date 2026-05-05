@@ -84,8 +84,8 @@ Expected state:
 
 - Year 1, Week 1, Monday, planning phase;
 - treasury 850 and low ludus reputation;
-- all base buildings purchased, with Domus level 3 for the three-gladiator roster;
-- Dormitory level 1 focused on recovery while Domus controls roster capacity;
+- all base buildings purchased, with Dormitory level 2 and two bought capacity improvements for the three-gladiator roster;
+- Domus level 3 for administrative progression and loan coverage;
 - 3 owned beginner gladiators with stable portraits, combat visual identities, low XP-derived levels and integer skills from 1 to 10;
 - 5 predefined market candidates with deterministic XP-derived levels and experience-based prices;
 - no active Sunday combats;
@@ -102,7 +102,7 @@ Expected state:
 - Year 2, Week 4, Thursday, planning phase;
 - 4 owned gladiators;
 - all base buildings purchased, with levels around 3 or 4;
-- Domus capacity large enough for the roster and market test purchases;
+- Dormitory capacity improvements large enough for the roster and market test purchases;
 - 5 predefined market candidates with deterministic XP-derived levels and experience-based prices;
 - active weekly planning recommendations;
 - at least one contextual alert, including a skill allocation alert when a gladiator has available skill points.
@@ -118,7 +118,7 @@ Expected state:
 - Year 5, Week 7, Saturday, planning phase;
 - 6 owned gladiators;
 - all base buildings purchased at level 6 with full improvement coverage where available;
-- Domus capacity at the maximum roster size;
+- Dormitory capacity improvements at the maximum roster size;
 - 5 predefined market candidates with deterministic XP-derived levels and experience-based prices;
 - multiple active alerts, including at least one skill allocation alert;
 - late-progression visual coverage.

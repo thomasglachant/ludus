@@ -1,15 +1,16 @@
+import { getPurchasedDormitoryImprovementCapacityBonus } from '../buildings/building-effects';
 import { LUDUS_CAPACITY_CONFIG } from '../../game-data/building-levels';
 import type { GameSave } from '../saves/types';
 
 export function getLudusGladiatorCapacity(save: GameSave) {
-  const domus = save.buildings.domus;
+  const dormitory = save.buildings.dormitory;
 
-  if (!domus.isPurchased || domus.level <= 0) {
+  if (!dormitory.isPurchased || dormitory.level <= 0) {
     return 0;
   }
 
   return Math.min(
-    Math.max(domus.level, LUDUS_CAPACITY_CONFIG.minimumGladiators),
+    LUDUS_CAPACITY_CONFIG.minimumGladiators + getPurchasedDormitoryImprovementCapacityBonus(save),
     LUDUS_CAPACITY_CONFIG.maximumGladiators,
   );
 }

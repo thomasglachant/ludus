@@ -159,26 +159,14 @@ export const GAME_BALANCE = {
       growthFactor: 2.2,
     },
     capacity: {
-      // Minimum owned gladiator capacity when Domus is available.
+      // Minimum owned gladiator capacity when Dormitory is available.
       minimumGladiators: 1,
-      // Maximum owned gladiator capacity granted by Domus progression.
+      // Maximum owned gladiator capacity granted by Dormitory improvements.
       maximumGladiators: 6,
+      // Denarii costs for each additional Dormitory roster place.
+      additionalPlaceCosts: [120, 220, 420, 800, 1500],
     },
     levelEffects: {
-      domus: {
-        // Ludus capacity granted by Domus level 1.
-        1: { capacity: 1 },
-        // Ludus capacity granted by Domus level 2.
-        2: { capacity: 2 },
-        // Ludus capacity granted by Domus level 3.
-        3: { capacity: 3 },
-        // Ludus capacity granted by Domus level 4.
-        4: { capacity: 4 },
-        // Ludus capacity granted by Domus level 5.
-        5: { capacity: 5 },
-        // Ludus capacity granted by Domus level 6.
-        6: { capacity: 6 },
-      },
       dormitory: {
         // Passive daily gladiator planning points and happiness support granted by Dormitory level 1.
         1: { dailyGladiatorPoints: 1, happiness: 2 },
