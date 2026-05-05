@@ -44,12 +44,6 @@ export function BuildingsListPanel({ onClose, onOpenBuilding, save }: BuildingsL
                         label: t('buildingPanel.level'),
                         value: building.level,
                       },
-                      {
-                        iconName: 'energy',
-                        id: 'efficiency',
-                        label: t('buildingPanel.efficiency'),
-                        value: `${building.efficiency}%`,
-                      },
                     ]}
                     key={buildingId}
                     openLabel={t('location.open', { name: t(definition.nameKey) })}

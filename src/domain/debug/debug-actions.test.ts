@@ -56,9 +56,13 @@ function createTestSave(overrides: Partial<GameSave> = {}): GameSave {
     saveId: 'save-test',
     createdAt: '2026-04-25T12:00:00.000Z',
   });
+  const { pendingActionTrigger, ...time } = save.time;
+
+  void pendingActionTrigger;
 
   return {
     ...save,
+    time,
     gladiators: [createGladiator()],
     ...overrides,
   };
@@ -174,14 +178,21 @@ describe('debug actions', () => {
     const result = advanceDebugToDay(save, 'monday', () => 1);
 
     expect(getDebugDayAdvanceDistance('tuesday', 'monday')).toBe(6);
-    expect(result.time).toMatchObject({ dayOfWeek: 'sunday', phase: 'arena' });
-    expect(result.arena.arenaDay).toBeDefined();
+    expect(result.time).toMatchObject({
+      dayOfWeek: 'sunday',
+      phase: 'arena',
+      pendingActionTrigger: 'enterArena',
+    });
+    expect(result.arena.arenaDay).toBeUndefined();
   });
 
-  it('stops before advancing when weekly planning is incomplete', () => {
+  it('advances even when weekly planning is incomplete', () => {
     const save = createTestSave();
 
-    expect(advanceDebugToDay(save, 'tuesday', () => 1)).toBe(save);
+    expect(advanceDebugToDay(save, 'tuesday', () => 1).time).toMatchObject({
+      dayOfWeek: 'tuesday',
+      phase: 'planning',
+    });
   });
 
   it('stops before advancing when an event is pending', () => {

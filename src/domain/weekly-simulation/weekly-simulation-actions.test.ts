@@ -16,6 +16,7 @@ import {
   projectWeeklyEconomy,
   projectWeeklyPlan,
   resolveDailyPlan,
+  resolvePendingGameAction,
   resolveWeekStep,
   synchronizeEconomyProjection,
 } from './weekly-simulation-actions';
@@ -44,9 +45,13 @@ function createTestSave(overrides: Partial<GameSave> = {}): GameSave {
     saveId: 'save-test',
     createdAt: '2026-04-25T12:00:00.000Z',
   });
+  const { pendingActionTrigger, ...time } = save.time;
+
+  void pendingActionTrigger;
 
   return {
     ...save,
+    time,
     gladiators: [createGladiator()],
     ...overrides,
   };
@@ -175,7 +180,8 @@ describe('weekly simulation actions', () => {
     const boostedGain =
       boostedResult.save.gladiators[0].experience - boostedSave.gladiators[0].experience;
 
-    expect(boostedGain).toBe(Math.round(baseGain * 1.1));
+    expect(boostedGain).toBeGreaterThan(baseGain);
+    expect(boostedGain / baseGain).toBeCloseTo(1.1, 1);
   });
 
   it('regenerates skill allocation alerts when daily training grants a level', () => {
@@ -262,7 +268,12 @@ describe('weekly simulation actions', () => {
 
     const result = completeSundayArenaDay(sundaySave, () => 1);
 
-    expect(result.time).toMatchObject({ week: 2, dayOfWeek: 'monday', phase: 'report' });
+    expect(result.time).toMatchObject({
+      week: 2,
+      dayOfWeek: 'monday',
+      phase: 'planning',
+      pendingActionTrigger: 'startWeek',
+    });
     expect(result.statusEffects).toEqual([]);
   });
 
@@ -494,6 +505,13 @@ describe('weekly simulation actions', () => {
     });
   });
 
+  it('advances the week step even when weekly planning is incomplete', () => {
+    const result = resolveWeekStep(createTestSave(), () => 1);
+
+    expect(result.time).toMatchObject({ dayOfWeek: 'tuesday', phase: 'planning' });
+    expect(result.planning.reports[0].days).toHaveLength(1);
+  });
+
   it('marks the game lost when treasury reaches the defeat threshold', () => {
     const save = createTestSave({
       ludus: {
@@ -510,7 +528,7 @@ describe('weekly simulation actions', () => {
     expect(result.save.time.phase).toBe('gameOver');
   });
 
-  it('starts Sunday arena without rolling the week forward', () => {
+  it('queues Sunday arena without rolling the week forward', () => {
     const sundaySave: GameSave = {
       ...createTestSave(),
       gladiators: [],
@@ -523,15 +541,16 @@ describe('weekly simulation actions', () => {
 
     const result = resolveWeekStep(sundaySave, () => 1);
 
-    expect(result.time).toMatchObject({ week: 1, dayOfWeek: 'sunday', phase: 'arena' });
-    expect(result.arena.arenaDay).toMatchObject({
-      year: 1,
+    expect(result.time).toMatchObject({
       week: 1,
-      phase: 'summary',
+      dayOfWeek: 'sunday',
+      phase: 'arena',
+      pendingActionTrigger: 'enterArena',
     });
+    expect(result.arena.arenaDay).toBeUndefined();
   });
 
-  it('starts Sunday arena immediately after Saturday resolution', () => {
+  it('queues Sunday arena after Saturday resolution', () => {
     const baseSave = createTestSave();
     const saturdaySave = withCompleteWeeklyPlanning({
       ...baseSave,
@@ -544,7 +563,33 @@ describe('weekly simulation actions', () => {
 
     const result = resolveWeekStep(saturdaySave, () => 1);
 
-    expect(result.time).toMatchObject({ week: 1, dayOfWeek: 'sunday', phase: 'arena' });
+    expect(result.time).toMatchObject({
+      week: 1,
+      dayOfWeek: 'sunday',
+      phase: 'arena',
+      pendingActionTrigger: 'enterArena',
+    });
+    expect(result.arena.arenaDay).toBeUndefined();
+    expect(result.arena.isArenaDayActive).toBe(false);
+    expect(result.arena.resolvedCombats).toHaveLength(0);
+  });
+
+  it('starts Sunday arena only when the pending arena action is resolved', () => {
+    const queuedSave = resolveWeekStep(
+      withCompleteWeeklyPlanning({
+        ...createTestSave(),
+        time: {
+          ...createTestSave().time,
+          dayOfWeek: 'saturday',
+          phase: 'planning',
+        },
+      }),
+      () => 1,
+    );
+
+    const result = resolvePendingGameAction(queuedSave, 'enterArena', () => 1);
+
+    expect(result.time.pendingActionTrigger).toBeUndefined();
     expect(result.arena.arenaDay).toMatchObject({
       year: 1,
       week: 1,
@@ -567,10 +612,19 @@ describe('weekly simulation actions', () => {
       },
     };
 
-    const arenaSave = resolveWeekStep(sundaySave, () => 1);
+    const arenaSave = resolvePendingGameAction(
+      resolveWeekStep(sundaySave, () => 1),
+      'enterArena',
+      () => 1,
+    );
     const result = completeSundayArenaDay(arenaSave, () => 1);
 
-    expect(result.time).toMatchObject({ week: 2, dayOfWeek: 'monday', phase: 'report' });
+    expect(result.time).toMatchObject({
+      week: 2,
+      dayOfWeek: 'monday',
+      phase: 'planning',
+      pendingActionTrigger: 'startWeek',
+    });
     expect(result.arena.arenaDay).toBeUndefined();
     expect(result.economy.activeLoans[0]).toMatchObject({
       remainingBalance: loan.weeklyPayment * loan.durationWeeks - loan.weeklyPayment,

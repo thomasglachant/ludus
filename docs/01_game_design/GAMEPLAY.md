@@ -46,7 +46,7 @@ Each day resolves:
 - training XP;
 - injury checks;
 - production income;
-- building efficiency updates;
+- building effects;
 - happiness and rebellion movement;
 - level-up and skill allocation alerts;
 - ledger entries and current week summary;
@@ -101,7 +101,6 @@ Buildings no longer have capacity. Capacity is not used as the way to limit buil
 
 - purchase state;
 - level;
-- efficiency;
 - purchased skill ids;
 - optional configuration and selected policy.
 
@@ -109,7 +108,7 @@ Building levels unlock stronger global effects and future feature branches. Skil
 
 Building skills can unlock building-specific macro activities. These activities are specialized planning options that spend the existing daily point pools rather than adding a separate building budget. They must be selected in the daily plan for their matching generic activity before they affect simulation, which prevents every unlocked option from stacking automatically.
 
-Daily simulation applies purchased building, improvement, policy and skill effects directly to macro outcomes. These effects are scaled by operational efficiency. Some random events are gated by selected building activities, so a specialized event can only appear when the player actually routed points into that activity.
+Daily simulation applies purchased building, improvement, policy and skill effects directly to macro outcomes. Some random events are gated by selected building activities, so a specialized event can only appear when the player actually routed points into that activity.
 
 Current building ids:
 

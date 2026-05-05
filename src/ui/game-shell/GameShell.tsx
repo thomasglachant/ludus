@@ -8,6 +8,7 @@ import { ScenicScreen } from '../layout/ScenicScreen';
 import { BottomNavigationBar } from '../navigation/BottomNavigationBar';
 import { RightAlertsMenu } from '../alerts/RightAlertsMenu';
 import type { ContextPanelKind } from './game-shell-types';
+import { GameActionDock, type GameActionDockAction } from './GameActionDock';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
 
 export function GameShell() {
@@ -16,7 +17,9 @@ export function GameShell() {
     errorKey,
     gameClockLabel,
     isGamePaused,
+    isTimeControlLocked,
     isLoading,
+    resolvePendingGameAction,
     saveNoticeKey,
     toggleGamePause,
   } = useGameStore();
@@ -72,11 +75,37 @@ export function GameShell() {
     );
   }
 
+  const dockActions: GameActionDockAction[] =
+    currentSave.time.pendingActionTrigger === 'startWeek'
+      ? [
+          {
+            descriptionKey: 'gameActionDock.startWeekDescription',
+            iconName: 'play',
+            id: 'startWeek',
+            labelKey: 'gameActionDock.startWeek',
+            titleKey: 'gameActionDock.startWeekTitle',
+            onTrigger: () => resolvePendingGameAction('startWeek'),
+          },
+        ]
+      : currentSave.time.pendingActionTrigger === 'enterArena'
+        ? [
+            {
+              descriptionKey: 'gameActionDock.enterArenaDescription',
+              iconName: 'victory',
+              id: 'enterArena',
+              labelKey: 'gameActionDock.enterArena',
+              titleKey: 'gameActionDock.enterArenaTitle',
+              onTrigger: () => resolvePendingGameAction('enterArena'),
+            },
+          ]
+        : [];
+
   return (
     <ScenicScreen className="game-shell">
       <TopHud
         clockLabel={gameClockLabel}
         isPaused={isGamePaused}
+        isTimeControlLocked={isTimeControlLocked}
         save={currentSave}
         onOpenDomus={() => {
           openModal({ buildingId: 'domus', kind: 'building' });
@@ -104,6 +133,7 @@ export function GameShell() {
         save={currentSave}
         onOpenPanel={openPanel}
       />
+      <GameActionDock actions={dockActions} />
       <ToastAndAlertLayer errorKey={errorKey} saveNoticeKey={saveNoticeKey} />
     </ScenicScreen>
   );

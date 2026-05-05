@@ -68,34 +68,14 @@ describe('building effects', () => {
     );
   });
 
-  it('can scale active effects by current building efficiency', () => {
-    const skilledSave = purchaseBuildingSkill(createTestSave(), 'domus', 'domus.ledger-room').save;
-    const save = {
-      ...skilledSave,
-      buildings: {
-        ...skilledSave.buildings,
-        domus: {
-          ...skilledSave.buildings.domus,
-          efficiency: 50,
-        },
-      },
-    };
+  it('sums active effects directly from purchased building upgrades', () => {
+    const save = purchaseBuildingSkill(createTestSave(), 'domus', 'domus.ledger-room').save;
 
     expect(
       sumActiveBuildingEffectValues(save, {
         target: 'ludus',
         type: 'reduceExpense',
       }),
-    ).toBe(0.5);
-    expect(
-      sumActiveBuildingEffectValues(
-        save,
-        {
-          target: 'ludus',
-          type: 'reduceExpense',
-        },
-        { scaleByEfficiency: false },
-      ),
     ).toBe(1);
   });
 
@@ -114,7 +94,6 @@ describe('building effects', () => {
         ...createTestSave().buildings,
         canteen: {
           ...createTestSave().buildings.canteen,
-          efficiency: 100,
           isPurchased: true,
           purchasedSkillIds: ['canteen.supply-contracts'],
         },

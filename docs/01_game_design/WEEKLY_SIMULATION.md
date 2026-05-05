@@ -14,6 +14,9 @@ The week is driven by `GameTimeState.phase`:
 - `gameOver`: the ludus is bankrupt.
 
 `WeeklyPlanningState.days` stores the plan for every day of the current week.
+`GameTimeState.pendingActionTrigger` stores explicit player-gated macro actions such as
+`startWeek` and `enterArena`. While a pending action exists, the game clock is blocked until the
+player triggers that action.
 
 ## Daily Plan
 
@@ -48,7 +51,7 @@ Building skills can expose `unlockedActivities`. These are building-specific mac
 
 Unlocked activities are intended to specialize the existing daily plan buckets. A planning surface can offer them as optional choices inside the relevant gladiator, labor or admin allocation, while the resolver keeps using the same daily budget limits and macro effect pipeline.
 
-Unlocked activities do not apply automatically. A daily plan must select the activity in `buildingActivitySelections` for the matching generic activity, such as selecting `canteen.supplyContracts` for `production`. When a selected activity affects simulation, it resolves as a building-driven macro modifier: it depends on the purchased skill, the owning building and the building's current efficiency. It should not bypass maintenance, event gating or weekly projection rules.
+Unlocked activities do not apply automatically. A daily plan must select the activity in `buildingActivitySelections` for the matching generic activity, such as selecting `canteen.supplyContracts` for `production`. When a selected activity affects simulation, it resolves as a building-driven macro modifier: it depends on the purchased skill, the owning building and the selected daily plan points. It should not bypass event gating or weekly projection rules.
 
 Random events may also require selected building activities. A definition with `triggerBuildingActivities` only becomes eligible when the matching specialized activity is selected and its parent daily activity has allocated points.
 
@@ -62,8 +65,7 @@ It resolves:
 - food and sleep penalties or bonuses;
 - injury chance;
 - production income;
-- building efficiency;
-- active building and skill effects, scaled by building efficiency;
+- active building and skill effects;
 - happiness and rebellion;
 - daily ledger entries;
 - current week ledger summary;
@@ -72,7 +74,7 @@ It resolves:
 
 Gladiators can carry active `statusEffects` with day-based durations. A status effect is active when `startedAt <= current day < expiresAt`. The `injury` effect sets the gladiator training XP multiplier to `0` and blocks Sunday arena eligibility. If a gladiator is injured during training, that day grants no training XP for that gladiator and applies `injury` for 2 days. The `victoryAura` effect applies after Sunday arena wins, starts on the following Monday, lasts 3 days and increases training XP by 10%.
 
-Macro effects are read from purchased building levels, improvements, policies and skills. Effects are multiplied by the current `BuildingState.efficiency`.
+Macro effects are read from purchased building levels, improvements, policies and skills. Effect values are applied directly from their definitions.
 
 The weekly financial projection is recalculated separately from the current ledger. It estimates the current plan's income and expenses from daily simulation drafts, includes upcoming active loan repayments, and excludes one-shot entries that already happened this week. Projection paths must not write ledger entries or create random events.
 
@@ -109,12 +111,12 @@ If the current day is not Sunday:
 1. Resolve the current daily plan.
 2. Append the daily summary to the running weekly report.
 3. Move to the next day.
-4. Set phase to `event` if a decision is pending; otherwise use `planning`, except Sunday which moves to `arena`.
+4. Set phase to `event` if a decision is pending; otherwise use `planning`, except Sunday which moves to `arena` with `pendingActionTrigger: 'enterArena'`.
 
 If the current day is Sunday:
 
-1. Start the Sunday arena and keep the save in `arena` phase.
-2. Wait for the arena route to present or skip the Sunday results.
+1. Keep the save in `arena` phase with `pendingActionTrigger: 'enterArena'` until the player chooses to go to the arena.
+2. `resolvePendingGameAction(save, 'enterArena')` starts the Sunday arena.
 3. Complete the arena day with `completeSundayArenaDay`.
 4. Apply weekly loan payments.
 5. Create the final weekly report.
@@ -122,7 +124,7 @@ If the current day is Sunday:
 7. Refresh the market.
 8. Create a new default weekly plan.
 9. Remove expired status effects.
-10. Set phase to `report`.
+10. Set Monday to `planning` with `pendingActionTrigger: 'startWeek'`.
 
 ## Reports
 

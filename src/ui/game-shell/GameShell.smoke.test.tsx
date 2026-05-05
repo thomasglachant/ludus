@@ -23,14 +23,22 @@ vi.mock('../../state/ui-store-context', () => ({
 }));
 
 function createTestSave() {
-  return createInitialSave({
+  const save = createInitialSave({
     ludusName: 'Test Ludus',
     saveId: 'test-save',
     createdAt: '2026-05-01T08:00:00.000Z',
   });
+  const { pendingActionTrigger, ...time } = save.time;
+
+  void pendingActionTrigger;
+
+  return {
+    ...save,
+    time,
+  };
 }
 
-function createGameStore(): GameStoreValue {
+function createGameStore(overrides: Partial<GameStoreValue> = {}): GameStoreValue {
   return {
     currentSave: createTestSave(),
     localSaves: [],
@@ -38,6 +46,7 @@ function createGameStore(): GameStoreValue {
     isLoading: false,
     isSaving: false,
     isGamePaused: false,
+    isTimeControlLocked: false,
     debugTimeScale: 1,
     gameClockLabel: '08:00',
     hasUnsavedChanges: false,
@@ -71,10 +80,12 @@ function createGameStore(): GameStoreValue {
     setDebugTimeScale: vi.fn(),
     completeSundayArenaDay: vi.fn(),
     advanceWeekStep: vi.fn(),
+    resolvePendingGameAction: vi.fn(),
     toggleGamePause: vi.fn(),
     takeLoan: vi.fn(),
     buyoutLoan: vi.fn(),
     clearError: vi.fn(),
+    ...overrides,
   };
 }
 
@@ -157,5 +168,77 @@ describe('GameShell smoke flows', () => {
     click(getButton(container, 'topbar-treasury'));
 
     expect(openModal).toHaveBeenCalledWith({ kind: 'finance' });
+  });
+
+  it('does not render the legacy building efficiency metric in the overview', () => {
+    expect(container.textContent).not.toContain('buildingsOverview.efficiencyValue');
+    expect(container.textContent).not.toContain('buildingPanel.efficiency');
+  });
+
+  it('renders the pending start week action and hides manual time controls', () => {
+    const resolvePendingGameAction = vi.fn();
+    const save = {
+      ...createTestSave(),
+      time: {
+        ...createTestSave().time,
+        pendingActionTrigger: 'startWeek' as const,
+      },
+    };
+
+    useGameStoreMock.mockReturnValue(
+      createGameStore({
+        currentSave: save,
+        gameClockLabel: '00:00',
+        isGamePaused: true,
+        isTimeControlLocked: true,
+        resolvePendingGameAction,
+      }),
+    );
+
+    act(() => {
+      root.render(<GameShell />);
+    });
+
+    expect(container.querySelector('[data-testid="topbar-pause-button"]')).toBeNull();
+    expect(container.textContent).toContain('gameActionDock.startWeekTitle');
+    expect(container.textContent).toContain('gameActionDock.startWeekDescription');
+
+    click(getButton(container, 'game-action-dock-startWeek'));
+
+    expect(resolvePendingGameAction).toHaveBeenCalledWith('startWeek');
+  });
+
+  it('renders the pending arena action', () => {
+    const resolvePendingGameAction = vi.fn();
+    const save = {
+      ...createTestSave(),
+      time: {
+        ...createTestSave().time,
+        dayOfWeek: 'sunday' as const,
+        phase: 'arena' as const,
+        pendingActionTrigger: 'enterArena' as const,
+      },
+    };
+
+    useGameStoreMock.mockReturnValue(
+      createGameStore({
+        currentSave: save,
+        gameClockLabel: '00:00',
+        isGamePaused: true,
+        isTimeControlLocked: true,
+        resolvePendingGameAction,
+      }),
+    );
+
+    act(() => {
+      root.render(<GameShell />);
+    });
+
+    expect(container.textContent).toContain('gameActionDock.enterArenaTitle');
+    expect(container.textContent).toContain('gameActionDock.enterArenaDescription');
+
+    click(getButton(container, 'game-action-dock-enterArena'));
+
+    expect(resolvePendingGameAction).toHaveBeenCalledWith('enterArena');
   });
 });

@@ -1,15 +1,11 @@
 import { GAME_BALANCE } from '../../game-data/balance';
 import { DAYS_OF_WEEK } from '../../game-data/time';
 import { refreshGameAlerts } from '../alerts/alert-actions';
-import {
-  calculateBuildingEfficiency,
-  updateBuildingEfficiencies,
-} from '../buildings/building-efficiency';
 import { addGladiatorExperience } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
 import { createMarketState } from '../market/market-actions';
 import type { GameSave } from '../saves/types';
-import type { DayOfWeek } from '../time/types';
+import type { DayOfWeek, GameTimeState, PendingActionTrigger } from '../time/types';
 import { startArenaDay } from '../combat/combat-actions';
 import { synchronizeMacroEvents } from '../events/event-actions';
 import {
@@ -28,7 +24,6 @@ import type { EconomyCategory, WeeklyProjection } from '../economy/types';
 import {
   createDefaultWeeklyPlan,
   getRemainingPlanningDays,
-  isWeeklyPlanningComplete,
   synchronizePlanning,
 } from '../planning/planning-actions';
 import {
@@ -84,7 +79,6 @@ interface DailyGladiatorResolutionResult {
 interface DailyGladiatorModifiers {
   injuryRiskReductionPercent: number;
   statusTrainingExperienceMultiplier: number;
-  trainingEfficiency: number;
   trainingExperienceBonusPercent: number;
 }
 
@@ -128,49 +122,25 @@ function getTrainingExperiencePoints(
   return (getTrainingPressurePoints(plan) / gladiatorPointDivisor) * trainingLoadScale;
 }
 
-function getLudusEffectValue(
-  save: GameSave,
-  type: BuildingEffect['type'],
-  options?: Parameters<typeof sumActiveBuildingEffectValues>[2],
-) {
-  return sumActiveBuildingEffectValues(
-    save,
-    {
-      target: 'ludus',
-      type,
-    },
-    options,
-  );
+function getLudusEffectValue(save: GameSave, type: BuildingEffect['type']) {
+  return sumActiveBuildingEffectValues(save, {
+    target: 'ludus',
+    type,
+  });
 }
 
-function getAllGladiatorsEffectValue(
-  save: GameSave,
-  type: BuildingEffect['type'],
-  options?: Parameters<typeof sumActiveBuildingEffectValues>[2],
-) {
-  return sumActiveBuildingEffectValues(
-    save,
-    {
-      target: 'allGladiators',
-      type,
-    },
-    options,
-  );
+function getAllGladiatorsEffectValue(save: GameSave, type: BuildingEffect['type']) {
+  return sumActiveBuildingEffectValues(save, {
+    target: 'allGladiators',
+    type,
+  });
 }
 
-function getPlannedGladiatorsEffectValue(
-  save: GameSave,
-  type: BuildingEffect['type'],
-  options?: Parameters<typeof sumActiveBuildingEffectValues>[2],
-) {
-  return sumActiveBuildingEffectValues(
-    save,
-    {
-      target: 'plannedGladiators',
-      type,
-    },
-    options,
-  );
+function getPlannedGladiatorsEffectValue(save: GameSave, type: BuildingEffect['type']) {
+  return sumActiveBuildingEffectValues(save, {
+    target: 'plannedGladiators',
+    type,
+  });
 }
 
 function getPercentMultiplier(percent: number) {
@@ -222,18 +192,6 @@ function createProjectionFromDailyDrafts(
   );
 }
 
-function getPurchasedBuildingMaxEfficiency(
-  save: GameSave,
-  buildingIds: BuildingId[],
-  fallback = 1,
-) {
-  const efficiencies = buildingIds
-    .filter((buildingId) => save.buildings[buildingId].isPurchased)
-    .map((buildingId) => calculateBuildingEfficiency(save, buildingId));
-
-  return efficiencies.length > 0 ? Math.max(fallback, ...efficiencies) : fallback;
-}
-
 function applyDailyGladiatorEffects(
   gladiator: Gladiator,
   plan: DailyPlan,
@@ -255,7 +213,6 @@ function applyDailyGladiatorEffects(
     canTrain && !isInjured
       ? getTrainingExperiencePoints(plan, gladiatorPointDivisor, trainingLoadScale) *
         GAME_BALANCE.gladiators.training.experiencePerPoint *
-        modifiers.trainingEfficiency *
         getPercentMultiplier(modifiers.trainingExperienceBonusPercent) *
         modifiers.statusTrainingExperienceMultiplier
       : 0;
@@ -287,53 +244,45 @@ function resolveDailyPlanInternal(
   random: RandomSource = Math.random,
   options: DailyResolutionOptions,
 ): DailyResolutionResult {
-  const operationalSave = updateBuildingEfficiencies(save);
-  const buildingActivityContributions = getBuildingActivityContributions(operationalSave, plan);
-  const buildingActivityImpact = calculateBuildingActivityImpact(operationalSave, plan);
-  const trainingEfficiency =
-    1 + calculateBuildingEfficiency(operationalSave, 'trainingGround') * 0.1;
+  const buildingActivityContributions = getBuildingActivityContributions(save, plan);
+  const buildingActivityImpact = calculateBuildingActivityImpact(save, plan);
   const baseModifiers = {
     injuryRiskReductionPercent:
-      getAllGladiatorsEffectValue(operationalSave, 'reduceInjuryRisk') +
+      getAllGladiatorsEffectValue(save, 'reduceInjuryRisk') +
       buildingActivityImpact.injuryRiskReductionPercent,
-    trainingEfficiency,
     trainingExperienceBonusPercent: getPlannedGladiatorsEffectValue(
-      operationalSave,
+      save,
       'increaseTrainingExperience',
     ),
   };
-  const gladiatorResults = operationalSave.gladiators.map((gladiator) =>
+  const gladiatorResults = save.gladiators.map((gladiator) =>
     applyDailyGladiatorEffects(
       gladiator,
       plan,
       {
         ...baseModifiers,
         statusTrainingExperienceMultiplier: getGladiatorTrainingExperienceMultiplier(
-          operationalSave,
+          save,
           gladiator.id,
         ),
       },
       random,
-      Math.max(1, operationalSave.gladiators.length),
+      Math.max(1, save.gladiators.length),
     ),
   );
-  const productionEfficiency = getPurchasedBuildingMaxEfficiency(operationalSave, ['canteen']);
-  const productionBonusPercent = getLudusEffectValue(operationalSave, 'increaseProduction');
+  const productionBonusPercent = getLudusEffectValue(save, 'increaseProduction');
   const productionIncome = Math.round(
     getPoints(plan, 'production') *
       GAME_BALANCE.macroSimulation.productionIncomePerPoint *
-      productionEfficiency *
       getPercentMultiplier(productionBonusPercent),
   );
-  const gladiatorPointDivisor = Math.max(1, operationalSave.gladiators.length);
+  const gladiatorPointDivisor = Math.max(1, save.gladiators.length);
   const totalTrainingPressurePoints = getTrainingPressurePoints(plan);
   const averageGladiatorTrainingPoints = getAverageTrainingPressurePoints(
     plan,
     gladiatorPointDivisor,
   );
-  const happinessBuildingBonus = Math.round(
-    getLudusEffectValue(operationalSave, 'increaseHappiness') / 5,
-  );
+  const happinessBuildingBonus = Math.round(getLudusEffectValue(save, 'increaseHappiness') / 5);
   const happinessDelta =
     -Math.max(
       0,
@@ -343,11 +292,9 @@ function resolveDailyPlanInternal(
       GAME_BALANCE.macroSimulation.heavyScheduleHappinessPenalty +
     happinessBuildingBonus +
     Math.round(buildingActivityImpact.happinessDelta);
-  const rebellionReduction = Math.round(
-    getLudusEffectValue(operationalSave, 'decreaseRebellion') / 5,
-  );
+  const rebellionReduction = Math.round(getLudusEffectValue(save, 'decreaseRebellion') / 5);
   const isUnderRebellionPressure =
-    operationalSave.ludus.happiness + happinessDelta <
+    save.ludus.happiness + happinessDelta <
     GAME_BALANCE.macroSimulation.rebellionPressureHappinessThreshold;
   const rebellionDelta =
     (isUnderRebellionPressure
@@ -358,9 +305,7 @@ function resolveDailyPlanInternal(
   const reputationBonusPoints = totalTrainingPressurePoints;
   const reputationDelta =
     (averageGladiatorTrainingPoints > 0 ? 1 : 0) +
-    Math.floor(
-      (reputationBonusPoints * getLudusEffectValue(operationalSave, 'increaseReputation')) / 12,
-    ) +
+    Math.floor((reputationBonusPoints * getLudusEffectValue(save, 'increaseReputation')) / 12) +
     Math.round(buildingActivityImpact.reputationDelta);
   const buildingActivityLedgerEntries: DailyLedgerDraft[] = buildingActivityContributions
     .map<DailyLedgerDraft | null>((contribution) => {
@@ -411,16 +356,16 @@ function resolveDailyPlanInternal(
       .map((result) => result.gladiator.id),
     eventIds: [],
   };
-  let nextSave: GameSave = updateBuildingEfficiencies({
-    ...operationalSave,
+  let nextSave: GameSave = {
+    ...save,
     ludus: {
-      ...operationalSave.ludus,
-      reputation: Math.max(0, operationalSave.ludus.reputation + summary.reputationDelta),
-      happiness: clamp(operationalSave.ludus.happiness + happinessDelta, 0, 100),
-      rebellion: clamp(operationalSave.ludus.rebellion + rebellionDelta, 0, 100),
+      ...save.ludus,
+      reputation: Math.max(0, save.ludus.reputation + summary.reputationDelta),
+      happiness: clamp(save.ludus.happiness + happinessDelta, 0, 100),
+      rebellion: clamp(save.ludus.rebellion + rebellionDelta, 0, 100),
     },
     gladiators: gladiatorResults.map((result) => result.gladiator),
-  });
+  };
 
   for (const gladiatorId of summary.injuredGladiatorIds) {
     nextSave = applyGladiatorStatusEffect(
@@ -827,13 +772,33 @@ function getRunningReportDays(save: GameSave) {
   return runningReport?.days ?? [];
 }
 
+function clearPendingActionTrigger(time: GameTimeState): GameTimeState {
+  const { pendingActionTrigger, ...timeWithoutTrigger } = time;
+
+  void pendingActionTrigger;
+
+  return timeWithoutTrigger;
+}
+
+function withPendingActionTrigger(save: GameSave, trigger: PendingActionTrigger): GameSave {
+  return {
+    ...save,
+    time: {
+      ...save.time,
+      pendingActionTrigger: trigger,
+    },
+  };
+}
+
 export function resolveSundayArena(save: GameSave, random: RandomSource = Math.random): GameSave {
+  const time = clearPendingActionTrigger(save.time);
+
   return {
     ...startArenaDay(
       {
         ...save,
         time: {
-          ...save.time,
+          ...time,
           dayOfWeek: 'sunday',
           phase: 'arena',
         },
@@ -841,11 +806,57 @@ export function resolveSundayArena(save: GameSave, random: RandomSource = Math.r
       random,
     ),
     time: {
-      ...save.time,
+      ...time,
       dayOfWeek: 'sunday',
       phase: 'arena',
     },
   };
+}
+
+export function resolvePendingGameAction(
+  save: GameSave,
+  trigger: PendingActionTrigger | undefined = save.time.pendingActionTrigger,
+  random: RandomSource = Math.random,
+): GameSave {
+  if (!trigger || save.time.pendingActionTrigger !== trigger) {
+    return save;
+  }
+
+  const time = clearPendingActionTrigger(save.time);
+
+  if (trigger === 'startWeek') {
+    return refreshGameAlerts(
+      synchronizePlanning({
+        ...save,
+        time: {
+          ...time,
+          phase: save.ludus.gameStatus === 'lost' ? 'gameOver' : 'planning',
+        },
+      }),
+    );
+  }
+
+  if (save.time.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek) {
+    return save;
+  }
+
+  if (save.arena.arenaDay) {
+    return {
+      ...save,
+      time: {
+        ...time,
+        phase: 'arena',
+      },
+    };
+  }
+
+  return resolveSundayArena(
+    {
+      ...save,
+      time,
+    },
+    random,
+  );
 }
 
 export function completeSundayArenaDay(
@@ -884,7 +895,8 @@ export function completeSundayArenaDay(
           ...paidLoans.time,
           ...nextWeek,
           dayOfWeek: 'monday',
-          phase: 'report',
+          phase: 'planning',
+          pendingActionTrigger: 'startWeek',
         },
         market: createMarketState(nextWeek.year, nextWeek.week, random),
         planning: {
@@ -899,6 +911,10 @@ export function completeSundayArenaDay(
 export function resolveWeekStep(save: GameSave, random: RandomSource = Math.random): GameSave {
   if (save.ludus.gameStatus === 'lost') {
     return { ...save, time: { ...save.time, phase: 'gameOver' } };
+  }
+
+  if (save.time.pendingActionTrigger) {
+    return save;
   }
 
   if (save.events.pendingEvents.length > 0) {
@@ -916,11 +932,17 @@ export function resolveWeekStep(save: GameSave, random: RandomSource = Math.rand
       };
     }
 
-    return resolveSundayArena(save, random);
-  }
-
-  if (!isWeeklyPlanningComplete(save)) {
-    return { ...save, time: { ...save.time, phase: 'planning' } };
+    return withPendingActionTrigger(
+      {
+        ...save,
+        time: {
+          ...save.time,
+          dayOfWeek: 'sunday',
+          phase: 'arena',
+        },
+      },
+      'enterArena',
+    );
   }
 
   const plan = save.planning.days[save.time.dayOfWeek];
@@ -939,7 +961,7 @@ export function resolveWeekStep(save: GameSave, random: RandomSource = Math.rand
       pruneExpiredStatusEffects({
         ...result.save,
         time: {
-          ...result.save.time,
+          ...clearPendingActionTrigger(result.save.time),
           dayOfWeek: nextDay,
           phase:
             result.save.time.phase === 'event'
@@ -947,6 +969,9 @@ export function resolveWeekStep(save: GameSave, random: RandomSource = Math.rand
               : nextDay === GAME_BALANCE.arena.dayOfWeek
                 ? 'arena'
                 : 'planning',
+          ...(result.save.time.phase !== 'event' && nextDay === GAME_BALANCE.arena.dayOfWeek
+            ? { pendingActionTrigger: 'enterArena' as const }
+            : {}),
         },
         planning: {
           ...result.save.planning,
@@ -956,10 +981,5 @@ export function resolveWeekStep(save: GameSave, random: RandomSource = Math.rand
     ),
   );
 
-  return steppedSave.time.phase === 'arena' &&
-    steppedSave.time.dayOfWeek === GAME_BALANCE.arena.dayOfWeek &&
-    steppedSave.ludus.gameStatus !== 'lost' &&
-    !steppedSave.arena.arenaDay
-    ? resolveSundayArena(steppedSave, random)
-    : steppedSave;
+  return steppedSave;
 }

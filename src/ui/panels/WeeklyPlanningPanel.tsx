@@ -24,7 +24,6 @@ import type { PlanningActivityDefinition } from '../../game-data/planning';
 import { GAME_BALANCE } from '../../game-data/balance';
 import { DAYS_OF_WEEK } from '../../game-data/time';
 import { useUiStore } from '../../state/ui-store-context';
-import { CTAButton } from '../components/CTAButton';
 import { ImpactList, type ImpactListItem } from '../components/ImpactList';
 import { EmptyState } from '../components/shared';
 import {
@@ -40,7 +39,6 @@ import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface WeeklyPlanningPanelProps {
   save: GameSave;
-  onValidateAndStart(): void;
   onUpdateDailyPlan(input: {
     activity: DailyPlanActivity;
     bucket: DailyPlanBucket;
@@ -294,7 +292,6 @@ export function WeeklyPlanningPanel({
   save,
   onUpdateBuildingActivitySelection,
   onUpdateDailyPlan,
-  onValidateAndStart,
 }: WeeklyPlanningPanelProps) {
   const { t } = useUiStore();
   const weeklyValidation = validateWeeklyPlanning(save);
@@ -433,10 +430,6 @@ export function WeeklyPlanningPanel({
                   })}
             </span>
           </div>
-          <CTAButton disabled={!weeklyValidation.isComplete} onClick={onValidateAndStart}>
-            <GameIcon name="play" size={18} />
-            <span>{t('weeklyPlan.validateAndStart')}</span>
-          </CTAButton>
         </div>
       </header>
 

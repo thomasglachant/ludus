@@ -3,7 +3,6 @@ import { GAME_BALANCE } from '../../game-data/balance';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { refreshGameAlerts } from '../alerts/alert-actions';
 import { createInitialBuildings } from '../buildings/initial-buildings';
-import { updateBuildingEfficiencies } from '../buildings/building-efficiency';
 import { createInitialEconomyState } from '../economy/economy-actions';
 import { normalizeGladiatorProgression } from '../gladiators/progression';
 import { createMarketState } from '../market/market-actions';
@@ -21,7 +20,7 @@ export interface InitialSaveInput {
   createdAt: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 17;
+export const CURRENT_SCHEMA_VERSION = 18;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
   const market = createMarketState(
@@ -50,6 +49,7 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
       week: PROGRESSION_CONFIG.startingWeek,
       dayOfWeek: PROGRESSION_CONFIG.startingDayOfWeek,
       phase: 'planning',
+      pendingActionTrigger: 'startWeek',
     },
     buildings: createInitialBuildings(),
     gladiators: [],
@@ -74,7 +74,5 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     },
   };
 
-  return refreshGameAlerts(
-    synchronizeEconomyProjection(synchronizePlanning(updateBuildingEfficiencies(save))),
-  );
+  return refreshGameAlerts(synchronizeEconomyProjection(synchronizePlanning(save)));
 }

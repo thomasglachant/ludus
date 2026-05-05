@@ -91,10 +91,6 @@ export function BuildingsOverview({ onOpenBuilding, save }: BuildingsOverviewPro
                       <GameIcon name="landmark" size={16} />
                       {t('buildingsOverview.levelValue', { level: building.level })}
                     </span>
-                    <span>
-                      <GameIcon name="energy" size={16} />
-                      {t('buildingsOverview.efficiencyValue', { value: building.efficiency })}
-                    </span>
                   </span>
                 </span>
               </button>

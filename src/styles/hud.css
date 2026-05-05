@@ -89,6 +89,10 @@
   text-align: center;
 }
 
+.top-hud__time--locked {
+  grid-template-columns: minmax(0, 1fr) 34px;
+}
+
 .top-hud__clock {
   color: #fff1c7;
   font-size: inherit;

@@ -49,15 +49,18 @@ export interface LudusState {
 ```ts
 export type GamePhase = 'planning' | 'simulation' | 'event' | 'arena' | 'report' | 'gameOver';
 
+export type PendingActionTrigger = 'startWeek' | 'enterArena';
+
 export interface GameTimeState {
   year: number;
   week: number;
   dayOfWeek: DayOfWeek;
   phase: GamePhase;
+  pendingActionTrigger?: PendingActionTrigger;
 }
 ```
 
-The normal ludus progression uses daily and weekly macro resolvers. Minute-by-minute clock state, pause state and speed state are no longer part of the save model.
+The normal ludus progression uses daily and weekly macro resolvers. Minute-by-minute clock state, pause state and speed state are no longer part of the save model. `pendingActionTrigger` persists explicit player-gated actions that temporarily block time until the player starts the week or enters the arena.
 
 ## Buildings
 
@@ -73,12 +76,11 @@ export interface BuildingState {
   configuration?: BuildingConfiguration;
   purchasedImprovementIds: string[];
   purchasedSkillIds: string[];
-  efficiency: number;
   selectedPolicyId?: string;
 }
 ```
 
-Buildings do not have capacity. Their operational strength is represented by `efficiency`, which is recalculated from purchase state and level.
+Buildings do not have a generic operational efficiency percentage. Their contribution comes from level, purchased improvements, selected policies and purchased skills.
 
 ## Gladiators
 

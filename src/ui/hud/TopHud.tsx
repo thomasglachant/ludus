@@ -10,6 +10,7 @@ import { GameIcon } from '../icons/GameIcon';
 interface TopHudProps {
   clockLabel: string;
   isPaused: boolean;
+  isTimeControlLocked: boolean;
   save: GameSave;
   onOpenDomus(): void;
   onOpenFinance(): void;
@@ -22,6 +23,7 @@ const TOP_HUD_RESOURCE_ICON_SIZE = 24;
 export function TopHud({
   clockLabel,
   isPaused,
+  isTimeControlLocked,
   onOpenDomus,
   onOpenFinance,
   onOpenMenu,
@@ -97,18 +99,26 @@ export function TopHud({
       </div>
 
       <div className="top-hud__actions">
-        <div className="top-hud__time" data-testid="topbar-time">
-          <RomanButton
-            aria-label={t(isPaused ? 'topBar.resume' : 'topBar.pause')}
-            className="top-hud__time-action"
-            size="icon"
-            title={t(isPaused ? 'topBar.resume' : 'topBar.pause')}
-            tone="ghost"
-            type="button"
-            onClick={onTogglePause}
-          >
-            <GameIcon name={isPaused ? 'play' : 'pause'} size={22} />
-          </RomanButton>
+        <div
+          className={['top-hud__time', isTimeControlLocked ? 'top-hud__time--locked' : null]
+            .filter(Boolean)
+            .join(' ')}
+          data-testid="topbar-time"
+        >
+          {isTimeControlLocked ? null : (
+            <RomanButton
+              aria-label={t(isPaused ? 'topBar.resume' : 'topBar.pause')}
+              className="top-hud__time-action"
+              data-testid="topbar-pause-button"
+              size="icon"
+              title={t(isPaused ? 'topBar.resume' : 'topBar.pause')}
+              tone="ghost"
+              type="button"
+              onClick={onTogglePause}
+            >
+              <GameIcon name={isPaused ? 'play' : 'pause'} size={22} />
+            </RomanButton>
+          )}
           <span className="top-hud__date-lines">
             <span>
               <strong className="top-hud__clock">{clockLabel}</strong>

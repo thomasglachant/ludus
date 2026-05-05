@@ -251,12 +251,6 @@ export function BuildingPanel({
         levelLabelKey="buildingPanel.level"
         metrics={[
           {
-            iconName: 'energy',
-            id: 'efficiency',
-            labelKey: 'buildingPanel.efficiency',
-            value: `${save.buildings[buildingId].efficiency}%`,
-          },
-          {
             iconName: 'treasury',
             id: 'action-cost',
             labelKey: actionCostLabelKey,

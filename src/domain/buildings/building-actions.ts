@@ -6,7 +6,6 @@ import {
   createLedgerEntry,
   updateCurrentWeekSummary,
 } from '../economy/economy-actions';
-import { updateBuildingEfficiencies } from './building-efficiency';
 import {
   findBuildingPurchaseLevelDefinition,
   getBuildingPurchaseTargetLevel,
@@ -120,16 +119,14 @@ function recordBuildingExpense(
   labelKey: string,
   relatedId: string = buildingId,
 ) {
-  const saveWithEfficiencies = updateBuildingEfficiencies(save);
-
   if (amount <= 0) {
-    return updateCurrentWeekSummary(saveWithEfficiencies);
+    return updateCurrentWeekSummary(save);
   }
 
   return updateCurrentWeekSummary(
     addLedgerEntry(
-      saveWithEfficiencies,
-      createLedgerEntry(saveWithEfficiencies, {
+      save,
+      createLedgerEntry(save, {
         kind: 'expense',
         category: 'building',
         amount,

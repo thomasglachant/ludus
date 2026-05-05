@@ -52,8 +52,8 @@ describe('building actions', () => {
     expect(result.save.buildings.canteen).toMatchObject({
       isPurchased: true,
       level: 1,
-      efficiency: 100,
     });
+    expect(result.save.buildings.canteen).not.toHaveProperty('efficiency');
     expect(result.save.ludus.treasury).toBe(save.ludus.treasury - 120);
     expect(result.save.economy.ledgerEntries[0]).toMatchObject({
       amount: 120,
@@ -119,7 +119,7 @@ describe('building actions', () => {
     });
   });
 
-  it('keeps purchased building efficiency stable after upgrades', () => {
+  it('upgrades buildings without adding legacy efficiency state', () => {
     const save = {
       ...createTestSave(),
       ludus: {
@@ -144,7 +144,8 @@ describe('building actions', () => {
       isAllowed: true,
       targetLevel: 3,
     });
-    expect(result.save.buildings.trainingGround.efficiency).toBe(100);
+    expect(result.save.buildings.trainingGround.level).toBe(3);
+    expect(result.save.buildings.trainingGround).not.toHaveProperty('efficiency');
   });
 
   it('gates non-domus upgrades behind the required Domus level', () => {

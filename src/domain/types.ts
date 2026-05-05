@@ -1,5 +1,11 @@
 export type { LanguageCode } from './common/types';
-export type { DayOfWeek, GameDate, GamePhase, GameTimeState } from './time/types';
+export type {
+  DayOfWeek,
+  GameDate,
+  GamePhase,
+  GameTimeState,
+  PendingActionTrigger,
+} from './time/types';
 export type { GameStatus, LudusState } from './ludus/types';
 export type {
   BuildingId,

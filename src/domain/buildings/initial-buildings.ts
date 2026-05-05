@@ -19,7 +19,6 @@ export function createInitialBuildings(): Record<BuildingId, BuildingState> {
       id: buildingId,
       isPurchased: definition.startsPurchased,
       level: definition.startsAtLevel,
-      efficiency: definition.startsPurchased ? 100 : 0,
       purchasedImprovementIds: [],
       purchasedSkillIds: [],
     };

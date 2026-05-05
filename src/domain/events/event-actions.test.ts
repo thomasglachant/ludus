@@ -29,9 +29,13 @@ function createTestSave(overrides: Partial<GameSave> = {}): GameSave {
     saveId: 'save-test',
     createdAt: '2026-04-25T12:00:00.000Z',
   });
+  const { pendingActionTrigger, ...time } = save.time;
+
+  void pendingActionTrigger;
 
   return {
     ...save,
+    time,
     gladiators: [createGladiator()],
     ...overrides,
   };
@@ -110,12 +114,12 @@ describe('event actions', () => {
     ).save;
 
     expect(result.events.pendingEvents).toEqual([]);
-    expect(result.time).toMatchObject({ dayOfWeek: 'sunday', phase: 'arena' });
-    expect(result.arena.arenaDay).toMatchObject({
-      year: 1,
-      week: 1,
-      phase: 'summary',
+    expect(result.time).toMatchObject({
+      dayOfWeek: 'sunday',
+      phase: 'arena',
+      pendingActionTrigger: 'enterArena',
     });
+    expect(result.arena.arenaDay).toBeUndefined();
   });
 
   it('resolves strict drill as training experience and refreshes skill alerts', () => {

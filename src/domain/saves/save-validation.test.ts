@@ -14,6 +14,21 @@ function createJsonClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
+function withLegacyBuildingEfficiency(save: ReturnType<typeof createTestSave>) {
+  return {
+    ...save,
+    buildings: Object.fromEntries(
+      Object.entries(save.buildings).map(([buildingId, building]) => [
+        buildingId,
+        {
+          ...building,
+          efficiency: building.isPurchased ? 100 : 0,
+        },
+      ]),
+    ),
+  };
+}
+
 describe('save validation', () => {
   it('rejects current schema saves without launched event history', () => {
     const save = createTestSave();
@@ -49,6 +64,19 @@ describe('save validation', () => {
       phase: 'intro',
       presentedCombatIds: [],
     });
+  });
+
+  it('preserves valid pending action triggers', () => {
+    const save = {
+      ...createTestSave(),
+      time: {
+        ...createTestSave().time,
+        pendingActionTrigger: 'enterArena' as const,
+      },
+    };
+
+    expect(isGameSave(save)).toBe(true);
+    expect(parseGameSave(JSON.stringify(save))?.time.pendingActionTrigger).toBe('enterArena');
   });
 
   it('rejects legacy arena market saves through the current schema gate', () => {
@@ -106,7 +134,7 @@ describe('save validation', () => {
   });
 
   it('migrates previous-schema saves to the current schema', () => {
-    const save = createJsonClone(createTestSave());
+    const save = withLegacyBuildingEfficiency(createJsonClone(createTestSave()));
     const legacySave = {
       ...save,
       schemaVersion: CURRENT_SCHEMA_VERSION - 1,
@@ -121,6 +149,7 @@ describe('save validation', () => {
     expect(parsed).not.toBeNull();
     expect(parsed?.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(parsed?.statusEffects).toEqual([]);
+    expect(parsed?.buildings.domus).not.toHaveProperty('efficiency');
   });
 
   it('strips obsolete real-time fields from current-schema transitional saves', () => {
@@ -165,6 +194,7 @@ describe('save validation', () => {
     expect(parsed).not.toBeNull();
     expect(parsed?.time).toEqual({
       dayOfWeek: save.time.dayOfWeek,
+      pendingActionTrigger: 'startWeek',
       phase: 'planning',
       week: save.time.week,
       year: save.time.year,
@@ -268,7 +298,7 @@ describe('save validation', () => {
   });
 
   it('migrates valid weekly injury state and rejects malformed legacy injury state', () => {
-    const save = createTestSave();
+    const save = withLegacyBuildingEfficiency(createTestSave());
     const validSave = {
       ...save,
       schemaVersion: CURRENT_SCHEMA_VERSION - 1,

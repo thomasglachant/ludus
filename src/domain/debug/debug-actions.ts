@@ -33,7 +33,11 @@ export function getDebugDayAdvanceDistance(currentDay: DayOfWeek, targetDay: Day
 }
 
 function canResolveDebugStep(save: GameSave) {
-  return save.ludus.gameStatus !== 'lost' && getActiveGameInterruption(save) === null;
+  return (
+    save.ludus.gameStatus !== 'lost' &&
+    !save.time.pendingActionTrigger &&
+    getActiveGameInterruption(save) === null
+  );
 }
 
 function shouldStartTargetSundayArena(save: GameSave, targetDay: DayOfWeek) {

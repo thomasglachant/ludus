@@ -1,5 +1,7 @@
 export type GamePhase = 'planning' | 'simulation' | 'event' | 'arena' | 'report' | 'gameOver';
 
+export type PendingActionTrigger = 'startWeek' | 'enterArena';
+
 export type DayOfWeek =
   | 'monday'
   | 'tuesday'
@@ -14,6 +16,7 @@ export interface GameTimeState {
   week: number;
   dayOfWeek: DayOfWeek;
   phase: GamePhase;
+  pendingActionTrigger?: PendingActionTrigger;
 }
 
 export interface GameDate {

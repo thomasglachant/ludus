@@ -43,7 +43,6 @@ export function createPurchasedBuilding(
   return {
     ...building,
     isPurchased: true,
-    efficiency: building.efficiency ?? 100,
     purchasedImprovementIds: building.purchasedImprovementIds ?? [],
     purchasedSkillIds: building.purchasedSkillIds ?? [],
   };

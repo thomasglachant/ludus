@@ -9,10 +9,6 @@ interface BuildingEffectFilter {
   type?: BuildingEffect['type'];
 }
 
-interface BuildingEffectSumOptions {
-  scaleByEfficiency?: boolean;
-}
-
 function matchesFilter(effect: BuildingEffect, filter: BuildingEffectFilter = {}) {
   const target = effect.target ?? 'plannedGladiators';
 
@@ -104,20 +100,12 @@ export function getActiveBuildingEffects(
   ].filter((effect) => matchesFilter(effect, filter));
 }
 
-export function sumActiveBuildingEffectValues(
-  save: GameSave,
-  filter: BuildingEffectFilter = {},
-  options: BuildingEffectSumOptions = {},
-) {
-  const scaleByEfficiency = options.scaleByEfficiency ?? true;
-
+export function sumActiveBuildingEffectValues(save: GameSave, filter: BuildingEffectFilter = {}) {
   return Object.values(save.buildings).reduce((total, building) => {
-    const efficiencyMultiplier = scaleByEfficiency ? building.efficiency / 100 : 1;
-
     return (
       total +
       getActiveBuildingEffects(save, building.id, filter).reduce(
-        (buildingTotal, effect) => buildingTotal + effect.value * efficiencyMultiplier,
+        (buildingTotal, effect) => buildingTotal + effect.value,
         0,
       )
     );

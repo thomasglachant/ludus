@@ -26,6 +26,7 @@ import {
 import { buyMarketGladiator, sellGladiator } from '../domain/market/market-actions';
 import {
   completeSundayArenaDay as completeSundayArenaDayAction,
+  resolvePendingGameAction as resolvePendingGameActionAction,
   resolveWeekStep,
   synchronizeEconomyProjection,
 } from '../domain/weekly-simulation/weekly-simulation-actions';
@@ -45,6 +46,7 @@ import type {
   GameSaveMetadata,
   LanguageCode,
   LoanId,
+  PendingActionTrigger,
   DayOfWeek,
   DailyPlanBuildingActivitySelectionUpdate,
   DailyPlanUpdate,
@@ -80,8 +82,16 @@ function synchronizeLoadedSave(save: GameSave): GameSave {
 }
 
 export function GameStoreProvider({ children }: { children: ReactNode }) {
-  const { activeModal, modalStack, screen, setLanguage, navigate, openModal, pushModal } =
-    useUiStore();
+  const {
+    activeModal,
+    closeAllModals,
+    modalStack,
+    screen,
+    setLanguage,
+    navigate,
+    openModal,
+    pushModal,
+  } = useUiStore();
   const [saveService] = useState(createSaveService);
   const [initialRoute] = useState(() => getGameSessionRoute(window.location.pathname));
   const initialRouteGameId = initialRoute?.gameId;
@@ -489,6 +499,28 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     [applyPlayerChange],
   );
 
+  const resolvePendingGameAction = useCallback(
+    (trigger?: PendingActionTrigger) => {
+      const save = currentSaveRef.current;
+      const pendingTrigger = trigger ?? save?.time.pendingActionTrigger;
+
+      if (!save || !pendingTrigger) {
+        return;
+      }
+
+      applyPlayerChange((currentSaveForAction) =>
+        resolvePendingGameActionAction(currentSaveForAction, pendingTrigger),
+      );
+      setGameClockMinutes(0);
+
+      if (pendingTrigger === 'enterArena' && save.time.dayOfWeek === GAME_BALANCE.arena.dayOfWeek) {
+        closeAllModals();
+        navigate('arena', { gameId: save.gameId });
+      }
+    },
+    [applyPlayerChange, closeAllModals, navigate],
+  );
+
   const toggleGamePause = useCallback(() => {
     setIsGamePaused((paused) => !paused);
   }, []);
@@ -650,6 +682,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
         !save ||
         activeModalRef.current ||
         isGamePausedRef.current ||
+        save.time.pendingActionTrigger ||
         save.time.phase !== 'planning'
       ) {
         return;
@@ -681,6 +714,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       currentSave.events.pendingEvents.length === 0 &&
       currentSave.time.dayOfWeek === GAME_BALANCE.arena.dayOfWeek &&
       currentSave.time.phase === 'arena' &&
+      !currentSave.time.pendingActionTrigger &&
       !currentSave.arena.arenaDay
     ) {
       applyPlayerChange((save) => resolveWeekStep(save));
@@ -715,20 +749,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (interruption?.kind === 'weeklyPlanning') {
-      const hasWeeklyPlanningModal = modalStack.some((modal) => modal.kind === 'weeklyPlanning');
-
-      if (!hasWeeklyPlanningModal) {
-        if (activeModal) {
-          pushModal({ kind: 'weeklyPlanning' });
-        } else {
-          openModal({ kind: 'weeklyPlanning' });
-        }
-      }
-
-      return;
-    }
-
     if (screen === 'arena') {
       navigate('ludus', { gameId: currentSave.gameId });
     }
@@ -744,8 +764,10 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   ]);
 
   const value = useMemo<GameStoreValue>(() => {
-    const clockHours = Math.floor(gameClockMinutes / 60);
-    const clockMinutes = gameClockMinutes % 60;
+    const isTimeControlLocked = Boolean(currentSave?.time.pendingActionTrigger);
+    const displayedClockMinutes = isTimeControlLocked ? 0 : gameClockMinutes;
+    const clockHours = Math.floor(displayedClockMinutes / 60);
+    const clockMinutes = displayedClockMinutes % 60;
 
     return {
       currentSave,
@@ -753,7 +775,8 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       demoSaves,
       isLoading,
       isSaving,
-      isGamePaused: isGamePaused || Boolean(activeModal),
+      isGamePaused: isGamePaused || Boolean(activeModal) || isTimeControlLocked,
+      isTimeControlLocked,
       debugTimeScale,
       gameClockLabel: `${clockHours.toString().padStart(2, '0')}:${clockMinutes
         .toString()
@@ -789,6 +812,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       setDebugTimeScale,
       completeSundayArenaDay,
       advanceWeekStep: advanceWeekStepAction,
+      resolvePendingGameAction,
       toggleGamePause,
       takeLoan,
       buyoutLoan,
@@ -826,6 +850,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     refreshDemoSaves,
     resetActiveDemo,
     resolveGameEventChoice,
+    resolvePendingGameAction,
     saveCurrentGame,
     saveNoticeKey,
     setDebugTimeScale,

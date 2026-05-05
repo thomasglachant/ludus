@@ -106,9 +106,8 @@ export function getBuildingActivityContributions(
   return getSelectedBuildingActivities(save, plan)
     .map((activity) => {
       const plannedPoints = getPoints(plan, activity.activity);
-      const efficiencyMultiplier = save.buildings[activity.buildingId].efficiency / 100;
 
-      if (plannedPoints <= 0 || efficiencyMultiplier <= 0) {
+      if (plannedPoints <= 0) {
         return null;
       }
 
@@ -117,16 +116,12 @@ export function getBuildingActivityContributions(
         activityId: activity.id,
         buildingId: activity.buildingId,
         plannedPoints,
-        treasuryDelta:
-          plannedPoints * (activity.effects.treasuryPerPoint ?? 0) * efficiencyMultiplier,
-        reputationDelta:
-          plannedPoints * (activity.effects.reputationPerPoint ?? 0) * efficiencyMultiplier,
-        happinessDelta:
-          plannedPoints * (activity.effects.happinessPerPoint ?? 0) * efficiencyMultiplier,
-        rebellionDelta:
-          plannedPoints * (activity.effects.rebellionPerPoint ?? 0) * efficiencyMultiplier,
+        treasuryDelta: plannedPoints * (activity.effects.treasuryPerPoint ?? 0),
+        reputationDelta: plannedPoints * (activity.effects.reputationPerPoint ?? 0),
+        happinessDelta: plannedPoints * (activity.effects.happinessPerPoint ?? 0),
+        rebellionDelta: plannedPoints * (activity.effects.rebellionPerPoint ?? 0),
         injuryRiskReductionPercent:
-          plannedPoints * (activity.effects.injuryRiskReductionPercent ?? 0) * efficiencyMultiplier,
+          plannedPoints * (activity.effects.injuryRiskReductionPercent ?? 0),
       };
     })
     .filter((contribution): contribution is BuildingActivityContribution => contribution !== null);

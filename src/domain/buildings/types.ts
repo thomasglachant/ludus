@@ -7,7 +7,6 @@ export interface BuildingState {
   configuration?: BuildingConfiguration;
   purchasedImprovementIds: string[];
   purchasedSkillIds: string[];
-  efficiency: number;
   selectedPolicyId?: string;
 }
 

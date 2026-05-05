@@ -21,6 +21,7 @@ describe('createInitialSave', () => {
       week: 1,
       dayOfWeek: 'monday',
       phase: 'planning',
+      pendingActionTrigger: 'startWeek',
     });
     for (const buildingId of BUILDING_IDS) {
       expect(save.buildings[buildingId]).toMatchObject({
@@ -38,8 +39,8 @@ describe('createInitialSave', () => {
     expect(save.economy.currentWeekSummary.net).toBe(0);
     expect(save.economy.weeklyProjection.net).toBe(0);
     expect(Object.keys(save)).not.toContain('sta' + 'ff');
-    expect(save.buildings.trainingGround.efficiency).toBe(100);
-    expect(save.buildings.canteen.efficiency).toBe(100);
+    expect(save.buildings.trainingGround).not.toHaveProperty('efficiency');
+    expect(save.buildings.canteen).not.toHaveProperty('efficiency');
     expect(save.planning.days.monday.gladiatorTimePoints.training).toBe(0);
     expect(save.buildings.canteen.configuration).toBeUndefined();
     expect(save.buildings.canteen.selectedPolicyId).toBeUndefined();

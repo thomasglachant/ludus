@@ -138,7 +138,7 @@ comic buildings, readable alerts, stable interaction zones.
 Required main scene behavior:
 
 - the overview shows the ludus as a managed school, not a generic dashboard;
-- building ownership, level, efficiency, alerts are visually
+- building ownership, level and alerts are visually
   readable;
 - building cards keep a strong sense of place through assets and Roman material
   styling;

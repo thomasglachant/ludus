@@ -26,7 +26,6 @@ describe('building activities', () => {
           ...createTestSave().buildings.canteen,
           isPurchased: true,
           level: 1,
-          efficiency: 100,
           purchasedSkillIds: ['canteen.supply-contracts'],
         },
       },
@@ -43,7 +42,7 @@ describe('building activities', () => {
     );
   });
 
-  it('scales activity impact by planned points and building efficiency', () => {
+  it('applies activity impact from planned points and activity effects', () => {
     const save = {
       ...createTestSave(),
       buildings: {
@@ -52,7 +51,6 @@ describe('building activities', () => {
           ...createTestSave().buildings.canteen,
           isPurchased: true,
           level: 1,
-          efficiency: 50,
           purchasedSkillIds: ['canteen.supply-contracts'],
         },
       },
@@ -61,7 +59,7 @@ describe('building activities', () => {
     plan.laborPoints.production = 4;
     plan.buildingActivitySelections.production = 'canteen.supplyContracts';
 
-    expect(calculateBuildingActivityImpact(save, plan).treasuryDelta).toBe(10);
+    expect(calculateBuildingActivityImpact(save, plan).treasuryDelta).toBe(20);
   });
 
   it('ignores unlocked activities until they are selected in the daily plan', () => {
@@ -73,7 +71,6 @@ describe('building activities', () => {
           ...createTestSave().buildings.canteen,
           isPurchased: true,
           level: 1,
-          efficiency: 100,
           purchasedSkillIds: ['canteen.supply-contracts'],
         },
       },

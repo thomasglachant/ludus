@@ -11,7 +11,6 @@ import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/building-activiti
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { refreshGameAlerts } from '../alerts/alert-actions';
 import type { BuildingActivityId } from '../buildings/types';
-import { startArenaDay } from '../combat/combat-actions';
 import {
   addLedgerEntry,
   createLedgerEntry,
@@ -703,16 +702,14 @@ export function resolveGameEventChoice(
     resolvedSave.events.pendingEvents.length === 0 &&
     resolvedSave.time.dayOfWeek === GAME_BALANCE.arena.dayOfWeek &&
     !resolvedSave.arena.arenaDay
-      ? startArenaDay(
-          {
-            ...resolvedSave,
-            time: {
-              ...resolvedSave.time,
-              phase: 'arena',
-            },
+      ? {
+          ...resolvedSave,
+          time: {
+            ...resolvedSave.time,
+            phase: 'arena' as const,
+            pendingActionTrigger: 'enterArena' as const,
           },
-          random,
-        )
+        }
       : resolvedSave;
 
   return {

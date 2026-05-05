@@ -1,11 +1,10 @@
 import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/building-activities';
 import { BUILDING_IDS } from '../../game-data/buildings';
 import { STATUS_EFFECT_DEFINITIONS } from '../../game-data/status-effects';
-import { updateBuildingEfficiencies } from '../buildings/building-efficiency';
 import { createInitialEconomyState, updateCurrentWeekSummary } from '../economy/economy-actions';
 import { createDefaultWeeklyPlan } from '../weekly-simulation/weekly-simulation-actions';
 import { DAYS_OF_WEEK } from '../../game-data/time';
-import type { BuildingId } from '../buildings/types';
+import type { BuildingId, BuildingState } from '../buildings/types';
 import type { ArenaDayState, CombatState } from '../combat/types';
 import type {
   ActiveLoan,
@@ -41,6 +40,7 @@ const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
 const dayOfWeeks = [...DAYS_OF_WEEK];
 const supportedSchemaVersions = [CURRENT_SCHEMA_VERSION - 1, CURRENT_SCHEMA_VERSION];
 const gamePhases = ['planning', 'simulation', 'event', 'arena', 'report', 'gameOver'];
+const pendingActionTriggers = ['startWeek', 'enterArena'];
 const gameStatuses = ['active', 'lost'];
 const arenaRanks = [
   'bronze3',
@@ -199,10 +199,15 @@ function isStringNumberRecord(value: unknown) {
   );
 }
 
-function isBuildingState(value: unknown, buildingId: BuildingId) {
+function isBuildingState(value: unknown, buildingId: BuildingId, schemaVersion: number) {
   if (!isRecord(value)) {
     return false;
   }
+
+  const hasSupportedEfficiencyShape =
+    schemaVersion < CURRENT_SCHEMA_VERSION
+      ? hasNumber(value, 'efficiency')
+      : value.efficiency === undefined;
 
   return (
     value.id === buildingId &&
@@ -210,7 +215,7 @@ function isBuildingState(value: unknown, buildingId: BuildingId) {
     hasNumber(value, 'level') &&
     hasArray(value, 'purchasedImprovementIds') &&
     hasArray(value, 'purchasedSkillIds') &&
-    hasNumber(value, 'efficiency') &&
+    hasSupportedEfficiencyShape &&
     hasOptionalString(value, 'selectedPolicyId') &&
     (value.configuration === undefined || isRecord(value.configuration))
   );
@@ -320,7 +325,9 @@ function isTimeState(value: unknown) {
     hasNumber(value, 'year') &&
     hasNumber(value, 'week') &&
     hasStringFrom(value, 'dayOfWeek', dayOfWeeks) &&
-    hasStringFrom(value, 'phase', gamePhases)
+    hasStringFrom(value, 'phase', gamePhases) &&
+    (value.pendingActionTrigger === undefined ||
+      isStringFrom(value.pendingActionTrigger, pendingActionTriggers))
   );
 }
 
@@ -853,7 +860,9 @@ function isSupportedGameSave(value: unknown): value is GameSave {
   }
 
   return (
-    requiredBuildingIds.every((buildingId) => isBuildingState(buildings[buildingId], buildingId)) &&
+    requiredBuildingIds.every((buildingId) =>
+      isBuildingState(buildings[buildingId], buildingId, schemaVersion),
+    ) &&
     Array.isArray(value.gladiators) &&
     value.gladiators.every((gladiator) => isGladiator(gladiator, schemaVersion)) &&
     isEconomyState(value.economy) &&
@@ -885,18 +894,18 @@ function normalizePurchasedImprovementIds(
   );
 }
 
-function normalizeBuilding(
-  building: GameSave['buildings'][BuildingId],
-): GameSave['buildings'][BuildingId] {
-  const normalizedBuilding = {
+type NormalizableBuildingState = BuildingState & { efficiency?: unknown };
+
+function normalizeBuilding(building: NormalizableBuildingState): BuildingState {
+  const normalizedBuilding: NormalizableBuildingState = {
     ...building,
-    efficiency: building.efficiency ?? (building.isPurchased ? 100 : 0),
     purchasedSkillIds: building.purchasedSkillIds ?? [],
     purchasedImprovementIds: normalizePurchasedImprovementIds(
       building.id,
       building.purchasedImprovementIds,
     ),
   };
+  delete normalizedBuilding.efficiency;
 
   if (normalizedBuilding.id !== 'canteen') {
     return normalizedBuilding;
@@ -911,7 +920,10 @@ function normalizeBuilding(
 
 function normalizeBuildings(buildings: GameSave['buildings']): GameSave['buildings'] {
   return Object.fromEntries(
-    requiredBuildingIds.map((buildingId) => [buildingId, normalizeBuilding(buildings[buildingId])]),
+    requiredBuildingIds.map((buildingId) => [
+      buildingId,
+      normalizeBuilding(buildings[buildingId] as NormalizableBuildingState),
+    ]),
   ) as GameSave['buildings'];
 }
 
@@ -1166,6 +1178,9 @@ export function normalizeGameSave(save: GameSave): GameSave {
       week: save.time.week,
       dayOfWeek: save.time.dayOfWeek,
       phase: save.time.phase ?? 'planning',
+      ...(isStringFrom(save.time.pendingActionTrigger, pendingActionTriggers)
+        ? { pendingActionTrigger: save.time.pendingActionTrigger }
+        : {}),
     },
     buildings: normalizeBuildings(save.buildings),
     gladiators: save.gladiators.map((gladiator) =>
@@ -1211,9 +1226,7 @@ export function normalizeGameSave(save: GameSave): GameSave {
   delete (normalizedSave.arena as GameSave['arena'] & { betting?: unknown }).betting;
   delete (normalizedSave.arena as GameSave['arena'] & { pendingCombats?: unknown }).pendingCombats;
 
-  return updateBuildingEfficiencies(
-    updateCurrentWeekSummary(migrateLegacyWeeklyInjuries(save, normalizedSave)),
-  );
+  return updateCurrentWeekSummary(migrateLegacyWeeklyInjuries(save, normalizedSave));
 }
 
 export function parseGameSave(value: string): GameSave | null {

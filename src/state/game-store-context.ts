@@ -10,6 +10,7 @@ import type {
   LanguageCode,
   LoanId,
   DayOfWeek,
+  PendingActionTrigger,
 } from '../domain/types';
 
 export interface NewGameInput {
@@ -24,6 +25,7 @@ export interface GameStoreValue {
   isSaving: boolean;
   hasUnsavedChanges: boolean;
   isGamePaused: boolean;
+  isTimeControlLocked: boolean;
   debugTimeScale: number;
   gameClockLabel: string;
   lastSavedAt: string | null;
@@ -56,6 +58,7 @@ export interface GameStoreValue {
   setDebugTimeScale(multiplier: number): void;
   completeSundayArenaDay(): void;
   advanceWeekStep(options?: { ignoreModalPause?: boolean }): void;
+  resolvePendingGameAction(trigger?: PendingActionTrigger): void;
   toggleGamePause(): void;
   takeLoan(loanId: LoanId): void;
   buyoutLoan(loanInstanceId: string): void;

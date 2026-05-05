@@ -127,7 +127,7 @@ There are no optional building purchases in the current build.
 Buildings must not include a generic `budget` property. They now track:
 
 - `purchasedSkillIds`;
-- `efficiency`.
+- level, improvements, policies and selected skills.
 
 ## Building Skills
 
@@ -143,9 +143,9 @@ Tree rule:
 
 Skill effects currently map to the building's primary macro purpose, such as income, production, happiness, injury risk, reputation or expense reduction.
 
-Some skills also expose `unlockedActivities` ids from `src/game-data/building-activities.ts`. These ids use the owning building prefix and are meant for building-specific macro planning options. They are not standalone balance knobs; any resulting simulation benefit should still come from the activity definition, purchased skill state, explicit daily plan selection and current building efficiency.
+Some skills also expose `unlockedActivities` ids from `src/game-data/building-activities.ts`. These ids use the owning building prefix and are meant for building-specific macro planning options. They are not standalone balance knobs; any resulting simulation benefit should still come from the activity definition, purchased skill state and explicit daily plan selection.
 
-Daily simulation applies active macro effects from levels, improvements, policies and skills. Effect values are scaled by `BuildingState.efficiency`.
+Daily simulation applies active macro effects from levels, improvements, policies and skills. Effect values come directly from the active definitions.
 
 ## Status Effects
 
