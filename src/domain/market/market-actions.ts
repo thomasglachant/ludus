@@ -2,6 +2,7 @@ import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { GAME_BALANCE } from '../../game-data/balance';
 import { MARKET_CONFIG } from '../../game-data/market';
+import { refreshGameAlerts } from '../alerts/alert-actions';
 import { getAvailableLudusGladiatorPlaces } from '../ludus/capacity';
 import {
   addLedgerEntry,
@@ -211,7 +212,7 @@ export function buyMarketGladiator(save: GameSave, candidateId: string): MarketA
 
   return {
     validation,
-    save: synchronizePlanning(updateCurrentWeekSummary(nextSave)),
+    save: refreshGameAlerts(synchronizePlanning(updateCurrentWeekSummary(nextSave))),
   };
 }
 
@@ -264,6 +265,6 @@ export function sellGladiator(save: GameSave, gladiatorId: string): MarketAction
 
   return {
     validation,
-    save: synchronizePlanning(updateCurrentWeekSummary(nextSave)),
+    save: refreshGameAlerts(synchronizePlanning(updateCurrentWeekSummary(nextSave))),
   };
 }

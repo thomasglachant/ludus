@@ -51,12 +51,17 @@ export interface WeeklyReport {
 
 export type AlertSeverity = 'info' | 'warning' | 'critical';
 
+export type GameAlertActionKind =
+  | 'allocateGladiatorSkillPoint'
+  | 'openWeeklyPlanning'
+  | 'openMarket';
+
 export interface GameAlert {
   id: string;
   severity: AlertSeverity;
   titleKey: string;
   descriptionKey: string;
-  actionKind?: 'allocateGladiatorSkillPoint';
+  actionKind?: GameAlertActionKind;
   gladiatorId?: string;
   buildingId?: BuildingId;
   statusEffectId?: string;

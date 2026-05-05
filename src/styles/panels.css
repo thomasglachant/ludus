@@ -168,11 +168,6 @@
   gap: 12px;
 }
 
-.events-panel__list {
-  display: grid;
-  gap: 12px;
-}
-
 .events-panel__event {
   display: grid;
   gap: 18px;

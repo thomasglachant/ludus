@@ -42,12 +42,6 @@ const navigationItems: Array<{
     labelKey: 'navigation.finance',
     iconName: 'treasury',
   },
-  {
-    panelKind: 'events',
-    labelKey: 'navigation.events',
-    iconName: 'events',
-    badge: (save) => save.events.pendingEvents.length,
-  },
 ];
 
 export function BottomNavigationBar({

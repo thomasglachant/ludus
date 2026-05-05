@@ -1,5 +1,4 @@
 import {
-  RiAlertFill,
   RiAncientGateFill,
   RiAddCircleFill,
   RiArrowLeftFill,
@@ -68,7 +67,6 @@ export const GAME_ICON_DEFINITIONS = {
   defeat: { Icon: RiSkull2Fill, color: '#b55339' },
   dice: { Icon: RiDiceFill, color: '#d6a34a' },
   energy: { Icon: RiFlashlightFill, color: '#d39942' },
-  events: { Icon: RiAlertFill, color: '#d39942' },
   experience: { Icon: RiBarChartBoxFill, color: '#78c46b' },
   folderOpen: { Icon: RiFolderOpenFill, color: '#d6a34a' },
   hammer: { Icon: RiHammerFill, color: '#d6a34a' },

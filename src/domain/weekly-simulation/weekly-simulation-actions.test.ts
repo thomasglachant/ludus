@@ -531,6 +531,29 @@ describe('weekly simulation actions', () => {
     });
   });
 
+  it('starts Sunday arena immediately after Saturday resolution', () => {
+    const baseSave = createTestSave();
+    const saturdaySave = withCompleteWeeklyPlanning({
+      ...baseSave,
+      time: {
+        ...baseSave.time,
+        dayOfWeek: 'saturday',
+        phase: 'planning',
+      },
+    });
+
+    const result = resolveWeekStep(saturdaySave, () => 1);
+
+    expect(result.time).toMatchObject({ week: 1, dayOfWeek: 'sunday', phase: 'arena' });
+    expect(result.arena.arenaDay).toMatchObject({
+      year: 1,
+      week: 1,
+      phase: 'summary',
+    });
+    expect(result.arena.isArenaDayActive).toBe(true);
+    expect(result.arena.resolvedCombats).toHaveLength(1);
+  });
+
   it('repays active loans when Sunday arena is completed', () => {
     const loanedSave = takeLoan(createTestSave(), 'smallLoan').save;
     const loan = LOAN_DEFINITIONS.find((definition) => definition.id === 'smallLoan')!;

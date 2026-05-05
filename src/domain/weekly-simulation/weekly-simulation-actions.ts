@@ -1,5 +1,6 @@
 import { GAME_BALANCE } from '../../game-data/balance';
 import { DAYS_OF_WEEK } from '../../game-data/time';
+import { refreshGameAlerts } from '../alerts/alert-actions';
 import {
   calculateBuildingEfficiency,
   updateBuildingEfficiencies,
@@ -490,7 +491,9 @@ function resolveDailyPlanInternal(
     eventResult.createdEventIds.length > 0
       ? { ...eventResult.save, time: { ...eventResult.save.time, phase: 'event' as const } }
       : eventResult.save;
-  const synchronizedSave = options.recordLedger ? synchronizePlanning(resultSave) : resultSave;
+  const synchronizedSave = options.recordLedger
+    ? refreshGameAlerts(synchronizePlanning(resultSave))
+    : resultSave;
 
   return {
     expenseEntries,
@@ -873,21 +876,23 @@ export function completeSundayArenaDay(
     return paidLoans;
   }
 
-  return synchronizePlanning(
-    pruneExpiredStatusEffects({
-      ...paidLoans,
-      time: {
-        ...paidLoans.time,
-        ...nextWeek,
-        dayOfWeek: 'monday',
-        phase: 'report',
-      },
-      market: createMarketState(nextWeek.year, nextWeek.week, random),
-      planning: {
-        ...createDefaultWeeklyPlan(nextWeek.year, nextWeek.week),
-        reports: [report, ...archivedReports].slice(0, 8),
-      },
-    }),
+  return refreshGameAlerts(
+    synchronizePlanning(
+      pruneExpiredStatusEffects({
+        ...paidLoans,
+        time: {
+          ...paidLoans.time,
+          ...nextWeek,
+          dayOfWeek: 'monday',
+          phase: 'report',
+        },
+        market: createMarketState(nextWeek.year, nextWeek.week, random),
+        planning: {
+          ...createDefaultWeeklyPlan(nextWeek.year, nextWeek.week),
+          reports: [report, ...archivedReports].slice(0, 8),
+        },
+      }),
+    ),
   );
 }
 
@@ -929,23 +934,32 @@ export function resolveWeekStep(save: GameSave, random: RandomSource = Math.rand
     id: runningReportId,
   };
 
-  return synchronizePlanning(
-    pruneExpiredStatusEffects({
-      ...result.save,
-      time: {
-        ...result.save.time,
-        dayOfWeek: nextDay,
-        phase:
-          result.save.time.phase === 'event'
-            ? 'event'
-            : nextDay === 'sunday'
-              ? 'arena'
-              : 'planning',
-      },
-      planning: {
-        ...result.save.planning,
-        reports: [runningReport, ...existingReports],
-      },
-    }),
+  const steppedSave = refreshGameAlerts(
+    synchronizePlanning(
+      pruneExpiredStatusEffects({
+        ...result.save,
+        time: {
+          ...result.save.time,
+          dayOfWeek: nextDay,
+          phase:
+            result.save.time.phase === 'event'
+              ? 'event'
+              : nextDay === GAME_BALANCE.arena.dayOfWeek
+                ? 'arena'
+                : 'planning',
+        },
+        planning: {
+          ...result.save.planning,
+          reports: [runningReport, ...existingReports],
+        },
+      }),
+    ),
   );
+
+  return steppedSave.time.phase === 'arena' &&
+    steppedSave.time.dayOfWeek === GAME_BALANCE.arena.dayOfWeek &&
+    steppedSave.ludus.gameStatus !== 'lost' &&
+    !steppedSave.arena.arenaDay
+    ? resolveSundayArena(steppedSave, random)
+    : steppedSave;
 }

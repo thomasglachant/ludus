@@ -32,14 +32,17 @@ Contains pure game logic.
 Important macro modules:
 
 - `weekly-simulation/weekly-simulation-actions.ts`: daily and weekly macro resolution, including training XP and finance projections from the weekly plan;
+- `alerts/alert-actions.ts`: central derived alert engine for ludus, building and gladiator alerts;
 - `gladiators/skills.ts`: integer 1..10 skill helpers;
 - `gladiators/progression.ts`: XP-derived level selectors and skill point allocation rules;
 - `economy/economy-actions.ts`: ledger summaries, loans and buyouts;
-- `planning/planning-actions.ts`: shared daily plan updates, skill allocation alerts and macro recommendations;
+- `planning/planning-actions.ts`: shared daily plan updates, validation and macro recommendations;
 - `market/market-actions.ts`: market generation, purchase, sale and experience-based price calculation;
 - `combat/combat-actions.ts`: Sunday combat resolution and combat XP awards.
 
 Domain modules should be deterministic when a random source is provided.
+
+Alerts are derived from the current save. `planning.alerts` remains the persisted storage location for compatibility, but `src/domain/alerts` owns alert generation rules. Rules are stateless and return at most one active alert for the evaluated target. New alerts should be added as ludus, building or gladiator rules in that module, plus i18n keys and tests.
 
 ### `src/state`
 
@@ -53,6 +56,8 @@ The store exposes macro actions such as:
 - `buyoutLoan`;
 
 Gameplay progression runs through explicit macro actions, primarily daily and weekly resolution.
+
+After each real player mutation, the store runs the derived-state pipeline: planning synchronization, economy projection synchronization, then `refreshGameAlerts`. A defensive alert refresh also runs every 5 seconds; alert-only refreshes do not mark the save dirty, update `updatedAt` or trigger autosave by themselves.
 
 ### `src/ui`
 
@@ -85,7 +90,7 @@ Current macro UI surfaces include:
 
 - building-first `GameShell`;
 - macro `TopHud`;
-- bottom navigation for Buildings, Gladiators, Planning, Finances and Events;
+- bottom navigation for Buildings, Gladiators, Market, Planning and Finances;
 - `FinancePanel`;
 - `BuildingsListPanel`;
 - `GladiatorsListPanel`;
@@ -112,7 +117,8 @@ Current test focus:
 - building validation and macro building state;
 - integer gladiator skills and XP-derived levels;
 - training and combat XP awards;
-- skill allocation alerts and spending rules;
+- central alerts for ludus planning, Domus recruitment, gladiator skill points and visible status effects;
+- skill point spending rules;
 - market prices based exclusively on experience;
 - combat rewards without participation payouts;
 - arena reward ledger entries;

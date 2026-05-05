@@ -9,7 +9,9 @@ import {
 import { GAME_BALANCE } from '../../game-data/balance';
 import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/building-activities';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
+import { refreshGameAlerts } from '../alerts/alert-actions';
 import type { BuildingActivityId } from '../buildings/types';
+import { startArenaDay } from '../combat/combat-actions';
 import {
   addLedgerEntry,
   createLedgerEntry,
@@ -673,6 +675,9 @@ export function resolveGameEventChoice(
         : undefined,
   };
 
+  const pendingEvents = consequenceResult.save.events.pendingEvents.filter(
+    (candidate) => candidate.id !== eventId,
+  );
   const resolvedSave: GameSave = {
     ...consequenceResult.save,
     time: {
@@ -685,9 +690,7 @@ export function resolveGameEventChoice(
             : consequenceResult.save.time.phase,
     },
     events: {
-      pendingEvents: consequenceResult.save.events.pendingEvents.filter(
-        (candidate) => candidate.id !== eventId,
-      ),
+      pendingEvents,
       resolvedEvents: [resolvedEvent, ...consequenceResult.save.events.resolvedEvents].slice(
         0,
         EVENT_CONFIG.resolvedEventHistoryLimit,
@@ -695,9 +698,25 @@ export function resolveGameEventChoice(
       launchedEvents: consequenceResult.save.events.launchedEvents,
     },
   };
+  const nextSave =
+    resolvedSave.ludus.gameStatus !== 'lost' &&
+    resolvedSave.events.pendingEvents.length === 0 &&
+    resolvedSave.time.dayOfWeek === GAME_BALANCE.arena.dayOfWeek &&
+    !resolvedSave.arena.arenaDay
+      ? startArenaDay(
+          {
+            ...resolvedSave,
+            time: {
+              ...resolvedSave.time,
+              phase: 'arena',
+            },
+          },
+          random,
+        )
+      : resolvedSave;
 
   return {
     validation: { isAllowed: true },
-    save: synchronizePlanning(resolvedSave),
+    save: refreshGameAlerts(synchronizePlanning(nextSave)),
   };
 }

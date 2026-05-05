@@ -10,6 +10,7 @@ import {
 import { GAME_BALANCE } from '../../game-data/balance';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiator-visuals';
 import { GLADIATOR_NAMES } from '../../game-data/gladiator-names';
+import { refreshGameAlerts } from '../alerts/alert-actions';
 import {
   addLedgerEntry,
   createLedgerEntry,
@@ -580,19 +581,21 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
   }
 
   if (rewardTotal <= 0) {
-    return synchronizePlanning(updateCurrentWeekSummary(resolvedSave));
+    return refreshGameAlerts(synchronizePlanning(updateCurrentWeekSummary(resolvedSave)));
   }
 
-  return synchronizePlanning(
-    updateCurrentWeekSummary(
-      addLedgerEntry(
-        resolvedSave,
-        createLedgerEntry(save, {
-          kind: 'income',
-          category: 'arena',
-          amount: rewardTotal,
-          labelKey: 'finance.ledger.arenaReward',
-        }),
+  return refreshGameAlerts(
+    synchronizePlanning(
+      updateCurrentWeekSummary(
+        addLedgerEntry(
+          resolvedSave,
+          createLedgerEntry(save, {
+            kind: 'income',
+            category: 'arena',
+            amount: rewardTotal,
+            labelKey: 'finance.ledger.arenaReward',
+          }),
+        ),
       ),
     ),
   );

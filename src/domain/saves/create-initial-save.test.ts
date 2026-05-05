@@ -51,5 +51,14 @@ describe('createInitialSave', () => {
     expect(getLudusGladiatorCapacity(save)).toBe(1);
     expect(save.gladiators).toEqual([]);
     expect(save.market.availableGladiators).toHaveLength(MARKET_CONFIG.availableGladiatorCount);
+    expect(save.planning.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actionKind: 'openMarket',
+          buildingId: 'domus',
+          titleKey: 'alerts.openRegister.title',
+        }),
+      ]),
+    );
   });
 });

@@ -51,6 +51,11 @@ export const GAME_BALANCE = {
     minutesPerRealSecond: 30,
   },
 
+  debug: {
+    // Volatile game clock multipliers exposed only through the debug UI.
+    timeScaleOptions: [1, 2, 4, 8, 16] as const,
+  },
+
   planning: {
     taskDefaultPoints: {
       training: 3,

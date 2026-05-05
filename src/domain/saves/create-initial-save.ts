@@ -1,6 +1,7 @@
 import { INITIAL_TREASURY } from '../../game-data/economy';
 import { GAME_BALANCE } from '../../game-data/balance';
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
+import { refreshGameAlerts } from '../alerts/alert-actions';
 import { createInitialBuildings } from '../buildings/initial-buildings';
 import { updateBuildingEfficiencies } from '../buildings/building-efficiency';
 import { createInitialEconomyState } from '../economy/economy-actions';
@@ -10,6 +11,7 @@ import {
   createDefaultWeeklyPlan,
   synchronizeEconomyProjection,
 } from '../weekly-simulation/weekly-simulation-actions';
+import { synchronizePlanning } from '../planning/planning-actions';
 import type { GameSave } from './types';
 
 export interface InitialSaveInput {
@@ -72,5 +74,7 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     },
   };
 
-  return synchronizeEconomyProjection(updateBuildingEfficiencies(save));
+  return refreshGameAlerts(
+    synchronizeEconomyProjection(synchronizePlanning(updateBuildingEfficiencies(save))),
+  );
 }

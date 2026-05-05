@@ -66,6 +66,58 @@ describe('event actions', () => {
     });
   });
 
+  it('starts Sunday arena after resolving the final Saturday interruption', () => {
+    const save = createTestSave();
+    const event = {
+      id: 'event-saturday-test',
+      definitionId: 'saturdayInterruptionTest',
+      titleKey: 'events.trainingRefusal.title',
+      descriptionKey: 'events.trainingRefusal.description',
+      status: 'pending' as const,
+      createdAtYear: save.time.year,
+      createdAtWeek: save.time.week,
+      createdAtDay: 'saturday' as const,
+      choices: [
+        {
+          id: 'continue',
+          labelKey: 'events.trainingRefusal.grantRest.label',
+          consequenceKey: 'events.trainingRefusal.grantRest.consequence',
+          consequences: [
+            {
+              kind: 'certain' as const,
+              effects: [],
+            },
+          ],
+        },
+      ],
+    };
+    const result = resolveGameEventChoice(
+      {
+        ...save,
+        events: {
+          ...save.events,
+          pendingEvents: [event],
+        },
+        time: {
+          ...save.time,
+          dayOfWeek: 'sunday',
+          phase: 'event',
+        },
+      },
+      event.id,
+      'continue',
+      () => 1,
+    ).save;
+
+    expect(result.events.pendingEvents).toEqual([]);
+    expect(result.time).toMatchObject({ dayOfWeek: 'sunday', phase: 'arena' });
+    expect(result.arena.arenaDay).toMatchObject({
+      year: 1,
+      week: 1,
+      phase: 'summary',
+    });
+  });
+
   it('resolves strict drill as training experience and refreshes skill alerts', () => {
     const plan = createDefaultDailyPlan('monday');
     plan.gladiatorTimePoints.training = 1;

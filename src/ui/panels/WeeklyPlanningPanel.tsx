@@ -40,7 +40,7 @@ import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface WeeklyPlanningPanelProps {
   save: GameSave;
-  onClose(): void;
+  onValidateAndStart(): void;
   onUpdateDailyPlan(input: {
     activity: DailyPlanActivity;
     bucket: DailyPlanBucket;
@@ -292,9 +292,9 @@ function getActivityTotals(
 
 export function WeeklyPlanningPanel({
   save,
-  onClose,
   onUpdateBuildingActivitySelection,
   onUpdateDailyPlan,
+  onValidateAndStart,
 }: WeeklyPlanningPanelProps) {
   const { t } = useUiStore();
   const weeklyValidation = validateWeeklyPlanning(save);
@@ -433,12 +433,7 @@ export function WeeklyPlanningPanel({
                   })}
             </span>
           </div>
-          <CTAButton
-            disabled={!weeklyValidation.isComplete}
-            onClick={() => {
-              onClose();
-            }}
-          >
+          <CTAButton disabled={!weeklyValidation.isComplete} onClick={onValidateAndStart}>
             <GameIcon name="play" size={18} />
             <span>{t('weeklyPlan.validateAndStart')}</span>
           </CTAButton>

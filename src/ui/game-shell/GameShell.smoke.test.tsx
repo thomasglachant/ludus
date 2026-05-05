@@ -38,6 +38,7 @@ function createGameStore(): GameStoreValue {
     isLoading: false,
     isSaving: false,
     isGamePaused: false,
+    debugTimeScale: 1,
     gameClockLabel: '08:00',
     hasUnsavedChanges: false,
     lastSavedAt: null,
@@ -64,6 +65,10 @@ function createGameStore(): GameStoreValue {
     resolveGameEventChoice: vi.fn(),
     triggerDebugDailyEvent: vi.fn(),
     adjustDebugTreasury: vi.fn(),
+    levelUpDebugGladiator: vi.fn(),
+    createDebugInjuryAlert: vi.fn(),
+    advanceDebugToDay: vi.fn(),
+    setDebugTimeScale: vi.fn(),
     completeSundayArenaDay: vi.fn(),
     advanceWeekStep: vi.fn(),
     toggleGamePause: vi.fn(),
@@ -135,6 +140,8 @@ describe('GameShell smoke flows', () => {
   });
 
   it('opens primary macro panels from the bottom navigation', () => {
+    expect(container.querySelector('[data-testid="bottom-navigation-events"]')).toBeNull();
+
     click(getButton(container, 'bottom-navigation-weeklyPlanning'));
     click(getButton(container, 'bottom-navigation-finance'));
     click(getButton(container, 'bottom-navigation-buildingsList'));

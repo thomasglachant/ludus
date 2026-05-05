@@ -4,7 +4,7 @@ import { useUiStore, type FormModalField, type UiModalState } from '../../state/
 import { isWeeklyPlanningComplete } from '../../domain/planning/planning-actions';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { ActionButton } from '../components/ActionButton';
-import { ArenaPanel, EventsPanel } from '../panels/ActivityPanels';
+import { ArenaPanel, EventDecisionPanel } from '../panels/ActivityPanels';
 import { BuildingPanel } from '../panels/BuildingPanel';
 import { BuildingsListPanel } from '../panels/BuildingsListPanel';
 import { FinancePanel } from '../panels/FinancePanel';
@@ -153,6 +153,7 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
     purchaseBuilding,
     purchaseBuildingImprovement,
     purchaseBuildingSkill,
+    advanceWeekStep,
     resolveGameEventChoice,
     saveCurrentGame,
     selectBuildingPolicy,
@@ -163,7 +164,6 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
     upgradeBuilding,
   } = useGameStore();
   const { closeAllModals, closeModal, navigate, openConfirmModal, pushModal } = useUiStore();
-  const isDailyEventBlocking = currentSave ? currentSave.events.pendingEvents.length > 0 : false;
 
   const quitToMainMenu = () => {
     navigate('mainMenu');
@@ -343,7 +343,10 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
       >
         <WeeklyPlanningPanel
           save={currentSave}
-          onClose={closeModal}
+          onValidateAndStart={() => {
+            advanceWeekStep({ ignoreModalPause: true });
+            closeModal();
+          }}
           onUpdateDailyPlan={updateDailyPlan}
           onUpdateBuildingActivitySelection={updateDailyPlanBuildingActivitySelection}
         />
@@ -351,17 +354,26 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
     );
   }
 
-  if (modal.kind === 'events') {
+  if (modal.kind === 'dailyEvent') {
+    const event = currentSave.events.pendingEvents.find(
+      (candidate) => candidate.id === modal.eventId,
+    );
+
+    if (!event) {
+      return null;
+    }
+
     return (
       <AppModal
-        dismissible={!isDailyEventBlocking}
+        dismissible={false}
         isActive={isActive}
         size="lg"
-        testId="events-modal"
+        testId="daily-event-modal"
         titleKey="events.title"
         onClose={closeModal}
       >
-        <EventsPanel
+        <EventDecisionPanel
+          event={event}
           save={currentSave}
           onClose={closeModal}
           onOpenGladiator={(gladiatorId) => pushModal({ gladiatorId, kind: 'gladiator' })}

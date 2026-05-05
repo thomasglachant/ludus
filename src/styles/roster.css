@@ -125,7 +125,8 @@
 
 .bottom-navigation__items {
   display: grid;
-  grid-template-columns: repeat(7, 78px);
+  grid-auto-columns: 78px;
+  grid-auto-flow: column;
   gap: 0;
 }
 
@@ -197,7 +198,7 @@
   }
 
   .bottom-navigation__items {
-    grid-template-columns: repeat(7, minmax(62px, 1fr));
+    grid-auto-columns: minmax(62px, 1fr);
     gap: 6px;
     width: 100%;
   }

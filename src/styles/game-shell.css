@@ -1,5 +1,6 @@
 .game-shell {
   --shell-bottom: 86px;
+  --shell-right: 366px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
@@ -22,5 +23,6 @@
 @media (max-width: 760px) {
   .game-shell {
     --shell-bottom: 104px;
+    --shell-right: 0px;
   }
 }

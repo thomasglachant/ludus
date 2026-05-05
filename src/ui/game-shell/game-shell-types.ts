@@ -5,6 +5,5 @@ export type ContextPanelKind =
   | 'buildingsList'
   | 'gladiatorsList'
   | 'finance'
-  | 'events'
   | 'market'
   | 'arena';

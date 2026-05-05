@@ -56,6 +56,7 @@ export type {
   WeeklyReport,
   AlertSeverity,
   GameAlert,
+  GameAlertActionKind,
 } from './planning/types';
 export type {
   ActiveLoan,

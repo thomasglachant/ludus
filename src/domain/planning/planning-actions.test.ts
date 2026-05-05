@@ -7,10 +7,6 @@ import {
   updateDailyPlan,
   updateDailyPlanBuildingActivitySelection,
 } from './planning-actions';
-import {
-  applyGladiatorStatusEffect,
-  applyGladiatorStatusEffectAtDate,
-} from '../status-effects/status-effect-actions';
 
 function createTestSave() {
   return createInitialSave({
@@ -46,82 +42,25 @@ function withGladiators(save: GameSave, gladiators: Gladiator[]): GameSave {
 }
 
 describe('planning actions', () => {
-  it('synchronizes macro planning alerts for owned gladiators', () => {
-    const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
+  it('synchronizes the weekly planning state without regenerating alerts', () => {
+    const staleAlert = {
+      id: 'alert-stale',
+      severity: 'info' as const,
+      titleKey: 'alerts.test.title',
+      descriptionKey: 'alerts.test.description',
+      createdAt: '2026-04-25T12:00:00.000Z',
+    };
+    const save = synchronizePlanning({
+      ...withGladiators(createTestSave(), [createGladiator()]),
+      planning: {
+        ...createTestSave().planning,
+        alerts: [staleAlert],
+      },
+    });
 
-    expect(save.planning.alerts).toEqual([]);
+    expect(save.planning.alerts).toEqual([staleAlert]);
     expect(save.planning.year).toBe(save.time.year);
     expect(save.planning.week).toBe(save.time.week);
-  });
-
-  it('generates alerts for injured owned gladiators', () => {
-    const save = synchronizePlanning(
-      applyGladiatorStatusEffect(
-        withGladiators(createTestSave(), [createGladiator()]),
-        'injury',
-        2,
-        'gladiator-test',
-      ),
-    );
-
-    expect(save.planning.alerts).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          severity: 'warning',
-          titleKey: 'statusEffects.injury.name',
-          gladiatorId: expect.any(String),
-          statusEffectId: 'injury',
-        }),
-      ]),
-    );
-  });
-
-  it('does not generate alerts for silent status effects', () => {
-    const save = synchronizePlanning(
-      applyGladiatorStatusEffect(
-        withGladiators(createTestSave(), [createGladiator()]),
-        'victoryAura',
-        3,
-        'gladiator-test',
-      ),
-    );
-
-    expect(save.planning.alerts).toEqual([]);
-  });
-
-  it('generates alerts for owned gladiators with unassigned skill points', () => {
-    const save = synchronizePlanning(
-      withGladiators(createTestSave(), [
-        createGladiator({
-          experience: 100,
-        }),
-      ]),
-    );
-
-    expect(save.planning.alerts).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          severity: 'info',
-          titleKey: 'alerts.unassignedSkillPoints.title',
-          actionKind: 'allocateGladiatorSkillPoint',
-          gladiatorId: 'gladiator-test',
-        }),
-      ]),
-    );
-  });
-
-  it('ignores expired status effects when generating alerts', () => {
-    const save = synchronizePlanning(
-      applyGladiatorStatusEffectAtDate(
-        withGladiators(createTestSave(), [createGladiator()]),
-        'injury',
-        1,
-        'gladiator-test',
-        { dayOfWeek: 'monday', week: 8, year: 0 },
-      ),
-    );
-
-    expect(save.planning.alerts).toEqual([]);
   });
 
   it('updates daily macro plan points by activity bucket', () => {

@@ -1,4 +1,9 @@
-import { adjustDebugTreasury as adjustDebugTreasuryAction } from '../domain/debug/debug-actions';
+import {
+  adjustDebugTreasury as adjustDebugTreasuryAction,
+  advanceDebugToDay as advanceDebugToDayAction,
+  createDebugInjuryAlert as createDebugInjuryAlertAction,
+  levelUpDebugGladiator as levelUpDebugGladiatorAction,
+} from '../domain/debug/debug-actions';
 import {
   resolveGameEventChoice as resolveGameEventChoiceAction,
   triggerDebugDailyEvent as triggerDebugDailyEventAction,
@@ -10,6 +15,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { getGameSessionRoute } from '../app/routes';
 import { featureFlags } from '../config/features';
+import { refreshGameAlerts } from '../domain/alerts/alert-actions';
 import {
   purchaseBuilding,
   purchaseBuildingImprovement,
@@ -39,6 +45,7 @@ import type {
   GameSaveMetadata,
   LanguageCode,
   LoanId,
+  DayOfWeek,
   DailyPlanBuildingActivitySelectionUpdate,
   DailyPlanUpdate,
 } from '../domain/types';
@@ -51,6 +58,7 @@ import { useUiStore } from './ui-store-context';
 import { GAME_BALANCE } from '../game-data/balance';
 
 const AUTO_SAVE_INTERVAL_MS = 30_000;
+const ALERT_REFRESH_INTERVAL_MS = 5_000;
 const GAME_CLOCK_INTERVAL_MS = 1_000;
 const GAME_CLOCK_START_MINUTES = GAME_BALANCE.time.dayStartHour * 60;
 const GAME_CLOCK_END_MINUTES = GAME_BALANCE.time.dayEndHour * 60;
@@ -63,8 +71,12 @@ function createSaveService() {
   );
 }
 
+function synchronizeDerivedSave(save: GameSave): GameSave {
+  return refreshGameAlerts(synchronizeEconomyProjection(synchronizePlanning(save)));
+}
+
 function synchronizeLoadedSave(save: GameSave): GameSave {
-  return synchronizeEconomyProjection(synchronizePlanning(pruneExpiredStatusEffects(save)));
+  return synchronizeDerivedSave(pruneExpiredStatusEffects(save));
 }
 
 export function GameStoreProvider({ children }: { children: ReactNode }) {
@@ -80,6 +92,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isGamePaused, setIsGamePaused] = useState(false);
+  const [debugTimeScale, setDebugTimeScaleState] = useState(1);
   const [gameClockMinutes, setGameClockMinutes] = useState(GAME_CLOCK_START_MINUTES);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
@@ -284,7 +297,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       }
 
       const actionSave = updateSave(save);
-      const updatedSave = actionSave === save ? save : synchronizeEconomyProjection(actionSave);
+      const updatedSave = actionSave === save ? save : synchronizeDerivedSave(actionSave);
 
       if (updatedSave !== save) {
         dirtyRevisionRef.current += 1;
@@ -308,6 +321,59 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     },
     [applyPlayerChange],
   );
+
+  const levelUpDebugGladiator = useCallback(
+    (gladiatorId: string) => {
+      applyPlayerChange((save) => {
+        if (!featureFlags.enableDebugUi) {
+          return save;
+        }
+
+        return levelUpDebugGladiatorAction(save, gladiatorId);
+      });
+    },
+    [applyPlayerChange],
+  );
+
+  const createDebugInjuryAlert = useCallback(
+    (gladiatorId: string) => {
+      applyPlayerChange((save) => {
+        if (!featureFlags.enableDebugUi) {
+          return save;
+        }
+
+        return createDebugInjuryAlertAction(save, gladiatorId);
+      });
+    },
+    [applyPlayerChange],
+  );
+
+  const advanceDebugToDay = useCallback(
+    (dayOfWeek: DayOfWeek) => {
+      applyPlayerChange((save) => {
+        if (!featureFlags.enableDebugUi) {
+          return save;
+        }
+
+        return advanceDebugToDayAction(save, dayOfWeek);
+      });
+    },
+    [applyPlayerChange],
+  );
+
+  const setDebugTimeScale = useCallback((multiplier: number) => {
+    if (!featureFlags.enableDebugUi) {
+      return;
+    }
+
+    setDebugTimeScaleState(
+      GAME_BALANCE.debug.timeScaleOptions.includes(
+        multiplier as (typeof GAME_BALANCE.debug.timeScaleOptions)[number],
+      )
+        ? multiplier
+        : 1,
+    );
+  }, []);
 
   const purchaseBuildingAction = useCallback(
     (buildingId: BuildingId) => {
@@ -362,16 +428,14 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
   const allocateGladiatorSkillPoint = useCallback(
     (gladiatorId: string, skill: GladiatorSkillName) => {
-      applyPlayerChange((save) =>
-        synchronizePlanning({
-          ...save,
-          gladiators: save.gladiators.map((gladiator) =>
-            gladiator.id === gladiatorId
-              ? allocateGladiatorSkillPointAction(gladiator, skill)
-              : gladiator,
-          ),
-        }),
-      );
+      applyPlayerChange((save) => ({
+        ...save,
+        gladiators: save.gladiators.map((gladiator) =>
+          gladiator.id === gladiatorId
+            ? allocateGladiatorSkillPointAction(gladiator, skill)
+            : gladiator,
+        ),
+      }));
     },
     [applyPlayerChange],
   );
@@ -464,6 +528,14 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     isSavingRef.current = isSaving;
   }, [isSaving]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setCurrentSave((save) => (save ? refreshGameAlerts(save) : save));
+    }, ALERT_REFRESH_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     if (!initialRouteGameId || hasLoadedInitialRouteGame.current) {
@@ -584,7 +656,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       }
 
       setGameClockMinutes((minutes) => {
-        const nextMinutes = minutes + GAME_BALANCE.time.minutesPerRealSecond;
+        const nextMinutes = minutes + GAME_BALANCE.time.minutesPerRealSecond * debugTimeScale;
 
         if (nextMinutes < GAME_CLOCK_END_MINUTES) {
           return nextMinutes;
@@ -597,23 +669,38 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     }, GAME_CLOCK_INTERVAL_MS);
 
     return () => window.clearInterval(intervalId);
-  }, [applyPlayerChange]);
+  }, [applyPlayerChange, debugTimeScale]);
 
   useEffect(() => {
     if (!currentSave || (screen !== 'ludus' && screen !== 'arena')) {
       return;
     }
 
+    if (
+      currentSave.ludus.gameStatus !== 'lost' &&
+      currentSave.events.pendingEvents.length === 0 &&
+      currentSave.time.dayOfWeek === GAME_BALANCE.arena.dayOfWeek &&
+      currentSave.time.phase === 'arena' &&
+      !currentSave.arena.arenaDay
+    ) {
+      applyPlayerChange((save) => resolveWeekStep(save));
+      return;
+    }
+
     const interruption = getActiveGameInterruption(currentSave);
 
     if (interruption?.kind === 'dailyEvent') {
-      const hasEventsModal = modalStack.some((modal) => modal.kind === 'events');
+      const hasDailyEventModal = modalStack.some(
+        (modal) => modal.kind === 'dailyEvent' && modal.eventId === interruption.eventId,
+      );
 
-      if (!hasEventsModal) {
+      if (!hasDailyEventModal) {
+        const request = { eventId: interruption.eventId, kind: 'dailyEvent' as const };
+
         if (activeModal) {
-          pushModal({ kind: 'events' });
+          pushModal(request);
         } else {
-          openModal({ kind: 'events' });
+          openModal(request);
         }
       }
 
@@ -645,7 +732,16 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     if (screen === 'arena') {
       navigate('ludus', { gameId: currentSave.gameId });
     }
-  }, [activeModal, currentSave, modalStack, navigate, openModal, pushModal, screen]);
+  }, [
+    activeModal,
+    applyPlayerChange,
+    currentSave,
+    modalStack,
+    navigate,
+    openModal,
+    pushModal,
+    screen,
+  ]);
 
   const value = useMemo<GameStoreValue>(() => {
     const clockHours = Math.floor(gameClockMinutes / 60);
@@ -658,6 +754,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       isLoading,
       isSaving,
       isGamePaused: isGamePaused || Boolean(activeModal),
+      debugTimeScale,
       gameClockLabel: `${clockHours.toString().padStart(2, '0')}:${clockMinutes
         .toString()
         .padStart(2, '0')}`,
@@ -686,6 +783,10 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       resolveGameEventChoice,
       triggerDebugDailyEvent,
       adjustDebugTreasury,
+      levelUpDebugGladiator,
+      createDebugInjuryAlert,
+      advanceDebugToDay,
+      setDebugTimeScale,
       completeSundayArenaDay,
       advanceWeekStep: advanceWeekStepAction,
       toggleGamePause,
@@ -695,6 +796,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     };
   }, [
     adjustDebugTreasury,
+    advanceDebugToDay,
     advanceWeekStepAction,
     activeModal,
     allocateGladiatorSkillPoint,
@@ -703,7 +805,9 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     changeLanguage,
     clearError,
     createNewGame,
+    createDebugInjuryAlert,
     demoSaves,
+    debugTimeScale,
     errorKey,
     gameClockMinutes,
     hasUnsavedChanges,
@@ -711,6 +815,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     isLoading,
     isSaving,
     lastSavedAt,
+    levelUpDebugGladiator,
     loadDemoSave,
     loadLocalSave,
     localSaves,
@@ -723,6 +828,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     resolveGameEventChoice,
     saveCurrentGame,
     saveNoticeKey,
+    setDebugTimeScale,
     takeLoan,
     triggerDebugDailyEvent,
     toggleGamePause,

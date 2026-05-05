@@ -1,3 +1,4 @@
+import { refreshGameAlerts } from '../../domain/alerts/alert-actions';
 import { synchronizePlanning } from '../../domain/planning/planning-actions';
 import { CURRENT_SCHEMA_VERSION } from '../../domain/saves/create-initial-save';
 import { createInitialBuildings } from '../../domain/buildings/initial-buildings';
@@ -131,7 +132,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     },
   };
 
-  return synchronizeEconomyProjection(synchronizePlanning(baseSave, DEMO_UPDATED_AT));
+  return refreshGameAlerts(synchronizeEconomyProjection(synchronizePlanning(baseSave)));
 }
 
 export function createMarketGladiator(gladiator: DemoMarketGladiatorInput): MarketGladiator {

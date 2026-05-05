@@ -1,18 +1,12 @@
 import type { BuildingId, GameAlert, GameSave } from '../../domain/types';
-import {
-  getRemainingStatusEffectDuration,
-  getStatusEffectDefinition,
-} from '../../domain/status-effects/status-effect-actions';
 import { BUILDING_DEFINITIONS, BUILDING_IDS } from '../../game-data/buildings';
 import { getBuildingAssetSet } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
-import { GameIcon, type GameIconName } from '../icons/GameIcon';
+import { GameIcon } from '../icons/GameIcon';
 
 interface BuildingsOverviewProps {
   save: GameSave;
   onOpenBuilding(buildingId: BuildingId): void;
-  onOpenGladiator(gladiatorId: string): void;
-  onOpenPlanning(): void;
 }
 
 function getBuildingAlerts(save: GameSave, buildingId: BuildingId) {
@@ -31,17 +25,11 @@ function getHighestAlertSeverity(alerts: GameAlert[]) {
   return alerts.length > 0 ? 'info' : undefined;
 }
 
-export function BuildingsOverview({
-  onOpenBuilding,
-  onOpenGladiator,
-  onOpenPlanning,
-  save,
-}: BuildingsOverviewProps) {
+export function BuildingsOverview({ onOpenBuilding, save }: BuildingsOverviewProps) {
   const { t } = useUiStore();
   const purchasedBuildingIds = BUILDING_IDS.filter(
     (buildingId) => save.buildings[buildingId].isPurchased,
   );
-  const unassignedAlertCount = save.planning.alerts.filter((alert) => !alert.buildingId).length;
 
   return (
     <section className="buildings-overview" aria-label={t('buildingsOverview.title')}>
@@ -113,81 +101,6 @@ export function BuildingsOverview({
             );
           })}
         </div>
-
-        <aside className="buildings-overview__side-panel">
-          <section className="buildings-overview__alerts">
-            <h2>{t('buildingsOverview.alertsTitle')}</h2>
-            {save.planning.alerts.length > 0 ? (
-              <div className="buildings-overview__alert-list">
-                {save.planning.alerts.slice(0, 4).map((alert) => {
-                  const className = `buildings-overview__alert buildings-overview__alert--${alert.severity}`;
-                  const statusEffect = alert.statusEffectInstanceId
-                    ? save.statusEffects.find(
-                        (effect) => effect.id === alert.statusEffectInstanceId,
-                      )
-                    : undefined;
-                  const statusEffectDefinition = statusEffect
-                    ? getStatusEffectDefinition(statusEffect.effectId)
-                    : undefined;
-                  const statusEffectDuration = statusEffect
-                    ? getRemainingStatusEffectDuration(statusEffect, {
-                        year: save.time.year,
-                        week: save.time.week,
-                        dayOfWeek: save.time.dayOfWeek,
-                      })
-                    : undefined;
-                  const alertTitle = statusEffectDuration
-                    ? t('alerts.statusEffect.title', {
-                        effect: t(alert.titleKey),
-                        days: statusEffectDuration.days,
-                      })
-                    : t(alert.titleKey);
-                  const content = (
-                    <>
-                      <GameIcon
-                        color={statusEffectDefinition?.visual.color}
-                        name={(statusEffectDefinition?.visual.iconName ?? 'alert') as GameIconName}
-                        size={16}
-                      />
-                      {alertTitle}
-                    </>
-                  );
-
-                  if (
-                    (alert.actionKind === 'allocateGladiatorSkillPoint' || alert.statusEffectId) &&
-                    alert.gladiatorId
-                  ) {
-                    const gladiatorId = alert.gladiatorId;
-
-                    return (
-                      <button
-                        className={className}
-                        key={alert.id}
-                        type="button"
-                        onClick={() => onOpenGladiator(gladiatorId)}
-                      >
-                        {content}
-                      </button>
-                    );
-                  }
-
-                  return (
-                    <span className={className} key={alert.id}>
-                      {content}
-                    </span>
-                  );
-                })}
-                {unassignedAlertCount > 0 ? (
-                  <button type="button" onClick={onOpenPlanning}>
-                    {t('buildingsOverview.unassignedAlerts', { count: unassignedAlertCount })}
-                  </button>
-                ) : null}
-              </div>
-            ) : (
-              <p>{t('buildingsOverview.noAlerts')}</p>
-            )}
-          </section>
-        </aside>
       </div>
     </section>
   );

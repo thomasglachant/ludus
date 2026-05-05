@@ -6,6 +6,7 @@ import { BuildingsOverview } from '../buildings/BuildingsOverview';
 import { TopHud } from '../hud/TopHud';
 import { ScenicScreen } from '../layout/ScenicScreen';
 import { BottomNavigationBar } from '../navigation/BottomNavigationBar';
+import { RightAlertsMenu } from '../alerts/RightAlertsMenu';
 import type { ContextPanelKind } from './game-shell-types';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
 import { DebugOverlay } from '../debug/DebugOverlay';
@@ -29,7 +30,6 @@ export function GameShell() {
     activeModal?.kind === 'buildingsList' ||
     activeModal?.kind === 'gladiatorsList' ||
     activeModal?.kind === 'finance' ||
-    activeModal?.kind === 'events' ||
     activeModal?.kind === 'market' ||
     activeModal?.kind === 'arena'
       ? activeModal.kind
@@ -91,25 +91,21 @@ export function GameShell() {
         }}
       />
       <main className="game-shell__main-stage">
-        <BuildingsOverview
-          save={currentSave}
-          onOpenBuilding={selectBuilding}
-          onOpenGladiator={selectGladiator}
-          onOpenPlanning={() => openModal({ kind: 'weeklyPlanning' })}
-        />
+        <BuildingsOverview save={currentSave} onOpenBuilding={selectBuilding} />
       </main>
+      <RightAlertsMenu
+        save={currentSave}
+        onOpenBuilding={selectBuilding}
+        onOpenGladiator={selectGladiator}
+        onOpenMarket={() => openModal({ kind: 'market' })}
+        onOpenWeeklyPlanning={() => openModal({ kind: 'weeklyPlanning' })}
+      />
       <BottomNavigationBar
         activePanelKind={activePanelKind}
         save={currentSave}
         onOpenPanel={openPanel}
       />
-      <ToastAndAlertLayer
-        errorKey={errorKey}
-        save={currentSave}
-        saveNoticeKey={saveNoticeKey}
-        showAlerts
-        onGladiatorSelect={selectGladiator}
-      />
+      <ToastAndAlertLayer errorKey={errorKey} saveNoticeKey={saveNoticeKey} />
       <DebugOverlay />
     </ScenicScreen>
   );

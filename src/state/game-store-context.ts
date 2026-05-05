@@ -9,6 +9,7 @@ import type {
   GameSaveMetadata,
   LanguageCode,
   LoanId,
+  DayOfWeek,
 } from '../domain/types';
 
 export interface NewGameInput {
@@ -23,6 +24,7 @@ export interface GameStoreValue {
   isSaving: boolean;
   hasUnsavedChanges: boolean;
   isGamePaused: boolean;
+  debugTimeScale: number;
   gameClockLabel: string;
   lastSavedAt: string | null;
   errorKey: string | null;
@@ -48,6 +50,10 @@ export interface GameStoreValue {
   resolveGameEventChoice(eventId: string, choiceId: string): void;
   triggerDebugDailyEvent(definitionId: string): void;
   adjustDebugTreasury(amount: number): void;
+  levelUpDebugGladiator(gladiatorId: string): void;
+  createDebugInjuryAlert(gladiatorId: string): void;
+  advanceDebugToDay(dayOfWeek: DayOfWeek): void;
+  setDebugTimeScale(multiplier: number): void;
   completeSundayArenaDay(): void;
   advanceWeekStep(options?: { ignoreModalPause?: boolean }): void;
   toggleGamePause(): void;

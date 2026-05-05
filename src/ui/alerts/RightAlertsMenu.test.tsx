@@ -1,0 +1,359 @@
+// @vitest-environment jsdom
+
+import { act, type ReactNode } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import type { BuildingId, GameAlert, GameSave, Gladiator } from '../../domain/types';
+import { refreshGameAlerts } from '../../domain/alerts/alert-actions';
+import { synchronizePlanning } from '../../domain/planning/planning-actions';
+import { createInitialSave } from '../../domain/saves/create-initial-save';
+import { applyGladiatorStatusEffect } from '../../domain/status-effects/status-effect-actions';
+import { UiStoreContext, type UiStoreValue } from '../../state/ui-store-context';
+import { RightAlertsMenu } from './RightAlertsMenu';
+
+function createUiStore(): UiStoreValue {
+  return {
+    activeModal: null,
+    modalStack: [],
+    language: 'en',
+    screen: 'ludus',
+    backModal: vi.fn(),
+    closeModal: vi.fn(),
+    closeAllModals: vi.fn(),
+    openModal: vi.fn(),
+    openConfirmModal: vi.fn(),
+    openFormModal: vi.fn(),
+    pushModal: vi.fn(),
+    replaceModal: vi.fn(),
+    setLanguage: vi.fn(),
+    navigate: vi.fn(),
+    t: (key, params) => {
+      if (key === 'statusEffects.injury.name') {
+        return 'Injury';
+      }
+
+      if (key === 'statusEffects.duration.remainingDays') {
+        return `${params?.count} days remaining`;
+      }
+
+      if (key === 'buildings.canteen.name') {
+        return 'Canteen';
+      }
+
+      if (key === 'buildings.domus.name') {
+        return 'Domus';
+      }
+
+      if (key === 'test.alert.building') {
+        return 'Maintenance needed';
+      }
+
+      if (key === 'alerts.openRegister.title') {
+        return 'Open register';
+      }
+
+      if (key === 'alerts.emptyPlanning.title') {
+        return 'Empty planning';
+      }
+
+      if (key === 'test.alert.general') {
+        return 'General warning';
+      }
+
+      if (key === 'test.alert.critical') {
+        return 'Critical warning';
+      }
+
+      if (key === 'test.alert.criticalFollowUp') {
+        return 'Critical follow-up';
+      }
+
+      if (key === 'buildingsOverview.noAlerts') {
+        return 'No active alert.';
+      }
+
+      return key;
+    },
+  };
+}
+
+function createGladiator(): Gladiator {
+  return {
+    id: 'gladiator-test',
+    name: 'Marcus',
+    age: 27,
+    experience: 0,
+    strength: 5,
+    agility: 5,
+    defense: 5,
+    life: 5,
+    reputation: 0,
+    wins: 0,
+    losses: 0,
+    traits: ['disciplined'],
+  };
+}
+
+function createTestSave(overrides: Partial<GameSave> = {}): GameSave {
+  const save = createInitialSave({
+    ludusName: 'Test Ludus',
+    saveId: 'test-save',
+    createdAt: '2026-05-01T08:00:00.000Z',
+  });
+
+  return {
+    ...save,
+    ...overrides,
+  };
+}
+
+function render(node: ReactNode) {
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+
+  act(() => {
+    root.render(<UiStoreContext.Provider value={createUiStore()}>{node}</UiStoreContext.Provider>);
+  });
+
+  return { container, root };
+}
+
+function cleanup(container: HTMLElement, root: Root) {
+  act(() => {
+    root.unmount();
+  });
+  container.remove();
+}
+
+function getAlertButton(container: HTMLElement, label: string): HTMLButtonElement {
+  const button = Array.from(
+    container.querySelectorAll<HTMLButtonElement>('button.right-alerts-menu__alert'),
+  ).find((candidate) => candidate.textContent?.includes(label));
+
+  if (!button) {
+    throw new Error(`Missing alert button ${label}`);
+  }
+
+  return button;
+}
+
+function renderAlertsMenu(
+  save: GameSave,
+  handlers: Partial<{
+    onOpenBuilding(buildingId: BuildingId): void;
+    onOpenGladiator(gladiatorId: string): void;
+    onOpenMarket(): void;
+    onOpenWeeklyPlanning(): void;
+  }> = {},
+) {
+  return render(
+    <RightAlertsMenu
+      save={save}
+      onOpenBuilding={handlers.onOpenBuilding ?? vi.fn()}
+      onOpenGladiator={handlers.onOpenGladiator ?? vi.fn()}
+      onOpenMarket={handlers.onOpenMarket ?? vi.fn()}
+      onOpenWeeklyPlanning={handlers.onOpenWeeklyPlanning ?? vi.fn()}
+    />,
+  );
+}
+
+describe('RightAlertsMenu', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renders gladiator alert subjects with the gladiator portrait and name', () => {
+    const gladiator = createGladiator();
+    const save = refreshGameAlerts(
+      synchronizePlanning(
+        applyGladiatorStatusEffect(
+          createTestSave({ gladiators: [gladiator] }),
+          'injury',
+          2,
+          gladiator.id,
+        ),
+      ),
+    );
+    const { container, root } = renderAlertsMenu(save);
+
+    expect(container.textContent).toContain('Marcus');
+    expect(container.textContent).toContain('Injury');
+    expect(container.textContent).toContain('2 days remaining');
+    expect(container.querySelector('.right-alerts-menu__alert .gladiator-portrait')).not.toBeNull();
+
+    cleanup(container, root);
+  });
+
+  it('renders building alert subjects with the building name and opens the building', () => {
+    const onOpenBuilding = vi.fn();
+    const buildingAlert: GameAlert = {
+      id: 'alert-canteen-maintenance',
+      severity: 'warning',
+      titleKey: 'test.alert.building',
+      descriptionKey: 'test.alert.building',
+      buildingId: 'canteen',
+      createdAt: '2026-05-01T08:00:00.000Z',
+    };
+    const save = createTestSave({
+      planning: {
+        ...createTestSave().planning,
+        alerts: [buildingAlert],
+      },
+    });
+    const { container, root } = renderAlertsMenu(save, { onOpenBuilding });
+
+    const alertButton = getAlertButton(container, 'Canteen');
+    expect(alertButton.textContent).toContain('Maintenance needed');
+    expect(alertButton.querySelector('.right-alerts-menu__alert-copy span')).toBeNull();
+    expect(alertButton.querySelector('.building-modal-avatar')).not.toBeNull();
+
+    act(() => {
+      alertButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onOpenBuilding).toHaveBeenCalledWith('canteen');
+
+    cleanup(container, root);
+  });
+
+  it('routes open-market building alerts to the market action', () => {
+    const onOpenBuilding = vi.fn();
+    const onOpenMarket = vi.fn();
+    const marketAlert: GameAlert = {
+      id: 'alert-domus-open-register',
+      severity: 'info',
+      titleKey: 'alerts.openRegister.title',
+      descriptionKey: 'alerts.openRegister.description',
+      actionKind: 'openMarket',
+      buildingId: 'domus',
+      createdAt: '2026-05-01T08:00:00.000Z',
+    };
+    const save = createTestSave({
+      planning: {
+        ...createTestSave().planning,
+        alerts: [marketAlert],
+      },
+    });
+    const { container, root } = renderAlertsMenu(save, { onOpenBuilding, onOpenMarket });
+
+    const alertButton = getAlertButton(container, 'Domus');
+    expect(alertButton.textContent).toContain('Open register');
+    expect(alertButton.querySelector('.building-modal-avatar')).not.toBeNull();
+
+    act(() => {
+      alertButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onOpenMarket).toHaveBeenCalledTimes(1);
+    expect(onOpenBuilding).not.toHaveBeenCalled();
+
+    cleanup(container, root);
+  });
+
+  it('routes global planning action alerts to weekly planning', () => {
+    const onOpenWeeklyPlanning = vi.fn();
+    const planningAlert: GameAlert = {
+      id: 'alert-weekly-planning-empty',
+      severity: 'critical',
+      titleKey: 'alerts.emptyPlanning.title',
+      descriptionKey: 'alerts.emptyPlanning.description',
+      actionKind: 'openWeeklyPlanning',
+      createdAt: '2026-05-01T08:00:00.000Z',
+    };
+    const save = createTestSave({
+      planning: {
+        ...createTestSave().planning,
+        alerts: [planningAlert],
+      },
+    });
+    const { container, root } = renderAlertsMenu(save, { onOpenWeeklyPlanning });
+
+    const alertButton = getAlertButton(container, 'Empty planning');
+    expect(alertButton.querySelector('.right-alerts-menu__alert-icon')).not.toBeNull();
+
+    act(() => {
+      alertButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onOpenWeeklyPlanning).toHaveBeenCalledTimes(1);
+
+    cleanup(container, root);
+  });
+
+  it('renders untargeted alerts without a shortcut button', () => {
+    const generalAlert: GameAlert = {
+      id: 'alert-general',
+      severity: 'info',
+      titleKey: 'test.alert.general',
+      descriptionKey: 'test.alert.general',
+      createdAt: '2026-05-01T08:00:00.000Z',
+    };
+    const save = createTestSave({
+      planning: {
+        ...createTestSave().planning,
+        alerts: [generalAlert],
+      },
+    });
+    const { container, root } = renderAlertsMenu(save);
+
+    expect(container.textContent).toContain('General warning');
+    expect(container.querySelector('button.right-alerts-menu__alert')).toBeNull();
+
+    cleanup(container, root);
+  });
+
+  it('sorts alerts from highest to lowest severity and keeps same-severity order', () => {
+    const alerts: GameAlert[] = [
+      {
+        id: 'alert-info',
+        severity: 'info',
+        titleKey: 'test.alert.general',
+        descriptionKey: 'test.alert.general',
+        createdAt: '2026-05-01T08:00:00.000Z',
+      },
+      {
+        id: 'alert-critical',
+        severity: 'critical',
+        titleKey: 'test.alert.critical',
+        descriptionKey: 'test.alert.critical',
+        createdAt: '2026-05-01T08:00:00.000Z',
+      },
+      {
+        id: 'alert-warning',
+        severity: 'warning',
+        titleKey: 'test.alert.building',
+        descriptionKey: 'test.alert.building',
+        createdAt: '2026-05-01T08:00:00.000Z',
+      },
+      {
+        id: 'alert-critical-follow-up',
+        severity: 'critical',
+        titleKey: 'test.alert.criticalFollowUp',
+        descriptionKey: 'test.alert.criticalFollowUp',
+        createdAt: '2026-05-01T08:00:00.000Z',
+      },
+    ];
+    const save = createTestSave({
+      planning: {
+        ...createTestSave().planning,
+        alerts,
+      },
+    });
+    const { container, root } = renderAlertsMenu(save);
+
+    const titles = Array.from(
+      container.querySelectorAll('.right-alerts-menu__alert-copy strong'),
+    ).map((title) => title.textContent);
+
+    expect(titles).toEqual([
+      'Critical warning',
+      'Critical follow-up',
+      'Maintenance needed',
+      'General warning',
+    ]);
+
+    cleanup(container, root);
+  });
+});

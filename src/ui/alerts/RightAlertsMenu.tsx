@@ -1,0 +1,186 @@
+import type { BuildingId, GameAlert, GameSave } from '../../domain/types';
+import {
+  getRemainingStatusEffectDuration,
+  getStatusEffectDefinition,
+} from '../../domain/status-effects/status-effect-actions';
+import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
+import { useUiStore } from '../../state/ui-store-context';
+import { BuildingAvatar } from '../buildings/BuildingAvatar';
+import { GameIcon, type GameIconName } from '../icons/GameIcon';
+import { GladiatorPortrait } from '../roster/GladiatorPortrait';
+
+interface RightAlertsMenuProps {
+  save: GameSave;
+  onOpenBuilding(buildingId: BuildingId): void;
+  onOpenGladiator(gladiatorId: string): void;
+  onOpenMarket(): void;
+  onOpenWeeklyPlanning(): void;
+}
+
+interface AlertsListProps extends RightAlertsMenuProps {
+  alerts: GameAlert[];
+}
+
+interface AlertItemProps extends RightAlertsMenuProps {
+  alert: GameAlert;
+}
+
+const ALERT_SEVERITY_ORDER: Record<GameAlert['severity'], number> = {
+  critical: 0,
+  warning: 1,
+  info: 2,
+};
+
+function sortAlertsBySeverity(alerts: GameAlert[]) {
+  return alerts
+    .map((alert, index) => ({ alert, index }))
+    .sort((left, right) => {
+      const severityDelta =
+        ALERT_SEVERITY_ORDER[left.alert.severity] - ALERT_SEVERITY_ORDER[right.alert.severity];
+
+      return severityDelta || left.index - right.index;
+    })
+    .map(({ alert }) => alert);
+}
+
+export function RightAlertsMenu({
+  save,
+  onOpenBuilding,
+  onOpenGladiator,
+  onOpenMarket,
+  onOpenWeeklyPlanning,
+}: RightAlertsMenuProps) {
+  const { t } = useUiStore();
+
+  return (
+    <aside className="right-alerts-menu" aria-label={t('buildingsOverview.alertsTitle')}>
+      <section className="right-alerts-menu__panel">
+        <h2>{t('buildingsOverview.alertsTitle')}</h2>
+        <AlertsList
+          alerts={save.planning.alerts}
+          save={save}
+          onOpenBuilding={onOpenBuilding}
+          onOpenGladiator={onOpenGladiator}
+          onOpenMarket={onOpenMarket}
+          onOpenWeeklyPlanning={onOpenWeeklyPlanning}
+        />
+      </section>
+    </aside>
+  );
+}
+
+function AlertsList({
+  alerts,
+  save,
+  onOpenBuilding,
+  onOpenGladiator,
+  onOpenMarket,
+  onOpenWeeklyPlanning,
+}: AlertsListProps) {
+  const { t } = useUiStore();
+  const sortedAlerts = sortAlertsBySeverity(alerts);
+
+  if (alerts.length === 0) {
+    return <p className="right-alerts-menu__empty">{t('buildingsOverview.noAlerts')}</p>;
+  }
+
+  return (
+    <div className="right-alerts-menu__list">
+      {sortedAlerts.slice(0, 4).map((alert) => (
+        <AlertItem
+          alert={alert}
+          key={alert.id}
+          save={save}
+          onOpenBuilding={onOpenBuilding}
+          onOpenGladiator={onOpenGladiator}
+          onOpenMarket={onOpenMarket}
+          onOpenWeeklyPlanning={onOpenWeeklyPlanning}
+        />
+      ))}
+    </div>
+  );
+}
+
+function AlertItem({
+  alert,
+  save,
+  onOpenBuilding,
+  onOpenGladiator,
+  onOpenMarket,
+  onOpenWeeklyPlanning,
+}: AlertItemProps) {
+  const { t } = useUiStore();
+  const gladiator = alert.gladiatorId
+    ? save.gladiators.find((candidate) => candidate.id === alert.gladiatorId)
+    : undefined;
+  const buildingId = alert.buildingId;
+  const building = buildingId ? save.buildings[buildingId] : undefined;
+  const buildingDefinition = buildingId ? BUILDING_DEFINITIONS[buildingId] : undefined;
+  const statusEffect = alert.statusEffectInstanceId
+    ? save.statusEffects.find((effect) => effect.id === alert.statusEffectInstanceId)
+    : undefined;
+  const statusEffectDefinition = statusEffect
+    ? getStatusEffectDefinition(statusEffect.effectId)
+    : undefined;
+  const statusEffectDuration = statusEffect
+    ? getRemainingStatusEffectDuration(statusEffect, {
+        year: save.time.year,
+        week: save.time.week,
+        dayOfWeek: save.time.dayOfWeek,
+      })
+    : undefined;
+  const durationLabel = statusEffectDuration
+    ? t('statusEffects.duration.remainingDays', { count: statusEffectDuration.days })
+    : null;
+  const className = `right-alerts-menu__alert right-alerts-menu__alert--${alert.severity}`;
+  const content = (
+    <>
+      <span className="right-alerts-menu__alert-subject">
+        {gladiator ? (
+          <>
+            <GladiatorPortrait gladiator={gladiator} size="small" />
+            <strong>{gladiator.name}</strong>
+          </>
+        ) : building && buildingDefinition && buildingId ? (
+          <>
+            <BuildingAvatar buildingId={buildingId} level={building.level} size="small" />
+            <strong>{t(buildingDefinition.nameKey)}</strong>
+          </>
+        ) : (
+          <span className="right-alerts-menu__alert-icon">
+            <GameIcon
+              color={statusEffectDefinition?.visual.color}
+              name={(statusEffectDefinition?.visual.iconName ?? 'alert') as GameIconName}
+              size={22}
+            />
+          </span>
+        )}
+      </span>
+      <span className="right-alerts-menu__alert-copy">
+        <strong>{t(alert.titleKey)}</strong>
+        {durationLabel ? <span>{durationLabel}</span> : null}
+      </span>
+    </>
+  );
+
+  const actionHandler =
+    alert.actionKind === 'openWeeklyPlanning'
+      ? onOpenWeeklyPlanning
+      : alert.actionKind === 'openMarket'
+        ? onOpenMarket
+        : gladiator
+          ? () => onOpenGladiator(gladiator.id)
+          : buildingId && buildingDefinition
+            ? () => onOpenBuilding(buildingId)
+            : null;
+
+  if (actionHandler) {
+    return (
+      <button className={className} type="button" onClick={actionHandler}>
+        {content}
+      </button>
+    );
+  }
+
+  return <span className={className}>{content}</span>;
+}

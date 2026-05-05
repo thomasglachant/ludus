@@ -88,8 +88,9 @@ export interface FinanceModalRequest {
   kind: 'finance';
 }
 
-export interface EventsModalRequest {
-  kind: 'events';
+export interface DailyEventModalRequest {
+  eventId: string;
+  kind: 'dailyEvent';
 }
 
 export interface ArenaModalRequest {
@@ -110,7 +111,7 @@ export type UiModalRequest =
   | BuildingsListModalRequest
   | GladiatorsListModalRequest
   | FinanceModalRequest
-  | EventsModalRequest
+  | DailyEventModalRequest
   | ArenaModalRequest;
 
 export type UiModalState = UiModalRequest & { id: string };

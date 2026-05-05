@@ -7,21 +7,9 @@ import { DAYS_OF_WEEK } from '../../game-data/time';
 import type { BuildingActivityId } from '../buildings/types';
 import { getSelectableBuildingActivities } from '../buildings/building-activities';
 import { sumActiveBuildingEffectValues } from '../buildings/building-effects';
-import { getAvailableSkillPoints } from '../gladiators/progression';
 import type { GameSave } from '../saves/types';
-import {
-  getActiveStatusEffects,
-  getRemainingStatusEffectDuration,
-  getStatusEffectDefinition,
-} from '../status-effects/status-effect-actions';
 import type { DayOfWeek } from '../time/types';
-import type {
-  DailyPlan,
-  DailyPlanActivity,
-  DailyPlanBucket,
-  DailyPlanPoints,
-  GameAlert,
-} from './types';
+import type { DailyPlan, DailyPlanActivity, DailyPlanBucket, DailyPlanPoints } from './types';
 
 export type { DailyPlanBucket } from './types';
 
@@ -139,77 +127,11 @@ export function createDefaultWeeklyPlan(year: number, week: number) {
   };
 }
 
-function createStatusEffectAlert(
-  gladiatorId: string,
-  statusEffectId: string,
-  statusEffectInstanceId: string,
-  createdAt: string,
-): GameAlert | null {
-  const definition = getStatusEffectDefinition(statusEffectId);
-
-  if (!definition?.showAlert) {
-    return null;
-  }
-
-  return {
-    id: `alert-${gladiatorId}-status-effect-${statusEffectInstanceId}`,
-    severity: 'warning',
-    titleKey: definition.nameKey,
-    descriptionKey: definition.descriptionKey,
-    gladiatorId,
-    statusEffectId,
-    statusEffectInstanceId,
-    createdAt,
-  };
-}
-
-function createSkillPointAlert(gladiatorId: string, createdAt: string): GameAlert {
-  return {
-    id: `alert-${gladiatorId}-skill-point`,
-    severity: 'info',
-    titleKey: 'alerts.unassignedSkillPoints.title',
-    descriptionKey: 'alerts.unassignedSkillPoints.description',
-    actionKind: 'allocateGladiatorSkillPoint',
-    gladiatorId,
-    createdAt,
-  };
-}
-
-export function generatePlanningAlerts(save: GameSave, createdAt = save.updatedAt): GameAlert[] {
-  const alerts: GameAlert[] = [];
-  const activeStatusEffects = getActiveStatusEffects(save);
-
-  for (const gladiator of save.gladiators) {
-    if (getAvailableSkillPoints(gladiator) > 0) {
-      alerts.push(createSkillPointAlert(gladiator.id, createdAt));
-    }
-  }
-
-  for (const effect of activeStatusEffects) {
-    if (effect.target.type !== 'gladiator') {
-      continue;
-    }
-
-    const remainingDuration = getRemainingStatusEffectDuration(effect, {
-      year: save.time.year,
-      week: save.time.week,
-      dayOfWeek: save.time.dayOfWeek,
-    });
-    const alert = createStatusEffectAlert(effect.target.id, effect.effectId, effect.id, createdAt);
-
-    if (alert && remainingDuration.days > 0) {
-      alerts.push(alert);
-    }
-  }
-
-  return alerts;
-}
-
-export function synchronizePlanning(save: GameSave, createdAt = save.updatedAt): GameSave {
+export function synchronizePlanning(save: GameSave): GameSave {
   const defaultWeeklyPlan = createDefaultWeeklyPlan(save.time.year, save.time.week);
   const hasCurrentPlanningWeek =
     save.planning.year === save.time.year && save.planning.week === save.time.week;
-  const saveWithPlanning = {
+  return {
     ...save,
     planning: {
       year: save.time.year,
@@ -223,14 +145,6 @@ export function synchronizePlanning(save: GameSave, createdAt = save.updatedAt):
         : defaultWeeklyPlan.days,
       reports: save.planning.reports ?? [],
       alerts: save.planning.alerts ?? [],
-    },
-  };
-
-  return {
-    ...saveWithPlanning,
-    planning: {
-      ...saveWithPlanning.planning,
-      alerts: generatePlanningAlerts(saveWithPlanning, createdAt),
     },
   };
 }

@@ -66,7 +66,7 @@ const gladiatorTraits = [
   'stoic',
 ];
 const alertSeverities = ['info', 'warning', 'critical'];
-const alertActionKinds = ['allocateGladiatorSkillPoint'];
+const alertActionKinds = ['allocateGladiatorSkillPoint', 'openWeeklyPlanning', 'openMarket'];
 const statusEffectIds = STATUS_EFFECT_DEFINITIONS.map((definition) => definition.id);
 const statusEffectTargetTypes = ['gladiator'];
 const eventStatuses = ['pending', 'resolved', 'expired'];

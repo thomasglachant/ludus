@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import type {
+  GameEvent,
   GameEventConsequence,
   GameEventEffect,
   GameEventOutcome,
@@ -19,7 +20,8 @@ interface PanelProps {
   onClose(): void;
 }
 
-interface EventsPanelProps extends PanelProps {
+interface EventDecisionPanelProps extends PanelProps {
+  event: GameEvent;
   onOpenGladiator(gladiatorId: string): void;
   onResolveEventChoice(eventId: string, choiceId: string): void;
 }
@@ -152,83 +154,71 @@ function getEventConsequenceIndicators(
   }
 }
 
-export function EventsPanel({
+export function EventDecisionPanel({
+  event,
   save,
   onClose,
   onOpenGladiator,
   onResolveEventChoice,
-}: EventsPanelProps) {
+}: EventDecisionPanelProps) {
   const { t } = useUiStore();
+  const gladiator = save.gladiators.find((candidate) => candidate.id === event.gladiatorId);
+  const choiceGridStyle = {
+    '--event-choice-columns': event.choices.length,
+  } as CSSProperties;
 
   return (
     <PanelShell
       eyebrowKey="events.eyebrow"
       titleKey="events.title"
-      testId="events-panel"
+      testId="event-decision-panel"
       onClose={onClose}
     >
-      {save.events.pendingEvents.length > 0 ? (
-        <div className="events-panel__list">
-          {save.events.pendingEvents.map((event) => {
-            const gladiator = save.gladiators.find(
-              (candidate) => candidate.id === event.gladiatorId,
-            );
-            const choiceGridStyle = {
-              '--event-choice-columns': event.choices.length,
-            } as CSSProperties;
-
-            return (
-              <article className="events-panel__event" key={event.id}>
-                <div className="events-panel__event-header">
-                  <div className="events-panel__heading-row">
-                    {gladiator ? (
-                      <button
-                        aria-label={t('roster.openGladiator', { name: gladiator.name })}
-                        className="events-panel__gladiator"
-                        type="button"
-                        onClick={() => onOpenGladiator(gladiator.id)}
-                      >
-                        <GladiatorPortrait gladiator={gladiator} size="medium" />
-                        <strong>{gladiator.name}</strong>
-                      </button>
-                    ) : null}
-                    <div className="events-panel__summary">
-                      <h3>{t(event.titleKey)}</h3>
-                      <p>{t(event.descriptionKey)}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="event-choice-grid" style={choiceGridStyle}>
-                  {event.choices.map((choice) => (
-                    <article className="events-panel__choice" key={choice.id}>
-                      <div className="events-panel__choice-copy">
-                        <h4>{t(choice.labelKey)}</h4>
-                        <p>{t(choice.consequenceKey)}</p>
-                      </div>
-                      <div className="events-panel__impact">
-                        <ul>
-                          {choice.consequences.flatMap((consequence, index) =>
-                            getEventConsequenceIndicators(
-                              consequence,
-                              t,
-                              `${choice.id}-consequence-${index}`,
-                            ),
-                          )}
-                        </ul>
-                      </div>
-                      <CTAButton onClick={() => onResolveEventChoice(event.id, choice.id)}>
-                        {t('events.choose')}
-                      </CTAButton>
-                    </article>
-                  ))}
-                </div>
-              </article>
-            );
-          })}
+      <article className="events-panel__event">
+        <div className="events-panel__event-header">
+          <div className="events-panel__heading-row">
+            {gladiator ? (
+              <button
+                aria-label={t('roster.openGladiator', { name: gladiator.name })}
+                className="events-panel__gladiator"
+                type="button"
+                onClick={() => onOpenGladiator(gladiator.id)}
+              >
+                <GladiatorPortrait gladiator={gladiator} size="medium" />
+                <strong>{gladiator.name}</strong>
+              </button>
+            ) : null}
+            <div className="events-panel__summary">
+              <h3>{t(event.titleKey)}</h3>
+              <p>{t(event.descriptionKey)}</p>
+            </div>
+          </div>
         </div>
-      ) : (
-        <EmptyState messageKey="events.noPending" testId="events-empty-pending" />
-      )}
+        <div className="event-choice-grid" style={choiceGridStyle}>
+          {event.choices.map((choice) => (
+            <article className="events-panel__choice" key={choice.id}>
+              <div className="events-panel__choice-copy">
+                <h4>{t(choice.labelKey)}</h4>
+                <p>{t(choice.consequenceKey)}</p>
+              </div>
+              <div className="events-panel__impact">
+                <ul>
+                  {choice.consequences.flatMap((consequence, index) =>
+                    getEventConsequenceIndicators(
+                      consequence,
+                      t,
+                      `${choice.id}-consequence-${index}`,
+                    ),
+                  )}
+                </ul>
+              </div>
+              <CTAButton onClick={() => onResolveEventChoice(event.id, choice.id)}>
+                {t('events.choose')}
+              </CTAButton>
+            </article>
+          ))}
+        </div>
+      </article>
     </PanelShell>
   );
 }
