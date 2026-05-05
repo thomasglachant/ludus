@@ -147,6 +147,17 @@ Some skills also expose `unlockedActivities` ids from `src/game-data/building-ac
 
 Daily simulation applies active macro effects from levels, improvements, policies and skills. Effect values are scaled by `BuildingState.efficiency`.
 
+## Status Effects
+
+`src/game-data/status-effects.ts` defines temporary gladiator effects. Each definition owns its i18n name and description keys, visual icon/color, alert visibility and hard-coded modifiers.
+
+Current definitions:
+
+- `injury`: shows an alert, sets training XP multiplier to `0`, and blocks arena combat eligibility.
+- `victoryAura`: does not show an alert and sets training XP multiplier to `1.1`.
+
+Runtime instances are stored in `GameSave.statusEffects` with a target, `startedAt` and exclusive `expiresAt` game dates.
+
 ## Events
 
 `src/game-data/events.ts` defines daily event content. Events may set `triggerActivities`; those definitions can only appear when the matching daily plan activity has at least one allocated point. Definitions without `triggerActivities` are global ludus events and remain eligible through the normal probability, cooldown and weekly-limit rules.

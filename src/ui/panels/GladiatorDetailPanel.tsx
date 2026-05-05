@@ -7,6 +7,7 @@ import { MetricList, SectionCard } from '../components/shared';
 import { GladiatorAttributes } from '../gladiators/GladiatorAttributes';
 import { GladiatorExperienceBar } from '../gladiators/GladiatorExperienceBar';
 import { GladiatorSkillBars } from '../gladiators/GladiatorSkillBars';
+import { GladiatorStatusEffects } from '../gladiators/GladiatorStatusEffects';
 import { GameIcon } from '../icons/GameIcon';
 import {
   ModalContentFrame,
@@ -66,6 +67,7 @@ export function GladiatorDetailPanel({
           </span>
         }
         descriptionContent={<GladiatorAttributes gladiator={gladiator} />}
+        headingContent={<GladiatorStatusEffects gladiator={gladiator} save={save} />}
         level={getGladiatorLevel(gladiator)}
         levelLabelKey="gladiatorPanel.level"
         title={gladiator.name}

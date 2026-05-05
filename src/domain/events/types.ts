@@ -67,6 +67,12 @@ export type GameEventEffect =
   | { type: 'releaseAllGladiators' }
   | { type: 'changeGladiatorExperience'; gladiatorId: string; amount: number }
   | {
+      type: 'applyGladiatorStatusEffect';
+      gladiatorId: string;
+      effectId: string;
+      durationDays: number;
+    }
+  | {
       type: 'changeGladiatorStat';
       gladiatorId: string;
       stat: 'strength' | 'agility' | 'defense' | 'life';

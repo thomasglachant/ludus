@@ -1,4 +1,5 @@
 import { GAME_BALANCE } from './balance';
+import type { StatusEffectId } from './status-effects';
 import type { BuildingActivityId } from '../domain/buildings/types';
 import type { DailyPlanActivity } from '../domain/planning/types';
 
@@ -25,6 +26,11 @@ export type DailyEventEffectTemplate =
   | { type: 'changeSelectedGladiatorEnergy'; amount: number }
   | { type: 'changeSelectedGladiatorMorale'; amount: number }
   | { type: 'changeSelectedGladiatorExperience'; amount: number }
+  | {
+      type: 'applySelectedGladiatorStatusEffect';
+      effectId: StatusEffectId;
+      durationDays: number;
+    }
   | {
       type: 'changeSelectedGladiatorStat';
       stat: 'strength' | 'agility' | 'defense' | 'life';

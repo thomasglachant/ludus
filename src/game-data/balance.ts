@@ -121,6 +121,31 @@ export const GAME_BALANCE = {
     },
   },
 
+  statusEffects: {
+    injury: {
+      // Days applied when macro training creates an injury.
+      trainingDurationDays: 2,
+      // Days applied by event consequences that explicitly create an injury.
+      eventDurationDays: 2,
+      combat: {
+        // Chance that a winning arena gladiator receives an injury status effect.
+        winChance: 0.05,
+        // Chance that a losing arena gladiator receives an injury status effect.
+        lossChance: 0.3,
+        // Minimum arena injury duration in days.
+        minDurationDays: 2,
+        // Maximum arena injury duration in days.
+        maxDurationDays: 8,
+      },
+    },
+    victoryAura: {
+      // Days applied after a Sunday arena victory.
+      durationDays: 3,
+      // Training XP multiplier while the aura is active.
+      trainingExperienceMultiplier: 1.1,
+    },
+  },
+
   buildings: {
     upgradeCost: {
       // Base denarii cost used by the generic building upgrade formula.

@@ -16,6 +16,7 @@ export interface GameSave {
   time: GameTimeState;
   buildings: Record<BuildingId, BuildingState>;
   gladiators: Gladiator[];
+  statusEffects: ActiveStatusEffect[];
   market: MarketState;
   arena: ArenaState;
   planning: WeeklyPlanningState;
@@ -25,7 +26,7 @@ export interface GameSave {
 }
 ```
 
-New and updated saves are emitted with the current `schemaVersion`. The validator supports only the current save schema and rejects older schema versions cleanly.
+New and updated saves are emitted with the current `schemaVersion`. The validator supports the current save schema and the immediately previous schema when a migration is implemented.
 
 ## Ludus
 
@@ -97,7 +98,6 @@ export interface Gladiator {
   wins: number;
   losses: number;
   traits: GladiatorTrait[];
-  weeklyInjury?: GladiatorWeeklyInjury;
   visualIdentity?: GladiatorVisualIdentity;
 }
 ```
@@ -106,15 +106,23 @@ export interface Gladiator {
 
 `experience` is the source of truth for progression. The gladiator level is derived from XP thresholds through domain selectors and should not be persisted as an independent mutable field. Available skill points are derived from the initial point budget plus derived levels minus the sum of allocated skills; spending a point increments one integer skill and clamps it to the 1..10 range.
 
+## Status Effects
+
 ```ts
-export interface GladiatorWeeklyInjury {
-  reason: 'training' | 'combat' | 'event';
-  week: number;
-  year: number;
+export interface ActiveStatusEffect {
+  id: string;
+  effectId: string;
+  target: { type: 'gladiator'; id: string };
+  startedAt: GameDate;
+  expiresAt: GameDate;
 }
+
+export type StatusEffectModifier =
+  | { type: 'trainingExperienceMultiplier'; value: number }
+  | { type: 'arenaCombatEligibility'; value: boolean };
 ```
 
-`Gladiator.weeklyInjury` is optional. When it matches the current `year` and `week`, the gladiator is unavailable for physical macro activities. Weekly injuries are cleared when Sunday arena completion rolls the save to the next week.
+Status effect definitions live in `src/game-data/status-effects.ts`. Instances live in `GameSave.statusEffects`. Durations are exclusive by day: an effect created on Monday for 1 day expires at the start of Tuesday. Reapplying the same effect to the same gladiator refreshes the existing instance to the later expiration date instead of stacking duplicates.
 
 ```ts
 export interface BuildingSkillDefinition {
@@ -220,11 +228,15 @@ export interface GameAlert {
   actionKind?: 'allocateGladiatorSkillPoint';
   gladiatorId?: string;
   buildingId?: BuildingId;
+  statusEffectId?: string;
+  statusEffectInstanceId?: string;
   createdAt: string;
 }
 ```
 
 Skill allocation alerts are generated from owned gladiators whose derived available skill points are greater than zero. They should be attached through `gladiatorId` and regenerated during planning synchronization rather than treated as authoritative progression state.
+
+Status effect alerts are generated from active status effect instances whose definitions set `showAlert` to `true`. They use `statusEffectId` for the definition and `statusEffectInstanceId` for the active instance so UI surfaces can display the correct icon, color and remaining duration.
 
 Training and combat XP awards update `Gladiator.experience`. Reports may summarize XP gains for UI explanation, but the persisted source of truth remains the gladiator's total XP and allocated integer skills.
 

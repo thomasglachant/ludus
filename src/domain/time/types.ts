@@ -15,3 +15,9 @@ export interface GameTimeState {
   dayOfWeek: DayOfWeek;
   phase: GamePhase;
 }
+
+export interface GameDate {
+  year: number;
+  week: number;
+  dayOfWeek: DayOfWeek;
+}

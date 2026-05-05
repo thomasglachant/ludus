@@ -1,5 +1,5 @@
 export type { LanguageCode } from './common/types';
-export type { DayOfWeek, GamePhase, GameTimeState } from './time/types';
+export type { DayOfWeek, GameDate, GamePhase, GameTimeState } from './time/types';
 export type { GameStatus, LudusState } from './ludus/types';
 export type {
   BuildingId,
@@ -27,7 +27,6 @@ export type {
   GladiatorClassId,
   GladiatorSkillProfile,
   GladiatorTrait,
-  GladiatorWeeklyInjury,
   GladiatorVisualIdentity,
 } from './gladiators/types';
 export { GLADIATOR_CLASS_IDS } from './gladiators/types';
@@ -106,3 +105,11 @@ export type {
   PlayerProfile,
   SaveMetadata,
 } from './saves/types';
+export type {
+  ActiveStatusEffect,
+  StatusEffectDefinition,
+  StatusEffectDurationBreakdown,
+  StatusEffectModifier,
+  StatusEffectTarget,
+  StatusEffectVisual,
+} from './status-effects/types';

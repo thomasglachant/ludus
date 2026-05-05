@@ -6,6 +6,7 @@ import type { Gladiator } from '../gladiators/types';
 import type { LudusState } from '../ludus/types';
 import type { MarketState } from '../market/types';
 import type { WeeklyPlanningState } from '../planning/types';
+import type { ActiveStatusEffect } from '../status-effects/types';
 import type { GameTimeState } from '../time/types';
 
 export type DemoSaveId = 'demo-early-ludus' | 'demo-mid-ludus' | 'demo-advanced-ludus';
@@ -26,6 +27,7 @@ export interface GameSave {
   buildings: Record<BuildingId, BuildingState>;
   gladiators: Gladiator[];
   economy: EconomyState;
+  statusEffects: ActiveStatusEffect[];
   market: MarketState;
   arena: ArenaState;
   planning: WeeklyPlanningState;

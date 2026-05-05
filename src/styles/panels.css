@@ -51,6 +51,56 @@
   color: #6d5035;
 }
 
+.gladiator-status-effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.gladiator-status-effects__badge {
+  display: grid;
+  min-width: 42px;
+  justify-items: center;
+  gap: 3px;
+  padding: 6px 7px;
+  border: 1px solid color-mix(in srgb, var(--status-effect-color) 72%, #fff1c7);
+  border-radius: 7px;
+  background:
+    linear-gradient(180deg, rgba(42, 33, 24, 0.92), rgba(29, 23, 18, 0.94)),
+    var(--status-effect-color);
+  color: #fff1c7;
+  font-size: 0.66rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.gladiator-status-effects__badge svg {
+  color: var(--status-effect-color);
+}
+
+.gladiator-status-effects__tooltip {
+  display: grid;
+  max-width: 260px;
+  gap: 8px;
+  line-height: 1.25;
+}
+
+.gladiator-status-effects__tooltip > strong {
+  color: #fff1c7;
+  font-size: 0.88rem;
+}
+
+.gladiator-status-effects__tooltip-duration {
+  color: #d7bd84;
+}
+
+.gladiator-status-effects__tooltip-modifiers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .finance-chart-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

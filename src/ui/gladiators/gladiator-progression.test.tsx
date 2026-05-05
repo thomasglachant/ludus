@@ -4,10 +4,13 @@ import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Gladiator } from '../../domain/types';
+import { createInitialSave } from '../../domain/saves/create-initial-save';
+import { applyGladiatorStatusEffect } from '../../domain/status-effects/status-effect-actions';
+import type { GameSave, Gladiator } from '../../domain/types';
 import { UiStoreContext, type UiStoreValue } from '../../state/ui-store-context';
 import { GladiatorExperienceBar } from './GladiatorExperienceBar';
 import { GladiatorSkillBars } from './GladiatorSkillBars';
+import { GladiatorStatusEffects } from './GladiatorStatusEffects';
 
 function createUiStore(): UiStoreValue {
   return {
@@ -69,6 +72,19 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
   };
 }
 
+function createTestSave(gladiator: Gladiator): GameSave {
+  const save = createInitialSave({
+    ludusName: 'Ludus Magnus',
+    saveId: 'save-test',
+    createdAt: '2026-04-25T12:00:00.000Z',
+  });
+
+  return {
+    ...save,
+    gladiators: [gladiator],
+  };
+}
+
 function render(node: ReactNode) {
   const container = document.createElement('div');
   const root = createRoot(container);
@@ -124,5 +140,17 @@ describe('gladiator progression UI', () => {
     });
 
     expect(onAllocate).toHaveBeenCalledWith('strength');
+  });
+
+  it('renders active status effect badges for a gladiator', () => {
+    const gladiator = createGladiator();
+    const save = applyGladiatorStatusEffect(createTestSave(gladiator), 'injury', 2, gladiator.id);
+    const { container, root } = render(
+      <GladiatorStatusEffects gladiator={gladiator} save={save} />,
+    );
+    mountedRoots.push(root);
+
+    expect(container.querySelector('.gladiator-status-effects__badge')).not.toBeNull();
+    expect(container.textContent).toContain('statusEffects.duration.shortDays');
   });
 });

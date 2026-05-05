@@ -30,6 +30,7 @@ import {
 } from '../domain/planning/planning-actions';
 import { getActiveGameInterruption } from '../domain/game-flow/interruption';
 import { allocateGladiatorSkillPoint as allocateGladiatorSkillPointAction } from '../domain/gladiators/progression';
+import { pruneExpiredStatusEffects } from '../domain/status-effects/status-effect-actions';
 import type { GladiatorSkillName } from '../domain/gladiators/skills';
 import type {
   BuildingId,
@@ -63,7 +64,7 @@ function createSaveService() {
 }
 
 function synchronizeLoadedSave(save: GameSave): GameSave {
-  return synchronizeEconomyProjection(synchronizePlanning(save));
+  return synchronizeEconomyProjection(synchronizePlanning(pruneExpiredStatusEffects(save)));
 }
 
 export function GameStoreProvider({ children }: { children: ReactNode }) {

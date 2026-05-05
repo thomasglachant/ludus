@@ -105,11 +105,12 @@ describe('save validation', () => {
     expect(parsed).toBeNull();
   });
 
-  it('rejects previous-schema saves through the current schema gate', () => {
+  it('migrates previous-schema saves to the current schema', () => {
     const save = createJsonClone(createTestSave());
     const legacySave = {
       ...save,
       schemaVersion: CURRENT_SCHEMA_VERSION - 1,
+      statusEffects: undefined,
       ludus: {
         ...save.ludus,
         glory: 4,
@@ -117,7 +118,9 @@ describe('save validation', () => {
     };
     const parsed = parseGameSave(JSON.stringify(legacySave));
 
-    expect(parsed).toBeNull();
+    expect(parsed).not.toBeNull();
+    expect(parsed?.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    expect(parsed?.statusEffects).toEqual([]);
   });
 
   it('strips obsolete real-time fields from current-schema transitional saves', () => {
@@ -264,10 +267,12 @@ describe('save validation', () => {
     expect(parseGameSave(JSON.stringify(malformedSave))).toBeNull();
   });
 
-  it('accepts valid weekly injury state and rejects malformed injury state', () => {
+  it('migrates valid weekly injury state and rejects malformed legacy injury state', () => {
     const save = createTestSave();
     const validSave = {
       ...save,
+      schemaVersion: CURRENT_SCHEMA_VERSION - 1,
+      statusEffects: undefined,
       gladiators: [
         {
           id: 'gladiator-test',
@@ -304,11 +309,22 @@ describe('save validation', () => {
       ],
     };
 
-    expect(parseGameSave(JSON.stringify(validSave))?.gladiators[0].weeklyInjury).toMatchObject({
-      reason: 'training',
-      year: save.time.year,
-      week: save.time.week,
-    });
+    expect(parseGameSave(JSON.stringify(validSave))?.statusEffects).toEqual([
+      expect.objectContaining({
+        effectId: 'injury',
+        target: { type: 'gladiator', id: 'gladiator-test' },
+        startedAt: {
+          dayOfWeek: save.time.dayOfWeek,
+          week: save.time.week,
+          year: save.time.year,
+        },
+        expiresAt: {
+          dayOfWeek: 'monday',
+          week: 2,
+          year: 1,
+        },
+      }),
+    ]);
     expect(isGameSave(malformedSave)).toBe(false);
     expect(parseGameSave(JSON.stringify(malformedSave))).toBeNull();
   });

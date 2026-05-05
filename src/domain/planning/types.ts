@@ -59,5 +59,7 @@ export interface GameAlert {
   actionKind?: 'allocateGladiatorSkillPoint';
   gladiatorId?: string;
   buildingId?: BuildingId;
+  statusEffectId?: string;
+  statusEffectInstanceId?: string;
   createdAt: string;
 }

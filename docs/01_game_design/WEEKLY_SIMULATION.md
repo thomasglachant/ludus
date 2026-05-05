@@ -70,7 +70,7 @@ It resolves:
 - macro random events filtered by planned activities;
 - game over.
 
-Gladiators with an active weekly injury are unavailable for incompatible physical work. They do not gain XP from planned training. If a gladiator is injured during training, that day also grants no training XP for that gladiator and `Gladiator.weeklyInjury` blocks physical activity for the rest of the current week.
+Gladiators can carry active `statusEffects` with day-based durations. A status effect is active when `startedAt <= current day < expiresAt`. The `injury` effect sets the gladiator training XP multiplier to `0` and blocks Sunday arena eligibility. If a gladiator is injured during training, that day grants no training XP for that gladiator and applies `injury` for 2 days. The `victoryAura` effect applies after Sunday arena wins, starts on the following Monday, lasts 3 days and increases training XP by 10%.
 
 Macro effects are read from purchased building levels, improvements, policies and skills. Effects are multiplied by the current `BuildingState.efficiency`.
 
@@ -121,7 +121,7 @@ If the current day is Sunday:
 6. Advance year/week if needed.
 7. Refresh the market.
 8. Create a new default weekly plan.
-9. Clear weekly injuries.
+9. Remove expired status effects.
 10. Set phase to `report`.
 
 ## Reports

@@ -8,18 +8,21 @@ import {
 
 interface TooltipProps {
   children: ReactNode;
-  content: string;
+  content: ReactNode;
+  label?: string;
 }
 
-export function Tooltip({ children, content }: TooltipProps) {
+export function Tooltip({ children, content, label }: TooltipProps) {
+  const resolvedLabel = label ?? (typeof content === 'string' ? content : undefined);
+
   return (
     <TooltipProvider delayDuration={150}>
       <PrimitiveTooltip>
         <TooltipTrigger asChild>
           <span
-            aria-label={content}
+            aria-label={resolvedLabel}
             className="tooltip"
-            data-tooltip={content}
+            data-tooltip={resolvedLabel}
             tabIndex={0}
             onMouseDown={(event) => event.preventDefault()}
           >

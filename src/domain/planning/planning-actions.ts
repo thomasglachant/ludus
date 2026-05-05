@@ -7,9 +7,13 @@ import { DAYS_OF_WEEK } from '../../game-data/time';
 import type { BuildingActivityId } from '../buildings/types';
 import { getSelectableBuildingActivities } from '../buildings/building-activities';
 import { sumActiveBuildingEffectValues } from '../buildings/building-effects';
-import { hasActiveWeeklyInjury } from '../gladiators/injuries';
 import { getAvailableSkillPoints } from '../gladiators/progression';
 import type { GameSave } from '../saves/types';
+import {
+  getActiveStatusEffects,
+  getRemainingStatusEffectDuration,
+  getStatusEffectDefinition,
+} from '../status-effects/status-effect-actions';
 import type { DayOfWeek } from '../time/types';
 import type {
   DailyPlan,
@@ -135,13 +139,26 @@ export function createDefaultWeeklyPlan(year: number, week: number) {
   };
 }
 
-function createInjuryAlert(gladiatorId: string, createdAt: string): GameAlert {
+function createStatusEffectAlert(
+  gladiatorId: string,
+  statusEffectId: string,
+  statusEffectInstanceId: string,
+  createdAt: string,
+): GameAlert | null {
+  const definition = getStatusEffectDefinition(statusEffectId);
+
+  if (!definition?.showAlert) {
+    return null;
+  }
+
   return {
-    id: `alert-${gladiatorId}-injury`,
+    id: `alert-${gladiatorId}-status-effect-${statusEffectInstanceId}`,
     severity: 'warning',
-    titleKey: 'alerts.injury.title',
-    descriptionKey: 'alerts.injury.description',
+    titleKey: definition.nameKey,
+    descriptionKey: definition.descriptionKey,
     gladiatorId,
+    statusEffectId,
+    statusEffectInstanceId,
     createdAt,
   };
 }
@@ -160,14 +177,28 @@ function createSkillPointAlert(gladiatorId: string, createdAt: string): GameAler
 
 export function generatePlanningAlerts(save: GameSave, createdAt = save.updatedAt): GameAlert[] {
   const alerts: GameAlert[] = [];
+  const activeStatusEffects = getActiveStatusEffects(save);
 
   for (const gladiator of save.gladiators) {
-    if (hasActiveWeeklyInjury(gladiator, save.time.year, save.time.week)) {
-      alerts.push(createInjuryAlert(gladiator.id, createdAt));
-    }
-
     if (getAvailableSkillPoints(gladiator) > 0) {
       alerts.push(createSkillPointAlert(gladiator.id, createdAt));
+    }
+  }
+
+  for (const effect of activeStatusEffects) {
+    if (effect.target.type !== 'gladiator') {
+      continue;
+    }
+
+    const remainingDuration = getRemainingStatusEffectDuration(effect, {
+      year: save.time.year,
+      week: save.time.week,
+      dayOfWeek: save.time.dayOfWeek,
+    });
+    const alert = createStatusEffectAlert(effect.target.id, effect.effectId, effect.id, createdAt);
+
+    if (alert && remainingDuration.days > 0) {
+      alerts.push(alert);
     }
   }
 

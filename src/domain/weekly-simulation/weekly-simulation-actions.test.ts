@@ -6,6 +6,10 @@ import type { Gladiator } from '../gladiators/types';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
 import {
+  applyGladiatorStatusEffect,
+  applyGladiatorStatusEffectAtDate,
+} from '../status-effects/status-effect-actions';
+import {
   completeSundayArenaDay,
   createDefaultDailyPlan,
   projectDailyPlan,
@@ -107,22 +111,33 @@ describe('weekly simulation actions', () => {
 
     expect(result.summary.injuredGladiatorIds).toContain('gladiator-test');
     expect(result.summary.happinessDelta).toBeLessThan(0);
-    expect(gladiator.weeklyInjury).toEqual({ reason: 'training', week: 1, year: 1 });
+    expect(result.save.statusEffects).toEqual([
+      expect.objectContaining({
+        effectId: 'injury',
+        target: { type: 'gladiator', id: 'gladiator-test' },
+        startedAt: { dayOfWeek: 'monday', week: 1, year: 1 },
+        expiresAt: { dayOfWeek: 'wednesday', week: 1, year: 1 },
+      }),
+    ]);
     expect(gladiator.experience).toBe(save.gladiators[0].experience);
     expect(gladiator.strength).toBe(save.gladiators[0].strength);
     expect(gladiator.life).toBe(save.gladiators[0].life);
   });
 
   it('excludes already injured gladiators from incompatible training gains', () => {
-    const save = createTestSave({
-      gladiators: [
-        createGladiator({
-          life: 2,
-          strength: 3,
-          weeklyInjury: { reason: 'training', week: 1, year: 1 },
-        }),
-      ],
-    });
+    const save = applyGladiatorStatusEffect(
+      createTestSave({
+        gladiators: [
+          createGladiator({
+            life: 2,
+            strength: 3,
+          }),
+        ],
+      }),
+      'injury',
+      2,
+      'gladiator-test',
+    );
     const plan = createDefaultDailyPlan('monday');
     plan.gladiatorTimePoints.training = 8;
 
@@ -146,6 +161,21 @@ describe('weekly simulation actions', () => {
     expect(gladiator.agility).toBe(save.gladiators[0].agility);
     expect(gladiator.defense).toBe(save.gladiators[0].defense);
     expect(gladiator.life).toBe(save.gladiators[0].life);
+  });
+
+  it('applies victory aura as a training experience bonus', () => {
+    const baseSave = createTestSave();
+    const boostedSave = applyGladiatorStatusEffect(baseSave, 'victoryAura', 3, 'gladiator-test');
+    const plan = createDefaultDailyPlan('monday');
+    plan.gladiatorTimePoints.training = 3;
+
+    const baseResult = resolveDailyPlan(baseSave, plan, () => 1);
+    const boostedResult = resolveDailyPlan(boostedSave, plan, () => 1);
+    const baseGain = baseResult.save.gladiators[0].experience - baseSave.gladiators[0].experience;
+    const boostedGain =
+      boostedResult.save.gladiators[0].experience - boostedSave.gladiators[0].experience;
+
+    expect(boostedGain).toBe(Math.round(baseGain * 1.1));
   });
 
   it('regenerates skill allocation alerts when daily training grants a level', () => {
@@ -206,14 +236,12 @@ describe('weekly simulation actions', () => {
     expect(excessiveGain).toBeLessThan(normalGain * 3);
   });
 
-  it('clears weekly injury status when Sunday arena is completed', () => {
+  it('clears expired status effects when Sunday arena is completed', () => {
     const sundaySave: GameSave = {
-      ...createTestSave({
-        gladiators: [
-          createGladiator({
-            weeklyInjury: { reason: 'training', week: 1, year: 1 },
-          }),
-        ],
+      ...applyGladiatorStatusEffectAtDate(createTestSave(), 'injury', 2, 'gladiator-test', {
+        dayOfWeek: 'saturday',
+        week: 1,
+        year: 1,
       }),
       arena: {
         ...createTestSave().arena,
@@ -235,7 +263,7 @@ describe('weekly simulation actions', () => {
     const result = completeSundayArenaDay(sundaySave, () => 1);
 
     expect(result.time).toMatchObject({ week: 2, dayOfWeek: 'monday', phase: 'report' });
-    expect(result.gladiators[0].weeklyInjury).toBeUndefined();
+    expect(result.statusEffects).toEqual([]);
   });
 
   it('regenerates next-week skill alerts after Sunday completion', () => {

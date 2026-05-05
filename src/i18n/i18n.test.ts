@@ -5,6 +5,7 @@ import process from 'node:process';
 import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../game-data/building-improvements';
 import { BUILDING_DEFINITIONS } from '../game-data/buildings';
 import { BUILDING_SKILLS } from '../game-data/building-skills';
+import { STATUS_EFFECT_DEFINITIONS } from '../game-data/status-effects';
 import { translate } from '.';
 import en from './locales/en.json';
 import fr from './locales/fr.json';
@@ -46,7 +47,17 @@ describe('i18n', () => {
       policy.descriptionKey,
     ]);
     const skillKeys = BUILDING_SKILLS.flatMap((skill) => [skill.nameKey, skill.descriptionKey]);
-    for (const key of [...buildingKeys, ...improvementKeys, ...policyKeys, ...skillKeys]) {
+    const statusEffectKeys = STATUS_EFFECT_DEFINITIONS.flatMap((effect) => [
+      effect.nameKey,
+      effect.descriptionKey,
+    ]);
+    for (const key of [
+      ...buildingKeys,
+      ...improvementKeys,
+      ...policyKeys,
+      ...skillKeys,
+      ...statusEffectKeys,
+    ]) {
       expect(englishDictionary[key], key).toBeDefined();
       expect(frenchDictionary[key], key).toBeDefined();
     }

@@ -30,7 +30,7 @@ Current visible planning task:
 
 - `training`.
 
-The default planning baseline is 6 gladiator time points per day before building effects and roster scaling. Training pressure increases injury risk and can reduce happiness when overdone. Training injuries create a weekly injury state that blocks physical activity until the next week begins. Gladiator health, energy and morale are not daily attributes; they are temporary combat gauges calculated at fight start from aptitudes, especially life.
+The default planning baseline is 6 gladiator time points per day before building effects and roster scaling. Training pressure increases injury risk and can reduce happiness when overdone. Training injuries create a temporary `injury` status effect that blocks training XP and arena eligibility while it is active. Gladiator health, energy and morale are not daily attributes; they are temporary combat gauges calculated at fight start from aptitudes, especially life.
 
 Training tasks award training XP instead of directly changing strength, agility, defense or life.
 
@@ -52,7 +52,7 @@ Each day resolves:
 - ledger entries and current week summary;
 - game over if treasury reaches the defeat threshold.
 
-Injured gladiators lose XP from incompatible physical activities through the daily result and become a week-level planning risk.
+Status effects can modify daily gains and impacts. The current gladiator effects are `injury`, which sets training XP to zero and blocks Sunday combat, and `victoryAura`, which boosts training XP after an arena win.
 
 ## Gladiator Progression
 

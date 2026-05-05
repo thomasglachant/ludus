@@ -15,10 +15,16 @@ import {
   createLedgerEntry,
   updateCurrentWeekSummary,
 } from '../economy/economy-actions';
-import { hasActiveWeeklyInjury } from '../gladiators/injuries';
 import { getGladiatorEffectiveSkill } from '../gladiators/skills';
 import { addGladiatorExperience, getGladiatorLevel } from '../gladiators/progression';
 import { synchronizePlanning } from '../planning/planning-actions';
+import {
+  addDaysToGameDate,
+  applyGladiatorStatusEffectAtDate,
+  canGladiatorFightInArena,
+  getCurrentGameDate,
+  getRandomCombatInjuryDuration,
+} from '../status-effects/status-effect-actions';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
 import type {
@@ -63,6 +69,12 @@ function roundChance(value: number) {
 
 function roundOdds(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+function getCombatInjuryChance(didPlayerWin: boolean) {
+  return didPlayerWin
+    ? GAME_BALANCE.statusEffects.injury.combat.winChance
+    : GAME_BALANCE.statusEffects.injury.combat.lossChance;
 }
 
 function getCombatId(save: GameSave, gladiatorId: string) {
@@ -503,7 +515,7 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
   const resolvedGladiatorIds = new Set(currentWeekCombats.map((combat) => combat.gladiator.id));
   const missingCombats = save.gladiators
     .filter((gladiator) => getGladiatorEffectiveSkill(gladiator, 'life') > 0)
-    .filter((gladiator) => !hasActiveWeeklyInjury(gladiator, save.time.year, save.time.week))
+    .filter((gladiator) => canGladiatorFightInArena(save, gladiator.id))
     .filter((gladiator) => !resolvedGladiatorIds.has(gladiator.id))
     .sort(compareArenaGladiatorOrder)
     .map((gladiator) => resolveCombat(save, gladiator, random));
@@ -530,7 +542,7 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
     0,
   );
 
-  const resolvedSave: GameSave = {
+  let resolvedSave: GameSave = {
     ...save,
     ludus: {
       ...save.ludus,
@@ -543,6 +555,29 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
       isArenaDayActive: true,
     },
   };
+  const effectStartDate = addDaysToGameDate(getCurrentGameDate(save), 1);
+
+  for (const combat of missingCombats) {
+    if (combat.consequence.didPlayerWin) {
+      resolvedSave = applyGladiatorStatusEffectAtDate(
+        resolvedSave,
+        'victoryAura',
+        GAME_BALANCE.statusEffects.victoryAura.durationDays,
+        combat.gladiator.id,
+        effectStartDate,
+      );
+    }
+
+    if (random() < getCombatInjuryChance(combat.consequence.didPlayerWin)) {
+      resolvedSave = applyGladiatorStatusEffectAtDate(
+        resolvedSave,
+        'injury',
+        getRandomCombatInjuryDuration(random),
+        combat.gladiator.id,
+        effectStartDate,
+      );
+    }
+  }
 
   if (rewardTotal <= 0) {
     return synchronizePlanning(updateCurrentWeekSummary(resolvedSave));

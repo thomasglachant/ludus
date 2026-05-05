@@ -39,14 +39,7 @@ export interface Gladiator {
   wins: number;
   losses: number;
   traits: GladiatorTrait[];
-  weeklyInjury?: GladiatorWeeklyInjury;
   visualIdentity?: GladiatorVisualIdentity;
-}
-
-export interface GladiatorWeeklyInjury {
-  reason: 'training' | 'combat' | 'event';
-  week: number;
-  year: number;
 }
 
 export type GladiatorTrait =

@@ -7,6 +7,10 @@ import {
   updateDailyPlan,
   updateDailyPlanBuildingActivitySelection,
 } from './planning-actions';
+import {
+  applyGladiatorStatusEffect,
+  applyGladiatorStatusEffectAtDate,
+} from '../status-effects/status-effect-actions';
 
 function createTestSave() {
   return createInitialSave({
@@ -52,22 +56,37 @@ describe('planning actions', () => {
 
   it('generates alerts for injured owned gladiators', () => {
     const save = synchronizePlanning(
-      withGladiators(createTestSave(), [
-        createGladiator({
-          weeklyInjury: { reason: 'training', week: 1, year: 1 },
-        }),
-      ]),
+      applyGladiatorStatusEffect(
+        withGladiators(createTestSave(), [createGladiator()]),
+        'injury',
+        2,
+        'gladiator-test',
+      ),
     );
 
     expect(save.planning.alerts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           severity: 'warning',
-          titleKey: 'alerts.injury.title',
+          titleKey: 'statusEffects.injury.name',
           gladiatorId: expect.any(String),
+          statusEffectId: 'injury',
         }),
       ]),
     );
+  });
+
+  it('does not generate alerts for silent status effects', () => {
+    const save = synchronizePlanning(
+      applyGladiatorStatusEffect(
+        withGladiators(createTestSave(), [createGladiator()]),
+        'victoryAura',
+        3,
+        'gladiator-test',
+      ),
+    );
+
+    expect(save.planning.alerts).toEqual([]);
   });
 
   it('generates alerts for owned gladiators with unassigned skill points', () => {
@@ -91,13 +110,15 @@ describe('planning actions', () => {
     );
   });
 
-  it('ignores stale weekly injuries when generating alerts', () => {
+  it('ignores expired status effects when generating alerts', () => {
     const save = synchronizePlanning(
-      withGladiators(createTestSave(), [
-        createGladiator({
-          weeklyInjury: { reason: 'training', week: 8, year: 0 },
-        }),
-      ]),
+      applyGladiatorStatusEffectAtDate(
+        withGladiators(createTestSave(), [createGladiator()]),
+        'injury',
+        1,
+        'gladiator-test',
+        { dayOfWeek: 'monday', week: 8, year: 0 },
+      ),
     );
 
     expect(save.planning.alerts).toEqual([]);

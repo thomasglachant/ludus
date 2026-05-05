@@ -1,6 +1,10 @@
 import type { GameSave } from '../../domain/types';
+import {
+  getRemainingStatusEffectDuration,
+  getStatusEffectDefinition,
+} from '../../domain/status-effects/status-effect-actions';
 import { useUiStore } from '../../state/ui-store-context';
-import { GameIcon } from '../icons/GameIcon';
+import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 
 interface ToastAndAlertLayerProps {
@@ -41,6 +45,27 @@ export function ToastAndAlertLayer({
       ) : null}
       {visibleAlerts.map((alert) => {
         const gladiator = alert.gladiatorId ? gladiatorById.get(alert.gladiatorId) : undefined;
+        const statusEffect = alert.statusEffectInstanceId
+          ? save.statusEffects.find((effect) => effect.id === alert.statusEffectInstanceId)
+          : undefined;
+        const statusEffectDefinition = statusEffect
+          ? getStatusEffectDefinition(statusEffect.effectId)
+          : undefined;
+        const statusEffectDuration = statusEffect
+          ? getRemainingStatusEffectDuration(statusEffect, {
+              year: save.time.year,
+              week: save.time.week,
+              dayOfWeek: save.time.dayOfWeek,
+            })
+          : undefined;
+        const alertIconName =
+          statusEffectDefinition?.visual.iconName ?? ('alert' satisfies GameIconName);
+        const alertTitle = statusEffectDuration
+          ? t('alerts.statusEffect.title', {
+              effect: t(alert.titleKey),
+              days: statusEffectDuration.days,
+            })
+          : t(alert.titleKey);
 
         if (gladiator) {
           return (
@@ -51,12 +76,17 @@ export function ToastAndAlertLayer({
               type="button"
               onClick={() => onGladiatorSelect(gladiator.id)}
             >
-              <GameIcon className="toast-alert__icon" name="alert" size={16} />
+              <GameIcon
+                className="toast-alert__icon"
+                color={statusEffectDefinition?.visual.color}
+                name={alertIconName as GameIconName}
+                size={16}
+              />
               <span className="toast-alert__subject">
                 <GladiatorPortrait gladiator={gladiator} size="small" />
                 <span className="toast-alert__copy">
                   <strong>{gladiator.name}</strong>
-                  <span>{t(alert.titleKey)}</span>
+                  <span>{alertTitle}</span>
                 </span>
               </span>
             </button>
@@ -65,8 +95,12 @@ export function ToastAndAlertLayer({
 
         return (
           <div className={`toast-alert toast-alert--${alert.severity}`} key={alert.id}>
-            <GameIcon className="toast-alert__icon" name="alert" size={16} />
-            <span>{t(alert.titleKey)}</span>
+            <GameIcon
+              className="toast-alert__icon"
+              name={alertIconName as GameIconName}
+              size={16}
+            />
+            <span>{alertTitle}</span>
           </div>
         );
       })}

@@ -88,6 +88,72 @@ describe('event actions', () => {
     );
   });
 
+  it('applies gladiator status effects from event consequences', () => {
+    const save = createTestSave();
+    const event = {
+      id: 'event-status-effect-test',
+      definitionId: 'statusEffectTest',
+      titleKey: 'events.trainingRefusal.title',
+      descriptionKey: 'events.trainingRefusal.description',
+      status: 'pending' as const,
+      createdAtYear: save.time.year,
+      createdAtWeek: save.time.week,
+      createdAtDay: save.time.dayOfWeek,
+      gladiatorId: 'gladiator-test',
+      choices: [
+        {
+          id: 'applyInjury',
+          labelKey: 'events.trainingRefusal.grantRest.label',
+          consequenceKey: 'events.trainingRefusal.grantRest.consequence',
+          consequences: [
+            {
+              kind: 'certain' as const,
+              effects: [
+                {
+                  type: 'applyGladiatorStatusEffect' as const,
+                  gladiatorId: 'gladiator-test',
+                  effectId: 'injury',
+                  durationDays: 2,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const result = resolveGameEventChoice(
+      {
+        ...save,
+        events: {
+          ...save.events,
+          pendingEvents: [event],
+        },
+        time: {
+          ...save.time,
+          phase: 'event',
+        },
+      },
+      event.id,
+      'applyInjury',
+    ).save;
+
+    expect(result.statusEffects).toEqual([
+      expect.objectContaining({
+        effectId: 'injury',
+        target: { type: 'gladiator', id: 'gladiator-test' },
+        expiresAt: { dayOfWeek: 'wednesday', week: 1, year: 1 },
+      }),
+    ]);
+    expect(result.planning.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          gladiatorId: 'gladiator-test',
+          statusEffectId: 'injury',
+        }),
+      ]),
+    );
+  });
+
   it('prioritizes rebellion crisis events when rebellion is critical', () => {
     const result = synchronizeMacroEvents(
       createTestSave({

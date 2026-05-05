@@ -62,7 +62,6 @@ function createDemoGladiator(gladiator: DemoGladiatorInput): Gladiator {
     wins: gladiator.wins,
     losses: gladiator.losses,
     traits: gladiator.traits,
-    weeklyInjury: gladiator.weeklyInjury,
     visualIdentity: gladiator.visualIdentity,
   });
   const skillProfile = {
@@ -111,6 +110,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     buildings,
     gladiators,
     economy: createInitialEconomyState(),
+    statusEffects: [],
     market: {
       year: time.year,
       week: time.week,

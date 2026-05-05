@@ -19,7 +19,7 @@ export interface InitialSaveInput {
   createdAt: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 16;
+export const CURRENT_SCHEMA_VERSION = 17;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
   const market = createMarketState(
@@ -52,6 +52,7 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     buildings: createInitialBuildings(),
     gladiators: [],
     economy: createInitialEconomyState(),
+    statusEffects: [],
     market: {
       ...market,
       availableGladiators: market.availableGladiators.map(normalizeGladiatorProgression),

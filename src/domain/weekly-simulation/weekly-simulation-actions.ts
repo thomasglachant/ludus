@@ -4,7 +4,6 @@ import {
   calculateBuildingEfficiency,
   updateBuildingEfficiencies,
 } from '../buildings/building-efficiency';
-import { hasActiveWeeklyInjury } from '../gladiators/injuries';
 import { addGladiatorExperience } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
 import { createMarketState } from '../market/market-actions';
@@ -31,6 +30,11 @@ import {
   isWeeklyPlanningComplete,
   synchronizePlanning,
 } from '../planning/planning-actions';
+import {
+  applyGladiatorStatusEffect,
+  getGladiatorTrainingExperienceMultiplier,
+  pruneExpiredStatusEffects,
+} from '../status-effects/status-effect-actions';
 import type {
   DailyPlan,
   DailyPlanActivity,
@@ -78,6 +82,7 @@ interface DailyGladiatorResolutionResult {
 
 interface DailyGladiatorModifiers {
   injuryRiskReductionPercent: number;
+  statusTrainingExperienceMultiplier: number;
   trainingEfficiency: number;
   trainingExperienceBonusPercent: number;
 }
@@ -171,8 +176,8 @@ function getPercentMultiplier(percent: number) {
   return Math.max(0, 1 + percent / 100);
 }
 
-function canGladiatorPerformPhysicalActivities(gladiator: Gladiator, year: number, week: number) {
-  return !hasActiveWeeklyInjury(gladiator, year, week);
+function canGladiatorGainTrainingExperience(modifiers: DailyGladiatorModifiers) {
+  return modifiers.statusTrainingExperienceMultiplier > 0;
 }
 
 function getFinanceCategoryForActivity(activity: DailyPlanActivity): EconomyCategory {
@@ -233,11 +238,9 @@ function applyDailyGladiatorEffects(
   plan: DailyPlan,
   modifiers: DailyGladiatorModifiers,
   random: RandomSource,
-  year: number,
-  week: number,
   gladiatorPointDivisor: number,
 ): DailyGladiatorResolutionResult {
-  const canTrain = canGladiatorPerformPhysicalActivities(gladiator, year, week);
+  const canTrain = canGladiatorGainTrainingExperience(modifiers);
   const trainingLoadScale = getTrainingLoadScale(plan, gladiatorPointDivisor);
   const trainingPoints = canTrain
     ? getAverageTrainingPressurePoints(plan, gladiatorPointDivisor)
@@ -252,14 +255,12 @@ function applyDailyGladiatorEffects(
       ? getTrainingExperiencePoints(plan, gladiatorPointDivisor, trainingLoadScale) *
         GAME_BALANCE.gladiators.training.experiencePerPoint *
         modifiers.trainingEfficiency *
-        getPercentMultiplier(modifiers.trainingExperienceBonusPercent)
+        getPercentMultiplier(modifiers.trainingExperienceBonusPercent) *
+        modifiers.statusTrainingExperienceMultiplier
       : 0;
 
   return {
-    gladiator: {
-      ...addGladiatorExperience(gladiator, trainingExperience),
-      weeklyInjury: isInjured ? { reason: 'training', week, year } : gladiator.weeklyInjury,
-    },
+    gladiator: addGladiatorExperience(gladiator, trainingExperience),
     isInjured,
     isUnavailableForPhysicalActivities: !canTrain || isInjured,
   };
@@ -290,7 +291,7 @@ function resolveDailyPlanInternal(
   const buildingActivityImpact = calculateBuildingActivityImpact(operationalSave, plan);
   const trainingEfficiency =
     1 + calculateBuildingEfficiency(operationalSave, 'trainingGround') * 0.1;
-  const modifiers: DailyGladiatorModifiers = {
+  const baseModifiers = {
     injuryRiskReductionPercent:
       getAllGladiatorsEffectValue(operationalSave, 'reduceInjuryRisk') +
       buildingActivityImpact.injuryRiskReductionPercent,
@@ -304,10 +305,14 @@ function resolveDailyPlanInternal(
     applyDailyGladiatorEffects(
       gladiator,
       plan,
-      modifiers,
+      {
+        ...baseModifiers,
+        statusTrainingExperienceMultiplier: getGladiatorTrainingExperienceMultiplier(
+          operationalSave,
+          gladiator.id,
+        ),
+      },
       random,
-      operationalSave.time.year,
-      operationalSave.time.week,
       Math.max(1, operationalSave.gladiators.length),
     ),
   );
@@ -415,6 +420,15 @@ function resolveDailyPlanInternal(
     },
     gladiators: gladiatorResults.map((result) => result.gladiator),
   });
+
+  for (const gladiatorId of summary.injuredGladiatorIds) {
+    nextSave = applyGladiatorStatusEffect(
+      nextSave,
+      'injury',
+      GAME_BALANCE.statusEffects.injury.trainingDurationDays,
+      gladiatorId,
+    );
+  }
 
   if (options.recordLedger) {
     for (const entry of incomeEntries) {
@@ -859,24 +873,22 @@ export function completeSundayArenaDay(
     return paidLoans;
   }
 
-  return synchronizePlanning({
-    ...paidLoans,
-    gladiators: paidLoans.gladiators.map((gladiator) => ({
-      ...gladiator,
-      weeklyInjury: undefined,
-    })),
-    time: {
-      ...paidLoans.time,
-      ...nextWeek,
-      dayOfWeek: 'monday',
-      phase: 'report',
-    },
-    market: createMarketState(nextWeek.year, nextWeek.week, random),
-    planning: {
-      ...createDefaultWeeklyPlan(nextWeek.year, nextWeek.week),
-      reports: [report, ...archivedReports].slice(0, 8),
-    },
-  });
+  return synchronizePlanning(
+    pruneExpiredStatusEffects({
+      ...paidLoans,
+      time: {
+        ...paidLoans.time,
+        ...nextWeek,
+        dayOfWeek: 'monday',
+        phase: 'report',
+      },
+      market: createMarketState(nextWeek.year, nextWeek.week, random),
+      planning: {
+        ...createDefaultWeeklyPlan(nextWeek.year, nextWeek.week),
+        reports: [report, ...archivedReports].slice(0, 8),
+      },
+    }),
+  );
 }
 
 export function resolveWeekStep(save: GameSave, random: RandomSource = Math.random): GameSave {
@@ -917,17 +929,23 @@ export function resolveWeekStep(save: GameSave, random: RandomSource = Math.rand
     id: runningReportId,
   };
 
-  return {
-    ...result.save,
-    time: {
-      ...result.save.time,
-      dayOfWeek: nextDay,
-      phase:
-        result.save.time.phase === 'event' ? 'event' : nextDay === 'sunday' ? 'arena' : 'planning',
-    },
-    planning: {
-      ...result.save.planning,
-      reports: [runningReport, ...existingReports],
-    },
-  };
+  return synchronizePlanning(
+    pruneExpiredStatusEffects({
+      ...result.save,
+      time: {
+        ...result.save.time,
+        dayOfWeek: nextDay,
+        phase:
+          result.save.time.phase === 'event'
+            ? 'event'
+            : nextDay === 'sunday'
+              ? 'arena'
+              : 'planning',
+      },
+      planning: {
+        ...result.save.planning,
+        reports: [runningReport, ...existingReports],
+      },
+    }),
+  );
 }

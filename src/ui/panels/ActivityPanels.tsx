@@ -56,6 +56,7 @@ function getEventImpactItem(
       break;
     case 'removeGladiator':
     case 'releaseAllGladiators':
+    case 'applyGladiatorStatusEffect':
       return undefined;
     case 'changeGladiatorExperience':
       kind = 'xp';

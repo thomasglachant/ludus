@@ -1,8 +1,12 @@
 import type { BuildingId, GameAlert, GameSave } from '../../domain/types';
+import {
+  getRemainingStatusEffectDuration,
+  getStatusEffectDefinition,
+} from '../../domain/status-effects/status-effect-actions';
 import { BUILDING_DEFINITIONS, BUILDING_IDS } from '../../game-data/buildings';
 import { getBuildingAssetSet } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
-import { GameIcon } from '../icons/GameIcon';
+import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface BuildingsOverviewProps {
   save: GameSave;
@@ -117,14 +121,42 @@ export function BuildingsOverview({
               <div className="buildings-overview__alert-list">
                 {save.planning.alerts.slice(0, 4).map((alert) => {
                   const className = `buildings-overview__alert buildings-overview__alert--${alert.severity}`;
+                  const statusEffect = alert.statusEffectInstanceId
+                    ? save.statusEffects.find(
+                        (effect) => effect.id === alert.statusEffectInstanceId,
+                      )
+                    : undefined;
+                  const statusEffectDefinition = statusEffect
+                    ? getStatusEffectDefinition(statusEffect.effectId)
+                    : undefined;
+                  const statusEffectDuration = statusEffect
+                    ? getRemainingStatusEffectDuration(statusEffect, {
+                        year: save.time.year,
+                        week: save.time.week,
+                        dayOfWeek: save.time.dayOfWeek,
+                      })
+                    : undefined;
+                  const alertTitle = statusEffectDuration
+                    ? t('alerts.statusEffect.title', {
+                        effect: t(alert.titleKey),
+                        days: statusEffectDuration.days,
+                      })
+                    : t(alert.titleKey);
                   const content = (
                     <>
-                      <GameIcon name="alert" size={16} />
-                      {t(alert.titleKey)}
+                      <GameIcon
+                        color={statusEffectDefinition?.visual.color}
+                        name={(statusEffectDefinition?.visual.iconName ?? 'alert') as GameIconName}
+                        size={16}
+                      />
+                      {alertTitle}
                     </>
                   );
 
-                  if (alert.actionKind === 'allocateGladiatorSkillPoint' && alert.gladiatorId) {
+                  if (
+                    (alert.actionKind === 'allocateGladiatorSkillPoint' || alert.statusEffectId) &&
+                    alert.gladiatorId
+                  ) {
                     const gladiatorId = alert.gladiatorId;
 
                     return (
