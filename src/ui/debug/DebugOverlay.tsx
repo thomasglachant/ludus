@@ -186,8 +186,13 @@ export function DebugOverlay() {
     <aside className="debug-overlay" aria-label={t('debug.ariaLabel')}>
       <div className="debug-overlay__header">
         <strong>{activeMenu.title}</strong>
-        <button type="button" onClick={() => setIsOpen(false)}>
-          {t('common.close')}
+        <button
+          aria-label={t('common.close')}
+          className="debug-overlay__close"
+          type="button"
+          onClick={() => setIsOpen(false)}
+        >
+          &times;
         </button>
       </div>
       {menuStack.length > 1 ? (

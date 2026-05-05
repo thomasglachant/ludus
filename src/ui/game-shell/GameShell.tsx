@@ -9,7 +9,6 @@ import { BottomNavigationBar } from '../navigation/BottomNavigationBar';
 import { RightAlertsMenu } from '../alerts/RightAlertsMenu';
 import type { ContextPanelKind } from './game-shell-types';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
-import { DebugOverlay } from '../debug/DebugOverlay';
 
 export function GameShell() {
   const {
@@ -106,7 +105,6 @@ export function GameShell() {
         onOpenPanel={openPanel}
       />
       <ToastAndAlertLayer errorKey={errorKey} saveNoticeKey={saveNoticeKey} />
-      <DebugOverlay />
     </ScenicScreen>
   );
 }

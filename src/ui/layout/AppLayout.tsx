@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { VISUAL_ASSET_MANIFEST } from '../../game-data/visual-assets';
 import { useUiStore } from '../../state/ui-store-context';
+import { DebugOverlay } from '../debug/DebugOverlay';
 import { ModalHost } from '../modals/ModalHost';
 import type { ScreenName } from '../../app/routes';
 
@@ -39,6 +40,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <span aria-hidden="true" className="app-layout__scene" />
       {children}
       <ModalHost />
+      <DebugOverlay />
     </main>
   );
 }
