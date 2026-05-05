@@ -64,7 +64,6 @@ export interface GameAlert {
   actionKind?: GameAlertActionKind;
   gladiatorId?: string;
   buildingId?: BuildingId;
-  statusEffectId?: string;
-  statusEffectInstanceId?: string;
+  traitId?: string;
   createdAt: string;
 }

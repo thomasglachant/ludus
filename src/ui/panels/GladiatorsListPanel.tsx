@@ -42,6 +42,7 @@ export function GladiatorsListPanel({
             gladiator={gladiator}
             key={gladiator.id}
             openLabel={t('roster.openGladiator', { name: gladiator.name })}
+            save={save}
             onOpen={() => onOpenGladiator(gladiator.id)}
           />
         ))}

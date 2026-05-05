@@ -8,7 +8,7 @@ import type { BuildingId, GameAlert, GameSave, Gladiator } from '../../domain/ty
 import { refreshGameAlerts } from '../../domain/alerts/alert-actions';
 import { synchronizePlanning } from '../../domain/planning/planning-actions';
 import { createInitialSave } from '../../domain/saves/create-initial-save';
-import { applyGladiatorStatusEffect } from '../../domain/status-effects/status-effect-actions';
+import { applyGladiatorTrait } from '../../domain/gladiator-traits/gladiator-trait-actions';
 import { UiStoreContext, type UiStoreValue } from '../../state/ui-store-context';
 import { SideMenu } from './SideMenu';
 
@@ -36,11 +36,11 @@ function createUiStore(): UiStoreValue {
     setLanguage: vi.fn(),
     navigate: vi.fn(),
     t: (key, params) => {
-      if (key === 'statusEffects.injury.name') {
+      if (key === 'traits.injury.name') {
         return 'Injury';
       }
 
-      if (key === 'statusEffects.duration.remainingDays') {
+      if (key === 'traits.duration.remainingDays') {
         return `${params?.count} days remaining`;
       }
 
@@ -102,7 +102,7 @@ function createGladiator(): Gladiator {
     reputation: 0,
     wins: 0,
     losses: 0,
-    traits: ['disciplined'],
+    traits: [{ traitId: 'disciplined' }],
   };
 }
 
@@ -179,12 +179,7 @@ describe('SideMenu', () => {
     const gladiator = createGladiator();
     const save = refreshGameAlerts(
       synchronizePlanning(
-        applyGladiatorStatusEffect(
-          createTestSave({ gladiators: [gladiator] }),
-          'injury',
-          2,
-          gladiator.id,
-        ),
+        applyGladiatorTrait(createTestSave({ gladiators: [gladiator] }), 'injury', 2, gladiator.id),
       ),
     );
     const { container, root } = renderSideMenu(save);

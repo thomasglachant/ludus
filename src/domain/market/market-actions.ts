@@ -83,9 +83,12 @@ export function generateMarketGladiators(
       wins: GAME_BALANCE.gladiators.marketDefaults.wins,
       losses: GAME_BALANCE.gladiators.marketDefaults.losses,
       traits: [
-        GAME_BALANCE.market.generatedTraitPool[
-          pickIndex(GAME_BALANCE.market.generatedTraitPool.length, random)
-        ],
+        {
+          traitId:
+            GAME_BALANCE.market.generatedTraitPool[
+              pickIndex(GAME_BALANCE.market.generatedTraitPool.length, random)
+            ],
+        },
       ],
       visualIdentity: createGladiatorVisualIdentity(id, { skillProfile: stats }),
     };
@@ -246,9 +249,6 @@ export function sellGladiator(save: GameSave, gladiatorId: string): MarketAction
     {
       ...save,
       gladiators: save.gladiators.filter((gladiator) => gladiator.id !== gladiatorId),
-      statusEffects: save.statusEffects.filter(
-        (effect) => effect.target.type !== 'gladiator' || effect.target.id !== gladiatorId,
-      ),
       planning: {
         ...save.planning,
         alerts: save.planning.alerts.filter((alert) => alert.gladiatorId !== gladiatorId),

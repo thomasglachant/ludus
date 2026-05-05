@@ -144,11 +144,11 @@ describe('event actions', () => {
     );
   });
 
-  it('applies gladiator status effects from event consequences', () => {
+  it('applies gladiator traits from event consequences', () => {
     const save = createTestSave();
     const event = {
-      id: 'event-status-effect-test',
-      definitionId: 'statusEffectTest',
+      id: 'event-trait-test',
+      definitionId: 'traitTest',
       titleKey: 'events.trainingRefusal.title',
       descriptionKey: 'events.trainingRefusal.description',
       status: 'pending' as const,
@@ -166,9 +166,9 @@ describe('event actions', () => {
               kind: 'certain' as const,
               effects: [
                 {
-                  type: 'applyGladiatorStatusEffect' as const,
+                  type: 'applyGladiatorTrait' as const,
                   gladiatorId: 'gladiator-test',
-                  effectId: 'injury',
+                  traitId: 'injury',
                   durationDays: 2,
                 },
               ],
@@ -193,18 +193,17 @@ describe('event actions', () => {
       'applyInjury',
     ).save;
 
-    expect(result.statusEffects).toEqual([
-      expect.objectContaining({
-        effectId: 'injury',
-        target: { type: 'gladiator', id: 'gladiator-test' },
+    expect(result.gladiators[0].traits).toEqual([
+      {
+        traitId: 'injury',
         expiresAt: { dayOfWeek: 'wednesday', week: 1, year: 1 },
-      }),
+      },
     ]);
     expect(result.planning.alerts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           gladiatorId: 'gladiator-test',
-          statusEffectId: 'injury',
+          traitId: 'injury',
         }),
       ]),
     );

@@ -8,18 +8,18 @@ import {
 import type { GameAlert } from '../planning/types';
 import type { GameSave } from '../saves/types';
 import {
-  getActiveStatusEffects,
-  getRemainingStatusEffectDuration,
-  getStatusEffectDefinition,
-} from '../status-effects/status-effect-actions';
-import type { ActiveStatusEffect } from '../status-effects/types';
+  getActiveTemporaryGladiatorTraits,
+  getGladiatorTraitDefinition,
+  getRemainingGladiatorTraitDuration,
+} from '../gladiator-traits/gladiator-trait-actions';
+import type { GladiatorTrait } from '../gladiators/types';
 
 export type AlertRuleScope = 'ludus' | 'building' | 'gladiator';
 
 export interface AlertRuleContext {
   createdAt: string;
   gladiator?: Gladiator;
-  statusEffect?: ActiveStatusEffect;
+  trait?: GladiatorTrait;
 }
 
 export interface AlertRule {
@@ -40,26 +40,24 @@ function createSkillPointAlert(gladiatorId: string, createdAt: string): GameAler
   };
 }
 
-function createStatusEffectAlert(
+function createTraitAlert(
   gladiatorId: string,
-  statusEffectId: string,
-  statusEffectInstanceId: string,
+  trait: GladiatorTrait,
   createdAt: string,
 ): GameAlert | null {
-  const definition = getStatusEffectDefinition(statusEffectId);
+  const definition = getGladiatorTraitDefinition(trait.traitId);
 
-  if (!definition?.showAlert) {
+  if (!trait.expiresAt || !definition?.showAlert) {
     return null;
   }
 
   return {
-    id: `alert-${gladiatorId}-status-effect-${statusEffectInstanceId}`,
+    id: `alert-${gladiatorId}-trait-${trait.traitId}`,
     severity: 'warning',
     titleKey: definition.nameKey,
     descriptionKey: definition.descriptionKey,
     gladiatorId,
-    statusEffectId,
-    statusEffectInstanceId,
+    traitId: trait.traitId,
     createdAt,
   };
 }
@@ -144,7 +142,7 @@ export const buildingAlertRules: AlertRule[] = [
   },
 ];
 
-export const gladiatorAlertRules: AlertRule[] = [
+const gladiatorProfileAlertRules: AlertRule[] = [
   {
     id: 'gladiator-skill-points',
     scope: 'gladiator',
@@ -156,31 +154,35 @@ export const gladiatorAlertRules: AlertRule[] = [
       return createSkillPointAlert(context.gladiator.id, context.createdAt);
     },
   },
+];
+
+const gladiatorTraitAlertRules: AlertRule[] = [
   {
-    id: 'gladiator-status-effects',
+    id: 'gladiator-traits',
     scope: 'gladiator',
     evaluate(save, context) {
-      const effect = context.statusEffect;
+      const trait = context.trait;
+      const gladiator = context.gladiator;
 
-      if (!effect || effect.target.type !== 'gladiator') {
+      if (!trait || !gladiator) {
         return null;
       }
 
-      const remainingDuration = getRemainingStatusEffectDuration(effect, {
+      const remainingDuration = getRemainingGladiatorTraitDuration(trait, {
         year: save.time.year,
         week: save.time.week,
         dayOfWeek: save.time.dayOfWeek,
       });
-      const alert = createStatusEffectAlert(
-        effect.target.id,
-        effect.effectId,
-        effect.id,
-        context.createdAt,
-      );
+      const alert = createTraitAlert(gladiator.id, trait, context.createdAt);
 
-      return alert && remainingDuration.days > 0 ? alert : null;
+      return alert && remainingDuration && remainingDuration.days > 0 ? alert : null;
     },
   },
+];
+
+export const gladiatorAlertRules: AlertRule[] = [
+  ...gladiatorProfileAlertRules,
+  ...gladiatorTraitAlertRules,
 ];
 
 function preserveCreatedAt(alert: GameAlert, existingAlertsById: Map<string, GameAlert>) {
@@ -199,13 +201,13 @@ function evaluateRules(save: GameSave, rules: AlertRule[], context: AlertRuleCon
 
 function evaluateGladiatorRules(save: GameSave, context: AlertRuleContext) {
   const skillAlerts = save.gladiators.flatMap((gladiator) =>
-    evaluateRules(save, gladiatorAlertRules, { ...context, gladiator }),
+    evaluateRules(save, gladiatorProfileAlertRules, { ...context, gladiator }),
   );
-  const statusEffectAlerts = getActiveStatusEffects(save).flatMap((statusEffect) =>
-    evaluateRules(save, gladiatorAlertRules, { ...context, statusEffect }),
+  const traitAlerts = getActiveTemporaryGladiatorTraits(save).flatMap(({ gladiator, trait }) =>
+    evaluateRules(save, gladiatorTraitAlertRules, { ...context, gladiator, trait }),
   );
 
-  return [...skillAlerts, ...statusEffectAlerts];
+  return [...skillAlerts, ...traitAlerts];
 }
 
 export function generateGameAlerts(
@@ -236,8 +238,7 @@ function areGameAlertsEqual(left: GameAlert[], right: GameAlert[]) {
         alert.actionKind === otherAlert.actionKind &&
         alert.gladiatorId === otherAlert.gladiatorId &&
         alert.buildingId === otherAlert.buildingId &&
-        alert.statusEffectId === otherAlert.statusEffectId &&
-        alert.statusEffectInstanceId === otherAlert.statusEffectInstanceId &&
+        alert.traitId === otherAlert.traitId &&
         alert.createdAt === otherAlert.createdAt
       );
     })

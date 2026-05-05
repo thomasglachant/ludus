@@ -7,18 +7,6 @@
   color: #fff2cf;
 }
 
-.main-menu-screen::after {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    radial-gradient(circle at 50% 46%, rgba(255, 193, 96, 0.16), transparent 34%),
-    radial-gradient(circle at 50% 110%, rgba(24, 15, 10, 0.52), transparent 46%),
-    linear-gradient(180deg, rgba(10, 7, 5, 0.18), rgba(10, 7, 5, 0.1) 46%, rgba(10, 7, 5, 0.34));
-  content: '';
-  pointer-events: none;
-}
-
 .main-menu-screen__buttons button:hover {
   transform: translateY(-1px);
   filter: brightness(1.05);

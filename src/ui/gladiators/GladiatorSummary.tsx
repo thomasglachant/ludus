@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react';
 import { getEffectiveSkillValue } from '../../domain/gladiators/skills';
 import { getGladiatorLevel } from '../../domain/gladiators/progression';
-import type { Gladiator } from '../../domain/types';
+import type { GameSave, Gladiator } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { CardBlured } from '../components/CardBlured';
 import { IconValueStat } from '../components/IconValueStat';
 import { PercentageStatBar } from '../components/PercentageStatBar';
 import type { GameIconName } from '../icons/GameIcon';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
+import { GladiatorTraits } from './GladiatorTraits';
 
 type GladiatorSummarySide = 'player' | 'opponent';
 type GladiatorSummaryTone = 'dark' | 'light';
@@ -19,6 +20,7 @@ interface GladiatorSummaryProps {
   className?: string;
   gladiator: Gladiator;
   odds?: number;
+  save: GameSave;
   side?: GladiatorSummarySide;
   statLabelKeys?: Partial<Record<SecondaryGladiatorStatKey, string>>;
   statValues?: Partial<Record<SecondaryGladiatorStatKey, number>>;
@@ -94,6 +96,7 @@ export function GladiatorSummary({
   className,
   gladiator,
   odds,
+  save,
   side,
   statLabelKeys,
   statValues,
@@ -103,7 +106,6 @@ export function GladiatorSummary({
   topRightLabel,
 }: GladiatorSummaryProps) {
   const { t } = useUiStore();
-  const primaryTrait = gladiator.traits[0];
   const classes = [
     'gladiator-summary',
     `gladiator-summary--${tone}`,
@@ -124,10 +126,9 @@ export function GladiatorSummary({
         <GladiatorPortrait gladiator={gladiator} size="large" />
         <div className="gladiator-summary__info">
           <h2>{gladiator.name}</h2>
+          <span className="gladiator-summary__pill">{t('market.age', { age: gladiator.age })}</span>
+          <GladiatorTraits gladiator={gladiator} save={save} variant="compact" />
           <div className="gladiator-summary__meta">
-            {primaryTrait ? (
-              <span className="gladiator-summary__pill">{t(`traits.${primaryTrait}`)}</span>
-            ) : null}
             <span className="gladiator-summary__pill">{t(getGladiatorClassKey(gladiator))}</span>
             <span className="gladiator-summary__pill">
               {t('market.age', { age: gladiator.age })}

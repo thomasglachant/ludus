@@ -72,6 +72,7 @@ export function MarketContent({ save, onBuy }: MarketContentProps) {
                   }}
                   gladiator={candidate}
                   key={candidate.id}
+                  save={save}
                   testId={`market-candidate-${candidate.id}`}
                   warning={validationMessageKey ? t(validationMessageKey) : undefined}
                 />

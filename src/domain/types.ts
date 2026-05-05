@@ -33,6 +33,7 @@ export type {
   GladiatorClassId,
   GladiatorSkillProfile,
   GladiatorTrait,
+  GladiatorTraitId,
   GladiatorVisualIdentity,
 } from './gladiators/types';
 export { GLADIATOR_CLASS_IDS } from './gladiators/types';
@@ -113,10 +114,8 @@ export type {
   SaveMetadata,
 } from './saves/types';
 export type {
-  ActiveStatusEffect,
-  StatusEffectDefinition,
-  StatusEffectDurationBreakdown,
-  StatusEffectModifier,
-  StatusEffectTarget,
-  StatusEffectVisual,
-} from './status-effects/types';
+  GladiatorTraitDefinition,
+  GladiatorTraitDurationBreakdown,
+  GladiatorTraitModifier,
+  GladiatorTraitVisual,
+} from './gladiator-traits/types';

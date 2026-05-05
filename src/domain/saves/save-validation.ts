@@ -1,6 +1,6 @@
 import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/building-activities';
 import { BUILDING_IDS } from '../../game-data/buildings';
-import { STATUS_EFFECT_DEFINITIONS } from '../../game-data/status-effects';
+import { GLADIATOR_TRAIT_DEFINITIONS } from '../../game-data/gladiator-traits';
 import { createInitialEconomyState, updateCurrentWeekSummary } from '../economy/economy-actions';
 import { createDefaultWeeklyPlan } from '../weekly-simulation/weekly-simulation-actions';
 import { DAYS_OF_WEEK } from '../../game-data/time';
@@ -30,15 +30,13 @@ import type {
   GameAlert,
   WeeklyReport,
 } from '../planning/types';
-import { applyGladiatorStatusEffectAtDate } from '../status-effects/status-effect-actions';
-import type { ActiveStatusEffect } from '../status-effects/types';
 import type { DayOfWeek } from '../time/types';
 import type { GameSave } from './types';
 import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
 const dayOfWeeks = [...DAYS_OF_WEEK];
-const supportedSchemaVersions = [CURRENT_SCHEMA_VERSION - 1, CURRENT_SCHEMA_VERSION];
+const supportedSchemaVersions = [CURRENT_SCHEMA_VERSION];
 const gamePhases = ['planning', 'simulation', 'event', 'arena', 'report', 'gameOver'];
 const pendingActionTriggers = ['startWeek', 'enterArena'];
 const gameStatuses = ['active', 'lost'];
@@ -54,21 +52,9 @@ const arenaRanks = [
   'gold1',
 ];
 const arenaDayPhases = ['intro', 'summary'];
-const gladiatorTraits = [
-  'disciplined',
-  'lazy',
-  'brave',
-  'cowardly',
-  'ambitious',
-  'fragile',
-  'crowdFavorite',
-  'rivalrous',
-  'stoic',
-];
+const gladiatorTraitIds = GLADIATOR_TRAIT_DEFINITIONS.map((definition) => definition.id);
 const alertSeverities = ['info', 'warning', 'critical'];
 const alertActionKinds = ['allocateGladiatorSkillPoint', 'openWeeklyPlanning', 'openMarket'];
-const statusEffectIds = STATUS_EFFECT_DEFINITIONS.map((definition) => definition.id);
-const statusEffectTargetTypes = ['gladiator'];
 const eventStatuses = ['pending', 'resolved', 'expired'];
 const dailyPlanActivities: DailyPlanActivity[] = ['training', 'meals', 'sleep', 'production'];
 const legacyFocusedTrainingActivities = [
@@ -125,7 +111,7 @@ const eventEffectTypes = [
   'removeGladiator',
   'releaseAllGladiators',
   'changeGladiatorExperience',
-  'applyGladiatorStatusEffect',
+  'applyGladiatorTrait',
   'changeGladiatorStat',
 ];
 const eventStatFields = ['strength', 'agility', 'defense', 'life'];
@@ -232,15 +218,6 @@ function isGladiatorTrainingPlan(value: unknown, gladiatorId: string) {
   );
 }
 
-function isGladiatorWeeklyInjury(value: unknown) {
-  return (
-    isRecord(value) &&
-    hasStringFrom(value, 'reason', ['training', 'combat', 'event']) &&
-    hasNumber(value, 'year') &&
-    hasNumber(value, 'week')
-  );
-}
-
 function isGameDate(value: unknown) {
   return (
     isRecord(value) &&
@@ -250,31 +227,11 @@ function isGameDate(value: unknown) {
   );
 }
 
-function isStatusEffectTarget(value: unknown) {
+function isGladiatorTrait(value: unknown) {
   return (
     isRecord(value) &&
-    hasStringFrom(value, 'type', statusEffectTargetTypes) &&
-    hasString(value, 'id')
-  );
-}
-
-function isActiveStatusEffect(value: unknown): value is ActiveStatusEffect {
-  return (
-    isRecord(value) &&
-    hasString(value, 'id') &&
-    hasStringFrom(value, 'effectId', statusEffectIds) &&
-    isStatusEffectTarget(value.target) &&
-    isGameDate(value.startedAt) &&
-    isGameDate(value.expiresAt)
-  );
-}
-
-function hasLegacyGladiatorSkillProfile(value: Record<string, unknown>) {
-  return (
-    hasNumber(value, 'strength') &&
-    hasNumber(value, 'agility') &&
-    hasNumber(value, 'defense') &&
-    (hasNumber(value, 'life') || hasNumber(value, 'health'))
+    hasStringFrom(value, 'traitId', gladiatorTraitIds) &&
+    (value.expiresAt === undefined || isGameDate(value.expiresAt))
   );
 }
 
@@ -287,15 +244,13 @@ function hasCurrentGladiatorSkillProfile(value: Record<string, unknown>) {
   );
 }
 
-function isGladiator(value: unknown, schemaVersion: number): value is Gladiator {
+function isGladiator(value: unknown): value is Gladiator {
   if (!isRecord(value)) {
     return false;
   }
 
   const hasSupportedProgression =
-    schemaVersion < 15
-      ? hasLegacyGladiatorSkillProfile(value)
-      : hasCurrentGladiatorSkillProfile(value) && hasNonNegativeNumber(value, 'experience');
+    hasCurrentGladiatorSkillProfile(value) && hasNonNegativeNumber(value, 'experience');
 
   return (
     hasString(value, 'id') &&
@@ -306,12 +261,10 @@ function isGladiator(value: unknown, schemaVersion: number): value is Gladiator 
     hasNumber(value, 'wins') &&
     hasNumber(value, 'losses') &&
     Array.isArray(value.traits) &&
-    value.traits.every((trait) => isStringFrom(trait, gladiatorTraits)) &&
+    value.traits.every(isGladiatorTrait) &&
     (value.trainingPlan === undefined ||
       isGladiatorTrainingPlan(value.trainingPlan, value.id as string)) &&
-    (schemaVersion < CURRENT_SCHEMA_VERSION
-      ? value.weeklyInjury === undefined || isGladiatorWeeklyInjury(value.weeklyInjury)
-      : value.weeklyInjury === undefined) &&
+    value.weeklyInjury === undefined &&
     (value.visualIdentity === undefined || isRecord(value.visualIdentity))
   );
 }
@@ -331,18 +284,18 @@ function isTimeState(value: unknown) {
   );
 }
 
-function isMarketState(value: unknown, schemaVersion: number) {
+function isMarketState(value: unknown) {
   return (
     isRecord(value) &&
     hasNumber(value, 'week') &&
     hasNumber(value, 'year') &&
     Array.isArray(value.availableGladiators) &&
-    value.availableGladiators.every((gladiator) => isMarketGladiator(gladiator, schemaVersion))
+    value.availableGladiators.every(isMarketGladiator)
   );
 }
 
-function isMarketGladiator(value: unknown, schemaVersion: number): value is MarketGladiator {
-  return isRecord(value) && isGladiator(value, schemaVersion) && hasNumber(value, 'price');
+function isMarketGladiator(value: unknown): value is MarketGladiator {
+  return isRecord(value) && isGladiator(value) && hasNumber(value, 'price');
 }
 
 function isCombatTurn(value: unknown) {
@@ -385,12 +338,12 @@ function isCombatConsequence(value: unknown) {
   );
 }
 
-function isCombatState(value: unknown, schemaVersion: number): value is CombatState {
+function isCombatState(value: unknown): value is CombatState {
   return (
     isRecord(value) &&
     hasString(value, 'id') &&
-    isGladiator(value.gladiator, schemaVersion) &&
-    isGladiator(value.opponent, schemaVersion) &&
+    isGladiator(value.gladiator) &&
+    isGladiator(value.opponent) &&
     hasStringFrom(value, 'rank', arenaRanks) &&
     Array.isArray(value.turns) &&
     value.turns.every(isCombatTurn) &&
@@ -412,12 +365,12 @@ function isArenaDayState(value: unknown): value is ArenaDayState {
   );
 }
 
-function isArenaState(value: unknown, schemaVersion: number) {
+function isArenaState(value: unknown) {
   return (
     isRecord(value) &&
     (value.arenaDay === undefined || isArenaDayState(value.arenaDay)) &&
     Array.isArray(value.resolvedCombats) &&
-    value.resolvedCombats.every((combat) => isCombatState(combat, schemaVersion)) &&
+    value.resolvedCombats.every(isCombatState) &&
     hasBoolean(value, 'isArenaDayActive')
   );
 }
@@ -432,9 +385,7 @@ function isGameAlert(value: unknown): value is GameAlert {
     (value.actionKind === undefined || isStringFrom(value.actionKind, alertActionKinds)) &&
     (value.gladiatorId === undefined || typeof value.gladiatorId === 'string') &&
     (value.buildingId === undefined || isStringFrom(value.buildingId, requiredBuildingIds)) &&
-    (value.statusEffectId === undefined || isStringFrom(value.statusEffectId, statusEffectIds)) &&
-    (value.statusEffectInstanceId === undefined ||
-      typeof value.statusEffectInstanceId === 'string') &&
+    (value.traitId === undefined || isStringFrom(value.traitId, gladiatorTraitIds)) &&
     hasString(value, 'createdAt')
   );
 }
@@ -685,10 +636,10 @@ function isGameEventEffect(value: unknown) {
     return true;
   }
 
-  if (effectType === 'applyGladiatorStatusEffect') {
+  if (effectType === 'applyGladiatorTrait') {
     return (
       hasString(value, 'gladiatorId') &&
-      hasStringFrom(value, 'effectId', statusEffectIds) &&
+      hasStringFrom(value, 'traitId', gladiatorTraitIds) &&
       hasNumber(value, 'durationDays')
     );
   }
@@ -864,14 +815,10 @@ function isSupportedGameSave(value: unknown): value is GameSave {
       isBuildingState(buildings[buildingId], buildingId, schemaVersion),
     ) &&
     Array.isArray(value.gladiators) &&
-    value.gladiators.every((gladiator) => isGladiator(gladiator, schemaVersion)) &&
+    value.gladiators.every(isGladiator) &&
     isEconomyState(value.economy) &&
-    (schemaVersion < CURRENT_SCHEMA_VERSION
-      ? value.statusEffects === undefined ||
-        (Array.isArray(value.statusEffects) && value.statusEffects.every(isActiveStatusEffect))
-      : Array.isArray(value.statusEffects) && value.statusEffects.every(isActiveStatusEffect)) &&
-    isMarketState(value.market, schemaVersion) &&
-    isArenaState(value.arena, schemaVersion) &&
+    isMarketState(value.market) &&
+    isArenaState(value.arena) &&
     isPlanningState(value.planning, schemaVersion) &&
     isEventState(value.events)
   );
@@ -1105,58 +1052,14 @@ function normalizeDailyPlans(
   ) as Record<DayOfWeek, DailyPlan>;
 }
 
-function getDaysUntilNextWeekStart(dayOfWeek: DayOfWeek) {
-  const dayIndex = dayOfWeeks.indexOf(dayOfWeek);
-
-  return dayOfWeeks.length - dayIndex;
-}
-
-function migrateLegacyWeeklyInjuries(save: GameSave, normalizedSave: GameSave) {
-  if (save.schemaVersion >= CURRENT_SCHEMA_VERSION) {
-    return normalizedSave;
-  }
-
-  const currentDate = {
-    year: save.time.year,
-    week: save.time.week,
-    dayOfWeek: save.time.dayOfWeek,
-  };
-  const durationDays = getDaysUntilNextWeekStart(save.time.dayOfWeek);
-
-  return save.gladiators.reduce((migratedSave, gladiator) => {
-    const legacyGladiator = gladiator as Gladiator & {
-      weeklyInjury?: { week: number; year: number };
-    };
-
-    if (
-      legacyGladiator.weeklyInjury?.year !== save.time.year ||
-      legacyGladiator.weeklyInjury.week !== save.time.week
-    ) {
-      return migratedSave;
-    }
-
-    return applyGladiatorStatusEffectAtDate(
-      migratedSave,
-      'injury',
-      durationDays,
-      gladiator.id,
-      currentDate,
-    );
-  }, normalizedSave);
-}
-
 export function normalizeGameSave(save: GameSave): GameSave {
   const saveWithLegacyFields = save as GameSave &
     Record<string, unknown> & {
       gameId?: unknown;
       map?: unknown;
-      statusEffects?: unknown;
     };
   const defaultWeeklyPlan = createDefaultWeeklyPlan(save.time.year, save.time.week);
-  const resetProgression = save.schemaVersion < 15;
-  const statusEffects = Array.isArray(saveWithLegacyFields.statusEffects)
-    ? saveWithLegacyFields.statusEffects.filter(isActiveStatusEffect)
-    : [];
+  const resetProgression = false;
   const normalizedSave: GameSave & { contracts?: unknown; settings?: unknown } = {
     ...save,
     schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -1187,7 +1090,6 @@ export function normalizeGameSave(save: GameSave): GameSave {
       normalizeGladiator(gladiator, { resetProgression }),
     ),
     economy: normalizeEconomyState(save.economy),
-    statusEffects,
     market: {
       ...save.market,
       availableGladiators: save.market.availableGladiators.map((gladiator) => {
@@ -1226,7 +1128,7 @@ export function normalizeGameSave(save: GameSave): GameSave {
   delete (normalizedSave.arena as GameSave['arena'] & { betting?: unknown }).betting;
   delete (normalizedSave.arena as GameSave['arena'] & { pendingCombats?: unknown }).pendingCombats;
 
-  return updateCurrentWeekSummary(migrateLegacyWeeklyInjuries(save, normalizedSave));
+  return updateCurrentWeekSummary(normalizedSave);
 }
 
 export function parseGameSave(value: string): GameSave | null {

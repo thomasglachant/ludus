@@ -7,7 +7,7 @@ import { MetricList, SectionCard } from '../components/shared';
 import { GladiatorAttributes } from '../gladiators/GladiatorAttributes';
 import { GladiatorExperienceBar } from '../gladiators/GladiatorExperienceBar';
 import { GladiatorSkillBars } from '../gladiators/GladiatorSkillBars';
-import { GladiatorStatusEffects } from '../gladiators/GladiatorStatusEffects';
+import { GladiatorTraits } from '../gladiators/GladiatorTraits';
 import { GameIcon } from '../icons/GameIcon';
 import {
   ModalContentFrame,
@@ -62,14 +62,9 @@ export function GladiatorDetailPanel({
     <ModalContentFrame>
       <ModalHeroCard
         avatar={<GladiatorPortrait gladiator={gladiator} size="large" />}
-        description={
-          <span>
-            {t('market.age', { age: gladiator.age })} -{' '}
-            {gladiator.traits.length > 0 ? <>{t(`traits.${gladiator.traits[0]}`)}</> : null}
-          </span>
-        }
+        description={<span>{t('market.age', { age: gladiator.age })}</span>}
         descriptionContent={<GladiatorAttributes gladiator={gladiator} />}
-        headingContent={<GladiatorStatusEffects gladiator={gladiator} save={save} />}
+        headingContent={<GladiatorTraits gladiator={gladiator} save={save} />}
         level={getGladiatorLevel(gladiator)}
         levelLabelKey="gladiatorPanel.level"
         title={gladiator.name}

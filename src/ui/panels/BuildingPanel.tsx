@@ -339,6 +339,7 @@ export function BuildingPanel({
                   gladiator={gladiator}
                   key={gladiator.id}
                   openLabel={t('roster.openGladiator', { name: gladiator.name })}
+                  save={save}
                   testId={`building-gladiator-${gladiator.id}`}
                   onOpen={() => onOpenGladiator(gladiator.id)}
                 />

@@ -1,3 +1,5 @@
+import type { GameDate } from '../time/types';
+
 export const GLADIATOR_CLASS_IDS = ['murmillo', 'retiarius', 'secutor'] as const;
 
 export type GladiatorClassId = (typeof GLADIATOR_CLASS_IDS)[number];
@@ -42,7 +44,12 @@ export interface Gladiator {
   visualIdentity?: GladiatorVisualIdentity;
 }
 
-export type GladiatorTrait =
+export interface GladiatorTrait {
+  traitId: GladiatorTraitId;
+  expiresAt?: GameDate;
+}
+
+export type GladiatorTraitId =
   | 'disciplined'
   | 'lazy'
   | 'brave'
@@ -51,4 +58,6 @@ export type GladiatorTrait =
   | 'fragile'
   | 'crowdFavorite'
   | 'rivalrous'
-  | 'stoic';
+  | 'stoic'
+  | 'injury'
+  | 'victoryAura';

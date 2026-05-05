@@ -18,14 +18,14 @@ import {
 } from '../economy/economy-actions';
 import { getGladiatorEffectiveSkill } from '../gladiators/skills';
 import { addGladiatorExperience, getGladiatorLevel } from '../gladiators/progression';
-import { synchronizePlanning } from '../planning/planning-actions';
 import {
-  addDaysToGameDate,
-  applyGladiatorStatusEffectAtDate,
   canGladiatorFightInArena,
-  getCurrentGameDate,
-  getRandomCombatInjuryDuration,
-} from '../status-effects/status-effect-actions';
+  getGladiatorArenaRewardMultiplier,
+  getGladiatorCombatEnergyBonus,
+  getGladiatorCombatExperienceMultiplier,
+  getGladiatorCombatMoraleBonus,
+} from '../gladiator-traits/gladiator-trait-actions';
+import { synchronizePlanning } from '../planning/planning-actions';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
 import type {
@@ -72,10 +72,10 @@ function roundOdds(value: number) {
   return Math.round(value * 100) / 100;
 }
 
-function getCombatInjuryChance(didPlayerWin: boolean) {
+export function getCombatInjuryChance(didPlayerWin: boolean) {
   return didPlayerWin
-    ? GAME_BALANCE.statusEffects.injury.combat.winChance
-    : GAME_BALANCE.statusEffects.injury.combat.lossChance;
+    ? GAME_BALANCE.traits.injury.combat.winChance
+    : GAME_BALANCE.traits.injury.combat.lossChance;
 }
 
 function getCombatId(save: GameSave, gladiatorId: string) {
@@ -122,14 +122,23 @@ function getParticipantMaxEnergy(gladiator: Gladiator) {
 
 function createParticipantCombatGauges(gladiator: Gladiator): CombatParticipantGauges {
   const maxHealth = getParticipantMaxHealth(gladiator);
-  const maxEnergy = getParticipantMaxEnergy(gladiator);
+  const maxEnergy = clamp(
+    getParticipantMaxEnergy(gladiator) + getGladiatorCombatEnergyBonus(gladiator),
+    GAME_BALANCE.gladiators.gauges.minimum,
+    GAME_BALANCE.gladiators.gauges.maximum,
+  );
+  const morale = clamp(
+    COMBAT_CONFIG.baseMorale + getGladiatorCombatMoraleBonus(gladiator),
+    GAME_BALANCE.gladiators.gauges.minimum,
+    GAME_BALANCE.gladiators.gauges.maximum,
+  );
 
   return {
     maxHealth,
     health: maxHealth,
     maxEnergy,
     energy: maxEnergy,
-    morale: COMBAT_CONFIG.baseMorale,
+    morale,
   };
 }
 
@@ -150,14 +159,16 @@ export function calculateArenaCombatReward(
   playerDecimalOdds: number,
   random: RandomSource = Math.random,
   opponentDecimalOdds?: number,
+  rewardMultiplier = 1,
 ): CombatReward {
   const participationReward = 0;
   const publicStakeModifier = createPublicStakeModifier(random);
   const victoryReward = Math.max(
     0,
     Math.round(
-      ARENA_REWARDS[rank] * ARENA_VICTORY_ODDS_REWARD_MULTIPLIER * playerDecimalOdds +
-        publicStakeModifier,
+      (ARENA_REWARDS[rank] * ARENA_VICTORY_ODDS_REWARD_MULTIPLIER * playerDecimalOdds +
+        publicStakeModifier) *
+        rewardMultiplier,
     ),
   );
   const winnerReward = victoryReward;
@@ -401,7 +412,8 @@ export function calculateCombatExperienceChange(
     GAME_BALANCE.gladiators.training.experiencePerPoint *
       GAME_BALANCE.gladiators.combatExperience.dailyTrainingEquivalentPoints *
       outcomeMultiplier *
-      levelMultiplier,
+      levelMultiplier *
+      getGladiatorCombatExperienceMultiplier(gladiator),
   );
 }
 
@@ -483,7 +495,13 @@ export function resolveCombat(
   const loserId = didPlayerWin ? opponent.id : gladiator.id;
   const finalReputation = calculateGladiatorCombatReputation(gladiator.reputation, didPlayerWin);
   const experienceChange = calculateCombatExperienceChange(gladiator, opponent, didPlayerWin);
-  const reward = calculateArenaCombatReward(rank, playerDecimalOdds, random, opponentDecimalOdds);
+  const reward = calculateArenaCombatReward(
+    rank,
+    playerDecimalOdds,
+    random,
+    opponentDecimalOdds,
+    getGladiatorArenaRewardMultiplier(gladiator),
+  );
   const playerReward = didPlayerWin ? reward.winnerReward : reward.loserReward;
 
   return {
@@ -543,7 +561,7 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
     0,
   );
 
-  let resolvedSave: GameSave = {
+  const resolvedSave: GameSave = {
     ...save,
     ludus: {
       ...save.ludus,
@@ -556,29 +574,6 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
       isArenaDayActive: true,
     },
   };
-  const effectStartDate = addDaysToGameDate(getCurrentGameDate(save), 1);
-
-  for (const combat of missingCombats) {
-    if (combat.consequence.didPlayerWin) {
-      resolvedSave = applyGladiatorStatusEffectAtDate(
-        resolvedSave,
-        'victoryAura',
-        GAME_BALANCE.statusEffects.victoryAura.durationDays,
-        combat.gladiator.id,
-        effectStartDate,
-      );
-    }
-
-    if (random() < getCombatInjuryChance(combat.consequence.didPlayerWin)) {
-      resolvedSave = applyGladiatorStatusEffectAtDate(
-        resolvedSave,
-        'injury',
-        getRandomCombatInjuryDuration(random),
-        combat.gladiator.id,
-        effectStartDate,
-      );
-    }
-  }
 
   if (rewardTotal <= 0) {
     return refreshGameAlerts(synchronizePlanning(updateCurrentWeekSummary(resolvedSave)));

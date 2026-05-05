@@ -3,12 +3,13 @@ import type { Gladiator } from '../gladiators/types';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
 import {
-  applyGladiatorStatusEffect,
-  applyGladiatorStatusEffectAtDate,
+  addPermanentGladiatorTrait,
+  applyGladiatorTrait,
+  applyGladiatorTraitAtDate,
   canGladiatorFightInArena,
-  getActiveGladiatorStatusEffects,
+  getActiveGladiatorTraits,
   getGladiatorTrainingExperienceMultiplier,
-} from './status-effect-actions';
+} from './gladiator-trait-actions';
 
 function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
   return {
@@ -42,23 +43,29 @@ function createTestSave(overrides: Partial<GameSave> = {}): GameSave {
   };
 }
 
-describe('status effect actions', () => {
-  it('applies, refreshes and expires status effects by exclusive game-day end', () => {
+describe('gladiator trait actions', () => {
+  it('adds permanent gladiator traits without expiration or duplicates', () => {
     const save = createTestSave();
-    const injured = applyGladiatorStatusEffect(save, 'injury', 1, 'gladiator-test');
-    const refreshed = applyGladiatorStatusEffect(injured, 'injury', 5, 'gladiator-test');
+    const disciplined = addPermanentGladiatorTrait(save, 'disciplined', 'gladiator-test');
+    const duplicated = addPermanentGladiatorTrait(disciplined, 'disciplined', 'gladiator-test');
 
-    expect(refreshed.statusEffects).toEqual([
-      expect.objectContaining({
-        effectId: 'injury',
-        target: { type: 'gladiator', id: 'gladiator-test' },
-        startedAt: { dayOfWeek: 'monday', week: 1, year: 1 },
+    expect(duplicated.gladiators[0].traits).toEqual([{ traitId: 'disciplined' }]);
+  });
+
+  it('applies, refreshes and expires gladiator traits by exclusive game-day end', () => {
+    const save = createTestSave();
+    const injured = applyGladiatorTrait(save, 'injury', 1, 'gladiator-test');
+    const refreshed = applyGladiatorTrait(injured, 'injury', 5, 'gladiator-test');
+
+    expect(refreshed.gladiators[0].traits).toEqual([
+      {
+        traitId: 'injury',
         expiresAt: { dayOfWeek: 'saturday', week: 1, year: 1 },
-      }),
+      },
     ]);
-    expect(refreshed.statusEffects).toHaveLength(1);
+    expect(refreshed.gladiators[0].traits).toHaveLength(1);
     expect(
-      getActiveGladiatorStatusEffects(refreshed, 'gladiator-test', {
+      getActiveGladiatorTraits(refreshed, 'gladiator-test', {
         dayOfWeek: 'saturday',
         week: 1,
         year: 1,
@@ -67,8 +74,8 @@ describe('status effect actions', () => {
   });
 
   it('combines training multipliers and arena eligibility modifiers', () => {
-    const save = applyGladiatorStatusEffectAtDate(
-      applyGladiatorStatusEffect(createTestSave(), 'victoryAura', 3, 'gladiator-test'),
+    const save = applyGladiatorTraitAtDate(
+      applyGladiatorTrait(createTestSave(), 'victoryAura', 3, 'gladiator-test'),
       'injury',
       2,
       'gladiator-test',

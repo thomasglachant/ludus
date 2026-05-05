@@ -3,9 +3,9 @@ import type { GameSave, Gladiator } from '../types';
 import { getDailyPlanBucketBudget } from '../planning/planning-actions';
 import { createInitialSave } from '../saves/create-initial-save';
 import {
-  applyGladiatorStatusEffect,
-  applyGladiatorStatusEffectAtDate,
-} from '../status-effects/status-effect-actions';
+  applyGladiatorTrait,
+  applyGladiatorTraitAtDate,
+} from '../gladiator-traits/gladiator-trait-actions';
 import { generateGameAlerts, refreshGameAlerts } from './alert-actions';
 
 function createTestSave(overrides: Partial<GameSave> = {}): GameSave {
@@ -216,11 +216,11 @@ describe('alert actions', () => {
     }
   });
 
-  it('generates gladiator alerts for visible status effects and unassigned skill points', () => {
+  it('generates gladiator alerts for visible gladiator traits and unassigned skill points', () => {
     const save = refreshGameAlerts(
       withCompleteRemainingPlanning(
         withoutAlerts(
-          applyGladiatorStatusEffect(
+          applyGladiatorTrait(
             withGladiators(createTestSave(), [createGladiator({ experience: 100 })]),
             'injury',
             2,
@@ -234,9 +234,9 @@ describe('alert actions', () => {
       expect.arrayContaining([
         expect.objectContaining({
           severity: 'warning',
-          titleKey: 'statusEffects.injury.name',
+          titleKey: 'traits.injury.name',
           gladiatorId: 'gladiator-test',
-          statusEffectId: 'injury',
+          traitId: 'injury',
         }),
         expect.objectContaining({
           severity: 'info',
@@ -248,11 +248,42 @@ describe('alert actions', () => {
     );
   });
 
-  it('ignores silent or expired status effects when generating gladiator alerts', () => {
+  it('does not duplicate skill alerts when a gladiator has temporary traits', () => {
+    const save = refreshGameAlerts(
+      withCompleteRemainingPlanning(
+        withoutAlerts(
+          applyGladiatorTrait(
+            applyGladiatorTrait(
+              withGladiators(createTestSave(), [createGladiator({ experience: 100 })]),
+              'victoryAura',
+              3,
+              'gladiator-test',
+            ),
+            'injury',
+            2,
+            'gladiator-test',
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      save.planning.alerts.filter((alert) => alert.id === 'alert-gladiator-test-skill-point'),
+    ).toHaveLength(1);
+  });
+
+  it('ignores silent or expired gladiator traits when generating gladiator alerts', () => {
+    const permanentSave = refreshGameAlerts(
+      withCompleteRemainingPlanning(
+        withoutAlerts(
+          withGladiators(createTestSave(), [createGladiator({ traits: [{ traitId: 'fragile' }] })]),
+        ),
+      ),
+    );
     const silentSave = refreshGameAlerts(
       withCompleteRemainingPlanning(
         withoutAlerts(
-          applyGladiatorStatusEffect(
+          applyGladiatorTrait(
             withGladiators(createTestSave(), [createGladiator()]),
             'victoryAura',
             3,
@@ -264,7 +295,7 @@ describe('alert actions', () => {
     const expiredSave = refreshGameAlerts(
       withCompleteRemainingPlanning(
         withoutAlerts(
-          applyGladiatorStatusEffectAtDate(
+          applyGladiatorTraitAtDate(
             withGladiators(createTestSave(), [createGladiator()]),
             'injury',
             1,
@@ -275,8 +306,8 @@ describe('alert actions', () => {
       ),
     );
 
-    for (const save of [silentSave, expiredSave]) {
-      expect(save.planning.alerts.some((alert) => alert.statusEffectId)).toBe(false);
+    for (const save of [permanentSave, silentSave, expiredSave]) {
+      expect(save.planning.alerts.some((alert) => alert.traitId)).toBe(false);
     }
   });
 

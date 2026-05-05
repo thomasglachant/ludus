@@ -16,7 +16,6 @@ export interface GameSave {
   time: GameTimeState;
   buildings: Record<BuildingId, BuildingState>;
   gladiators: Gladiator[];
-  statusEffects: ActiveStatusEffect[];
   market: MarketState;
   arena: ArenaState;
   planning: WeeklyPlanningState;
@@ -26,7 +25,7 @@ export interface GameSave {
 }
 ```
 
-New and updated saves are emitted with the current `schemaVersion`. The validator supports the current save schema and the immediately previous schema when a migration is implemented.
+New and updated saves are emitted with the current `schemaVersion`. The validator supports only the current save schema. Older schemas are rejected cleanly instead of being migrated.
 
 ## Ludus
 
@@ -110,23 +109,44 @@ export interface Gladiator {
 
 `experience` is the source of truth for progression. The gladiator level is derived from XP thresholds through domain selectors and should not be persisted as an independent mutable field. Available skill points are derived from the initial point budget plus derived levels minus the sum of allocated skills; spending a point increments one integer skill and clamps it to the 1..10 range.
 
-## Status Effects
+## Gladiator Traits
 
 ```ts
-export interface ActiveStatusEffect {
-  id: string;
-  effectId: string;
-  target: { type: 'gladiator'; id: string };
-  startedAt: GameDate;
-  expiresAt: GameDate;
+export interface GladiatorTrait {
+  traitId: GladiatorTraitId;
+  expiresAt?: GameDate;
 }
 
-export type StatusEffectModifier =
+export type GladiatorTraitModifier =
   | { type: 'trainingExperienceMultiplier'; value: number }
-  | { type: 'arenaCombatEligibility'; value: boolean };
+  | { type: 'arenaCombatEligibility'; value: boolean }
+  | { type: 'combatMoraleBonus'; value: number }
+  | { type: 'combatEnergyBonus'; value: number }
+  | { type: 'combatExperienceMultiplier'; value: number }
+  | { type: 'injuryRiskMultiplier'; value: number }
+  | { type: 'arenaRewardMultiplier'; value: number };
 ```
 
-Status effect definitions live in `src/game-data/status-effects.ts`. Instances live in `GameSave.statusEffects`. Durations are exclusive by day: an effect created on Monday for 1 day expires at the start of Tuesday. Reapplying the same effect to the same gladiator refreshes the existing instance to the later expiration date instead of stacking duplicates.
+Gladiator trait definitions live in `src/game-data/gladiator-traits.ts`. Runtime traits live directly in `Gladiator.traits`.
+
+A trait without `expiresAt` is permanent. Permanent traits are part of the gladiator profile and never generate alerts. A trait with `expiresAt` is temporary and stays active while `currentDate < expiresAt`. Durations are exclusive by day: a temporary trait applied on Monday for 1 day expires at the start of Tuesday. Reapplying the same temporary trait to the same gladiator extends `expiresAt` to the later expiration date instead of stacking duplicates.
+
+Current native permanent trait modifiers:
+
+- `disciplined`: training XP x1.05;
+- `lazy`: training XP x0.95;
+- `brave`: combat morale +5;
+- `cowardly`: combat morale -5;
+- `ambitious`: combat XP x1.05;
+- `fragile`: injury risk x1.15;
+- `crowdFavorite`: arena reward x1.05;
+- `rivalrous`: combat energy +4 and combat morale -3;
+- `stoic`: injury risk x0.90.
+
+Current temporary traits:
+
+- `injury`: training XP x0, blocks arena eligibility and shows an alert;
+- `victoryAura`: training XP x1.1 and does not show an alert.
 
 ```ts
 export interface BuildingSkillDefinition {
@@ -241,27 +261,26 @@ export interface GameAlert {
   actionKind?: GameAlertActionKind;
   gladiatorId?: string;
   buildingId?: BuildingId;
-  statusEffectId?: string;
-  statusEffectInstanceId?: string;
+  traitId?: string;
   createdAt: string;
 }
 ```
 
 `GameAlert.id` is the stable identity used to preserve `createdAt` while the same alert remains active. `titleKey` and `descriptionKey` are i18n keys. `actionKind` is optional and lets the UI route direct actions such as opening weekly planning, opening the market or focusing gladiator skill allocation.
 
-Untargeted alerts are global Ludus alerts. `buildingId` attaches an alert to a building and lets UI surfaces badge that building. `gladiatorId` attaches an alert to an owned gladiator. `statusEffectId` references the status effect definition, while `statusEffectInstanceId` references the active instance so the UI can display the correct remaining duration.
+Untargeted alerts are global Ludus alerts. `buildingId` attaches an alert to a building and lets UI surfaces badge that building. `gladiatorId` attaches an alert to an owned gladiator. `traitId` references the active temporary gladiator trait so the UI can display the correct icon, color and remaining duration from the gladiator profile.
 
 The central alert engine currently evaluates:
 
 - ludus rules for empty or incomplete weekly planning;
 - building rules for the Dormitory open register when roster capacity and affordable market stock exist;
-- gladiator rules for unassigned skill points and visible active status effects.
+- gladiator rules for unassigned skill points and visible active gladiator traits.
 
 Future global rules such as low happiness or low treasury should be added to `ludusAlertRules` in `src/domain/alerts/alert-actions.ts`, then covered with i18n keys and tests. They should not require store or UI changes when they follow the existing `GameAlert` shape.
 
 Skill allocation alerts are generated from owned gladiators whose derived available skill points are greater than zero. They should be attached through `gladiatorId` and regenerated by the central alert engine rather than treated as authoritative progression state.
 
-Status effect alerts are generated from active status effect instances whose definitions set `showAlert` to `true`. They use `statusEffectId` for the definition and `statusEffectInstanceId` for the active instance so UI surfaces can display the correct icon, color and remaining duration.
+Gladiator trait alerts are generated only from active temporary gladiator traits whose definitions set `showAlert` to `true`. Permanent traits never generate alerts.
 
 Training and combat XP awards update `Gladiator.experience`. Reports may summarize XP gains for UI explanation, but the persisted source of truth remains the gladiator's total XP and allocated integer skills.
 

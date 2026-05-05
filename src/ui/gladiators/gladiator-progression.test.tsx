@@ -5,12 +5,15 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createInitialSave } from '../../domain/saves/create-initial-save';
-import { applyGladiatorStatusEffect } from '../../domain/status-effects/status-effect-actions';
+import { applyGladiatorTrait } from '../../domain/gladiator-traits/gladiator-trait-actions';
 import type { GameSave, Gladiator } from '../../domain/types';
+import { GLADIATOR_TRAIT_DEFINITIONS } from '../../game-data/gladiator-traits';
 import { UiStoreContext, type UiStoreValue } from '../../state/ui-store-context';
+import { GAME_ICON_DEFINITIONS } from '../icons/game-icon-definitions';
 import { GladiatorExperienceBar } from './GladiatorExperienceBar';
+import { GladiatorListRow } from './GladiatorListRow';
 import { GladiatorSkillBars } from './GladiatorSkillBars';
-import { GladiatorStatusEffects } from './GladiatorStatusEffects';
+import { GladiatorTraits } from './GladiatorTraits';
 
 function createUiStore(): UiStoreValue {
   return {
@@ -149,15 +152,34 @@ describe('gladiator progression UI', () => {
     expect(onAllocate).toHaveBeenCalledWith('strength');
   });
 
-  it('renders active status effect badges for a gladiator', () => {
+  it('renders active gladiator trait badges for a gladiator', () => {
     const gladiator = createGladiator();
-    const save = applyGladiatorStatusEffect(createTestSave(gladiator), 'injury', 2, gladiator.id);
-    const { container, root } = render(
-      <GladiatorStatusEffects gladiator={gladiator} save={save} />,
-    );
+    const save = applyGladiatorTrait(createTestSave(gladiator), 'injury', 2, gladiator.id);
+    const { container, root } = render(<GladiatorTraits gladiator={gladiator} save={save} />);
     mountedRoots.push(root);
 
-    expect(container.querySelector('.gladiator-status-effects__badge')).not.toBeNull();
-    expect(container.textContent).toContain('statusEffects.duration.shortDays');
+    expect(container.querySelector('.gladiator-traits__badge')).not.toBeNull();
+    expect(container.textContent).toContain('traits.duration.shortDays');
+  });
+
+  it('uses valid icon definitions for every gladiator trait visual', () => {
+    for (const definition of GLADIATOR_TRAIT_DEFINITIONS) {
+      expect(definition.visual.iconName in GAME_ICON_DEFINITIONS).toBe(true);
+    }
+
+    expect(
+      GLADIATOR_TRAIT_DEFINITIONS.find((definition) => definition.id === 'fragile')?.visual
+        .iconName,
+    ).toBe('injuryRisk');
+  });
+
+  it('renders trait durations in gladiator list rows from the current save', () => {
+    const gladiator = createGladiator();
+    const save = applyGladiatorTrait(createTestSave(gladiator), 'injury', 2, gladiator.id);
+    const { container, root } = render(<GladiatorListRow gladiator={gladiator} save={save} />);
+    mountedRoots.push(root);
+
+    expect(container.querySelector('.gladiator-traits__badge')).not.toBeNull();
+    expect(container.textContent).toContain('traits.duration.shortDays');
   });
 });

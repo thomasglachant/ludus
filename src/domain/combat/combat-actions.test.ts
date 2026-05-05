@@ -6,7 +6,8 @@ import {
 } from '../../game-data/combat';
 import { GLADIATOR_CLASS_VISUAL_ASSET_IDS } from '../../game-data/visual-assets';
 import { createInitialSave } from '../saves/create-initial-save';
-import { applyGladiatorStatusEffectAtDate } from '../status-effects/status-effect-actions';
+import { applyGladiatorTraitAtDate } from '../gladiator-traits/gladiator-trait-actions';
+import { completeSundayArenaDay } from '../weekly-simulation/weekly-simulation-actions';
 import type { GameSave, Gladiator } from '../types';
 import {
   calculateArenaCombatReward,
@@ -19,6 +20,7 @@ import {
   getArenaRank,
   resolveArenaDay,
   resolveCombat,
+  startArenaDay,
 } from './combat-actions';
 
 function createTestSave() {
@@ -209,30 +211,27 @@ describe('combat actions', () => {
     expect(resolved.ludus.reputation).toBe(gladiator.reputation);
   });
 
-  it('applies victory aura and possible combat injuries for Sunday winners', () => {
+  it('applies victory aura and possible combat injuries to Sunday winners on the next Monday', () => {
     const save = withSundayArena(createTestSave(), [createGladiator()]);
-    const resolved = resolveArenaDay(save, () => 0);
+    const resolved = startArenaDay(save, () => 0);
+    const nextWeek = completeSundayArenaDay(resolved, () => 0);
 
     expect(resolved.arena.resolvedCombats[0].consequence.didPlayerWin).toBe(true);
-    expect(resolved.statusEffects).toEqual(
+    expect(nextWeek.gladiators[0].traits).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({
-          effectId: 'victoryAura',
-          target: { type: 'gladiator', id: 'gladiator-test' },
-          startedAt: { dayOfWeek: 'monday', week: 2, year: 1 },
+        {
+          traitId: 'victoryAura',
           expiresAt: { dayOfWeek: 'thursday', week: 2, year: 1 },
-        }),
-        expect.objectContaining({
-          effectId: 'injury',
-          target: { type: 'gladiator', id: 'gladiator-test' },
-          startedAt: { dayOfWeek: 'monday', week: 2, year: 1 },
+        },
+        {
+          traitId: 'injury',
           expiresAt: { dayOfWeek: 'wednesday', week: 2, year: 1 },
-        }),
+        },
       ]),
     );
   });
 
-  it('applies possible combat injuries for Sunday losers', () => {
+  it('applies possible combat injuries to Sunday losers on the next Monday', () => {
     let rollCount = 0;
     const save = withSundayArena(createTestSave(), [
       createGladiator({
@@ -242,20 +241,19 @@ describe('combat actions', () => {
         life: 1,
       }),
     ]);
-    const resolved = resolveArenaDay(save, () => {
+    const resolved = startArenaDay(save, () => {
       rollCount += 1;
 
       return rollCount > 45 ? 0 : 1;
     });
+    const nextWeek = completeSundayArenaDay(resolved, () => 0);
 
     expect(resolved.arena.resolvedCombats[0].consequence.didPlayerWin).toBe(false);
-    expect(resolved.statusEffects).toEqual([
-      expect.objectContaining({
-        effectId: 'injury',
-        target: { type: 'gladiator', id: 'gladiator-test' },
-        startedAt: { dayOfWeek: 'monday', week: 2, year: 1 },
+    expect(nextWeek.gladiators[0].traits).toEqual([
+      {
+        traitId: 'injury',
         expiresAt: { dayOfWeek: 'wednesday', week: 2, year: 1 },
-      }),
+      },
     ]);
   });
 
@@ -311,8 +309,8 @@ describe('combat actions', () => {
     expect(resolved.gladiators).toEqual([]);
   });
 
-  it('excludes gladiators with an active injury status effect from Sunday combat', () => {
-    const save = applyGladiatorStatusEffectAtDate(
+  it('excludes gladiators with an active injury gladiator trait from Sunday combat', () => {
+    const save = applyGladiatorTraitAtDate(
       withSundayArena(createTestSave(), [createGladiator()]),
       'injury',
       2,

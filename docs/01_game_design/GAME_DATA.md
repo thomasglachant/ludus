@@ -159,16 +159,25 @@ Some skills also expose `unlockedActivities` ids from `src/game-data/building-ac
 
 Daily simulation applies active macro effects from levels, improvements, policies and skills. Effect values come directly from the active definitions.
 
-## Status Effects
+## Gladiator Traits
 
-`src/game-data/status-effects.ts` defines temporary gladiator effects. Each definition owns its i18n name and description keys, visual icon/color, alert visibility and hard-coded modifiers.
+`src/game-data/gladiator-traits.ts` defines permanent and temporary gladiator traits. Each definition owns its i18n name and description keys, visual icon/color, alert visibility and modifiers. Tunable values live under `GAME_BALANCE.traits`.
 
 Current definitions:
 
-- `injury`: shows an alert, sets training XP multiplier to `0`, and blocks arena combat eligibility.
-- `victoryAura`: does not show an alert and sets training XP multiplier to `1.1`.
+- `disciplined`: training XP x1.05;
+- `lazy`: training XP x0.95;
+- `brave`: combat morale +5;
+- `cowardly`: combat morale -5;
+- `ambitious`: combat XP x1.05;
+- `fragile`: injury risk x1.15;
+- `crowdFavorite`: arena reward x1.05;
+- `rivalrous`: combat energy +4 and combat morale -3;
+- `stoic`: injury risk x0.90;
+- `injury`: temporary, shows an alert, sets training XP multiplier to `0`, and blocks arena combat eligibility;
+- `victoryAura`: temporary, does not show an alert and sets training XP multiplier to `1.1`.
 
-Runtime instances are stored in `GameSave.statusEffects` with a target, `startedAt` and exclusive `expiresAt` game dates.
+Runtime traits are stored directly in `Gladiator.traits` as `{ traitId, expiresAt? }`. Traits without `expiresAt` are permanent. Temporary trait durations are exclusive by day, and reapplying the same temporary trait extends `expiresAt` without creating a duplicate.
 
 ## Events
 

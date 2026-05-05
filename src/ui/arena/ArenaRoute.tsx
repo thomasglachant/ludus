@@ -38,6 +38,7 @@ interface BoutOverviewViewProps {
   combat: CombatState;
   currentIndex: number;
   isLogOpen: boolean;
+  save: GameSave;
   totalCombats: number;
   onNext(): void;
   onPrevious(): void;
@@ -116,6 +117,7 @@ function BoutOverviewView({
   isLogOpen,
   onNext,
   onPrevious,
+  save,
   onToggleLog,
   totalCombats,
 }: BoutOverviewViewProps) {
@@ -178,6 +180,7 @@ function BoutOverviewView({
           <GladiatorSummary
             gladiator={combat.gladiator}
             odds={odds.player}
+            save={save}
             statValues={{
               energy: combat.gauges.player.energy,
               health: combat.gauges.player.health,
@@ -199,6 +202,7 @@ function BoutOverviewView({
           <GladiatorSummary
             gladiator={combat.opponent}
             odds={odds.opponent}
+            save={save}
             side="opponent"
             statValues={{
               energy: combat.gauges.opponent.energy,
@@ -475,6 +479,7 @@ export function ArenaRoute({ onCompleteArenaDay, onReturnToLudus, save }: ArenaR
             combat={currentCombat}
             currentIndex={visibleStepIndex}
             isLogOpen={openCombatLogIds.has(currentCombat.id)}
+            save={save}
             totalCombats={totalCombats}
             onNext={() => setCurrentStepIndex(Math.min(visibleStepIndex + 1, totalCombats))}
             onPrevious={() => setCurrentStepIndex(Math.max(visibleStepIndex - 1, 0))}

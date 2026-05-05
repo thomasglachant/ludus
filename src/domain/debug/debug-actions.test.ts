@@ -134,24 +134,23 @@ describe('debug actions', () => {
     expect(levelUpDebugGladiator(save, 'gladiator-test')).toBe(save);
   });
 
-  it('creates an injury status effect and planning alert for the selected gladiator', () => {
+  it('creates an injury gladiator trait and planning alert for the selected gladiator', () => {
     const save = createTestSave();
 
     const result = createDebugInjuryAlert(save, 'gladiator-test');
 
-    expect(result.statusEffects).toEqual([
+    expect(result.gladiators[0].traits).toEqual([
       expect.objectContaining({
-        effectId: 'injury',
-        target: { type: 'gladiator', id: 'gladiator-test' },
+        traitId: 'injury',
       }),
     ]);
     expect(result.planning.alerts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           severity: 'warning',
-          titleKey: 'statusEffects.injury.name',
+          titleKey: 'traits.injury.name',
           gladiatorId: 'gladiator-test',
-          statusEffectId: 'injury',
+          traitId: 'injury',
         }),
       ]),
     );

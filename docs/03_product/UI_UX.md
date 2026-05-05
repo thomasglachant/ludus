@@ -173,7 +173,7 @@ Global Ludus alerts currently cover weekly planning:
 
 Building alerts badge the related building and show its avatar in the side alert menu. The Dormitory open register alert appears when the Ludus has roster space and at least one affordable recruit in the market; clicking it opens the market.
 
-Gladiator alerts show the gladiator portrait and open the relevant gladiator surface when possible. Current rules cover unassigned skill points and visible status effects.
+Gladiator alerts show the gladiator portrait and open the relevant gladiator surface when possible. Current rules cover unassigned skill points and visible gladiator traits.
 
 Future rules such as low happiness or low treasury should be added to the central alert engine as Ludus rules, with matching i18n keys and tests. UI routing should continue to rely on `actionKind`, `buildingId` and `gladiatorId` rather than feature-specific trigger code.
 
@@ -246,11 +246,13 @@ Building detail template:
 Gladiator detail template:
 
 - Use the same hero card structure with portrait, name, short description and key stats.
+- Show `GladiatorTraits` directly below the gladiator name. The first row contains permanent traits; the second row contains temporary traits.
 - Use tabs for overview, assignment or planning, progression and finances only when those sections exist.
 - Show derived level, total XP, XP toward the next level and available skill points through view-model values, not component-local formulas.
 - Progression contains skill allocation controls for strength, agility, defense and life. Allocation spends whole points only, clamps skills to 1..10 and disables maxed skills.
 - Use `GladiatorAttributes` from `src/ui/gladiators/GladiatorAttributes.tsx` whenever a gladiator row or gladiator hero needs the standard compact attributes. The order is reputation, life, strength, agility and defense, and skill values are displayed as integers from 1 to 10.
 - Use `GladiatorListRow` from `src/ui/gladiators/GladiatorListRow.tsx` for gladiator lists, including market and owned roster rows. Customize it through props for price, primary action and clickability instead of rebuilding row markup.
+- Reuse `GladiatorTraits` in roster rows, market rows, contextual sheets and arena summaries whenever a gladiator identity block is shown.
 - Use `IconValueStat` from `src/ui/components/IconValueStat.tsx` for compact aptitude, reputation, life and cost values. Do not create feature-local stat chip components or manually pair `GameIcon` with a numeric value for these facts.
 - Do not create isolated bespoke stat cards when `ModalHeroCard`, `MetricList`, `ImpactIndicator`, `ImpactList` or chart primitives can represent the data. Avoid wrapping these primitives in extra cards unless the grouping changes the meaning.
 

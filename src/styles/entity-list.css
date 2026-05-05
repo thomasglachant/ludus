@@ -76,6 +76,10 @@
   pointer-events: none;
 }
 
+.entity-list-row--clickable .entity-list-row__info .tooltip {
+  pointer-events: auto;
+}
+
 .entity-list-row--clickable:hover {
   background: rgba(255, 248, 226, 0.28);
 }

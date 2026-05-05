@@ -7,6 +7,7 @@ import {
 
 export interface ImpactListItem {
   amount: number;
+  amountSuffix?: string;
   chancePercent?: number;
   id: string;
   kind: ImpactIndicatorKind;
@@ -37,6 +38,7 @@ export function ImpactList({ className, impacts, size, ...props }: ImpactListPro
       {sortImpactsByTone(impacts).map((impact) => (
         <ImpactIndicator
           amount={impact.amount}
+          amountSuffix={impact.amountSuffix}
           chancePercent={impact.chancePercent}
           key={impact.id}
           kind={impact.kind}

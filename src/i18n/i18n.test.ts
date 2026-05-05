@@ -5,7 +5,7 @@ import process from 'node:process';
 import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../game-data/building-improvements';
 import { BUILDING_DEFINITIONS } from '../game-data/buildings';
 import { BUILDING_SKILLS } from '../game-data/building-skills';
-import { STATUS_EFFECT_DEFINITIONS } from '../game-data/status-effects';
+import { GLADIATOR_TRAIT_DEFINITIONS } from '../game-data/gladiator-traits';
 import { translate } from '.';
 import en from './locales/en.json';
 import fr from './locales/fr.json';
@@ -47,16 +47,16 @@ describe('i18n', () => {
       policy.descriptionKey,
     ]);
     const skillKeys = BUILDING_SKILLS.flatMap((skill) => [skill.nameKey, skill.descriptionKey]);
-    const statusEffectKeys = STATUS_EFFECT_DEFINITIONS.flatMap((effect) => [
-      effect.nameKey,
-      effect.descriptionKey,
+    const gladiatorTraitKeys = GLADIATOR_TRAIT_DEFINITIONS.flatMap((trait) => [
+      trait.nameKey,
+      trait.descriptionKey,
     ]);
     for (const key of [
       ...buildingKeys,
       ...improvementKeys,
       ...policyKeys,
       ...skillKeys,
-      ...statusEffectKeys,
+      ...gladiatorTraitKeys,
     ]) {
       expect(englishDictionary[key], key).toBeDefined();
       expect(frenchDictionary[key], key).toBeDefined();

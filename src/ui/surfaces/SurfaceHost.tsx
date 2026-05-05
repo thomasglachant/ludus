@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { hasActiveGladiatorTrait } from '../../domain/gladiator-traits/gladiator-trait-actions';
 import { getAvailableSkillPoints } from '../../domain/gladiators/progression';
 import { getAvailableLudusGladiatorPlaces } from '../../domain/ludus/capacity';
 import { calculateGladiatorSaleValue } from '../../domain/market/market-actions';
@@ -24,16 +25,14 @@ import { GladiatorAttributes } from '../gladiators/GladiatorAttributes';
 import { GladiatorExperienceBar } from '../gladiators/GladiatorExperienceBar';
 import { GladiatorListRow } from '../gladiators/GladiatorListRow';
 import { GladiatorSkillBars } from '../gladiators/GladiatorSkillBars';
-import { GladiatorStatusEffects } from '../gladiators/GladiatorStatusEffects';
+import { GladiatorTraits } from '../gladiators/GladiatorTraits';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 import { ContextSheet, GameSurface, SurfaceHeader, SurfaceTabs } from './SurfaceFrame';
 
 const rosterFilters: RosterFilter[] = ['all', 'ready', 'injured', 'levelUp'];
 
 function hasInjury(save: GameSave, gladiatorId: string) {
-  return save.statusEffects.some(
-    (effect) => effect.effectId === 'injury' && effect.target.id === gladiatorId,
-  );
+  return hasActiveGladiatorTrait(save, gladiatorId, 'injury');
 }
 
 function getFilteredGladiators(save: GameSave, filter: RosterFilter) {
@@ -78,10 +77,10 @@ function GladiatorContextSheet({ gladiator, save }: { gladiator: Gladiator; save
         <div>
           <span>{t('gladiatorPanel.eyebrow')}</span>
           <h3>{gladiator.name}</h3>
+          <GladiatorTraits gladiator={gladiator} save={save} variant="compact" />
           <GladiatorAttributes gladiator={gladiator} />
         </div>
       </div>
-      <GladiatorStatusEffects gladiator={gladiator} save={save} />
       <GladiatorSkillBars gladiator={gladiator} />
       <GladiatorExperienceBar gladiator={gladiator} />
       <div className="context-sheet__actions">
@@ -261,6 +260,7 @@ function RosterSurface({ save }: { save: GameSave }) {
                 gladiator={gladiator}
                 key={gladiator.id}
                 openLabel={t('roster.openGladiator', { name: gladiator.name })}
+                save={save}
                 testId={`roster-surface-row-${gladiator.id}`}
                 onOpen={() =>
                   openSurface({

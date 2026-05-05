@@ -5,6 +5,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { UiStoreContext, type UiStoreValue } from '../../state/ui-store-context';
+import { ImpactIndicator } from '../components/ImpactIndicator';
 import { Tooltip } from '../components/Tooltip';
 import { ParchmentModal } from './ParchmentModal';
 import { TreasuryBadge } from './ResourceBadge';
@@ -183,7 +184,7 @@ describe('Ludus design system smoke flows', () => {
     expect(onSelect).toHaveBeenCalledWith('upgrades');
   });
 
-  it('keeps Tooltip wrapper compatibility while adding the Radix primitive', () => {
+  it('keeps Tooltip wrapper accessibility while using the Radix primitive', () => {
     const tooltipText = 'Treasury';
     const iconLabel = 'Coin';
     const { container, root } = render(
@@ -195,8 +196,24 @@ describe('Ludus design system smoke flows', () => {
 
     const tooltip = container.querySelector<HTMLElement>('.tooltip');
 
-    expect(tooltip?.dataset.tooltip).toBe(tooltipText);
+    expect(tooltip?.dataset.tooltip).toBeUndefined();
     expect(tooltip?.getAttribute('aria-label')).toBe(tooltipText);
     expect(tooltip?.tabIndex).toBe(0);
+  });
+
+  it('renders percentage suffixes for semantic impact kinds', () => {
+    const { container, root } = render(
+      <ImpactIndicator
+        amount={15}
+        amountSuffix="%"
+        kind="injuryRisk"
+        label="Injury risk"
+        tone="negative"
+      />,
+    );
+    mountedRoots.push(root);
+
+    expect(container.querySelector('.impact-indicator__amount')?.textContent).toBe('+15%');
+    expect(container.querySelector('svg')).not.toBeNull();
   });
 });

@@ -8,6 +8,7 @@ export type ImpactIndicatorKind = Extract<
   | 'treasury'
   | 'reputation'
   | 'health'
+  | 'injuryRisk'
   | 'energy'
   | 'morale'
   | 'strength'
@@ -32,6 +33,7 @@ interface ImpactIndicatorBaseProps {
 type ImpactIndicatorProps =
   | (ImpactIndicatorBaseProps & {
       amount: number;
+      amountSuffix?: string;
       kind: ImpactIndicatorKind;
       label: string;
       tone?: ImpactIndicatorTone;
@@ -81,7 +83,10 @@ export function ImpactIndicator(props: ImpactIndicatorProps) {
           )}
         </Tooltip>
       </span>
-      <strong className="impact-indicator__amount">{formatSignedNumber(props.amount)}</strong>
+      <strong className="impact-indicator__amount">
+        {formatSignedNumber(props.amount)}
+        {props.amountSuffix}
+      </strong>
     </span>
   );
 }

@@ -19,6 +19,7 @@ Current macro data includes:
 - `balance.ts`: economy, progression, gladiator XP, macro simulation, arena and building tuning;
 - `buildings.ts`: building definitions and unlock data;
 - `building-skills.ts`: generated four-tier skill trees;
+- `gladiator-traits.ts`: permanent and temporary gladiator trait definitions;
 - `economy.ts`: loan definitions;
 - `market.ts`: market generation and experience-based price tuning;
 - demo saves.
@@ -35,6 +36,7 @@ Important macro modules:
 - `alerts/alert-actions.ts`: central derived alert engine for ludus, building and gladiator alerts;
 - `gladiators/skills.ts`: integer 1..10 skill helpers;
 - `gladiators/progression.ts`: XP-derived level selectors and skill point allocation rules;
+- `gladiator-traits/gladiator-trait-actions.ts`: active trait lookup, duration pruning and trait modifier selectors;
 - `economy/economy-actions.ts`: ledger summaries, loans and buyouts;
 - `planning/planning-actions.ts`: shared daily plan updates, validation and macro recommendations;
 - `ludus/capacity.ts`: Dormitory-driven gladiator roster capacity selectors;
@@ -118,7 +120,7 @@ Current test focus:
 - building validation and macro building state;
 - integer gladiator skills and XP-derived levels;
 - training and combat XP awards;
-- central alerts for ludus planning, Dormitory roster capacity, gladiator skill points and visible status effects;
+- central alerts for ludus planning, Dormitory roster capacity, gladiator skill points and visible gladiator traits;
 - skill point spending rules;
 - market prices based exclusively on experience;
 - combat rewards without participation payouts;

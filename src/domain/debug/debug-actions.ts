@@ -4,7 +4,7 @@ import { refreshGameAlerts } from '../alerts/alert-actions';
 import { getGladiatorExperienceProgress } from '../gladiators/progression';
 import { getActiveGameInterruption } from '../game-flow/interruption';
 import { synchronizePlanning } from '../planning/planning-actions';
-import { applyGladiatorStatusEffect } from '../status-effects/status-effect-actions';
+import { applyGladiatorTrait } from '../gladiator-traits/gladiator-trait-actions';
 import { resolveWeekStep } from '../weekly-simulation/weekly-simulation-actions';
 import type { GameSave } from '../types';
 import type { DayOfWeek } from '../time/types';
@@ -80,10 +80,10 @@ export function createDebugInjuryAlert(save: GameSave, gladiatorId: string): Gam
 
   return refreshGameAlerts(
     synchronizePlanning(
-      applyGladiatorStatusEffect(
+      applyGladiatorTrait(
         save,
         'injury',
-        GAME_BALANCE.statusEffects.injury.eventDurationDays,
+        GAME_BALANCE.traits.injury.eventDurationDays,
         gladiatorId,
       ),
     ),

@@ -72,6 +72,7 @@ export const GAME_ICON_DEFINITIONS = {
   hammer: { Icon: RiHammerFill, color: '#d6a34a' },
   health: { Icon: RiHeartFill, color: '#b33a2e' },
   happiness: { Icon: RiEmotionHappyFill, color: '#ffd76a' },
+  injuryRisk: { Icon: RiErrorWarningFill, color: '#b33a2e' },
   landmark: { Icon: RiAncientGateFill, color: '#d6a34a' },
   level: { Icon: RiStarFill, color: '#ffd76a' },
   logout: { Icon: RiLogoutBoxRFill, color: '#b55339' },

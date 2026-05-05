@@ -6,7 +6,7 @@ import type { Gladiator } from '../gladiators/types';
 import { createMarketState } from '../market/market-actions';
 import type { GameSave } from '../saves/types';
 import type { DayOfWeek, GameTimeState, PendingActionTrigger } from '../time/types';
-import { startArenaDay } from '../combat/combat-actions';
+import { getCombatInjuryChance, startArenaDay } from '../combat/combat-actions';
 import { synchronizeMacroEvents } from '../events/event-actions';
 import {
   calculateBuildingActivityImpact,
@@ -27,10 +27,12 @@ import {
   synchronizePlanning,
 } from '../planning/planning-actions';
 import {
-  applyGladiatorStatusEffect,
+  applyGladiatorTrait,
+  getRandomCombatInjuryDuration,
+  getGladiatorInjuryRiskMultiplier,
   getGladiatorTrainingExperienceMultiplier,
-  pruneExpiredStatusEffects,
-} from '../status-effects/status-effect-actions';
+  pruneExpiredTraits,
+} from '../gladiator-traits/gladiator-trait-actions';
 import type {
   DailyPlan,
   DailyPlanActivity,
@@ -77,8 +79,9 @@ interface DailyGladiatorResolutionResult {
 }
 
 interface DailyGladiatorModifiers {
+  injuryRiskMultiplier: number;
   injuryRiskReductionPercent: number;
-  statusTrainingExperienceMultiplier: number;
+  traitTrainingExperienceMultiplier: number;
   trainingExperienceBonusPercent: number;
 }
 
@@ -148,7 +151,7 @@ function getPercentMultiplier(percent: number) {
 }
 
 function canGladiatorGainTrainingExperience(modifiers: DailyGladiatorModifiers) {
-  return modifiers.statusTrainingExperienceMultiplier > 0;
+  return modifiers.traitTrainingExperienceMultiplier > 0;
 }
 
 function getFinanceCategoryForActivity(activity: DailyPlanActivity): EconomyCategory {
@@ -207,14 +210,15 @@ function applyDailyGladiatorEffects(
   const injuryChance =
     trainingPoints *
     GAME_BALANCE.macroSimulation.trainingInjuryChancePerPoint *
-    Math.max(0.1, 1 - modifiers.injuryRiskReductionPercent / 100);
+    Math.max(0.1, 1 - modifiers.injuryRiskReductionPercent / 100) *
+    modifiers.injuryRiskMultiplier;
   const isInjured = trainingPoints > 0 && random() < injuryChance;
   const trainingExperience =
     canTrain && !isInjured
       ? getTrainingExperiencePoints(plan, gladiatorPointDivisor, trainingLoadScale) *
         GAME_BALANCE.gladiators.training.experiencePerPoint *
         getPercentMultiplier(modifiers.trainingExperienceBonusPercent) *
-        modifiers.statusTrainingExperienceMultiplier
+        modifiers.traitTrainingExperienceMultiplier
       : 0;
 
   return {
@@ -261,7 +265,8 @@ function resolveDailyPlanInternal(
       plan,
       {
         ...baseModifiers,
-        statusTrainingExperienceMultiplier: getGladiatorTrainingExperienceMultiplier(
+        injuryRiskMultiplier: getGladiatorInjuryRiskMultiplier(save, gladiator.id),
+        traitTrainingExperienceMultiplier: getGladiatorTrainingExperienceMultiplier(
           save,
           gladiator.id,
         ),
@@ -368,10 +373,10 @@ function resolveDailyPlanInternal(
   };
 
   for (const gladiatorId of summary.injuredGladiatorIds) {
-    nextSave = applyGladiatorStatusEffect(
+    nextSave = applyGladiatorTrait(
       nextSave,
       'injury',
-      GAME_BALANCE.statusEffects.injury.trainingDurationDays,
+      GAME_BALANCE.traits.injury.trainingDurationDays,
       gladiatorId,
     );
   }
@@ -772,6 +777,44 @@ function getRunningReportDays(save: GameSave) {
   return runningReport?.days ?? [];
 }
 
+function getCurrentWeekCombatPrefix(save: GameSave) {
+  return `combat-${save.time.year}-${save.time.week}-`;
+}
+
+function applyPostArenaTraits(save: GameSave, sourceSave: GameSave, random: RandomSource) {
+  const combatIdPrefix = getCurrentWeekCombatPrefix(sourceSave);
+
+  return sourceSave.arena.resolvedCombats
+    .filter((combat) => combat.id.startsWith(combatIdPrefix))
+    .reduce((nextSave, combat) => {
+      let traitSave = nextSave;
+
+      if (combat.consequence.didPlayerWin) {
+        traitSave = applyGladiatorTrait(
+          traitSave,
+          'victoryAura',
+          GAME_BALANCE.traits.victoryAura.durationDays,
+          combat.gladiator.id,
+        );
+      }
+
+      const injuryChance =
+        getCombatInjuryChance(combat.consequence.didPlayerWin) *
+        getGladiatorInjuryRiskMultiplier(traitSave, combat.gladiator.id);
+
+      if (random() < injuryChance) {
+        traitSave = applyGladiatorTrait(
+          traitSave,
+          'injury',
+          getRandomCombatInjuryDuration(random),
+          combat.gladiator.id,
+        );
+      }
+
+      return traitSave;
+    }, save);
+}
+
 function clearPendingActionTrigger(time: GameTimeState): GameTimeState {
   const { pendingActionTrigger, ...timeWithoutTrigger } = time;
 
@@ -887,24 +930,24 @@ export function completeSundayArenaDay(
     return paidLoans;
   }
 
+  const nextWeekSave: GameSave = {
+    ...paidLoans,
+    time: {
+      ...paidLoans.time,
+      ...nextWeek,
+      dayOfWeek: 'monday',
+      phase: 'planning',
+      pendingActionTrigger: 'startWeek',
+    },
+    market: createMarketState(nextWeek.year, nextWeek.week, random),
+    planning: {
+      ...createDefaultWeeklyPlan(nextWeek.year, nextWeek.week),
+      reports: [report, ...archivedReports].slice(0, 8),
+    },
+  };
+
   return refreshGameAlerts(
-    synchronizePlanning(
-      pruneExpiredStatusEffects({
-        ...paidLoans,
-        time: {
-          ...paidLoans.time,
-          ...nextWeek,
-          dayOfWeek: 'monday',
-          phase: 'planning',
-          pendingActionTrigger: 'startWeek',
-        },
-        market: createMarketState(nextWeek.year, nextWeek.week, random),
-        planning: {
-          ...createDefaultWeeklyPlan(nextWeek.year, nextWeek.week),
-          reports: [report, ...archivedReports].slice(0, 8),
-        },
-      }),
-    ),
+    synchronizePlanning(pruneExpiredTraits(applyPostArenaTraits(nextWeekSave, save, random))),
   );
 }
 
@@ -958,7 +1001,7 @@ export function resolveWeekStep(save: GameSave, random: RandomSource = Math.rand
 
   const steppedSave = refreshGameAlerts(
     synchronizePlanning(
-      pruneExpiredStatusEffects({
+      pruneExpiredTraits({
         ...result.save,
         time: {
           ...clearPendingActionTrigger(result.save.time),

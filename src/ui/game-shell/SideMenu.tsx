@@ -1,8 +1,8 @@
 import type { BuildingId, GameAlert, GameSave } from '../../domain/types';
 import {
-  getRemainingStatusEffectDuration,
-  getStatusEffectDefinition,
-} from '../../domain/status-effects/status-effect-actions';
+  getGladiatorTraitDefinition,
+  getRemainingGladiatorTraitDuration,
+} from '../../domain/gladiator-traits/gladiator-trait-actions';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { useUiStore } from '../../state/ui-store-context';
 import { BuildingAvatar } from '../buildings/BuildingAvatar';
@@ -125,21 +125,19 @@ function AlertItem({
   const buildingId = alert.buildingId;
   const building = buildingId ? save.buildings[buildingId] : undefined;
   const buildingDefinition = buildingId ? BUILDING_DEFINITIONS[buildingId] : undefined;
-  const statusEffect = alert.statusEffectInstanceId
-    ? save.statusEffects.find((effect) => effect.id === alert.statusEffectInstanceId)
+  const trait = alert.traitId
+    ? gladiator?.traits.find((candidate) => candidate.traitId === alert.traitId)
     : undefined;
-  const statusEffectDefinition = statusEffect
-    ? getStatusEffectDefinition(statusEffect.effectId)
-    : undefined;
-  const statusEffectDuration = statusEffect
-    ? getRemainingStatusEffectDuration(statusEffect, {
+  const traitDefinition = trait ? getGladiatorTraitDefinition(trait.traitId) : undefined;
+  const traitDuration = trait
+    ? getRemainingGladiatorTraitDuration(trait, {
         year: save.time.year,
         week: save.time.week,
         dayOfWeek: save.time.dayOfWeek,
       })
     : undefined;
-  const durationLabel = statusEffectDuration
-    ? t('statusEffects.duration.remainingDays', { count: statusEffectDuration.days })
+  const durationLabel = traitDuration
+    ? t('traits.duration.remainingDays', { count: traitDuration.days })
     : null;
   const className = `side-menu__alert side-menu__alert--${alert.severity}`;
   const content = (
@@ -158,8 +156,8 @@ function AlertItem({
         ) : (
           <span className="side-menu__alert-icon">
             <GameIcon
-              color={statusEffectDefinition?.visual.color}
-              name={(statusEffectDefinition?.visual.iconName ?? 'alert') as GameIconName}
+              color={traitDefinition?.visual.color}
+              name={(traitDefinition?.visual.iconName ?? 'alert') as GameIconName}
               size={22}
             />
           </span>

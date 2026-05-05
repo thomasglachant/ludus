@@ -6,9 +6,9 @@ import type { Gladiator } from '../gladiators/types';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
 import {
-  applyGladiatorStatusEffect,
-  applyGladiatorStatusEffectAtDate,
-} from '../status-effects/status-effect-actions';
+  applyGladiatorTrait,
+  applyGladiatorTraitAtDate,
+} from '../gladiator-traits/gladiator-trait-actions';
 import {
   completeSundayArenaDay,
   createDefaultDailyPlan,
@@ -116,13 +116,11 @@ describe('weekly simulation actions', () => {
 
     expect(result.summary.injuredGladiatorIds).toContain('gladiator-test');
     expect(result.summary.happinessDelta).toBeLessThan(0);
-    expect(result.save.statusEffects).toEqual([
-      expect.objectContaining({
-        effectId: 'injury',
-        target: { type: 'gladiator', id: 'gladiator-test' },
-        startedAt: { dayOfWeek: 'monday', week: 1, year: 1 },
+    expect(gladiator.traits).toEqual([
+      {
+        traitId: 'injury',
         expiresAt: { dayOfWeek: 'wednesday', week: 1, year: 1 },
-      }),
+      },
     ]);
     expect(gladiator.experience).toBe(save.gladiators[0].experience);
     expect(gladiator.strength).toBe(save.gladiators[0].strength);
@@ -130,7 +128,7 @@ describe('weekly simulation actions', () => {
   });
 
   it('excludes already injured gladiators from incompatible training gains', () => {
-    const save = applyGladiatorStatusEffect(
+    const save = applyGladiatorTrait(
       createTestSave({
         gladiators: [
           createGladiator({
@@ -170,7 +168,7 @@ describe('weekly simulation actions', () => {
 
   it('applies victory aura as a training experience bonus', () => {
     const baseSave = createTestSave();
-    const boostedSave = applyGladiatorStatusEffect(baseSave, 'victoryAura', 3, 'gladiator-test');
+    const boostedSave = applyGladiatorTrait(baseSave, 'victoryAura', 3, 'gladiator-test');
     const plan = createDefaultDailyPlan('monday');
     plan.gladiatorTimePoints.training = 3;
 
@@ -242,9 +240,9 @@ describe('weekly simulation actions', () => {
     expect(excessiveGain).toBeLessThan(normalGain * 3);
   });
 
-  it('clears expired status effects when Sunday arena is completed', () => {
+  it('clears expired gladiator traits when Sunday arena is completed', () => {
     const sundaySave: GameSave = {
-      ...applyGladiatorStatusEffectAtDate(createTestSave(), 'injury', 2, 'gladiator-test', {
+      ...applyGladiatorTraitAtDate(createTestSave(), 'injury', 2, 'gladiator-test', {
         dayOfWeek: 'saturday',
         week: 1,
         year: 1,
@@ -274,7 +272,7 @@ describe('weekly simulation actions', () => {
       phase: 'planning',
       pendingActionTrigger: 'startWeek',
     });
-    expect(result.statusEffects).toEqual([]);
+    expect(result.gladiators[0].traits).toEqual([]);
   });
 
   it('regenerates next-week skill alerts after Sunday completion', () => {

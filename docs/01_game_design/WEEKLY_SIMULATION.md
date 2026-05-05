@@ -72,7 +72,9 @@ It resolves:
 - macro random events filtered by planned activities;
 - game over.
 
-Gladiators can carry active `statusEffects` with day-based durations. A status effect is active when `startedAt <= current day < expiresAt`. The `injury` effect sets the gladiator training XP multiplier to `0` and blocks Sunday arena eligibility. If a gladiator is injured during training, that day grants no training XP for that gladiator and applies `injury` for 2 days. The `victoryAura` effect applies after Sunday arena wins, starts on the following Monday, lasts 3 days and increases training XP by 10%.
+Gladiators carry permanent and temporary traits in `Gladiator.traits`. A trait without `expiresAt` is permanent and always active. A trait with `expiresAt` is temporary and stays active while `currentDate < expiresAt`.
+
+Permanent traits can modify training, combat, reward or injury-risk calculations without generating alerts. Temporary traits represent short-lived states. `injury` sets the gladiator training XP multiplier to `0`, blocks Sunday arena eligibility and shows an alert. If a gladiator is injured during training, that day grants no training XP for that gladiator and applies `injury` for 2 days. `victoryAura` is applied on the Monday after a Sunday arena win, lasts 3 days, increases training XP by 10% and does not show an alert.
 
 Macro effects are read from purchased building levels, improvements, policies and skills. Effect values are applied directly from their definitions.
 
@@ -123,8 +125,9 @@ If the current day is Sunday:
 6. Advance year/week if needed.
 7. Refresh the market.
 8. Create a new default weekly plan.
-9. Remove expired status effects.
-10. Set Monday to `planning` with `pendingActionTrigger: 'startWeek'`.
+9. Apply post-arena temporary traits from the completed Sunday combats.
+10. Remove expired gladiator traits.
+11. Set Monday to `planning` with `pendingActionTrigger: 'startWeek'`.
 
 ## Reports
 

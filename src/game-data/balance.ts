@@ -1,5 +1,5 @@
 import type { ArenaRank } from '../domain/combat/types';
-import type { GladiatorTrait } from '../domain/gladiators/types';
+import type { GladiatorTraitId } from '../domain/gladiators/types';
 import type { DayOfWeek } from '../domain/time/types';
 
 export const GAME_BALANCE = {
@@ -126,16 +126,54 @@ export const GAME_BALANCE = {
     },
   },
 
-  statusEffects: {
+  traits: {
+    disciplined: {
+      // Training XP multiplier for disciplined permanent gladiators.
+      trainingExperienceMultiplier: 1.05,
+    },
+    lazy: {
+      // Training XP multiplier for lazy permanent gladiators.
+      trainingExperienceMultiplier: 0.95,
+    },
+    brave: {
+      // Combat morale bonus for brave permanent gladiators.
+      combatMoraleBonus: 5,
+    },
+    cowardly: {
+      // Combat morale penalty for cowardly permanent gladiators.
+      combatMoraleBonus: -5,
+    },
+    ambitious: {
+      // Combat XP multiplier for ambitious permanent gladiators.
+      combatExperienceMultiplier: 1.05,
+    },
+    fragile: {
+      // Injury risk multiplier for fragile permanent gladiators.
+      injuryRiskMultiplier: 1.15,
+    },
+    crowdFavorite: {
+      // Arena reward multiplier for crowd-favorite permanent gladiators.
+      arenaRewardMultiplier: 1.05,
+    },
+    rivalrous: {
+      // Combat energy bonus for rivalrous permanent gladiators.
+      combatEnergyBonus: 4,
+      // Combat morale penalty for rivalrous permanent gladiators.
+      combatMoraleBonus: -3,
+    },
+    stoic: {
+      // Injury risk multiplier for stoic permanent gladiators.
+      injuryRiskMultiplier: 0.9,
+    },
     injury: {
-      // Days applied when macro training creates an injury.
+      // Days applied when macro training creates an injury trait.
       trainingDurationDays: 2,
-      // Days applied by event consequences that explicitly create an injury.
+      // Days applied by event consequences that explicitly create an injury trait.
       eventDurationDays: 2,
       combat: {
-        // Chance that a winning arena gladiator receives an injury status effect.
+        // Chance that a winning arena gladiator receives an injury trait.
         winChance: 0.05,
-        // Chance that a losing arena gladiator receives an injury status effect.
+        // Chance that a losing arena gladiator receives an injury trait.
         lossChance: 0.3,
         // Minimum arena injury duration in days.
         minDurationDays: 2,
@@ -146,7 +184,7 @@ export const GAME_BALANCE = {
     victoryAura: {
       // Days applied after a Sunday arena victory.
       durationDays: 3,
-      // Training XP multiplier while the aura is active.
+      // Training XP multiplier while the victory aura trait is active.
       trainingExperienceMultiplier: 1.1,
     },
   },
@@ -284,7 +322,7 @@ export const GAME_BALANCE = {
       'rivalrous',
       // Trait making the gladiator thematically stoic.
       'stoic',
-    ] as const satisfies readonly GladiatorTrait[],
+    ] as const satisfies readonly GladiatorTraitId[],
   },
 
   arena: {

@@ -16,14 +16,18 @@ import type {
   DemoSaveId,
   GameSave,
   Gladiator,
+  GladiatorTrait,
+  GladiatorTraitId,
   MarketGladiator,
 } from '../../domain/types';
 
 export const DEMO_CREATED_AT = '2026-01-01T00:00:00.000Z';
 export const DEMO_UPDATED_AT = '2026-01-01T00:00:00.000Z';
 
-export type DemoGladiatorInput = Omit<Gladiator, 'experience'> &
-  Partial<Pick<Gladiator, 'experience'>>;
+export type DemoGladiatorInput = Omit<Gladiator, 'experience' | 'traits'> &
+  Partial<Pick<Gladiator, 'experience'>> & {
+    traits: Array<GladiatorTraitId | GladiatorTrait>;
+  };
 type DemoMarketGladiatorInput = DemoGladiatorInput & { price: number };
 
 interface DemoSaveInput {
@@ -34,6 +38,10 @@ interface DemoSaveInput {
   buildings: Partial<Record<BuildingId, BuildingState>>;
   gladiators: DemoGladiatorInput[];
   market: DemoMarketGladiatorInput[];
+}
+
+function createDemoTraits(traits: Array<GladiatorTraitId | GladiatorTrait>): GladiatorTrait[] {
+  return traits.map((trait) => (typeof trait === 'string' ? { traitId: trait } : trait));
 }
 
 export function createPurchasedBuilding(
@@ -61,7 +69,7 @@ function createDemoGladiator(gladiator: DemoGladiatorInput): Gladiator {
     reputation: gladiator.reputation,
     wins: gladiator.wins,
     losses: gladiator.losses,
-    traits: gladiator.traits,
+    traits: createDemoTraits(gladiator.traits),
     visualIdentity: gladiator.visualIdentity,
   });
   const skillProfile = {
@@ -110,7 +118,6 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
     buildings,
     gladiators,
     economy: createInitialEconomyState(),
-    statusEffects: [],
     market: {
       year: time.year,
       week: time.week,

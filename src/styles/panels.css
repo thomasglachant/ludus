@@ -51,54 +51,114 @@
   color: #6d5035;
 }
 
-.gladiator-status-effects {
+.gladiator-traits {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.gladiator-traits--compact {
+  gap: 4px;
+}
+
+.gladiator-traits__row {
   display: flex;
+  min-width: 0;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
-.gladiator-status-effects__badge {
-  display: grid;
-  min-width: 42px;
-  justify-items: center;
-  gap: 3px;
-  padding: 6px 7px;
-  border: 1px solid color-mix(in srgb, var(--status-effect-color) 72%, #fff1c7);
+.gladiator-traits__badge {
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 24px;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  border: 1px solid color-mix(in srgb, var(--gladiator-trait-color) 64%, #fff1c7);
   border-radius: 7px;
   background:
-    linear-gradient(180deg, rgba(42, 33, 24, 0.92), rgba(29, 23, 18, 0.94)),
-    var(--status-effect-color);
-  color: #fff1c7;
-  font-size: 0.66rem;
+    linear-gradient(180deg, rgba(255, 246, 222, 0.9), rgba(226, 194, 128, 0.78)),
+    var(--gladiator-trait-color);
+  color: #3a281b;
+  font-size: 0.68rem;
   font-weight: 950;
   line-height: 1;
 }
 
-.gladiator-status-effects__badge svg {
-  color: var(--status-effect-color);
+.gladiator-traits__badge span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.gladiator-status-effects__tooltip {
+.gladiator-traits__badge small {
+  color: inherit;
+  font-size: 0.62rem;
+  font-weight: 950;
+  opacity: 0.8;
+}
+
+.gladiator-traits__badge svg {
+  flex: 0 0 auto;
+  color: var(--gladiator-trait-color);
+}
+
+.gladiator-traits__tooltip {
   display: grid;
-  max-width: 260px;
+  max-width: 280px;
   gap: 8px;
   line-height: 1.25;
 }
 
-.gladiator-status-effects__tooltip > strong {
+.gladiator-traits__tooltip > strong {
   color: #fff1c7;
   font-size: 0.88rem;
 }
 
-.gladiator-status-effects__tooltip-duration {
+.gladiator-traits__tooltip-duration {
+  border-top: 1px solid rgba(247, 223, 170, 0.18);
+  padding-top: 7px;
   color: #d7bd84;
 }
 
-.gladiator-status-effects__tooltip-modifiers {
-  display: flex;
-  flex-wrap: wrap;
+.gladiator-traits__tooltip-modifiers {
+  display: grid;
+  gap: 5px;
+}
+
+.gladiator-traits__modifier {
+  display: grid;
+  grid-template-columns: 15px minmax(0, 1fr) auto;
   gap: 6px;
+  align-items: center;
+  color: #f7dfaa;
+  font-size: 0.75rem;
+  font-weight: 850;
+}
+
+.gladiator-traits__modifier svg {
+  color: currentColor;
+}
+
+.gladiator-traits__modifier span {
+  min-width: 0;
+}
+
+.gladiator-traits__modifier strong {
+  color: #fff1c7;
+  font-size: 0.78rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.gladiator-traits__modifier--positive {
+  color: #9ed278;
+}
+
+.gladiator-traits__modifier--negative {
+  color: #e07b61;
 }
 
 .finance-chart-grid {

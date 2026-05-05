@@ -23,9 +23,9 @@ import { synchronizePlanning } from '../planning/planning-actions';
 import type { DailyPlan, DailyPlanActivity } from '../planning/types';
 import type { GameSave } from '../saves/types';
 import {
-  applyGladiatorStatusEffect,
-  hasActiveGladiatorStatusEffect,
-} from '../status-effects/status-effect-actions';
+  applyGladiatorTrait,
+  hasActiveGladiatorTrait,
+} from '../gladiator-traits/gladiator-trait-actions';
 import type {
   GameEvent,
   GameEventChoice,
@@ -142,7 +142,7 @@ function canUseDefinition(save: GameSave, definition: DailyEventDefinition) {
 
   if (definition.gladiatorSelector === 'injured') {
     return save.gladiators.some((gladiator) =>
-      hasActiveGladiatorStatusEffect(save, gladiator.id, 'injury'),
+      hasActiveGladiatorTrait(save, gladiator.id, 'injury'),
     );
   }
 
@@ -202,9 +202,7 @@ function selectGladiator(
 
   const candidates =
     definition.gladiatorSelector === 'injured'
-      ? save.gladiators.filter((gladiator) =>
-          hasActiveGladiatorStatusEffect(save, gladiator.id, 'injury'),
-        )
+      ? save.gladiators.filter((gladiator) => hasActiveGladiatorTrait(save, gladiator.id, 'injury'))
       : save.gladiators;
 
   return candidates.length > 0 ? candidates[pickIndex(candidates.length, random)] : undefined;
@@ -227,12 +225,12 @@ function resolveEffectTemplate(
       return gladiatorId
         ? { type: 'changeGladiatorExperience', gladiatorId, amount: template.amount }
         : null;
-    case 'applySelectedGladiatorStatusEffect':
+    case 'applySelectedGladiatorTrait':
       return gladiatorId
         ? {
-            type: 'applyGladiatorStatusEffect',
+            type: 'applyGladiatorTrait',
             gladiatorId,
-            effectId: template.effectId,
+            traitId: template.traitId,
             durationDays: template.durationDays,
           }
         : null;
@@ -481,10 +479,6 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
     return {
       ...save,
       gladiators: save.gladiators.filter((gladiator) => gladiator.id !== effect.gladiatorId),
-      statusEffects: save.statusEffects.filter(
-        (statusEffect) =>
-          statusEffect.target.type !== 'gladiator' || statusEffect.target.id !== effect.gladiatorId,
-      ),
       planning: {
         ...save.planning,
         alerts: save.planning.alerts.filter((alert) => alert.gladiatorId !== effect.gladiatorId),
@@ -496,7 +490,6 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
     return {
       ...save,
       gladiators: [],
-      statusEffects: save.statusEffects.filter((effect) => effect.target.type !== 'gladiator'),
       planning: { ...save.planning, alerts: [] },
     };
   }
@@ -512,13 +505,8 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
     };
   }
 
-  if (effect.type === 'applyGladiatorStatusEffect') {
-    return applyGladiatorStatusEffect(
-      save,
-      effect.effectId,
-      effect.durationDays,
-      effect.gladiatorId,
-    );
+  if (effect.type === 'applyGladiatorTrait') {
+    return applyGladiatorTrait(save, effect.traitId, effect.durationDays, effect.gladiatorId);
   }
 
   if (effect.type === 'changeGladiatorStat') {

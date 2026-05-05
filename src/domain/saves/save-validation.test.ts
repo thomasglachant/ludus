@@ -14,21 +14,6 @@ function createJsonClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-function withLegacyBuildingEfficiency(save: ReturnType<typeof createTestSave>) {
-  return {
-    ...save,
-    buildings: Object.fromEntries(
-      Object.entries(save.buildings).map(([buildingId, building]) => [
-        buildingId,
-        {
-          ...building,
-          efficiency: building.isPurchased ? 100 : 0,
-        },
-      ]),
-    ),
-  };
-}
-
 describe('save validation', () => {
   it('rejects current schema saves without launched event history', () => {
     const save = createTestSave();
@@ -133,12 +118,11 @@ describe('save validation', () => {
     expect(parsed).toBeNull();
   });
 
-  it('migrates previous-schema saves to the current schema', () => {
-    const save = withLegacyBuildingEfficiency(createJsonClone(createTestSave()));
+  it('rejects previous-schema saves through the current schema gate', () => {
+    const save = createJsonClone(createTestSave());
     const legacySave = {
       ...save,
       schemaVersion: CURRENT_SCHEMA_VERSION - 1,
-      statusEffects: undefined,
       ludus: {
         ...save.ludus,
         glory: 4,
@@ -146,10 +130,7 @@ describe('save validation', () => {
     };
     const parsed = parseGameSave(JSON.stringify(legacySave));
 
-    expect(parsed).not.toBeNull();
-    expect(parsed?.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
-    expect(parsed?.statusEffects).toEqual([]);
-    expect(parsed?.buildings.domus).not.toHaveProperty('efficiency');
+    expect(parsed).toBeNull();
   });
 
   it('strips obsolete real-time fields from current-schema transitional saves', () => {
@@ -297,12 +278,10 @@ describe('save validation', () => {
     expect(parseGameSave(JSON.stringify(malformedSave))).toBeNull();
   });
 
-  it('migrates valid weekly injury state and rejects malformed legacy injury state', () => {
-    const save = withLegacyBuildingEfficiency(createTestSave());
-    const validSave = {
+  it('rejects legacy weekly injury state and accepts current gladiator traits', () => {
+    const save = createTestSave();
+    const legacySave = {
       ...save,
-      schemaVersion: CURRENT_SCHEMA_VERSION - 1,
-      statusEffects: undefined,
       gladiators: [
         {
           id: 'gladiator-test',
@@ -325,38 +304,45 @@ describe('save validation', () => {
         },
       ],
     };
-    const malformedSave = {
-      ...validSave,
+    const currentTraitSave = {
+      ...save,
       gladiators: [
         {
-          ...validSave.gladiators[0],
-          weeklyInjury: {
-            reason: 'unknown',
-            year: save.time.year,
-            week: save.time.week,
-          },
+          id: 'gladiator-test',
+          name: 'Aulus',
+          age: 18,
+          experience: 0,
+          strength: 3,
+          agility: 3,
+          defense: 2,
+          life: 2,
+          reputation: 0,
+          wins: 0,
+          losses: 0,
+          traits: [
+            { traitId: 'disciplined' },
+            {
+              traitId: 'injury',
+              expiresAt: {
+                dayOfWeek: 'wednesday',
+                week: save.time.week,
+                year: save.time.year,
+              },
+            },
+          ],
         },
       ],
     };
 
-    expect(parseGameSave(JSON.stringify(validSave))?.statusEffects).toEqual([
-      expect.objectContaining({
-        effectId: 'injury',
-        target: { type: 'gladiator', id: 'gladiator-test' },
-        startedAt: {
-          dayOfWeek: save.time.dayOfWeek,
-          week: save.time.week,
-          year: save.time.year,
-        },
-        expiresAt: {
-          dayOfWeek: 'monday',
-          week: 2,
-          year: 1,
-        },
-      }),
+    expect(isGameSave(legacySave)).toBe(false);
+    expect(parseGameSave(JSON.stringify(legacySave))).toBeNull();
+    expect(parseGameSave(JSON.stringify(currentTraitSave))?.gladiators[0].traits).toEqual([
+      { traitId: 'disciplined' },
+      {
+        traitId: 'injury',
+        expiresAt: { dayOfWeek: 'wednesday', week: save.time.week, year: save.time.year },
+      },
     ]);
-    expect(isGameSave(malformedSave)).toBe(false);
-    expect(parseGameSave(JSON.stringify(malformedSave))).toBeNull();
   });
 
   it('normalizes daily plans that do not yet store specialized activity selections', () => {
