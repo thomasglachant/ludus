@@ -107,20 +107,14 @@
 }
 
 .bottom-navigation {
-  position: absolute;
-  bottom: 18px;
-  left: 18px;
   z-index: 22;
   display: flex;
-  grid-column: 1 / -1;
-  grid-row: 1;
+  width: fit-content;
+  max-width: 100%;
   align-items: center;
   justify-content: flex-start;
   padding: 8px 10px;
-  border: 1px solid rgba(214, 163, 74, 0.3);
   border-radius: 10px;
-  background: rgba(8, 7, 6, 0.42);
-  box-shadow: 0 14px 28px rgba(8, 6, 4, 0.22);
 }
 
 .bottom-navigation__items {
@@ -145,15 +139,17 @@
   background: transparent;
   color: #f7e6b3;
   font-weight: 800;
+  overflow: hidden;
 }
 
 .bottom-navigation__items button + button {
   border-left: 1px solid rgba(214, 163, 74, 0.24);
 }
 
-.bottom-navigation__items button:hover,
-.bottom-navigation__items button.is-selected {
-  background: transparent;
+.bottom-navigation__items button:hover {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(214, 163, 74, 0.28), transparent 4.5rem),
+    rgba(214, 163, 74, 0.08);
 }
 
 .bottom-navigation__items button > svg {
@@ -191,9 +187,7 @@
 
 @media (max-width: 760px) {
   .bottom-navigation {
-    right: 10px;
-    bottom: 10px;
-    left: 10px;
+    width: 100%;
     overflow-x: auto;
   }
 

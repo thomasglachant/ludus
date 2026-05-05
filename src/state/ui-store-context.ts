@@ -97,6 +97,42 @@ export interface ArenaModalRequest {
   kind: 'arena';
 }
 
+export type BuildingSurfaceTab =
+  | 'configuration'
+  | 'finance'
+  | 'gladiators'
+  | 'overview'
+  | 'upgrades';
+export type ContentPresentation = 'contextSheet' | 'modal' | 'surface';
+export type LudusSurfaceKind = 'buildings' | 'finance' | 'gladiators' | 'market' | 'planning';
+export type RosterFilter = 'all' | 'injured' | 'levelUp' | 'ready';
+export type SurfaceContextSource = 'alert' | 'building' | 'finance' | 'roster';
+
+export interface LudusContextSheetState {
+  id: string;
+  kind: 'buildingSkill' | 'gladiator' | 'ledgerEntry';
+  source: SurfaceContextSource;
+}
+
+export interface LudusSurfaceState {
+  contextSheet?: LudusContextSheetState;
+  kind: LudusSurfaceKind;
+  rosterFilter?: RosterFilter;
+  selectedBuildingId?: BuildingId;
+  selectedBuildingTab?: BuildingSurfaceTab;
+  selectedGladiatorId?: string;
+  selectedSkillId?: string;
+}
+
+export type OpenEntityTarget =
+  | { buildingId: BuildingId; kind: 'building'; tab?: BuildingSurfaceTab }
+  | { gladiatorId: string; kind: 'gladiator' };
+
+export interface OpenEntityOptions {
+  presentation?: ContentPresentation;
+  source: SurfaceContextSource;
+}
+
 export type UiModalRequest =
   | ConfirmModalRequest
   | FormModalRequest
@@ -118,17 +154,24 @@ export type UiModalState = UiModalRequest & { id: string };
 
 export interface UiStoreValue {
   activeModal: UiModalState | null;
+  activeSurface: LudusSurfaceState;
   modalStack: UiModalState[];
   language: LanguageCode;
   screen: ScreenName;
   backModal(): void;
   closeModal(): void;
   closeAllModals(): void;
+  closeContextSheet(): void;
+  closeSurface(): void;
+  openContextSheet(contextSheet: LudusContextSheetState): void;
+  openEntity(target: OpenEntityTarget, options: OpenEntityOptions): void;
   openModal(request: UiModalRequest): void;
   openConfirmModal(request: ConfirmModalRequest): void;
   openFormModal(request: FormModalRequest): void;
+  openSurface(surface: LudusSurfaceState): void;
   pushModal(request: UiModalRequest): void;
   replaceModal(request: UiModalRequest): void;
+  resetSurface(): void;
   setLanguage(language: LanguageCode): void;
   navigate(screen: ScreenName, options?: { gameId?: string; preserveModal?: boolean }): void;
   t(key: string, params?: Record<string, string | number>): string;

@@ -11,6 +11,12 @@
   overflow: auto;
 }
 
+.buildings-overview--embedded {
+  height: auto;
+  padding: 0;
+  overflow: visible;
+}
+
 .buildings-overview__header {
   display: flex;
   gap: 18px;
@@ -54,12 +60,22 @@
   margin: 0 auto;
 }
 
+.buildings-overview--embedded .buildings-overview__content {
+  width: 100%;
+  margin: 0;
+}
+
 .buildings-overview__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(260px, 1fr));
   gap: clamp(12px, 1.8vw, 20px);
   align-content: start;
   min-width: 0;
+}
+
+.buildings-overview--embedded .buildings-overview__grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
 }
 
 .building-overview-card {
@@ -95,6 +111,13 @@
 .building-overview-card:focus-visible {
   border-color: rgba(255, 221, 142, 0.76);
   filter: brightness(1.08);
+}
+
+.building-overview-card.is-selected {
+  border-color: rgba(119, 191, 138, 0.86);
+  box-shadow:
+    inset 0 0 0 2px rgba(119, 191, 138, 0.24),
+    0 18px 34px rgba(8, 6, 4, 0.3);
 }
 
 .building-overview-card:focus-visible,
@@ -198,6 +221,30 @@
   color: #f6e7c2;
   font-size: 0.78rem;
   font-weight: 850;
+}
+
+.buildings-overview--embedded .building-overview-card {
+  grid-template-columns: minmax(86px, 112px) minmax(0, 1fr);
+  min-height: 144px;
+}
+
+.buildings-overview--embedded .building-overview-card__visual {
+  padding: 12px 8px;
+}
+
+.buildings-overview--embedded .building-overview-card__visual img {
+  max-height: 106px;
+}
+
+.buildings-overview--embedded .building-overview-card__body {
+  gap: 9px;
+  padding: 14px;
+}
+
+.buildings-overview--embedded .building-overview-card__description {
+  min-height: 0;
+  font-size: 0.82rem;
+  -webkit-line-clamp: 2;
 }
 
 @media (max-width: 1080px) {

@@ -2,14 +2,14 @@ import { useCallback } from 'react';
 import type { BuildingId } from '../../domain/types';
 import { useGameStore } from '../../state/game-store-context';
 import { useUiStore } from '../../state/ui-store-context';
-import { BuildingsOverview } from '../buildings/BuildingsOverview';
 import { TopHud } from '../hud/TopHud';
 import { ScenicScreen } from '../layout/ScenicScreen';
 import { BottomNavigationBar } from '../navigation/BottomNavigationBar';
-import { RightAlertsMenu } from '../alerts/RightAlertsMenu';
-import type { ContextPanelKind } from './game-shell-types';
-import { GameActionDock, type GameActionDockAction } from './GameActionDock';
+import type { PrimaryNavigationKind } from './game-shell-types';
+import type { GameActionDockAction } from './GameActionDock';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
+import { SideMenu } from './SideMenu';
+import { SurfaceHost } from '../surfaces/SurfaceHost';
 
 export function GameShell() {
   const {
@@ -23,46 +23,28 @@ export function GameShell() {
     saveNoticeKey,
     toggleGamePause,
   } = useGameStore();
-  const { activeModal, navigate, openModal, t } = useUiStore();
+  const { activeSurface, openEntity, openModal, openSurface, t } = useUiStore();
 
-  const activePanelKind: ContextPanelKind | null =
-    activeModal?.kind === 'building' ||
-    activeModal?.kind === 'gladiator' ||
-    activeModal?.kind === 'weeklyPlanning' ||
-    activeModal?.kind === 'buildingsList' ||
-    activeModal?.kind === 'gladiatorsList' ||
-    activeModal?.kind === 'finance' ||
-    activeModal?.kind === 'market' ||
-    activeModal?.kind === 'arena'
-      ? activeModal.kind
-      : null;
+  const activePanelKind: PrimaryNavigationKind = activeSurface.kind;
 
   const openPanel = useCallback(
-    (panelKind: ContextPanelKind) => {
-      if (panelKind === 'building' || panelKind === 'gladiator') {
-        return;
-      }
-
-      if (panelKind === 'arena' && currentSave?.arena.arenaDay) {
-        navigate('arena', { gameId: currentSave.gameId });
-        return;
-      }
-
-      openModal({ kind: panelKind });
+    (panelKind: PrimaryNavigationKind) => {
+      openSurface({ kind: panelKind });
     },
-    [currentSave, navigate, openModal],
+    [openSurface],
   );
 
   const selectBuilding = useCallback(
-    (buildingId: BuildingId) => openModal({ buildingId, kind: 'building' }),
-    [openModal],
+    (buildingId: BuildingId) =>
+      openEntity({ buildingId, kind: 'building' }, { presentation: 'surface', source: 'building' }),
+    [openEntity],
   );
 
   const selectGladiator = useCallback(
     (gladiatorId: string) => {
-      openModal({ gladiatorId, kind: 'gladiator' });
+      openEntity({ gladiatorId, kind: 'gladiator' }, { presentation: 'surface', source: 'alert' });
     },
-    [openModal],
+    [openEntity],
   );
 
   if (!currentSave) {
@@ -108,32 +90,39 @@ export function GameShell() {
         isTimeControlLocked={isTimeControlLocked}
         save={currentSave}
         onOpenDomus={() => {
-          openModal({ buildingId: 'domus', kind: 'building' });
+          openEntity(
+            { buildingId: 'domus', kind: 'building' },
+            { presentation: 'surface', source: 'building' },
+          );
         }}
         onTogglePause={toggleGamePause}
         onOpenMenu={() => {
           openModal({ kind: 'gameMenu' });
         }}
         onOpenFinance={() => {
-          openModal({ kind: 'finance' });
+          openSurface({ kind: 'finance' });
         }}
       />
-      <main className="game-shell__main-stage">
-        <BuildingsOverview save={currentSave} onOpenBuilding={selectBuilding} />
-      </main>
-      <RightAlertsMenu
-        save={currentSave}
-        onOpenBuilding={selectBuilding}
-        onOpenGladiator={selectGladiator}
-        onOpenMarket={() => openModal({ kind: 'market' })}
-        onOpenWeeklyPlanning={() => openModal({ kind: 'weeklyPlanning' })}
-      />
-      <BottomNavigationBar
-        activePanelKind={activePanelKind}
-        save={currentSave}
-        onOpenPanel={openPanel}
-      />
-      <GameActionDock actions={dockActions} />
+      <div className="game-shell__middle">
+        <main className="game-shell__main-stage">
+          <SurfaceHost />
+        </main>
+        <SideMenu
+          actions={dockActions}
+          save={currentSave}
+          onOpenBuilding={selectBuilding}
+          onOpenGladiator={selectGladiator}
+          onOpenMarket={() => openSurface({ kind: 'market' })}
+          onOpenWeeklyPlanning={() => openSurface({ kind: 'planning' })}
+        />
+      </div>
+      <div className="game-shell__bottom">
+        <BottomNavigationBar
+          activePanelKind={activePanelKind}
+          save={currentSave}
+          onOpenPanel={openPanel}
+        />
+      </div>
       <ToastAndAlertLayer errorKey={errorKey} saveNoticeKey={saveNoticeKey} />
     </ScenicScreen>
   );

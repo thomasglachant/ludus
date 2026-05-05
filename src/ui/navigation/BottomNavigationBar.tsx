@@ -1,28 +1,29 @@
 import type { GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
-import type { ContextPanelKind } from '../game-shell/game-shell-types';
+import type { PrimaryNavigationKind } from '../game-shell/game-shell-types';
+import { ShellWidgetPanel } from '../game-shell/ShellWidgetPanel';
 import { RomanButton } from '../game/RomanButton';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface BottomNavigationBarProps {
-  activePanelKind: ContextPanelKind | null;
+  activePanelKind: PrimaryNavigationKind;
   save: GameSave;
-  onOpenPanel(panelKind: ContextPanelKind): void;
+  onOpenPanel(panelKind: PrimaryNavigationKind): void;
 }
 
 const navigationItems: Array<{
   badge?(save: GameSave): number;
   iconName: GameIconName;
   labelKey: string;
-  panelKind: ContextPanelKind;
+  panelKind: PrimaryNavigationKind;
 }> = [
   {
-    panelKind: 'buildingsList',
+    panelKind: 'buildings',
     labelKey: 'navigation.buildings',
     iconName: 'landmark',
   },
   {
-    panelKind: 'gladiatorsList',
+    panelKind: 'gladiators',
     labelKey: 'navigation.gladiators',
     iconName: 'capacity',
     badge: (save) => save.gladiators.length,
@@ -33,7 +34,7 @@ const navigationItems: Array<{
     iconName: 'shoppingCart',
   },
   {
-    panelKind: 'weeklyPlanning',
+    panelKind: 'planning',
     labelKey: 'navigation.weeklyPlanning',
     iconName: 'weeklyPlanning',
   },
@@ -52,7 +53,7 @@ export function BottomNavigationBar({
   const { t } = useUiStore();
 
   return (
-    <nav className="bottom-navigation" aria-label={t('navigation.title')}>
+    <ShellWidgetPanel as="nav" className="bottom-navigation" aria-label={t('navigation.title')}>
       <div className="bottom-navigation__items">
         {navigationItems.map((item) => {
           const badge = item.badge?.(save);
@@ -60,6 +61,7 @@ export function BottomNavigationBar({
           return (
             <RomanButton
               aria-label={t(item.labelKey)}
+              aria-current={activePanelKind === item.panelKind ? 'page' : undefined}
               className={activePanelKind === item.panelKind ? 'is-selected' : ''}
               data-testid={`bottom-navigation-${item.panelKind}`}
               key={item.panelKind}
@@ -75,6 +77,6 @@ export function BottomNavigationBar({
           );
         })}
       </div>
-    </nav>
+    </ShellWidgetPanel>
   );
 }

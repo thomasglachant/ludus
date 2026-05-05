@@ -6,10 +6,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createInitialSave } from '../../domain/saves/create-initial-save';
 import type { GameStoreValue } from '../../state/game-store-context';
-import type { UiModalRequest, UiStoreValue } from '../../state/ui-store-context';
+import type { LudusSurfaceState, UiModalRequest, UiStoreValue } from '../../state/ui-store-context';
 import { GameShell } from './GameShell';
 
 const openModal = vi.fn<(request: UiModalRequest) => void>();
+const openSurface = vi.fn<(surface: LudusSurfaceState) => void>();
 const navigate = vi.fn<UiStoreValue['navigate']>();
 const useGameStoreMock = vi.fn<() => GameStoreValue>();
 const useUiStoreMock = vi.fn<() => UiStoreValue>();
@@ -92,17 +93,24 @@ function createGameStore(overrides: Partial<GameStoreValue> = {}): GameStoreValu
 function createUiStore(): UiStoreValue {
   return {
     activeModal: null,
+    activeSurface: { kind: 'buildings' },
     modalStack: [],
     language: 'en',
     screen: 'ludus',
     backModal: vi.fn(),
     closeModal: vi.fn(),
     closeAllModals: vi.fn(),
+    closeContextSheet: vi.fn(),
+    closeSurface: vi.fn(),
+    openContextSheet: vi.fn(),
+    openEntity: vi.fn(),
     openModal,
     openConfirmModal: vi.fn(),
     openFormModal: vi.fn(),
+    openSurface,
     pushModal: vi.fn(),
     replaceModal: vi.fn(),
+    resetSurface: vi.fn(),
     setLanguage: vi.fn(),
     navigate,
     t: (key, params) => (params ? `${key}:${JSON.stringify(params)}` : key),
@@ -134,6 +142,7 @@ describe('GameShell smoke flows', () => {
     document.body.append(container);
     root = createRoot(container);
     openModal.mockClear();
+    openSurface.mockClear();
     navigate.mockClear();
     useGameStoreMock.mockReturnValue(createGameStore());
     useUiStoreMock.mockReturnValue(createUiStore());
@@ -150,24 +159,24 @@ describe('GameShell smoke flows', () => {
     container.remove();
   });
 
-  it('opens primary macro panels from the bottom navigation', () => {
+  it('opens primary surfaces from the bottom navigation', () => {
     expect(container.querySelector('[data-testid="bottom-navigation-events"]')).toBeNull();
 
-    click(getButton(container, 'bottom-navigation-weeklyPlanning'));
+    click(getButton(container, 'bottom-navigation-planning'));
     click(getButton(container, 'bottom-navigation-finance'));
-    click(getButton(container, 'bottom-navigation-buildingsList'));
+    click(getButton(container, 'bottom-navigation-buildings'));
     click(getButton(container, 'bottom-navigation-market'));
 
-    expect(openModal).toHaveBeenNthCalledWith(1, { kind: 'weeklyPlanning' });
-    expect(openModal).toHaveBeenNthCalledWith(2, { kind: 'finance' });
-    expect(openModal).toHaveBeenNthCalledWith(3, { kind: 'buildingsList' });
-    expect(openModal).toHaveBeenNthCalledWith(4, { kind: 'market' });
+    expect(openSurface).toHaveBeenNthCalledWith(1, { kind: 'planning' });
+    expect(openSurface).toHaveBeenNthCalledWith(2, { kind: 'finance' });
+    expect(openSurface).toHaveBeenNthCalledWith(3, { kind: 'buildings' });
+    expect(openSurface).toHaveBeenNthCalledWith(4, { kind: 'market' });
   });
 
-  it('opens finances from the treasury button', () => {
+  it('opens finance surface from the treasury button', () => {
     click(getButton(container, 'topbar-treasury'));
 
-    expect(openModal).toHaveBeenCalledWith({ kind: 'finance' });
+    expect(openSurface).toHaveBeenCalledWith({ kind: 'finance' });
   });
 
   it('does not render the legacy building efficiency metric in the overview', () => {

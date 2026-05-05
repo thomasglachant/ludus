@@ -1,9 +1,1 @@
-export type ContextPanelKind =
-  | 'building'
-  | 'gladiator'
-  | 'weeklyPlanning'
-  | 'buildingsList'
-  | 'gladiatorsList'
-  | 'finance'
-  | 'market'
-  | 'arena';
+export type PrimaryNavigationKind = 'buildings' | 'finance' | 'gladiators' | 'market' | 'planning';

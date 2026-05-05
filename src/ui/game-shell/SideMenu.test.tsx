@@ -10,22 +10,29 @@ import { synchronizePlanning } from '../../domain/planning/planning-actions';
 import { createInitialSave } from '../../domain/saves/create-initial-save';
 import { applyGladiatorStatusEffect } from '../../domain/status-effects/status-effect-actions';
 import { UiStoreContext, type UiStoreValue } from '../../state/ui-store-context';
-import { RightAlertsMenu } from './RightAlertsMenu';
+import { SideMenu } from './SideMenu';
 
 function createUiStore(): UiStoreValue {
   return {
     activeModal: null,
+    activeSurface: { kind: 'buildings' },
     modalStack: [],
     language: 'en',
     screen: 'ludus',
     backModal: vi.fn(),
     closeModal: vi.fn(),
     closeAllModals: vi.fn(),
+    closeContextSheet: vi.fn(),
+    closeSurface: vi.fn(),
+    openContextSheet: vi.fn(),
+    openEntity: vi.fn(),
     openModal: vi.fn(),
     openConfirmModal: vi.fn(),
     openFormModal: vi.fn(),
+    openSurface: vi.fn(),
     pushModal: vi.fn(),
     replaceModal: vi.fn(),
+    resetSurface: vi.fn(),
     setLanguage: vi.fn(),
     navigate: vi.fn(),
     t: (key, params) => {
@@ -129,7 +136,7 @@ function cleanup(container: HTMLElement, root: Root) {
 
 function getAlertButton(container: HTMLElement, label: string): HTMLButtonElement {
   const button = Array.from(
-    container.querySelectorAll<HTMLButtonElement>('button.right-alerts-menu__alert'),
+    container.querySelectorAll<HTMLButtonElement>('button.side-menu__alert'),
   ).find((candidate) => candidate.textContent?.includes(label));
 
   if (!button) {
@@ -139,7 +146,7 @@ function getAlertButton(container: HTMLElement, label: string): HTMLButtonElemen
   return button;
 }
 
-function renderAlertsMenu(
+function renderSideMenu(
   save: GameSave,
   handlers: Partial<{
     onOpenBuilding(buildingId: BuildingId): void;
@@ -149,7 +156,7 @@ function renderAlertsMenu(
   }> = {},
 ) {
   return render(
-    <RightAlertsMenu
+    <SideMenu
       save={save}
       onOpenBuilding={handlers.onOpenBuilding ?? vi.fn()}
       onOpenGladiator={handlers.onOpenGladiator ?? vi.fn()}
@@ -159,7 +166,7 @@ function renderAlertsMenu(
   );
 }
 
-describe('RightAlertsMenu', () => {
+describe('SideMenu', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -176,12 +183,12 @@ describe('RightAlertsMenu', () => {
         ),
       ),
     );
-    const { container, root } = renderAlertsMenu(save);
+    const { container, root } = renderSideMenu(save);
 
     expect(container.textContent).toContain('Marcus');
     expect(container.textContent).toContain('Injury');
     expect(container.textContent).toContain('2 days remaining');
-    expect(container.querySelector('.right-alerts-menu__alert .gladiator-portrait')).not.toBeNull();
+    expect(container.querySelector('.side-menu__alert .gladiator-portrait')).not.toBeNull();
 
     cleanup(container, root);
   });
@@ -202,11 +209,11 @@ describe('RightAlertsMenu', () => {
         alerts: [buildingAlert],
       },
     });
-    const { container, root } = renderAlertsMenu(save, { onOpenBuilding });
+    const { container, root } = renderSideMenu(save, { onOpenBuilding });
 
     const alertButton = getAlertButton(container, 'Canteen');
     expect(alertButton.textContent).toContain('Maintenance needed');
-    expect(alertButton.querySelector('.right-alerts-menu__alert-copy span')).toBeNull();
+    expect(alertButton.querySelector('.side-menu__alert-copy span')).toBeNull();
     expect(alertButton.querySelector('.building-modal-avatar')).not.toBeNull();
 
     act(() => {
@@ -236,7 +243,7 @@ describe('RightAlertsMenu', () => {
         alerts: [marketAlert],
       },
     });
-    const { container, root } = renderAlertsMenu(save, { onOpenBuilding, onOpenMarket });
+    const { container, root } = renderSideMenu(save, { onOpenBuilding, onOpenMarket });
 
     const alertButton = getAlertButton(container, 'Domus');
     expect(alertButton.textContent).toContain('Open register');
@@ -268,10 +275,10 @@ describe('RightAlertsMenu', () => {
         alerts: [planningAlert],
       },
     });
-    const { container, root } = renderAlertsMenu(save, { onOpenWeeklyPlanning });
+    const { container, root } = renderSideMenu(save, { onOpenWeeklyPlanning });
 
     const alertButton = getAlertButton(container, 'Empty planning');
-    expect(alertButton.querySelector('.right-alerts-menu__alert-icon')).not.toBeNull();
+    expect(alertButton.querySelector('.side-menu__alert-icon')).not.toBeNull();
 
     act(() => {
       alertButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -296,10 +303,10 @@ describe('RightAlertsMenu', () => {
         alerts: [generalAlert],
       },
     });
-    const { container, root } = renderAlertsMenu(save);
+    const { container, root } = renderSideMenu(save);
 
     expect(container.textContent).toContain('General warning');
-    expect(container.querySelector('button.right-alerts-menu__alert')).toBeNull();
+    expect(container.querySelector('button.side-menu__alert')).toBeNull();
 
     cleanup(container, root);
   });
@@ -341,11 +348,11 @@ describe('RightAlertsMenu', () => {
         alerts,
       },
     });
-    const { container, root } = renderAlertsMenu(save);
+    const { container, root } = renderSideMenu(save);
 
-    const titles = Array.from(
-      container.querySelectorAll('.right-alerts-menu__alert-copy strong'),
-    ).map((title) => title.textContent);
+    const titles = Array.from(container.querySelectorAll('.side-menu__alert-copy strong')).map(
+      (title) => title.textContent,
+    );
 
     expect(titles).toEqual([
       'Critical warning',

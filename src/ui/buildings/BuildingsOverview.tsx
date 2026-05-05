@@ -5,7 +5,11 @@ import { useUiStore } from '../../state/ui-store-context';
 import { GameIcon } from '../icons/GameIcon';
 
 interface BuildingsOverviewProps {
+  className?: string;
   save: GameSave;
+  selectedBuildingId?: BuildingId;
+  showHeader?: boolean;
+  variant?: 'embedded' | 'standalone';
   onOpenBuilding(buildingId: BuildingId): void;
 }
 
@@ -25,20 +29,34 @@ function getHighestAlertSeverity(alerts: GameAlert[]) {
   return alerts.length > 0 ? 'info' : undefined;
 }
 
-export function BuildingsOverview({ onOpenBuilding, save }: BuildingsOverviewProps) {
+export function BuildingsOverview({
+  className,
+  onOpenBuilding,
+  save,
+  selectedBuildingId,
+  showHeader = true,
+  variant = 'standalone',
+}: BuildingsOverviewProps) {
   const { t } = useUiStore();
   const purchasedBuildingIds = BUILDING_IDS.filter(
     (buildingId) => save.buildings[buildingId].isPurchased,
   );
 
   return (
-    <section className="buildings-overview" aria-label={t('buildingsOverview.title')}>
-      <div className="buildings-overview__header">
-        <div>
-          <span className="buildings-overview__eyebrow">{t('buildingsOverview.eyebrow')}</span>
-          <h1>{t('buildingsOverview.title')}</h1>
+    <section
+      className={['buildings-overview', `buildings-overview--${variant}`, className]
+        .filter(Boolean)
+        .join(' ')}
+      aria-label={t('buildingsOverview.title')}
+    >
+      {showHeader ? (
+        <div className="buildings-overview__header">
+          <div>
+            <span className="buildings-overview__eyebrow">{t('buildingsOverview.eyebrow')}</span>
+            <h1>{t('buildingsOverview.title')}</h1>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div className="buildings-overview__content">
         <div className="buildings-overview__grid">
@@ -54,6 +72,7 @@ export function BuildingsOverview({ onOpenBuilding, save }: BuildingsOverviewPro
                 className={[
                   'building-overview-card',
                   `building-overview-card--${buildingId}`,
+                  selectedBuildingId === buildingId ? 'is-selected' : '',
                   alertSeverity ? `building-overview-card--${alertSeverity}` : '',
                 ]
                   .filter(Boolean)
@@ -61,6 +80,7 @@ export function BuildingsOverview({ onOpenBuilding, save }: BuildingsOverviewPro
                 data-testid={`building-overview-${buildingId}`}
                 key={buildingId}
                 type="button"
+                aria-pressed={selectedBuildingId === buildingId}
                 onClick={() => onOpenBuilding(buildingId)}
               >
                 <span className="building-overview-card__visual">

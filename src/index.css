@@ -4,8 +4,9 @@
 @import './styles/scenic-screen.css';
 @import './styles/main-menu.css';
 @import './styles/game-shell.css';
+@import './styles/game-surfaces.css';
 @import './styles/hud.css';
-@import './styles/right-alerts-menu.css';
+@import './styles/side-menu.css';
 @import './styles/buildings-overview.css';
 @import './styles/roster.css';
 @import './styles/gladiator-summary.css';

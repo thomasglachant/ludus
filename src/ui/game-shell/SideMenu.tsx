@@ -8,8 +8,11 @@ import { useUiStore } from '../../state/ui-store-context';
 import { BuildingAvatar } from '../buildings/BuildingAvatar';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
+import { GameActionDock, type GameActionDockAction } from './GameActionDock';
+import { ShellWidgetPanel } from './ShellWidgetPanel';
 
-interface RightAlertsMenuProps {
+interface SideMenuProps {
+  actions?: GameActionDockAction[];
   save: GameSave;
   onOpenBuilding(buildingId: BuildingId): void;
   onOpenGladiator(gladiatorId: string): void;
@@ -17,11 +20,11 @@ interface RightAlertsMenuProps {
   onOpenWeeklyPlanning(): void;
 }
 
-interface AlertsListProps extends RightAlertsMenuProps {
+interface AlertsListProps extends SideMenuProps {
   alerts: GameAlert[];
 }
 
-interface AlertItemProps extends RightAlertsMenuProps {
+interface AlertItemProps extends SideMenuProps {
   alert: GameAlert;
 }
 
@@ -43,18 +46,19 @@ function sortAlertsBySeverity(alerts: GameAlert[]) {
     .map(({ alert }) => alert);
 }
 
-export function RightAlertsMenu({
+export function SideMenu({
+  actions = [],
   save,
   onOpenBuilding,
   onOpenGladiator,
   onOpenMarket,
   onOpenWeeklyPlanning,
-}: RightAlertsMenuProps) {
+}: SideMenuProps) {
   const { t } = useUiStore();
 
   return (
-    <aside className="right-alerts-menu" aria-label={t('buildingsOverview.alertsTitle')}>
-      <section className="right-alerts-menu__panel">
+    <aside className="side-menu" aria-label={t('sideMenu.title')}>
+      <ShellWidgetPanel className="side-menu__alerts-panel">
         <h2>{t('buildingsOverview.alertsTitle')}</h2>
         <AlertsList
           alerts={save.planning.alerts}
@@ -64,7 +68,8 @@ export function RightAlertsMenu({
           onOpenMarket={onOpenMarket}
           onOpenWeeklyPlanning={onOpenWeeklyPlanning}
         />
-      </section>
+      </ShellWidgetPanel>
+      <GameActionDock actions={actions} />
     </aside>
   );
 }
@@ -81,11 +86,15 @@ function AlertsList({
   const sortedAlerts = sortAlertsBySeverity(alerts);
 
   if (alerts.length === 0) {
-    return <p className="right-alerts-menu__empty">{t('buildingsOverview.noAlerts')}</p>;
+    return (
+      <div className="side-menu__alerts-list">
+        <p className="side-menu__empty">{t('buildingsOverview.noAlerts')}</p>
+      </div>
+    );
   }
 
   return (
-    <div className="right-alerts-menu__list">
+    <div className="side-menu__alerts-list">
       {sortedAlerts.slice(0, 4).map((alert) => (
         <AlertItem
           alert={alert}
@@ -132,10 +141,10 @@ function AlertItem({
   const durationLabel = statusEffectDuration
     ? t('statusEffects.duration.remainingDays', { count: statusEffectDuration.days })
     : null;
-  const className = `right-alerts-menu__alert right-alerts-menu__alert--${alert.severity}`;
+  const className = `side-menu__alert side-menu__alert--${alert.severity}`;
   const content = (
     <>
-      <span className="right-alerts-menu__alert-subject">
+      <span className="side-menu__alert-subject">
         {gladiator ? (
           <>
             <GladiatorPortrait gladiator={gladiator} size="small" />
@@ -147,7 +156,7 @@ function AlertItem({
             <strong>{t(buildingDefinition.nameKey)}</strong>
           </>
         ) : (
-          <span className="right-alerts-menu__alert-icon">
+          <span className="side-menu__alert-icon">
             <GameIcon
               color={statusEffectDefinition?.visual.color}
               name={(statusEffectDefinition?.visual.iconName ?? 'alert') as GameIconName}
@@ -156,7 +165,7 @@ function AlertItem({
           </span>
         )}
       </span>
-      <span className="right-alerts-menu__alert-copy">
+      <span className="side-menu__alert-copy">
         <strong>{t(alert.titleKey)}</strong>
         {durationLabel ? <span>{durationLabel}</span> : null}
       </span>

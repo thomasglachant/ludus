@@ -3,6 +3,7 @@ import type { BuildingId, GameSave } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { BuildingAvatar } from '../buildings/BuildingAvatar';
 import { CTAButton } from '../components/CTAButton';
+import { EntityList } from '../components/EntityList';
 import { LedgerEntryList } from '../components/LedgerEntryList';
 import {
   Badge,
@@ -15,6 +16,7 @@ import {
 import { formatMoneyAmount } from '../formatters/money';
 import { getLedgerEntryAmount } from '../formatters/ledger';
 import { GameIcon } from '../icons/GameIcon';
+import { GladiatorListRow } from '../gladiators/GladiatorListRow';
 import { BuildingActionModalContent } from '../modals/BuildingActionModalContent';
 import {
   ModalActionDock,
@@ -33,16 +35,19 @@ import {
 
 interface BuildingPanelProps {
   save: GameSave;
+  activeTab?: BuildingPanelTab;
   buildingId: BuildingId;
   onClose(): void;
+  onOpenGladiator?(gladiatorId: string): void;
   onPurchaseBuilding(buildingId: BuildingId): void;
   onPurchaseBuildingImprovement(buildingId: BuildingId, improvementId: string): void;
   onPurchaseBuildingSkill(buildingId: BuildingId, skillId: string): void;
   onSelectBuildingPolicy(buildingId: BuildingId, policyId: string): void;
+  onTabChange?(tab: BuildingPanelTab): void;
   onUpgradeBuilding(buildingId: BuildingId): void;
 }
 
-type BuildingPanelTab = 'overview' | 'configuration' | 'upgrades' | 'finance';
+export type BuildingPanelTab = 'configuration' | 'finance' | 'gladiators' | 'overview' | 'upgrades';
 
 type BuildingPanelSkill = BuildingPanelViewModel['skills'][number];
 type BuildingSkillState = 'available' | 'locked' | 'purchased';
@@ -83,16 +88,19 @@ function groupBuildingSkillsByTier(skills: BuildingPanelViewModel['skills']) {
 }
 
 export function BuildingPanel({
+  activeTab,
   save,
   buildingId,
+  onOpenGladiator,
   onPurchaseBuilding,
   onPurchaseBuildingImprovement,
   onPurchaseBuildingSkill,
   onSelectBuildingPolicy,
+  onTabChange,
   onUpgradeBuilding,
 }: BuildingPanelProps) {
   const { openConfirmModal, t } = useUiStore();
-  const [activeTab, setActiveTab] = useState<BuildingPanelTab>('overview');
+  const [internalActiveTab, setInternalActiveTab] = useState<BuildingPanelTab>('overview');
   const viewModel = createBuildingPanelViewModel(save, buildingId, t);
   const ludusCapacity = buildingId === 'dormitory' ? createLudusCapacityViewModel(save) : null;
   const buildingLedgerEntries = save.economy.ledgerEntries.filter(
@@ -130,6 +138,9 @@ export function BuildingPanel({
   const hasUpgrades = viewModel.improvements.length > 0 || viewModel.skills.length > 0;
   const tabItems: ModalTabItem<BuildingPanelTab>[] = [
     { id: 'overview', labelKey: 'buildingPanel.tabs.overview' },
+    ...(onOpenGladiator
+      ? [{ id: 'gladiators' as const, labelKey: 'buildingPanel.tabs.gladiators' }]
+      : []),
     ...(hasConfiguration
       ? [{ id: 'configuration' as const, labelKey: 'buildingPanel.tabs.configuration' }]
       : []),
@@ -145,7 +156,10 @@ export function BuildingPanel({
       : []),
     { count: buildingLedgerEntries.length, id: 'finance', labelKey: 'buildingPanel.tabs.finance' },
   ];
-  const selectedTab = tabItems.some((item) => item.id === activeTab) ? activeTab : 'overview';
+  const currentActiveTab = activeTab ?? internalActiveTab;
+  const selectedTab = tabItems.some((item) => item.id === currentActiveTab)
+    ? currentActiveTab
+    : 'overview';
   const actionCostLabelKey = viewModel.isPurchased
     ? 'buildings.upgradeCost'
     : 'buildings.purchaseCostLabel';
@@ -241,6 +255,14 @@ export function BuildingPanel({
     });
   };
 
+  const selectTab = (tab: BuildingPanelTab) => {
+    if (!activeTab) {
+      setInternalActiveTab(tab);
+    }
+
+    onTabChange?.(tab);
+  };
+
   return (
     <ModalContentFrame>
       <ModalHeroCard
@@ -264,7 +286,7 @@ export function BuildingPanel({
         ariaLabelKey="buildingPanel.tabsLabel"
         items={tabItems}
         selectedId={selectedTab}
-        onSelect={setActiveTab}
+        onSelect={selectTab}
       />
 
       {selectedTab === 'overview' ? (
@@ -305,6 +327,24 @@ export function BuildingPanel({
               <span>{t(viewModel.action.labelKey)}</span>
             </CTAButton>
           </ModalActionDock>
+        </ModalTabPanel>
+      ) : null}
+
+      {selectedTab === 'gladiators' && onOpenGladiator ? (
+        <ModalTabPanel>
+          <ModalSection titleKey="buildingPanel.tabs.gladiators">
+            <EntityList emptyMessageKey="ludus.noGladiators">
+              {save.gladiators.map((gladiator) => (
+                <GladiatorListRow
+                  gladiator={gladiator}
+                  key={gladiator.id}
+                  openLabel={t('roster.openGladiator', { name: gladiator.name })}
+                  testId={`building-gladiator-${gladiator.id}`}
+                  onOpen={() => onOpenGladiator(gladiator.id)}
+                />
+              ))}
+            </EntityList>
+          </ModalSection>
         </ModalTabPanel>
       ) : null}
 

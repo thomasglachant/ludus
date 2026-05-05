@@ -1,6 +1,7 @@
 import { useUiStore } from '../../state/ui-store-context';
 import { CTAButton } from '../components/CTAButton';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
+import { ShellWidgetPanel } from './ShellWidgetPanel';
 
 export interface GameActionDockAction {
   descriptionKey: string;
@@ -23,7 +24,7 @@ export function GameActionDock({ actions }: GameActionDockProps) {
   }
 
   return (
-    <section
+    <ShellWidgetPanel
       aria-label={t('gameActionDock.title')}
       className="game-action-dock"
       data-testid="game-action-dock"
@@ -44,6 +45,6 @@ export function GameActionDock({ actions }: GameActionDockProps) {
           </CTAButton>
         </article>
       ))}
-    </section>
+    </ShellWidgetPanel>
   );
 }

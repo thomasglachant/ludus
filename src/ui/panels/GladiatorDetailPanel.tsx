@@ -23,6 +23,7 @@ interface GladiatorDetailPanelProps {
   gladiator: Gladiator;
   onAllocateSkillPoint(gladiatorId: string, skill: GladiatorSkillName): void;
   onClose(): void;
+  onOpenPlanning?(): void;
 }
 
 type GladiatorDetailTab = 'overview' | 'planning';
@@ -47,6 +48,7 @@ function getCurrentArenaRecord(save: GameSave, gladiator: Gladiator) {
 export function GladiatorDetailPanel({
   gladiator,
   onAllocateSkillPoint,
+  onOpenPlanning,
   save,
 }: GladiatorDetailPanelProps) {
   const { pushModal, t } = useUiStore();
@@ -148,7 +150,17 @@ export function GladiatorDetailPanel({
                 },
               ]}
             />
-            <button type="button" onClick={() => pushModal({ kind: 'weeklyPlanning' })}>
+            <button
+              type="button"
+              onClick={() => {
+                if (onOpenPlanning) {
+                  onOpenPlanning();
+                  return;
+                }
+
+                pushModal({ kind: 'weeklyPlanning' });
+              }}
+            >
               <GameIcon name="weeklyPlanning" size={17} />
               <span>{t('navigation.weeklyPlanning')}</span>
             </button>

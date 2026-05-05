@@ -413,26 +413,6 @@ export function WeeklyPlanningPanel({
 
   return (
     <section className="weekly-planner" data-testid="weekly-planning-panel">
-      <header className="weekly-planner__hero">
-        <div className="weekly-planner__hero-copy">
-          <h2>{t('weeklyPlan.manualTitle')}</h2>
-          <p>{t('weeklyPlan.manualDescription')}</p>
-        </div>
-        <div className="weekly-planner__hero-actions">
-          <div className="weekly-planner__status-chip">
-            <GameIcon name={weeklyValidation.isComplete ? 'check' : 'alert'} size={18} />
-            <span>
-              {weeklyValidation.isComplete
-                ? t('weeklyPlan.validation.ready')
-                : t('weeklyPlan.validation.incomplete', {
-                    days: weeklyValidation.incompleteDayCount,
-                    points: weeklyValidation.missingPoints,
-                  })}
-            </span>
-          </div>
-        </div>
-      </header>
-
       <ParchmentPanel
         as="section"
         className="weekly-planner__summary"
@@ -448,6 +428,17 @@ export function WeeklyPlanningPanel({
                 year: save.time.year,
               })}
             </strong>
+            <span className="weekly-planner__status-chip">
+              <GameIcon name={weeklyValidation.isComplete ? 'check' : 'alert'} size={18} />
+              <span>
+                {weeklyValidation.isComplete
+                  ? t('weeklyPlan.validation.ready')
+                  : t('weeklyPlan.validation.incomplete', {
+                      days: weeklyValidation.incompleteDayCount,
+                      points: weeklyValidation.missingPoints,
+                    })}
+              </span>
+            </span>
           </div>
         </div>
         <ProjectionMetricStrip

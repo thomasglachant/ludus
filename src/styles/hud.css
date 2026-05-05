@@ -1,16 +1,10 @@
 .top-hud {
   z-index: 30;
   display: grid;
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  grid-column: 1 / -1;
   grid-template-columns: minmax(220px, 1fr) minmax(0, auto) minmax(220px, 1fr);
   grid-template-areas: 'brand center actions';
   gap: 18px;
   align-items: center;
-  padding: 14px 18px;
   pointer-events: none;
 }
 
@@ -23,22 +17,28 @@
   min-width: 0;
 }
 
-.top-hud__ludus-card {
+.top-hud__ludus-panel {
   display: grid;
   min-width: min(280px, 100%);
+  overflow: visible;
+}
+
+.top-hud__ludus-card {
+  display: grid;
+  width: 100%;
+  min-width: 0;
   gap: 4px;
   align-items: center;
   padding: 12px 16px;
-  border: 1px solid rgba(214, 163, 74, 0.3);
+  border: 0;
   border-radius: 7px;
-  background: rgba(8, 7, 6, 0.42);
+  background: transparent;
   color: #f7e6b3;
   cursor: pointer;
   text-align: left;
 }
 
 .top-hud__ludus-card:hover {
-  border-color: var(--gold);
   background: rgba(214, 163, 74, 0.12);
 }
 
@@ -76,9 +76,7 @@
   min-height: 44px;
   align-items: center;
   padding: 12px 16px;
-  border: 1px solid rgba(214, 163, 74, 0.3);
   border-radius: 7px;
-  background: rgba(8, 7, 6, 0.42);
   color: #f7e6b3;
   font-weight: 800;
 }
@@ -152,9 +150,7 @@
 .top-hud__resources {
   display: flex;
   min-width: 0;
-  border: 1px solid rgba(214, 163, 74, 0.36);
   border-radius: 7px;
-  background: rgba(8, 7, 6, 0.44);
   overflow: visible;
 }
 
@@ -281,7 +277,6 @@
       'center'
       'actions';
     gap: 8px;
-    padding: 8px 10px 12px;
   }
 
   .top-hud__actions,

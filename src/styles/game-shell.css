@@ -1,44 +1,70 @@
 .game-shell {
-  --shell-bottom: 86px;
+  --shell-bottom: 104px;
   --shell-right: 366px;
+  --shell-sidebar-width: 330px;
+  --shell-gutter: 12px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-}
-
-.game-shell {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--shell-gutter);
   width: 100%;
   height: 100vh;
+  padding: 14px 18px 18px;
+  overflow: hidden;
+}
+
+.game-shell__middle {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(286px, var(--shell-sidebar-width));
+  gap: var(--shell-gutter);
 }
 
 .game-shell__main-stage {
-  position: relative;
-  z-index: 1;
-  grid-column: 1;
-  grid-row: 1;
   min-width: 0;
   min-height: 0;
 }
 
+.game-shell__bottom {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.shell-widget-panel {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  overflow: hidden;
+  border: 2px solid rgba(180, 122, 51, 0.52);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 24% 0%, rgba(214, 163, 74, 0.16), transparent 27rem),
+    linear-gradient(180deg, rgba(31, 23, 16, 0.82), rgba(12, 9, 6, 0.68)), rgba(15, 11, 8, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 241, 199, 0.08),
+    0 28px 64px rgba(4, 3, 2, 0.44);
+  color: #fff1c7;
+}
+
+.shell-widget-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
 .game-action-dock {
-  position: absolute;
-  bottom: calc(var(--shell-bottom) + 18px);
-  left: 18px;
-  z-index: 24;
   display: grid;
-  width: min(460px, calc(100vw - var(--shell-right) - 36px));
-  gap: 12px;
-  padding: 8px;
-  border: 1px solid rgba(214, 163, 74, 0.3);
-  border-radius: 8px;
-  background: rgba(8, 7, 6, 0.52);
-  box-shadow: 0 14px 28px rgba(8, 6, 4, 0.22);
+  width: 100%;
+  gap: 10px;
+  padding: 10px;
 }
 
 .game-action-dock__item {
   display: grid;
-  gap: 16px;
-  padding: 16px;
+  gap: 12px;
+  padding: 12px;
 }
 
 .game-action-dock__copy {
@@ -55,33 +81,37 @@
 .game-action-dock__copy h2 {
   color: #fff1c7;
   font-family: var(--font-display);
-  font-size: 1.06rem;
+  font-size: 0.98rem;
   line-height: 1.05;
 }
 
 .game-action-dock__copy p {
   color: #d7bd84;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 700;
   line-height: 1.35;
 }
 
 .game-action-dock__button {
-  justify-self: start;
-  min-width: 190px;
+  width: 100%;
+  min-width: 0;
 }
 
 @media (max-width: 760px) {
   .game-shell {
     --shell-bottom: 104px;
     --shell-right: 0px;
+    --shell-sidebar-width: 100%;
+    padding: 8px 10px 10px;
   }
 
-  .game-action-dock {
-    right: 10px;
-    bottom: calc(var(--shell-bottom) + 10px);
-    left: 10px;
-    width: auto;
+  .game-shell__middle {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(120px, 28vh);
+  }
+
+  .game-shell__bottom {
+    justify-content: stretch;
   }
 
   .game-action-dock__button {

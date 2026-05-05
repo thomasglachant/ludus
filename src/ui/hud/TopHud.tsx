@@ -5,6 +5,7 @@ import { Tooltip } from '../components/Tooltip';
 import { formatMoneyAmount } from '../formatters/money';
 import { formatNumber } from '../formatters/number';
 import { RomanButton } from '../game/RomanButton';
+import { ShellWidgetPanel } from '../game-shell/ShellWidgetPanel';
 import { GameIcon } from '../icons/GameIcon';
 
 interface TopHudProps {
@@ -38,22 +39,28 @@ export function TopHud({
   return (
     <header className="top-hud" data-testid="topbar">
       <div className="top-hud__brand">
-        <RomanButton
-          className="top-hud__ludus-card"
-          tone="ghost"
-          type="button"
-          onClick={onOpenDomus}
-        >
-          <strong>{save.player.ludusName}</strong>
-          <span>
-            {t('common.level', { level: domusLevel })} ·{' '}
-            {t('ludus.reputationValue', { value: save.ludus.reputation })}
-          </span>
-        </RomanButton>
+        <ShellWidgetPanel as="div" className="top-hud__ludus-panel">
+          <RomanButton
+            className="top-hud__ludus-card"
+            tone="ghost"
+            type="button"
+            onClick={onOpenDomus}
+          >
+            <strong>{save.player.ludusName}</strong>
+            <span>
+              {t('common.level', { level: domusLevel })} ·{' '}
+              {t('ludus.reputationValue', { value: save.ludus.reputation })}
+            </span>
+          </RomanButton>
+        </ShellWidgetPanel>
       </div>
 
       <div className="top-hud__center">
-        <div className="top-hud__resources" aria-label={t('topBar.resources')}>
+        <ShellWidgetPanel
+          as="div"
+          className="top-hud__resources"
+          aria-label={t('topBar.resources')}
+        >
           <Tooltip content={t('common.treasury')}>
             <RomanButton
               aria-label={t('finance.open')}
@@ -95,11 +102,12 @@ export function TopHud({
               />
             </Tooltip>
           </div>
-        </div>
+        </ShellWidgetPanel>
       </div>
 
       <div className="top-hud__actions">
-        <div
+        <ShellWidgetPanel
+          as="div"
           className={['top-hud__time', isTimeControlLocked ? 'top-hud__time--locked' : null]
             .filter(Boolean)
             .join(' ')}
@@ -144,7 +152,7 @@ export function TopHud({
               <GameIcon color="currentColor" name="menu" size={22} />
             </span>
           </RomanButton>
-        </div>
+        </ShellWidgetPanel>
       </div>
     </header>
   );

@@ -77,14 +77,30 @@ Target structure:
 ```tsx
 <GameShell>
   <TopHud />
-  <BuildingsOverview />
+  <div className="game-shell__middle">
+    <main>
+      <SurfaceHost />
+    </main>
+    <SideMenu>
+      <AlertsList />
+      <GameActionDock />
+    </SideMenu>
+  </div>
   <BottomNavigation />
   <ModalHost />
   <ToastAndAlertLayer />
 </GameShell>
 ```
 
-The shell uses a bottom navigation surface for primary panel access.
+The shell uses a bottom navigation surface for primary surface access. Frequent
+management views should appear as integrated Ludus surfaces instead of centered
+modals.
+
+Primary shell regions should be laid out in normal document flow: HUD at the
+top, a central grid containing the active surface and right sidebar, and bottom
+navigation below. Avoid absolute positioning or pseudo-elements for these main
+regions; reserve overlays for modal, toast, tooltip and contextual sheet
+behavior.
 
 Bottom navigation entries:
 
@@ -93,6 +109,23 @@ Bottom navigation entries:
 - Market;
 - Planning;
 - Finances.
+
+The current player-facing shell also keeps global action CTAs, such as starting
+the week or entering the arena, in the right sidebar below the alerts block.
+
+The right sidebar is a full-height layout region without its own background. It
+can stack independent game widgets. Alerts are one widget with their own panel
+background and should flex to occupy the available space above optional action
+widgets.
+
+Sidebar widgets should use `ShellWidgetPanel` from
+`src/ui/game-shell/ShellWidgetPanel.tsx` so alerts, action prompts and future
+right-rail widgets share the same bronze/parchment shell treatment.
+
+Primary surfaces are first-level tabs. They do not need a global "back to
+Domain" control. Back controls are reserved for true drill-down states, blocking
+flows and narrow responsive layouts where a detail view temporarily replaces a
+list.
 
 ## Top HUD
 
@@ -111,18 +144,23 @@ Treasury opens the finance panel directly.
 
 Macro progression is handled through planning and resolve actions.
 
-## Buildings Overview
+## Buildings Surface
 
-The buildings overview remains the center of the game shell.
+The buildings surface is the default first-level game tab.
 
 It displays:
 
-- current buildings;
+- current buildings in a scalable list/grid at first level;
+- selected building details at second level;
 - alerts attached to buildings;
 - building level;
 - quick access to market and arena.
 
-Building interactions focus on opening the management panels quickly while preserving the Roman American comic / BD-inspired direction through assets, HUD styling and parchment/bronze panels.
+Building interactions focus on selecting the building inside the Buildings tab,
+not opening a separate top-level surface. The first-level Buildings tab always
+shows the list. Clicking a building moves one level deeper inside the same
+surface and shows only that building's management panel. Reusing the bottom
+navigation entry returns to the first-level list.
 
 ## Alerts
 
@@ -141,18 +179,30 @@ Future rules such as low happiness or low treasury should be added to the centra
 
 ## Building Panels
 
-Clicking a building opens the building modal.
+Clicking a building opens its second-level detail inside the Buildings surface in
+normal player navigation. Legacy modal rendering may remain for compatibility,
+but frequent building management should use the integrated surface.
 
-Building detail modals use the shared modal framework described below. They show a hero card with avatar, name, description, level and short configurable metrics before any tab content.
+Building details use the shared content framework described below. They show a
+hero card with avatar, name, description, level and short configurable metrics
+before any tab content.
 
-Building modal tabs are ordered as:
+Building tabs are ordered as:
 
 - Overview;
+- Gladiators, only when the surface has a contextual roster entry point;
 - Configuration, only when the building has policies or specialized activities;
 - Upgrades, only when the building has improvements or a skill tree;
 - Finances.
 
-The panel shows ownership, level, current effects, generated skill tree entries and relevant planning/ledger context.
+The selected building panel shows ownership, level, current effects, generated
+skill tree entries and relevant planning/ledger context. Dense skill trees and
+finance views belong in the full Buildings surface, not in a compact contextual
+sheet.
+
+When a gladiator appears inside a building surface, selecting them opens a
+contextual sheet by default. The contextual sheet provides fast reading and a CTA
+to open the full Gladiators surface with that gladiator selected.
 
 ## Modal Framework
 
@@ -276,6 +326,11 @@ Skill allocation alerts should appear when owned gladiators have available skill
 ## Gladiators
 
 Gladiators are available through the `Gladiators` list panel and building context.
+
+The first-level Gladiators tab shows the roster list and roster filters. Clicking
+a gladiator moves one level deeper inside the same surface and shows the full
+gladiator profile without list filters. Reusing the bottom navigation entry
+returns to the first-level roster list.
 
 This keeps the main screen scalable as the school grows.
 
