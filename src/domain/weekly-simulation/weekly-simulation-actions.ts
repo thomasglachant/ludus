@@ -4,7 +4,10 @@ import { refreshGameAlerts } from '../alerts/alert-actions';
 import { addGladiatorExperience } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
 import { createMarketState } from '../market/market-actions';
-import { addGameNotification } from '../notifications/notification-actions';
+import {
+  addGameNotification,
+  addGladiatorLevelUpNotifications,
+} from '../notifications/notification-actions';
 import type { GameSave } from '../saves/types';
 import type { DayOfWeek, GameTimeState, PendingActionTrigger } from '../time/types';
 import { getCombatInjuryChance, startArenaDay } from '../combat/combat-actions';
@@ -387,6 +390,10 @@ function resolveDailyPlanInternal(
     },
     gladiators: gladiatorResults.map((result) => result.gladiator),
   };
+
+  if (options.recordLedger) {
+    nextSave = addGladiatorLevelUpNotifications(nextSave, save.gladiators);
+  }
 
   for (const gladiatorId of summary.injuredGladiatorIds) {
     const injuredSave = applyGladiatorTrait(

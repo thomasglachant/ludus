@@ -8,11 +8,13 @@ import { UiStoreContext, type UiStoreValue } from './ui-store-context';
 import { GameStoreProvider } from './game-store';
 import { useGameStore, type GameStoreValue } from './game-store-context';
 
-function createUiStore(): UiStoreValue {
+function createUiStore(overrides: Partial<UiStoreValue> = {}): UiStoreValue {
+  const modalStack = overrides.modalStack ?? [];
+
   return {
-    activeModal: null,
+    activeModal: modalStack.at(-1) ?? null,
     activeSurface: { kind: 'buildings' },
-    modalStack: [],
+    modalStack,
     language: 'en',
     screen: 'ludus',
     backModal: vi.fn(),
@@ -32,6 +34,7 @@ function createUiStore(): UiStoreValue {
     setLanguage: vi.fn(),
     navigate: vi.fn(),
     t: (key) => key,
+    ...overrides,
   };
 }
 
@@ -41,7 +44,7 @@ function StoreProbe({ onValue }: { onValue(value: GameStoreValue): void }) {
   return null;
 }
 
-async function renderStore() {
+async function renderStore(uiStoreOverrides: Partial<UiStoreValue> = {}) {
   const container = document.createElement('div');
   document.body.append(container);
   const root = createRoot(container);
@@ -49,7 +52,7 @@ async function renderStore() {
 
   await act(async () => {
     root.render(
-      <UiStoreContext.Provider value={createUiStore()}>
+      <UiStoreContext.Provider value={createUiStore(uiStoreOverrides)}>
         <GameStoreProvider>
           <StoreProbe
             onValue={(value) => {
@@ -77,6 +80,18 @@ async function renderStore() {
 async function createGame(getStore: () => GameStoreValue) {
   await act(async () => {
     await getStore().createNewGame({ ludusName: 'Ludus Magnus' });
+  });
+}
+
+async function startWeek(getStore: () => GameStoreValue) {
+  await act(async () => {
+    getStore().resolvePendingGameAction('startWeek');
+  });
+}
+
+async function advanceGameClock(milliseconds = 1_000) {
+  await act(async () => {
+    vi.advanceTimersByTime(milliseconds);
   });
 }
 
@@ -198,6 +213,125 @@ describe('GameStoreProvider alerts refresh', () => {
     );
     expect(getStore().currentSave!.updatedAt).toBe(updatedAt);
     expect(getStore().hasUnsavedChanges).toBe(false);
+
+    cleanup(container, root);
+  });
+});
+
+describe('GameStoreProvider game clock', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    window.history.replaceState(null, '', '/');
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-01T08:00:00.000Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    localStorage.clear();
+  });
+
+  const runningSurfaceKinds = [
+    'gladiators',
+    'planning',
+    'finance',
+    'market',
+    'notifications',
+  ] as const;
+
+  it.each(runningSurfaceKinds)('advances while the %s surface is active', async (surfaceKind) => {
+    const { container, getStore, root } = await renderStore({
+      activeSurface: { kind: surfaceKind },
+    });
+
+    await createGame(getStore);
+    await startWeek(getStore);
+
+    expect(getStore().isGamePaused).toBe(false);
+    expect(getStore().gameClockLabel).toBe('00:00');
+
+    await advanceGameClock();
+
+    expect(getStore().gameClockLabel).toBe('00:30');
+
+    cleanup(container, root);
+  });
+
+  it('advances while an ordinary modal is active', async () => {
+    const modal = { id: 'game-menu-modal', kind: 'gameMenu' as const };
+    const { container, getStore, root } = await renderStore({
+      activeModal: modal,
+      modalStack: [modal],
+    });
+
+    await createGame(getStore);
+    await startWeek(getStore);
+
+    expect(getStore().isGamePaused).toBe(false);
+
+    await advanceGameClock();
+
+    expect(getStore().gameClockLabel).toBe('00:30');
+
+    cleanup(container, root);
+  });
+
+  it('stays stopped while manually paused', async () => {
+    const { container, getStore, root } = await renderStore();
+
+    await createGame(getStore);
+    await startWeek(getStore);
+
+    act(() => {
+      getStore().toggleGamePause();
+    });
+
+    expect(getStore().isGamePaused).toBe(true);
+
+    await advanceGameClock();
+
+    expect(getStore().gameClockLabel).toBe('00:00');
+
+    cleanup(container, root);
+  });
+
+  it('stays stopped while a pending action trigger locks time controls', async () => {
+    const { container, getStore, root } = await renderStore();
+
+    await createGame(getStore);
+
+    expect(getStore().isGamePaused).toBe(true);
+    expect(getStore().isTimeControlLocked).toBe(true);
+
+    await advanceGameClock();
+
+    expect(getStore().gameClockLabel).toBe('00:00');
+
+    cleanup(container, root);
+  });
+
+  it('stays stopped during event flow', async () => {
+    const { container, getStore, root } = await renderStore();
+
+    await createGame(getStore);
+    await startWeek(getStore);
+
+    act(() => {
+      const save = getStore().currentSave;
+
+      if (!save) {
+        throw new Error('Expected a current save');
+      }
+
+      save.time.phase = 'event';
+      getStore().takeLoan('smallLoan');
+    });
+
+    expect(getStore().isGamePaused).toBe(true);
+
+    await advanceGameClock();
+
+    expect(getStore().gameClockLabel).toBe('00:00');
 
     cleanup(container, root);
   });

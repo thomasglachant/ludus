@@ -65,6 +65,8 @@
   "notifications.dateLabel": "{day} · Week {week}, year {year}",
   "notifications.injury.title": "{name} was injured",
   "notifications.injury.description": "{name} must recover before returning to training or the arena.",
+  "notifications.levelUp.title": "{name} reached level {level}",
+  "notifications.levelUp.description": "New skill points are ready to assign from the gladiator profile.",
   "notifications.gladiatorLeft.title": "{name} left the ludus",
   "notifications.gladiatorLeft.description": "{name} is no longer part of the school.",
   "notifications.allGladiatorsReleased.title": "Gladiators released",

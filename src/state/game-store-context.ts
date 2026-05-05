@@ -58,7 +58,7 @@ export interface GameStoreValue {
   advanceDebugToDay(dayOfWeek: DayOfWeek): void;
   setDebugTimeScale(multiplier: number): void;
   completeSundayArenaDay(): void;
-  advanceWeekStep(options?: { ignoreModalPause?: boolean }): void;
+  advanceWeekStep(): void;
   resolvePendingGameAction(trigger?: PendingActionTrigger): void;
   toggleGamePause(): void;
   takeLoan(loanId: LoanId): void;

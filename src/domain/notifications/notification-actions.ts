@@ -1,5 +1,7 @@
 import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { DAYS_OF_WEEK } from '../../game-data/time';
+import { getGladiatorLevel } from '../gladiators/progression';
+import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
 import type { GameDate } from '../time/types';
 import type { GameNotification, GameNotificationParams, GameNotificationTarget } from './types';
@@ -59,6 +61,37 @@ export function addGameNotification(save: GameSave, input: GameNotificationInput
     ...save,
     notifications: [...save.notifications, notification],
   };
+}
+
+export function addGladiatorLevelUpNotifications(
+  save: GameSave,
+  previousGladiators: Gladiator[],
+): GameSave {
+  const previousGladiatorById = new Map(
+    previousGladiators.map((gladiator) => [gladiator.id, gladiator]),
+  );
+
+  return save.gladiators.reduce((updatedSave, gladiator) => {
+    const previousGladiator = previousGladiatorById.get(gladiator.id);
+
+    if (!previousGladiator) {
+      return updatedSave;
+    }
+
+    const previousLevel = getGladiatorLevel(previousGladiator);
+    const level = getGladiatorLevel(gladiator);
+
+    if (level <= previousLevel) {
+      return updatedSave;
+    }
+
+    return addGameNotification(updatedSave, {
+      titleKey: 'notifications.levelUp.title',
+      descriptionKey: 'notifications.levelUp.description',
+      params: { name: gladiator.name, level },
+      target: { kind: 'gladiator', gladiatorId: gladiator.id },
+    });
+  }, save);
 }
 
 export function archiveGameNotification(save: GameSave, notificationId: string): GameSave {

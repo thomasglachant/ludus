@@ -292,6 +292,14 @@ describe('combat actions', () => {
         }),
       ]),
     );
+    expect(resolved.notifications).toEqual([
+      expect.objectContaining({
+        titleKey: 'notifications.levelUp.title',
+        descriptionKey: 'notifications.levelUp.description',
+        params: { name: 'Aulus', level: 2 },
+        target: { kind: 'gladiator', gladiatorId: 'gladiator-test' },
+      }),
+    ]);
   });
 
   it('orders arena day combats from the lowest league to the highest league before presentation', () => {

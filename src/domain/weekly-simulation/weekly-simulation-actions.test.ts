@@ -208,6 +208,14 @@ describe('weekly simulation actions', () => {
         }),
       ]),
     );
+    expect(result.save.notifications).toEqual([
+      expect.objectContaining({
+        titleKey: 'notifications.levelUp.title',
+        descriptionKey: 'notifications.levelUp.description',
+        params: { name: 'Aulus', level: 2 },
+        target: { kind: 'gladiator', gladiatorId: 'gladiator-test' },
+      }),
+    ]);
   });
 
   it('normalizes training gains per available gladiator', () => {

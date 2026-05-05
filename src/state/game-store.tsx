@@ -85,7 +85,6 @@ function synchronizeLoadedSave(save: GameSave): GameSave {
 export function GameStoreProvider({ children }: { children: ReactNode }) {
   const {
     activeModal,
-    activeSurface,
     closeAllModals,
     modalStack,
     screen,
@@ -112,8 +111,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   const [saveNoticeKey, setSaveNoticeKey] = useState<string | null>(null);
   const hasLoadedInitialRouteGame = useRef(false);
   const currentSaveRef = useRef<GameSave | null>(null);
-  const activeModalRef = useRef(activeModal);
-  const activeSurfaceRef = useRef(activeSurface);
   const isGamePausedRef = useRef(isGamePaused);
   const hasUnsavedChangesRef = useRef(false);
   const isSavingRef = useRef(false);
@@ -498,19 +495,9 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     applyPlayerChange((save) => completeSundayArenaDayAction(save));
   }, [applyPlayerChange]);
 
-  const advanceWeekStepAction = useCallback(
-    (options?: { ignoreModalPause?: boolean }) => {
-      if (
-        (activeModalRef.current || activeSurfaceRef.current.kind !== 'buildings') &&
-        !options?.ignoreModalPause
-      ) {
-        return;
-      }
-
-      applyPlayerChange((save) => resolveWeekStep(save));
-    },
-    [applyPlayerChange],
-  );
+  const advanceWeekStepAction = useCallback(() => {
+    applyPlayerChange((save) => resolveWeekStep(save));
+  }, [applyPlayerChange]);
 
   const resolvePendingGameAction = useCallback(
     (trigger?: PendingActionTrigger) => {
@@ -557,14 +544,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     currentSaveRef.current = currentSave;
   }, [currentSave]);
-
-  useEffect(() => {
-    activeModalRef.current = activeModal;
-  }, [activeModal]);
-
-  useEffect(() => {
-    activeSurfaceRef.current = activeSurface;
-  }, [activeSurface]);
 
   useEffect(() => {
     isGamePausedRef.current = isGamePaused;
@@ -697,8 +676,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
       if (
         !save ||
-        activeModalRef.current ||
-        activeSurfaceRef.current.kind !== 'buildings' ||
         isGamePausedRef.current ||
         save.time.pendingActionTrigger ||
         save.time.phase !== 'planning'
@@ -783,6 +760,10 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<GameStoreValue>(() => {
     const isTimeControlLocked = Boolean(currentSave?.time.pendingActionTrigger);
+    const isFlowPaused = Boolean(
+      currentSave &&
+      (currentSave.time.pendingActionTrigger || currentSave.time.phase !== 'planning'),
+    );
     const displayedClockMinutes = isTimeControlLocked ? 0 : gameClockMinutes;
     const clockHours = Math.floor(displayedClockMinutes / 60);
     const clockMinutes = displayedClockMinutes % 60;
@@ -793,11 +774,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       demoSaves,
       isLoading,
       isSaving,
-      isGamePaused:
-        isGamePaused ||
-        Boolean(activeModal) ||
-        activeSurface.kind !== 'buildings' ||
-        isTimeControlLocked,
+      isGamePaused: isGamePaused || isFlowPaused,
       isTimeControlLocked,
       debugTimeScale,
       gameClockLabel: `${clockHours.toString().padStart(2, '0')}:${clockMinutes
@@ -845,8 +822,6 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     adjustDebugTreasury,
     advanceDebugToDay,
     advanceWeekStepAction,
-    activeModal,
-    activeSurface,
     archiveNotification,
     allocateGladiatorSkillPoint,
     buyoutLoan,

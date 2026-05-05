@@ -26,6 +26,7 @@ import {
   getGladiatorCombatMoraleBonus,
 } from '../gladiator-traits/gladiator-trait-actions';
 import { synchronizePlanning } from '../planning/planning-actions';
+import { addGladiatorLevelUpNotifications } from '../notifications/notification-actions';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
 import type {
@@ -574,17 +575,18 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
       isArenaDayActive: true,
     },
   };
+  const notificationSave = addGladiatorLevelUpNotifications(resolvedSave, save.gladiators);
 
   if (rewardTotal <= 0) {
-    return refreshGameAlerts(synchronizePlanning(updateCurrentWeekSummary(resolvedSave)));
+    return refreshGameAlerts(synchronizePlanning(updateCurrentWeekSummary(notificationSave)));
   }
 
   return refreshGameAlerts(
     synchronizePlanning(
       updateCurrentWeekSummary(
         addLedgerEntry(
-          resolvedSave,
-          createLedgerEntry(save, {
+          notificationSave,
+          createLedgerEntry(notificationSave, {
             kind: 'income',
             category: 'arena',
             amount: rewardTotal,

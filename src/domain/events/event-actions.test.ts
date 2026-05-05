@@ -142,6 +142,14 @@ describe('event actions', () => {
         }),
       ]),
     );
+    expect(result.notifications).toEqual([
+      expect.objectContaining({
+        titleKey: 'notifications.levelUp.title',
+        descriptionKey: 'notifications.levelUp.description',
+        params: { name: 'Aulus', level: 2 },
+        target: { kind: 'gladiator', gladiatorId: 'gladiator-test' },
+      }),
+    ]);
   });
 
   it('applies gladiator traits from event consequences', () => {

@@ -19,7 +19,10 @@ import {
 import { addSkillLevels } from '../gladiators/skills';
 import { addGladiatorExperience } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
-import { addGameNotification } from '../notifications/notification-actions';
+import {
+  addGameNotification,
+  addGladiatorLevelUpNotifications,
+} from '../notifications/notification-actions';
 import { synchronizePlanning } from '../planning/planning-actions';
 import type { DailyPlan, DailyPlanActivity } from '../planning/types';
 import type { GameSave } from '../saves/types';
@@ -541,7 +544,7 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
   }
 
   if (effect.type === 'changeGladiatorExperience') {
-    return {
+    const experienceSave = {
       ...save,
       gladiators: save.gladiators.map((gladiator) =>
         gladiator.id === effect.gladiatorId
@@ -549,6 +552,8 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
           : gladiator,
       ),
     };
+
+    return addGladiatorLevelUpNotifications(experienceSave, save.gladiators);
   }
 
   if (effect.type === 'applyGladiatorTrait') {

@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { createInitialSave } from '../saves/create-initial-save';
+import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
 import {
   addGameNotification,
+  addGladiatorLevelUpNotifications,
   archiveGameNotification,
   sortGameNotificationsByDateDesc,
 } from './notification-actions';
@@ -16,6 +18,24 @@ function createTestSave(overrides: Partial<GameSave> = {}): GameSave {
 
   return {
     ...save,
+    ...overrides,
+  };
+}
+
+function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
+  return {
+    id: 'gladiator-test',
+    name: 'Aulus',
+    age: 20,
+    experience: 0,
+    strength: 3,
+    agility: 3,
+    defense: 2,
+    life: 2,
+    reputation: 0,
+    wins: 0,
+    losses: 0,
+    traits: [],
     ...overrides,
   };
 }
@@ -39,6 +59,34 @@ describe('notification actions', () => {
         target: { kind: 'gladiator', gladiatorId: 'gladiator-test' },
       },
     ]);
+  });
+
+  it('adds level-up notifications for gladiators that crossed a level threshold', () => {
+    const previousGladiator = createGladiator({ experience: 99 });
+    const save = createTestSave({
+      gladiators: [{ ...previousGladiator, experience: 100 }],
+    });
+
+    const result = addGladiatorLevelUpNotifications(save, [previousGladiator]);
+
+    expect(result.notifications).toEqual([
+      expect.objectContaining({
+        id: 'notification-1-1-monday-1',
+        titleKey: 'notifications.levelUp.title',
+        descriptionKey: 'notifications.levelUp.description',
+        params: { name: 'Aulus', level: 2 },
+        target: { kind: 'gladiator', gladiatorId: 'gladiator-test' },
+      }),
+    ]);
+  });
+
+  it('does not add level-up notifications when the level is unchanged', () => {
+    const previousGladiator = createGladiator({ experience: 80 });
+    const save = createTestSave({
+      gladiators: [{ ...previousGladiator, experience: 90 }],
+    });
+
+    expect(addGladiatorLevelUpNotifications(save, [previousGladiator])).toBe(save);
   });
 
   it('archives notifications with the current game date', () => {

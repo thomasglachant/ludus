@@ -65,6 +65,8 @@
   "notifications.dateLabel": "{day} · Semaine {week}, année {year}",
   "notifications.injury.title": "{name} s'est blessé",
   "notifications.injury.description": "{name} doit récupérer avant de retourner à l'entraînement ou dans l'arène.",
+  "notifications.levelUp.title": "{name} atteint le niveau {level}",
+  "notifications.levelUp.description": "De nouveaux points de compétence peuvent être attribués depuis sa fiche.",
   "notifications.gladiatorLeft.title": "{name} a quitté le ludus",
   "notifications.gladiatorLeft.description": "{name} ne fait plus partie de l'école.",
   "notifications.allGladiatorsReleased.title": "Gladiateurs libérés",
