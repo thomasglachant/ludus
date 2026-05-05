@@ -62,6 +62,7 @@ describe('ludus capacity', () => {
           id: 'gladiator-test',
           name: 'Aulus',
           age: 18,
+          experience: 0,
           strength: 7,
           agility: 6,
           defense: 7,

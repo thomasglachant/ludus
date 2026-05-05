@@ -89,8 +89,9 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         requiredDomusLevel: 1,
         effects: [
           {
-            type: 'increaseStrength',
-            value: GAME_BALANCE.buildings.levelEffects.trainingGround[1].skillProgressPerPoint,
+            type: 'increaseTrainingExperience',
+            value:
+              GAME_BALANCE.buildings.levelEffects.trainingGround[1].trainingExperienceBonusPercent,
             target: 'plannedGladiators',
           },
           {
@@ -106,8 +107,9 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         requiredDomusLevel: 2,
         effects: [
           {
-            type: 'increaseStrength',
-            value: GAME_BALANCE.buildings.levelEffects.trainingGround[2].skillProgressPerPoint,
+            type: 'increaseTrainingExperience',
+            value:
+              GAME_BALANCE.buildings.levelEffects.trainingGround[2].trainingExperienceBonusPercent,
             target: 'plannedGladiators',
           },
           {

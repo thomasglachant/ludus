@@ -24,6 +24,7 @@ export type DailyEventEffectTemplate =
   | { type: 'changeSelectedGladiatorHealth'; amount: number }
   | { type: 'changeSelectedGladiatorEnergy'; amount: number }
   | { type: 'changeSelectedGladiatorMorale'; amount: number }
+  | { type: 'changeSelectedGladiatorExperience'; amount: number }
   | {
       type: 'changeSelectedGladiatorStat';
       stat: 'strength' | 'agility' | 'defense' | 'life';
@@ -129,7 +130,7 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
     id: 'trainingRefusal',
     titleKey: 'events.trainingRefusal.title',
     descriptionKey: 'events.trainingRefusal.description',
-    triggerActivities: ['strengthTraining', 'agilityTraining', 'defenseTraining', 'lifeTraining'],
+    triggerActivities: ['training'],
     gladiatorSelector: 'any',
     choices: [
       {
@@ -154,7 +155,12 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
           {
             kind: 'certain',
             effects: [
-              { type: 'changeSelectedGladiatorStat', stat: 'strength', amount: 1 },
+              {
+                type: 'changeSelectedGladiatorExperience',
+                amount:
+                  GAME_BALANCE.gladiators.training.experiencePerPoint *
+                  GAME_BALANCE.gladiators.combatExperience.dailyTrainingEquivalentPoints,
+              },
               { type: 'changeSelectedGladiatorMorale', amount: -8 },
               { type: 'changeSelectedGladiatorEnergy', amount: -6 },
             ],

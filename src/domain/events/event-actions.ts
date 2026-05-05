@@ -17,7 +17,9 @@ import {
 } from '../economy/economy-actions';
 import { hasActiveWeeklyInjury } from '../gladiators/injuries';
 import { addSkillLevels } from '../gladiators/skills';
+import { addGladiatorExperience } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
+import { synchronizePlanning } from '../planning/planning-actions';
 import type { DailyPlan, DailyPlanActivity } from '../planning/types';
 import type { GameSave } from '../saves/types';
 import type {
@@ -217,6 +219,10 @@ function resolveEffectTemplate(
       return { type: 'changeLudusHappiness', amount: Math.round(template.amount / 3) };
     case 'changeSelectedGladiatorMorale':
       return { type: 'changeLudusHappiness', amount: template.amount };
+    case 'changeSelectedGladiatorExperience':
+      return gladiatorId
+        ? { type: 'changeGladiatorExperience', gladiatorId, amount: template.amount }
+        : null;
     case 'changeSelectedGladiatorStat':
       return gladiatorId
         ? { type: 'changeGladiatorStat', gladiatorId, stat: template.stat, amount: template.amount }
@@ -473,6 +479,17 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
     return { ...save, gladiators: [], planning: { ...save.planning, alerts: [] } };
   }
 
+  if (effect.type === 'changeGladiatorExperience') {
+    return {
+      ...save,
+      gladiators: save.gladiators.map((gladiator) =>
+        gladiator.id === effect.gladiatorId
+          ? addGladiatorExperience(gladiator, effect.amount)
+          : gladiator,
+      ),
+    };
+  }
+
   if (effect.type === 'changeGladiatorStat') {
     return {
       ...save,
@@ -626,29 +643,31 @@ export function resolveGameEventChoice(
         : undefined,
   };
 
+  const resolvedSave: GameSave = {
+    ...consequenceResult.save,
+    time: {
+      ...consequenceResult.save.time,
+      phase:
+        consequenceResult.save.ludus.gameStatus === 'lost'
+          ? 'gameOver'
+          : consequenceResult.save.time.phase === 'event'
+            ? 'planning'
+            : consequenceResult.save.time.phase,
+    },
+    events: {
+      pendingEvents: consequenceResult.save.events.pendingEvents.filter(
+        (candidate) => candidate.id !== eventId,
+      ),
+      resolvedEvents: [resolvedEvent, ...consequenceResult.save.events.resolvedEvents].slice(
+        0,
+        EVENT_CONFIG.resolvedEventHistoryLimit,
+      ),
+      launchedEvents: consequenceResult.save.events.launchedEvents,
+    },
+  };
+
   return {
     validation: { isAllowed: true },
-    save: {
-      ...consequenceResult.save,
-      time: {
-        ...consequenceResult.save.time,
-        phase:
-          consequenceResult.save.ludus.gameStatus === 'lost'
-            ? 'gameOver'
-            : consequenceResult.save.time.phase === 'event'
-              ? 'planning'
-              : consequenceResult.save.time.phase,
-      },
-      events: {
-        pendingEvents: consequenceResult.save.events.pendingEvents.filter(
-          (candidate) => candidate.id !== eventId,
-        ),
-        resolvedEvents: [resolvedEvent, ...consequenceResult.save.events.resolvedEvents].slice(
-          0,
-          EVENT_CONFIG.resolvedEventHistoryLimit,
-        ),
-        launchedEvents: consequenceResult.save.events.launchedEvents,
-      },
-    },
+    save: synchronizePlanning(resolvedSave),
   };
 }

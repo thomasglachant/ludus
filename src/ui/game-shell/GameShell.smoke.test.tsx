@@ -58,6 +58,7 @@ function createGameStore(): GameStoreValue {
     upgradeBuilding: vi.fn(),
     buyMarketGladiator: vi.fn(),
     sellGladiator: vi.fn(),
+    allocateGladiatorSkillPoint: vi.fn(),
     updateDailyPlan: vi.fn(),
     updateDailyPlanBuildingActivitySelection: vi.fn(),
     resolveGameEventChoice: vi.fn(),

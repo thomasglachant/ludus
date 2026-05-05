@@ -25,7 +25,7 @@ export interface GameSave {
 }
 ```
 
-Only the current `schemaVersion` is supported. Older saves are rejected cleanly rather than migrated.
+New and updated saves are emitted with the current `schemaVersion`. The validator supports only the current save schema and rejects older schema versions cleanly.
 
 ## Ludus
 
@@ -82,6 +82,31 @@ Buildings do not have capacity. Their operational strength is represented by `ef
 ## Gladiators
 
 ```ts
+export type GladiatorSkillName = 'strength' | 'agility' | 'defense' | 'life';
+
+export interface Gladiator {
+  id: string;
+  name: string;
+  age: number;
+  strength: number;
+  agility: number;
+  defense: number;
+  life: number;
+  experience: number;
+  reputation: number;
+  wins: number;
+  losses: number;
+  traits: GladiatorTrait[];
+  weeklyInjury?: GladiatorWeeklyInjury;
+  visualIdentity?: GladiatorVisualIdentity;
+}
+```
+
+`strength`, `agility`, `defense` and `life` are persisted as integer skills in the 1..10 range.
+
+`experience` is the source of truth for progression. The gladiator level is derived from XP thresholds through domain selectors and should not be persisted as an independent mutable field. Available skill points are derived from the initial point budget plus derived levels minus the sum of allocated skills; spending a point increments one integer skill and clamps it to the 1..10 range.
+
+```ts
 export interface GladiatorWeeklyInjury {
   reason: 'training' | 'combat' | 'event';
   week: number;
@@ -109,6 +134,22 @@ export interface BuildingSkillDefinition {
 
 `unlockedActivities` contains optional building-specific macro activity ids. These ids come from `BUILDING_ACTIVITY_DEFINITIONS` and can be used by planning and simulation code to detect specialized activities unlocked by purchased skills. They do not change `BuildingState` directly; ownership remains represented by `purchasedSkillIds`.
 
+## Market
+
+```ts
+export interface MarketState {
+  week: number;
+  year: number;
+  availableGladiators: MarketGladiator[];
+}
+
+export interface MarketGladiator extends Gladiator {
+  price: number;
+}
+```
+
+`MarketGladiator.price` is derived exclusively from the candidate's accumulated XP. Sale value is calculated dynamically from that purchase price and is not persisted on the gladiator.
+
 ## Weekly Planning
 
 ```ts
@@ -127,14 +168,7 @@ objectives, intensity settings or manual building overrides. The current app onl
 cleared during planning synchronization and should stay zero.
 
 ```ts
-export type DailyPlanActivity =
-  | 'strengthTraining'
-  | 'agilityTraining'
-  | 'defenseTraining'
-  | 'lifeTraining'
-  | 'meals'
-  | 'sleep'
-  | 'production';
+export type DailyPlanActivity = 'training' | 'meals' | 'sleep' | 'production';
 
 export type DailyPlanPoints = Record<DailyPlanActivity, number>;
 
@@ -174,6 +208,25 @@ export interface WeeklyReport {
   injuries: number;
 }
 ```
+
+```ts
+export type AlertSeverity = 'info' | 'warning' | 'critical';
+
+export interface GameAlert {
+  id: string;
+  severity: AlertSeverity;
+  titleKey: string;
+  descriptionKey: string;
+  actionKind?: 'allocateGladiatorSkillPoint';
+  gladiatorId?: string;
+  buildingId?: BuildingId;
+  createdAt: string;
+}
+```
+
+Skill allocation alerts are generated from owned gladiators whose derived available skill points are greater than zero. They should be attached through `gladiatorId` and regenerated during planning synchronization rather than treated as authoritative progression state.
+
+Training and combat XP awards update `Gladiator.experience`. Reports may summarize XP gains for UI explanation, but the persisted source of truth remains the gladiator's total XP and allocated integer skills.
 
 ## Economy
 

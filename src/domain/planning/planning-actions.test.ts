@@ -21,10 +21,11 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     id: 'gladiator-test',
     name: 'Aulus',
     age: 18,
-    strength: 7,
-    agility: 6,
-    defense: 7,
-    life: 85,
+    experience: 0,
+    strength: 3,
+    agility: 3,
+    defense: 2,
+    life: 2,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -69,6 +70,27 @@ describe('planning actions', () => {
     );
   });
 
+  it('generates alerts for owned gladiators with unassigned skill points', () => {
+    const save = synchronizePlanning(
+      withGladiators(createTestSave(), [
+        createGladiator({
+          experience: 100,
+        }),
+      ]),
+    );
+
+    expect(save.planning.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'info',
+          titleKey: 'alerts.unassignedSkillPoints.title',
+          actionKind: 'allocateGladiatorSkillPoint',
+          gladiatorId: 'gladiator-test',
+        }),
+      ]),
+    );
+  });
+
   it('ignores stale weekly injuries when generating alerts', () => {
     const save = synchronizePlanning(
       withGladiators(createTestSave(), [
@@ -84,25 +106,25 @@ describe('planning actions', () => {
   it('updates daily macro plan points by activity bucket', () => {
     const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
     const result = updateDailyPlan(save, {
-      activity: 'lifeTraining',
+      activity: 'training',
       bucket: 'gladiatorTimePoints',
       dayOfWeek: 'monday',
       points: 0.4,
     });
 
-    expect(result.planning.days.monday.gladiatorTimePoints.lifeTraining).toBe(0);
+    expect(result.planning.days.monday.gladiatorTimePoints.training).toBe(0);
   });
 
   it('caps daily macro plan updates to the bucket budget', () => {
     const save = synchronizePlanning(withGladiators(createTestSave(), [createGladiator()]));
     const result = updateDailyPlan(save, {
-      activity: 'strengthTraining',
+      activity: 'training',
       bucket: 'gladiatorTimePoints',
       dayOfWeek: 'monday',
       points: 20,
     });
 
-    expect(result.planning.days.monday.gladiatorTimePoints.strengthTraining).toBe(8);
+    expect(result.planning.days.monday.gladiatorTimePoints.training).toBe(8);
     expect(
       getDailyPlanBucketRemaining(result, result.planning.days.monday, 'gladiatorTimePoints'),
     ).toBe(0);

@@ -29,6 +29,8 @@ import {
   synchronizePlanning,
 } from '../domain/planning/planning-actions';
 import { getActiveGameInterruption } from '../domain/game-flow/interruption';
+import { allocateGladiatorSkillPoint as allocateGladiatorSkillPointAction } from '../domain/gladiators/progression';
+import type { GladiatorSkillName } from '../domain/gladiators/skills';
 import type {
   BuildingId,
   DemoSaveId,
@@ -357,6 +359,22 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     [applyPlayerChange],
   );
 
+  const allocateGladiatorSkillPoint = useCallback(
+    (gladiatorId: string, skill: GladiatorSkillName) => {
+      applyPlayerChange((save) =>
+        synchronizePlanning({
+          ...save,
+          gladiators: save.gladiators.map((gladiator) =>
+            gladiator.id === gladiatorId
+              ? allocateGladiatorSkillPointAction(gladiator, skill)
+              : gladiator,
+          ),
+        }),
+      );
+    },
+    [applyPlayerChange],
+  );
+
   const updateDailyPlan = useCallback(
     (update: DailyPlanUpdate) => {
       applyPlayerChange((save) => updateDailyPlanAction(save, update));
@@ -661,6 +679,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       upgradeBuilding: upgradeBuildingAction,
       buyMarketGladiator: buyMarketGladiatorAction,
       sellGladiator: sellGladiatorAction,
+      allocateGladiatorSkillPoint,
       updateDailyPlan,
       updateDailyPlanBuildingActivitySelection,
       resolveGameEventChoice,
@@ -677,6 +696,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     adjustDebugTreasury,
     advanceWeekStepAction,
     activeModal,
+    allocateGladiatorSkillPoint,
     buyoutLoan,
     buyMarketGladiatorAction,
     changeLanguage,

@@ -8,6 +8,7 @@ import type { BuildingActivityId } from '../buildings/types';
 import { getSelectableBuildingActivities } from '../buildings/building-activities';
 import { sumActiveBuildingEffectValues } from '../buildings/building-effects';
 import { hasActiveWeeklyInjury } from '../gladiators/injuries';
+import { getAvailableSkillPoints } from '../gladiators/progression';
 import type { GameSave } from '../saves/types';
 import type { DayOfWeek } from '../time/types';
 import type {
@@ -79,10 +80,7 @@ export interface DailyPlanBuildingActivitySelectionUpdate {
 
 function createEmptyPoints(): DailyPlanPoints {
   return {
-    strengthTraining: 0,
-    agilityTraining: 0,
-    defenseTraining: 0,
-    lifeTraining: 0,
+    training: 0,
     meals: 0,
     sleep: 0,
     production: 0,
@@ -148,12 +146,28 @@ function createInjuryAlert(gladiatorId: string, createdAt: string): GameAlert {
   };
 }
 
+function createSkillPointAlert(gladiatorId: string, createdAt: string): GameAlert {
+  return {
+    id: `alert-${gladiatorId}-skill-point`,
+    severity: 'info',
+    titleKey: 'alerts.unassignedSkillPoints.title',
+    descriptionKey: 'alerts.unassignedSkillPoints.description',
+    actionKind: 'allocateGladiatorSkillPoint',
+    gladiatorId,
+    createdAt,
+  };
+}
+
 export function generatePlanningAlerts(save: GameSave, createdAt = save.updatedAt): GameAlert[] {
   const alerts: GameAlert[] = [];
 
   for (const gladiator of save.gladiators) {
     if (hasActiveWeeklyInjury(gladiator, save.time.year, save.time.week)) {
       alerts.push(createInjuryAlert(gladiator.id, createdAt));
+    }
+
+    if (getAvailableSkillPoints(gladiator) > 0) {
+      alerts.push(createSkillPointAlert(gladiator.id, createdAt));
     }
   }
 

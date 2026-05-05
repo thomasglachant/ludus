@@ -28,15 +28,15 @@ describe('building effects', () => {
     ).map((skill) => skill.effects[0]);
 
     expect(trainingGroundTierOneEffects).toEqual([
-      { type: 'increaseStrength', value: 1, target: 'plannedGladiators' },
-      { type: 'increaseAgility', value: 1, target: 'plannedGladiators' },
-      { type: 'increaseDefense', value: 1, target: 'plannedGladiators' },
+      { type: 'increaseTrainingExperience', value: 1, target: 'plannedGladiators' },
+      { type: 'increaseTrainingExperience', value: 1, target: 'plannedGladiators' },
+      { type: 'increaseTrainingExperience', value: 1, target: 'plannedGladiators' },
       { type: 'reduceInjuryRisk', value: 0.5, target: 'allGladiators' },
       { type: 'increaseReputation', value: 0.5, target: 'ludus' },
     ]);
     expect(canteenTierTwoEffects).toEqual([
       { type: 'increaseHappiness', value: 1.5, target: 'ludus' },
-      { type: 'increaseLife', value: 1.5, target: 'plannedGladiators' },
+      { type: 'increaseHappiness', value: 1.5, target: 'ludus' },
       { type: 'increaseIncome', value: 1, target: 'ludus' },
       { type: 'increaseProduction', value: 1, target: 'ludus' },
       { type: 'increaseHappiness', value: 1.5, target: 'ludus' },

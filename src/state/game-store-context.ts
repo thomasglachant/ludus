@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import type { GladiatorSkillName } from '../domain/gladiators/skills';
 import type {
   BuildingId,
   DailyPlanBuildingActivitySelectionUpdate,
@@ -41,6 +42,7 @@ export interface GameStoreValue {
   upgradeBuilding(buildingId: BuildingId): void;
   buyMarketGladiator(candidateId: string): void;
   sellGladiator(gladiatorId: string): void;
+  allocateGladiatorSkillPoint(gladiatorId: string, skill: GladiatorSkillName): void;
   updateDailyPlan(update: DailyPlanUpdate): void;
   updateDailyPlanBuildingActivitySelection(update: DailyPlanBuildingActivitySelectionUpdate): void;
   resolveGameEventChoice(eventId: string, choiceId: string): void;

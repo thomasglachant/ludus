@@ -14,6 +14,9 @@ export default defineConfig({
       '@': path.resolve(dirname, './src'),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 4000,
+  },
   test: {
     environment: 'jsdom',
     exclude: ['node_modules/**', 'dist/**'],

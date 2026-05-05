@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { getEffectiveSkillValue } from '../../domain/gladiators/skills';
+import { getGladiatorLevel } from '../../domain/gladiators/progression';
 import type { Gladiator } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
 import { CardBlured } from '../components/CardBlured';
@@ -133,6 +134,11 @@ export function GladiatorSummary({
             </span>
           </div>
           <div className="gladiator-summary__key-stats">
+            <IconValueStat
+              iconName="level"
+              label={t('gladiatorPanel.level')}
+              value={getGladiatorLevel(gladiator)}
+            />
             <IconValueStat
               iconName="reputation"
               label={t('gladiatorPanel.reputation')}

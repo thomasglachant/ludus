@@ -17,18 +17,15 @@ interface BuildingActionModalContentProps {
 }
 
 const effectIcons: Record<BuildingEffectType, GameIconName> = {
-  increaseAgility: 'agility',
   increaseCapacity: 'capacity',
   increaseDailyGladiatorPoints: 'training',
-  increaseDefense: 'defense',
-  increaseLife: 'health',
+  increaseTrainingExperience: 'xp',
   increaseReputation: 'reputation',
   increaseHappiness: 'morale',
   decreaseRebellion: 'warning',
   increaseIncome: 'treasury',
   reduceExpense: 'treasury',
   increaseProduction: 'energy',
-  increaseStrength: 'strength',
   reduceInjuryRisk: 'defense',
 };
 

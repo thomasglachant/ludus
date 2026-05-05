@@ -8,7 +8,7 @@ import {
   createLedgerEntry,
   updateCurrentWeekSummary,
 } from '../economy/economy-actions';
-import { getGladiatorEffectiveSkill } from '../gladiators/skills';
+import { createInitialSkillProfile } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
 import { synchronizePlanning } from '../planning/planning-actions';
 import type { GameSave } from '../saves/types';
@@ -39,38 +39,7 @@ function pickIndex(length: number, random: RandomSource) {
 }
 
 function createGeneratedStats(random: RandomSource) {
-  const statCount = GAME_BALANCE.gladiators.skills.names.length;
-  const stats = Array.from({ length: statCount }, () => MARKET_CONFIG.minGeneratedStat);
-  const maximumTotalStatPoints = Math.min(
-    MARKET_CONFIG.maxGeneratedTotalStatPoints,
-    MARKET_CONFIG.maxGeneratedStat * statCount,
-  );
-  const minimumTotalStatPoints = Math.max(
-    MARKET_CONFIG.minGeneratedTotalStatPoints,
-    MARKET_CONFIG.minGeneratedStat * statCount,
-  );
-  const generatedTotalStatPoints =
-    minimumTotalStatPoints + pickIndex(maximumTotalStatPoints - minimumTotalStatPoints + 1, random);
-  let remainingPoints = generatedTotalStatPoints - MARKET_CONFIG.minGeneratedStat * statCount;
-
-  while (remainingPoints > 0) {
-    const eligibleStatIndexes = stats
-      .map((stat, index) => ({ stat, index }))
-      .filter(({ stat }) => stat < MARKET_CONFIG.maxGeneratedStat)
-      .map(({ index }) => index);
-
-    const selectedIndex = eligibleStatIndexes[pickIndex(eligibleStatIndexes.length, random)];
-
-    stats[selectedIndex] += 1;
-    remainingPoints -= 1;
-  }
-
-  return {
-    strength: stats[0],
-    agility: stats[1],
-    defense: stats[2],
-    life: stats[3],
-  };
+  return createInitialSkillProfile(random);
 }
 
 function createGeneratedAge(random: RandomSource) {
@@ -80,17 +49,9 @@ function createGeneratedAge(random: RandomSource) {
 }
 
 export function calculateGladiatorMarketPrice(gladiator: Gladiator) {
-  const totalStats =
-    getGladiatorEffectiveSkill(gladiator, 'strength') +
-    getGladiatorEffectiveSkill(gladiator, 'agility') +
-    getGladiatorEffectiveSkill(gladiator, 'defense') +
-    getGladiatorEffectiveSkill(gladiator, 'life');
+  const experienceSteps = Math.floor(gladiator.experience / MARKET_CONFIG.priceExperienceStep);
 
-  return (
-    MARKET_CONFIG.basePrice +
-    gladiator.reputation * MARKET_CONFIG.reputationPriceMultiplier +
-    totalStats * MARKET_CONFIG.statPriceMultiplier
-  );
+  return MARKET_CONFIG.minimumPrice + experienceSteps * MARKET_CONFIG.pricePerExperienceStep;
 }
 
 export function calculateGladiatorSaleValue(gladiator: Gladiator) {
@@ -116,6 +77,7 @@ export function generateMarketGladiators(
       agility: stats.agility,
       defense: stats.defense,
       life: stats.life,
+      experience: GAME_BALANCE.gladiators.progression.experienceByLevel[0],
       reputation,
       wins: GAME_BALANCE.gladiators.marketDefaults.wins,
       losses: GAME_BALANCE.gladiators.marketDefaults.losses,
@@ -219,11 +181,11 @@ export function buyMarketGladiator(save: GameSave, candidateId: string): MarketA
     agility: candidate.agility,
     defense: candidate.defense,
     life: candidate.life,
+    experience: candidate.experience,
     reputation: candidate.reputation,
     wins: candidate.wins,
     losses: candidate.losses,
     traits: candidate.traits,
-    trainingPlan: candidate.trainingPlan,
     visualIdentity: candidate.visualIdentity,
   };
 

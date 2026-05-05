@@ -21,16 +21,31 @@ export type {
   BuildingActionValidation,
   BuildingActionResult,
 } from './buildings/building-actions';
+export type { GladiatorSkillName } from './gladiators/skills';
 export type {
   Gladiator,
   GladiatorClassId,
   GladiatorSkillProfile,
   GladiatorTrait,
-  GladiatorTrainingPlan,
   GladiatorWeeklyInjury,
   GladiatorVisualIdentity,
 } from './gladiators/types';
 export { GLADIATOR_CLASS_IDS } from './gladiators/types';
+export {
+  addGladiatorExperience,
+  allocateGladiatorSkillPoint,
+  createInitialSkillProfile,
+  createInitialGladiatorSkillProfile,
+  getAvailableSkillPoints,
+  getGladiatorExperienceProgress,
+  getGladiatorLevel,
+  getGladiatorLevelFromExperience,
+  getGladiatorSkillPointBudget,
+  normalizeGladiatorExperience,
+  normalizeGladiatorProgression,
+  normalizeGladiatorSkillProfile,
+  resetGladiatorToInitialProgression,
+} from './gladiators/progression';
 export type {
   WeeklyPlanningState,
   DailyPlan,

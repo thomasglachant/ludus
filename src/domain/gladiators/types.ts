@@ -30,6 +30,7 @@ export interface Gladiator {
   id: string;
   name: string;
   age: number;
+  experience: number;
   strength: number;
   agility: number;
   defense: number;
@@ -38,7 +39,6 @@ export interface Gladiator {
   wins: number;
   losses: number;
   traits: GladiatorTrait[];
-  trainingPlan?: GladiatorTrainingPlan;
   weeklyInjury?: GladiatorWeeklyInjury;
   visualIdentity?: GladiatorVisualIdentity;
 }
@@ -59,11 +59,3 @@ export type GladiatorTrait =
   | 'crowdFavorite'
   | 'rivalrous'
   | 'stoic';
-
-export interface GladiatorTrainingPlan {
-  gladiatorId: string;
-  strength: number;
-  agility: number;
-  defense: number;
-  life: number;
-}

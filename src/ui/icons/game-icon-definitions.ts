@@ -1,8 +1,10 @@
 import {
   RiAlertFill,
   RiAncientGateFill,
+  RiAddCircleFill,
   RiArrowLeftFill,
   RiArrowRightFill,
+  RiBarChartBoxFill,
   RiCalendarCheckFill,
   RiCalendarFill,
   RiCheckFill,
@@ -31,6 +33,7 @@ import {
   RiSkipBackFill,
   RiSkipForwardFill,
   RiSparklingFill,
+  RiStarFill,
   RiTargetFill,
   RiTrophyFill,
   RiUserMinusFill,
@@ -66,11 +69,13 @@ export const GAME_ICON_DEFINITIONS = {
   dice: { Icon: RiDiceFill, color: '#d6a34a' },
   energy: { Icon: RiFlashlightFill, color: '#d39942' },
   events: { Icon: RiAlertFill, color: '#d39942' },
+  experience: { Icon: RiBarChartBoxFill, color: '#78c46b' },
   folderOpen: { Icon: RiFolderOpenFill, color: '#d6a34a' },
   hammer: { Icon: RiHammerFill, color: '#d6a34a' },
   health: { Icon: RiHeartFill, color: '#b33a2e' },
   happiness: { Icon: RiEmotionHappyFill, color: '#ffd76a' },
   landmark: { Icon: RiAncientGateFill, color: '#d6a34a' },
+  level: { Icon: RiStarFill, color: '#ffd76a' },
   logout: { Icon: RiLogoutBoxRFill, color: '#b55339' },
   menu: { Icon: RiSettings5Fill, color: '#f7e6b3' },
   morale: { Icon: RiEmotionHappyFill, color: '#ffd76a' },
@@ -83,6 +88,7 @@ export const GAME_ICON_DEFINITIONS = {
   settings: { Icon: RiSettings3Fill, color: '#d6a34a' },
   shoppingCart: { Icon: RiShoppingCartFill, color: '#d6a34a' },
   skipBack: { Icon: RiSkipBackFill, color: '#f7e6b3' },
+  skillPoint: { Icon: RiAddCircleFill, color: '#78c46b' },
   strength: { Icon: RiWeightFill, color: '#b56f3c' },
   treasury: { Icon: RiCoinsFill, color: '#ffd76a' },
   training: { Icon: RiFootprintFill, color: '#5f8fb7' },
@@ -91,6 +97,7 @@ export const GAME_ICON_DEFINITIONS = {
   view: { Icon: RiEyeFill, color: '#d6a34a' },
   warning: { Icon: RiSparklingFill, color: '#d39942' },
   weeklyPlanning: { Icon: RiCalendarCheckFill, color: '#d6a34a' },
+  xp: { Icon: RiBarChartBoxFill, color: '#78c46b' },
 } satisfies Record<string, GameIconDefinition>;
 
 export type GameIconName = keyof typeof GAME_ICON_DEFINITIONS;

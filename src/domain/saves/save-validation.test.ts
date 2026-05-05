@@ -105,7 +105,7 @@ describe('save validation', () => {
     expect(parsed).toBeNull();
   });
 
-  it('rejects previous-schema saves after the ludus glory field removal', () => {
+  it('rejects previous-schema saves through the current schema gate', () => {
     const save = createJsonClone(createTestSave());
     const legacySave = {
       ...save,
@@ -115,8 +115,9 @@ describe('save validation', () => {
         glory: 4,
       },
     };
+    const parsed = parseGameSave(JSON.stringify(legacySave));
 
-    expect(parseGameSave(JSON.stringify(legacySave))).toBeNull();
+    expect(parsed).toBeNull();
   });
 
   it('strips obsolete real-time fields from current-schema transitional saves', () => {
@@ -135,10 +136,11 @@ describe('save validation', () => {
           id: 'gladiator-test',
           name: 'Aulus',
           age: 18,
-          strength: 7,
-          agility: 6,
-          defense: 7,
-          life: 85,
+          experience: 0,
+          strength: 3,
+          agility: 3,
+          defense: 2,
+          life: 2,
           reputation: 0,
           wins: 0,
           losses: 0,
@@ -271,10 +273,11 @@ describe('save validation', () => {
           id: 'gladiator-test',
           name: 'Aulus',
           age: 18,
-          strength: 7,
-          agility: 6,
-          defense: 7,
-          life: 85,
+          experience: 0,
+          strength: 3,
+          agility: 3,
+          defense: 2,
+          life: 2,
           reputation: 0,
           wins: 0,
           losses: 0,
@@ -328,6 +331,35 @@ describe('save validation', () => {
     const parsed = parseGameSave(JSON.stringify(saveWithoutSelections));
 
     expect(parsed?.planning.days.monday.buildingActivitySelections).toEqual({});
+  });
+
+  it('rejects previous-schema focused training plan points through the current schema gate', () => {
+    const save = createJsonClone(createTestSave());
+    const legacySave = {
+      ...save,
+      schemaVersion: CURRENT_SCHEMA_VERSION - 1,
+      planning: {
+        ...save.planning,
+        days: {
+          ...save.planning.days,
+          monday: {
+            ...save.planning.days.monday,
+            gladiatorTimePoints: {
+              agilityTraining: 2,
+              defenseTraining: 1,
+              lifeTraining: 1,
+              meals: 0,
+              production: 0,
+              sleep: 0,
+              strengthTraining: 3,
+            },
+          },
+        },
+      },
+    };
+    const parsed = parseGameSave(JSON.stringify(legacySave));
+
+    expect(parsed).toBeNull();
   });
 
   it('rejects malformed economy ledger entries', () => {

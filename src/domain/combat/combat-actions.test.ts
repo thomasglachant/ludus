@@ -9,6 +9,7 @@ import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave, Gladiator } from '../types';
 import {
   calculateArenaCombatReward,
+  calculateCombatExperienceChange,
   calculateDecimalOdds,
   calculateDamage,
   calculateHitChance,
@@ -32,10 +33,11 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     id: 'gladiator-test',
     name: 'Aulus',
     age: 24,
-    strength: 20,
-    agility: 18,
-    defense: 18,
-    life: 100,
+    experience: 0,
+    strength: 10,
+    agility: 9,
+    defense: 9,
+    life: 10,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -62,12 +64,14 @@ describe('combat actions', () => {
     expect(getArenaRank(600)).toBe('gold1');
   });
 
-  it('generates Sunday opponents within 20 percent of player skills in the same league', () => {
+  it('generates Sunday opponents in the same league near the player level', () => {
     const save = createTestSave();
     const gladiator = createGladiator({
-      strength: 50,
-      agility: 40,
-      defense: 30,
+      experience: 390,
+      strength: 5,
+      agility: 4,
+      defense: 3,
+      life: 2,
       reputation: 100,
     });
     const weakerOpponent = generateOpponent(save, gladiator, () => 0);
@@ -75,16 +79,20 @@ describe('combat actions', () => {
 
     expect(getArenaRank(weakerOpponent.reputation)).toBe(getArenaRank(gladiator.reputation));
     expect(getArenaRank(strongerOpponent.reputation)).toBe(getArenaRank(gladiator.reputation));
-    expect(weakerOpponent).toMatchObject({
-      strength: 40,
-      agility: 32,
-      defense: 24,
-    });
-    expect(strongerOpponent).toMatchObject({
-      strength: 60,
-      agility: 48,
-      defense: 36,
-    });
+    expect(weakerOpponent.experience).toBe(230);
+    expect(strongerOpponent.experience).toBe(580);
+    expect(
+      weakerOpponent.strength +
+        weakerOpponent.agility +
+        weakerOpponent.defense +
+        weakerOpponent.life,
+    ).toBe(12);
+    expect(
+      strongerOpponent.strength +
+        strongerOpponent.agility +
+        strongerOpponent.defense +
+        strongerOpponent.life,
+    ).toBe(14);
   });
 
   it('calculates arena rewards from victory, odds and public stake', () => {
@@ -139,6 +147,9 @@ describe('combat actions', () => {
     );
     expect(combat.consequence.didPlayerWin).toBe(true);
     expect(combat.consequence.playerReward).toBe(expectedWinnerReward);
+    expect(combat.consequence.experienceChange).toBe(
+      calculateCombatExperienceChange(combat.gladiator, combat.opponent, true),
+    );
   });
 
   it('adds reputation from the current value when the player wins', () => {
@@ -151,13 +162,13 @@ describe('combat actions', () => {
   });
 
   it('uses floored skill values for combat calculations', () => {
-    const attacker = createGladiator({ strength: 20.99, agility: 18.99 });
-    const defender = createGladiator({ id: 'defender-test', defense: 18.99, agility: 17.99 });
-    const flooredAttacker = createGladiator({ strength: 20, agility: 18 });
+    const attacker = createGladiator({ strength: 7.99, agility: 8.99 });
+    const defender = createGladiator({ id: 'defender-test', defense: 6.99, agility: 7.99 });
+    const flooredAttacker = createGladiator({ strength: 7, agility: 8 });
     const flooredDefender = createGladiator({
       id: 'floored-defender-test',
-      defense: 18,
-      agility: 17,
+      defense: 6,
+      agility: 7,
     });
 
     expect(calculateHitChance(attacker, defender)).toBe(
@@ -183,6 +194,7 @@ describe('combat actions', () => {
       losses: 0,
       reputation: 10,
     });
+    expect(gladiator.experience).toBeGreaterThan(save.gladiators[0].experience);
     expect(gladiator.life).toBe(save.gladiators[0].life);
     expect(resolved.ludus.treasury).toBe(
       save.ludus.treasury + resolved.arena.resolvedCombats[0].reward.winnerReward,
@@ -194,6 +206,29 @@ describe('combat actions', () => {
       labelKey: 'finance.ledger.arenaReward',
     });
     expect(resolved.ludus.reputation).toBe(gladiator.reputation);
+  });
+
+  it('regenerates skill allocation alerts when Sunday combat grants a level', () => {
+    const save = withSundayArena(createTestSave(), [
+      createGladiator({
+        experience: 90,
+        strength: 3,
+        agility: 3,
+        defense: 2,
+        life: 2,
+      }),
+    ]);
+    const resolved = resolveArenaDay(save, () => 0);
+
+    expect(resolved.gladiators[0].experience).toBeGreaterThanOrEqual(100);
+    expect(resolved.planning.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actionKind: 'allocateGladiatorSkillPoint',
+          gladiatorId: 'gladiator-test',
+        }),
+      ]),
+    );
   });
 
   it('orders arena day combats from the lowest league to the highest league before presentation', () => {
@@ -214,7 +249,7 @@ describe('combat actions', () => {
   });
 
   it('activates an empty Sunday arena day without rewards when no gladiator is eligible', () => {
-    const save = withSundayArena(createTestSave(), [createGladiator({ life: 0 })]);
+    const save = withSundayArena(createTestSave(), []);
     const resolved = resolveArenaDay(save, () => 0);
 
     expect(resolved.arena).toMatchObject({
@@ -222,14 +257,14 @@ describe('combat actions', () => {
       resolvedCombats: [],
     });
     expect(resolved.ludus.treasury).toBe(save.ludus.treasury);
-    expect(resolved.gladiators[0].wins + resolved.gladiators[0].losses).toBe(0);
+    expect(resolved.gladiators).toEqual([]);
   });
 
   it('excludes gladiators with an active weekly injury from Sunday combat', () => {
     const save = withSundayArena(createTestSave(), [
       createGladiator({ weeklyInjury: { reason: 'training', week: 1, year: 1 } }),
     ]);
-    const resolved = resolveArenaDay(save, () => 0);
+    const resolved = resolveArenaDay(save, () => 1);
 
     expect(resolved.arena.resolvedCombats).toEqual([]);
     expect(resolved.gladiators[0]).toMatchObject({ wins: 0, losses: 0, reputation: 0 });
@@ -242,10 +277,10 @@ describe('combat actions', () => {
         strength: 3,
         agility: 3,
         defense: 3,
-        life: 30,
+        life: 3,
       }),
     ]);
-    const resolved = resolveArenaDay(save, () => 0);
+    const resolved = resolveArenaDay(save, () => 1);
     const combat = resolved.arena.resolvedCombats[0];
     const gladiator = resolved.gladiators[0];
 
@@ -257,6 +292,7 @@ describe('combat actions', () => {
       losses: 1,
       reputation: 0,
     });
+    expect(gladiator.experience).toBeGreaterThan(save.gladiators[0].experience);
   });
 
   it('subtracts reputation from the current value when the player loses', () => {
@@ -265,7 +301,7 @@ describe('combat actions', () => {
         strength: 3,
         agility: 3,
         defense: 3,
-        life: 30,
+        life: 1,
         reputation: 20,
       }),
     ]);

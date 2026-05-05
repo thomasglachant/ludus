@@ -39,7 +39,7 @@ export const BUILDING_IMPROVEMENTS: BuildingImprovementDefinition[] = [
     descriptionKey: 'improvements.sparringRing.description',
     cost: 160,
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseAgility', value: 1, target: 'plannedGladiators' }],
+    effects: [{ type: 'increaseTrainingExperience', value: 1, target: 'plannedGladiators' }],
   },
   {
     id: 'advancedDoctoreTools',
@@ -59,11 +59,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.balancedTraining.name',
     descriptionKey: 'policies.balancedTraining.description',
     requiredBuildingLevel: 1,
-    effects: [
-      { type: 'increaseStrength', value: 1, target: 'plannedGladiators' },
-      { type: 'increaseAgility', value: 1, target: 'plannedGladiators' },
-      { type: 'increaseDefense', value: 1, target: 'plannedGladiators' },
-    ],
+    effects: [{ type: 'increaseTrainingExperience', value: 1, target: 'plannedGladiators' }],
   },
   {
     id: 'strengthDoctrine',
@@ -71,7 +67,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.strengthDoctrine.name',
     descriptionKey: 'policies.strengthDoctrine.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseStrength', value: 1, target: 'plannedGladiators' }],
+    effects: [{ type: 'increaseTrainingExperience', value: 1, target: 'plannedGladiators' }],
   },
   {
     id: 'agilityDoctrine',
@@ -79,7 +75,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.agilityDoctrine.name',
     descriptionKey: 'policies.agilityDoctrine.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseAgility', value: 1, target: 'plannedGladiators' }],
+    effects: [{ type: 'increaseTrainingExperience', value: 1, target: 'plannedGladiators' }],
   },
   {
     id: 'defensiveDoctrine',
@@ -87,7 +83,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     nameKey: 'policies.defensiveDoctrine.name',
     descriptionKey: 'policies.defensiveDoctrine.description',
     requiredBuildingLevel: 1,
-    effects: [{ type: 'increaseDefense', value: 1, target: 'plannedGladiators' }],
+    effects: [{ type: 'increaseTrainingExperience', value: 1, target: 'plannedGladiators' }],
   },
   {
     id: 'brutalDiscipline',
@@ -96,7 +92,7 @@ export const BUILDING_POLICIES: BuildingPolicyDefinition[] = [
     descriptionKey: 'policies.brutalDiscipline.description',
     requiredBuildingLevel: 2,
     effects: [
-      { type: 'increaseStrength', value: 2, target: 'plannedGladiators' },
+      { type: 'increaseTrainingExperience', value: 2, target: 'plannedGladiators' },
       { type: 'reduceInjuryRisk', value: -2, target: 'allGladiators' },
     ],
   },

@@ -94,6 +94,7 @@ export function GameShell() {
         <BuildingsOverview
           save={currentSave}
           onOpenBuilding={selectBuilding}
+          onOpenGladiator={selectGladiator}
           onOpenPlanning={() => openModal({ kind: 'weeklyPlanning' })}
         />
       </main>
@@ -106,7 +107,7 @@ export function GameShell() {
         errorKey={errorKey}
         save={currentSave}
         saveNoticeKey={saveNoticeKey}
-        showAlerts={false}
+        showAlerts
         onGladiatorSelect={selectGladiator}
       />
       <DebugOverlay />

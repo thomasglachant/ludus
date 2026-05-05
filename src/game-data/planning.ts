@@ -16,7 +16,8 @@ export interface PlanningActivityImpactDefinition {
     | 'reputation'
     | 'strength'
     | 'treasury'
-    | 'warning';
+    | 'warning'
+    | 'xp';
   labelKey: string;
 }
 
@@ -55,22 +56,8 @@ function createGladiatorTask(
 
 export const BUILDING_PLANNING_ACTIVITY_DEFINITIONS = {
   trainingGround: [
-    createGladiatorTask('strengthTraining', '#b75f45', [
-      { amount: 1, kind: 'strength', labelKey: 'weeklyPlan.taskImpacts.strength' },
-      { amount: -1, kind: 'warning', labelKey: 'weeklyPlan.taskImpacts.injuryRisk' },
-    ]),
-    createGladiatorTask('agilityTraining', '#7fb85b', [
-      { amount: 1, kind: 'agility', labelKey: 'weeklyPlan.taskImpacts.agility' },
-      { amount: -1, kind: 'warning', labelKey: 'weeklyPlan.taskImpacts.injuryRisk' },
-    ]),
-    createGladiatorTask('defenseTraining', '#8d7458', [
-      { amount: 1, kind: 'defense', labelKey: 'weeklyPlan.taskImpacts.defense' },
-      { amount: -1, kind: 'warning', labelKey: 'weeklyPlan.taskImpacts.injuryRisk' },
-    ]),
-  ],
-  canteen: [
-    createGladiatorTask('lifeTraining', '#c6934a', [
-      { amount: 1, kind: 'health', labelKey: 'weeklyPlan.taskImpacts.life' },
+    createGladiatorTask('training', '#b75f45', [
+      { amount: 1, kind: 'xp', labelKey: 'weeklyPlan.taskImpacts.experience' },
       { amount: -1, kind: 'warning', labelKey: 'weeklyPlan.taskImpacts.injuryRisk' },
     ]),
   ],

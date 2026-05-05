@@ -4,7 +4,7 @@
 
 This document describes current gameplay data and tunable rules implemented in the codebase.
 
-Numeric balance values live in `src/game-data/balance.ts` under `GAME_BALANCE`. Larger content tables live in dedicated modules such as `buildings.ts`, `building-skills.ts`, `economy.ts` and demo saves.
+Numeric balance values live in `src/game-data/balance.ts` under `GAME_BALANCE`. Larger content tables live in dedicated modules such as `buildings.ts`, `building-skills.ts`, `economy.ts`, `market.ts` and demo saves.
 
 ## Economy
 
@@ -58,12 +58,6 @@ GAME_BALANCE.macroSimulation = {
   idealTrainingPressurePointsPerGladiator: 4,
   maximumTrainingEfficiencyMultiplier: 1.25,
   trainingInjuryChancePerPoint: 0.015,
-  trainingFocus: {
-    strength: { progressMultiplier: 1.15, pressureMultiplier: 1.15 },
-    agility: { progressMultiplier: 1.05, pressureMultiplier: 1 },
-    defense: { progressMultiplier: 1, pressureMultiplier: 0.9 },
-    life: { progressMultiplier: 0.85, pressureMultiplier: 0.75 },
-  },
   heavyScheduleHappinessPenalty: 2,
   productionIncomePerPoint: 8,
   rebellionPressureHappinessThreshold: 40,
@@ -75,6 +69,43 @@ GAME_BALANCE.macroSimulation = {
 ```
 
 Only `baseDailyGladiatorPoints` is active in the current player-facing planner. `baseDailyLaborPoints` and `baseDailyAdminPoints` are legacy schema-facing values and should not be reintroduced as visible planning buckets without an intentional design update.
+
+Training focus values tune training pressure. Training XP is awarded from effective training points, then modified by training-ground effects.
+
+## Gladiators
+
+Gladiator strength, agility, defense and life are integer skills.
+
+```ts
+GAME_BALANCE.gladiators.skills = {
+  names: ['strength', 'agility', 'defense', 'life'],
+  minimum: 1,
+  maximum: 10,
+  initialTotalPoints: 10,
+  initialMaximum: 5,
+};
+```
+
+Gladiator level is derived from accumulated XP. The level itself should be calculated from XP thresholds rather than stored as an independent balance value.
+
+Experience tuning belongs under `GAME_BALANCE.gladiators.progression`, `GAME_BALANCE.gladiators.training` and `GAME_BALANCE.gladiators.combatExperience`:
+
+- XP thresholds per derived level;
+- training XP per allocated training point;
+- combat XP for victory, defeat and opponent difficulty.
+
+Training and combat award XP. Level-ups derive whole skill points that the player allocates manually to integer skills.
+
+## Market
+
+Market candidates should be generated with:
+
+- integer skills in the 1..10 range;
+- XP 0 at generation;
+- derived level 1 from that XP;
+- reputation, traits and visual identity.
+
+Market purchase price is based exclusively on accumulated XP, with a configurable minimum price and XP step. Sale value is derived dynamically from purchase price through the sale multiplier.
 
 ## Buildings
 

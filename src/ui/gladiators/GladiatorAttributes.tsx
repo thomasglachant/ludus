@@ -1,9 +1,13 @@
 import type { Gladiator } from '../../domain/types';
+import { getGladiatorLevel } from '../../domain/gladiators/progression';
 import { useUiStore } from '../../state/ui-store-context';
 import { IconValueStat } from '../components/IconValueStat';
 
 interface GladiatorAttributesProps {
-  gladiator: Pick<Gladiator, 'agility' | 'defense' | 'life' | 'reputation' | 'strength'>;
+  gladiator: Pick<
+    Gladiator,
+    'agility' | 'defense' | 'experience' | 'life' | 'reputation' | 'strength'
+  >;
 }
 
 export function GladiatorAttributes({ gladiator }: GladiatorAttributesProps) {
@@ -11,6 +15,11 @@ export function GladiatorAttributes({ gladiator }: GladiatorAttributesProps) {
 
   return (
     <div className="gladiator-attributes">
+      <IconValueStat
+        iconName="level"
+        label={t('gladiatorPanel.level')}
+        value={getGladiatorLevel(gladiator)}
+      />
       <IconValueStat
         iconName="reputation"
         label={t('gladiatorPanel.reputation')}

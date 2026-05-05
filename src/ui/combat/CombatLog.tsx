@@ -33,6 +33,7 @@ interface CombatLogTurnViewModel {
 }
 
 interface CombatResultColumnViewModel {
+  experienceChange?: number;
   gladiator: Gladiator;
   isWinner: boolean;
   reputationChange?: number;
@@ -55,6 +56,7 @@ function getCombatResultColumns(viewModel: CombatLogViewModel): CombatResultColu
   return [
     {
       gladiator: player,
+      experienceChange: viewModel.consequence.experienceChange,
       isWinner: viewModel.combat.winnerId === player.id,
       reputationChange: viewModel.consequence.reputationChange,
       reward: getCombatantReward(viewModel, player.id),
@@ -246,6 +248,16 @@ function CombatResultColumn({ result }: { result: CombatResultColumnViewModel })
                   id: 'reputation',
                   kind: 'reputation' as const,
                   label: t('arena.reputationChange'),
+                },
+              ]),
+          ...(result.experienceChange === undefined
+            ? []
+            : [
+                {
+                  amount: result.experienceChange,
+                  id: 'experience',
+                  kind: 'xp' as const,
+                  label: t('arena.experienceChange'),
                 },
               ]),
         ]}

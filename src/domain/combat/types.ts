@@ -77,6 +77,7 @@ export interface CombatReward {
 
 export interface CombatConsequence {
   didPlayerWin: boolean;
+  experienceChange: number;
   playerReward: number;
   reputationChange: number;
   finalReputation: number;

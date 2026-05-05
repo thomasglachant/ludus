@@ -1,6 +1,7 @@
 import { Tooltip } from './Tooltip';
 import { formatSignedNumber } from '../formatters/number';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
+import { useUiStore } from '../../state/ui-store-context';
 
 export type ImpactIndicatorKind = Extract<
   GameIconName,
@@ -12,8 +13,12 @@ export type ImpactIndicatorKind = Extract<
   | 'strength'
   | 'agility'
   | 'defense'
+  | 'experience'
+  | 'level'
+  | 'skillPoint'
   | 'victory'
   | 'warning'
+  | 'xp'
 >;
 
 export type ImpactIndicatorSize = 'md' | 'sm';
@@ -42,6 +47,8 @@ function getImpactIndicatorClassName(props: { size?: ImpactIndicatorSize }, tone
 }
 
 export function ImpactIndicator(props: ImpactIndicatorProps) {
+  const { t } = useUiStore();
+
   if ('text' in props) {
     return (
       <span className={getImpactIndicatorClassName(props, 'impact-indicator--text')}>
@@ -54,6 +61,7 @@ export function ImpactIndicator(props: ImpactIndicatorProps) {
   }
 
   const tone = props.tone ?? (props.amount >= 0 ? 'positive' : 'negative');
+  const isXpImpact = props.kind === 'xp';
 
   return (
     <span className={getImpactIndicatorClassName(props, `impact-indicator--${tone}`)}>
@@ -62,11 +70,15 @@ export function ImpactIndicator(props: ImpactIndicatorProps) {
       )}
       <span className="impact-indicator__tooltip-target">
         <Tooltip content={props.label}>
-          <GameIcon
-            className="impact-indicator__icon"
-            name={props.kind}
-            size={props.size === 'sm' ? 16 : 20}
-          />
+          {isXpImpact ? (
+            <strong className="impact-indicator__symbol">{t('common.xpSymbol')}</strong>
+          ) : (
+            <GameIcon
+              className="impact-indicator__icon"
+              name={props.kind}
+              size={props.size === 'sm' ? 16 : 20}
+            />
+          )}
         </Tooltip>
       </span>
       <strong className="impact-indicator__amount">{formatSignedNumber(props.amount)}</strong>

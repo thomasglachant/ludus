@@ -9,14 +9,7 @@ export interface WeeklyPlanningState {
   alerts: GameAlert[];
 }
 
-export type DailyPlanActivity =
-  | 'strengthTraining'
-  | 'agilityTraining'
-  | 'defenseTraining'
-  | 'lifeTraining'
-  | 'meals'
-  | 'sleep'
-  | 'production';
+export type DailyPlanActivity = 'training' | 'meals' | 'sleep' | 'production';
 
 export type DailyPlanPoints = Record<DailyPlanActivity, number>;
 
@@ -63,6 +56,7 @@ export interface GameAlert {
   severity: AlertSeverity;
   titleKey: string;
   descriptionKey: string;
+  actionKind?: 'allocateGladiatorSkillPoint';
   gladiatorId?: string;
   buildingId?: BuildingId;
   createdAt: string;

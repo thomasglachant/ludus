@@ -89,10 +89,7 @@ const planningTaskDragMimeType = 'application/x-ludus-planning-task';
 const playableDays = DAYS_OF_WEEK.filter((dayOfWeek) => dayOfWeek !== GAME_BALANCE.arena.dayOfWeek);
 
 const activityIcons: Partial<Record<DailyPlanActivity, GameIconName>> = {
-  strengthTraining: 'strength',
-  agilityTraining: 'agility',
-  defenseTraining: 'defense',
-  lifeTraining: 'health',
+  training: 'training',
   meals: 'happiness',
   sleep: 'energy',
 };

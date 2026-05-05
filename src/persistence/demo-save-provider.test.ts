@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { GAME_BALANCE } from '../game-data/balance';
+import { calculateGladiatorMarketPrice } from '../domain/market/market-actions';
+import { getAvailableSkillPoints } from '../domain/gladiators/progression';
 import { getLudusGladiatorCapacity } from '../domain/ludus/capacity';
 import { CURRENT_SCHEMA_VERSION } from '../domain/saves/create-initial-save';
 import { isGameSave } from '../domain/saves/save-validation';
@@ -101,18 +104,19 @@ describe('demo save definitions', () => {
       expect(save.market.availableGladiators).toHaveLength(5);
 
       for (const gladiator of [...save.gladiators, ...save.market.availableGladiators]) {
-        expect(gladiator.strength).toBeGreaterThanOrEqual(0);
-        expect(gladiator.strength).toBeLessThanOrEqual(100);
-        expect(gladiator.agility).toBeGreaterThanOrEqual(0);
-        expect(gladiator.agility).toBeLessThanOrEqual(100);
-        expect(gladiator.defense).toBeGreaterThanOrEqual(0);
-        expect(gladiator.defense).toBeLessThanOrEqual(100);
-        expect(gladiator.life).toBeGreaterThanOrEqual(0);
-        expect(gladiator.life).toBeLessThanOrEqual(100);
-        expect(gladiator.life).toBeGreaterThanOrEqual(0);
-        expect(gladiator.life).toBeLessThanOrEqual(100);
-        expect(gladiator.life).toBeGreaterThanOrEqual(0);
-        expect(gladiator.life).toBeLessThanOrEqual(100);
+        expect(gladiator.experience).toBeGreaterThanOrEqual(0);
+        expect(gladiator.strength).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
+        expect(gladiator.strength).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.maximum);
+        expect(gladiator.agility).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
+        expect(gladiator.agility).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.maximum);
+        expect(gladiator.defense).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
+        expect(gladiator.defense).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.maximum);
+        expect(gladiator.life).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
+        expect(gladiator.life).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.maximum);
+      }
+
+      for (const gladiator of save.market.availableGladiators) {
+        expect(gladiator.price).toBe(calculateGladiatorMarketPrice(gladiator));
       }
     }
   });
@@ -142,6 +146,16 @@ describe('demo save definitions', () => {
     });
     expect(mid?.save.gladiators).toHaveLength(4);
     expect(mid?.save.arena.resolvedCombats).toHaveLength(0);
+    expect(mid?.save.gladiators.some((gladiator) => getAvailableSkillPoints(gladiator) > 0)).toBe(
+      true,
+    );
+    expect(mid?.save.planning.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actionKind: 'allocateGladiatorSkillPoint',
+        }),
+      ]),
+    );
 
     expect(advanced?.save.time).toMatchObject({
       year: 5,
@@ -151,5 +165,10 @@ describe('demo save definitions', () => {
     });
     expect(advanced?.save.gladiators).toHaveLength(6);
     expect(advanced?.save.arena.resolvedCombats).toHaveLength(0);
+    expect(
+      advanced?.save.planning.alerts.filter(
+        (alert) => alert.actionKind === 'allocateGladiatorSkillPoint',
+      ).length,
+    ).toBeGreaterThanOrEqual(2);
   });
 });

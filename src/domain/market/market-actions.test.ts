@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { GAME_BALANCE } from '../../game-data/balance';
 import { MARKET_CONFIG } from '../../game-data/market';
 import { getAvailableLudusGladiatorPlaces, getLudusGladiatorCapacity } from '../ludus/capacity';
 import type { Gladiator } from '../gladiators/types';
@@ -44,10 +45,11 @@ function createOwnedGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     id: 'owned-gladiator-test',
     name: 'Aulus',
     age: 18,
-    strength: 7,
-    agility: 6,
-    defense: 7,
-    life: 85,
+    experience: 0,
+    strength: 3,
+    agility: 3,
+    defense: 2,
+    life: 2,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -63,55 +65,44 @@ describe('market actions', () => {
     expect(gladiators).toHaveLength(MARKET_CONFIG.availableGladiatorCount);
 
     for (const gladiator of gladiators) {
-      const totalStats =
+      const totalSkills =
         gladiator.strength + gladiator.agility + gladiator.defense + gladiator.life;
 
       expect(gladiator.age).toBeGreaterThanOrEqual(MARKET_CONFIG.minAge);
       expect(gladiator.age).toBeLessThanOrEqual(MARKET_CONFIG.maxAge);
-      expect(totalStats).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedTotalStatPoints);
-      expect(totalStats).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedTotalStatPoints);
-      expect(gladiator.strength).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedStat);
-      expect(gladiator.agility).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedStat);
-      expect(gladiator.defense).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedStat);
-      expect(gladiator.life).toBeGreaterThanOrEqual(MARKET_CONFIG.minGeneratedStat);
-      expect(gladiator.strength).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
-      expect(gladiator.agility).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
-      expect(gladiator.defense).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
-      expect(gladiator.life).toBeLessThanOrEqual(MARKET_CONFIG.maxGeneratedStat);
+      expect(totalSkills).toBe(GAME_BALANCE.gladiators.skills.initialTotalPoints);
+      expect(gladiator.strength).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
+      expect(gladiator.agility).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
+      expect(gladiator.defense).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
+      expect(gladiator.life).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
+      expect(gladiator.strength).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.initialMaximum);
+      expect(gladiator.agility).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.initialMaximum);
+      expect(gladiator.defense).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.initialMaximum);
+      expect(gladiator.life).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.initialMaximum);
+      expect(gladiator.experience).toBe(GAME_BALANCE.gladiators.progression.experienceByLevel[0]);
       expect(gladiator.price).toBe(calculateGladiatorMarketPrice(gladiator));
     }
   });
 
-  it('prices generated gladiators from their skill capacity and reputation', () => {
-    const weakGladiator = createOwnedGladiator({
-      strength: 2,
-      agility: 2,
-      defense: 2,
-      life: 10,
-      reputation: 0,
-    });
-    const strongGladiator = createOwnedGladiator({
-      strength: 8,
-      agility: 8,
-      defense: 8,
-      life: 10,
-      reputation: 4,
+  it('prices gladiators from their experience', () => {
+    const rookieGladiator = createOwnedGladiator({ experience: 0 });
+    const veteranGladiator = createOwnedGladiator({
+      experience: MARKET_CONFIG.priceExperienceStep * 3,
     });
 
-    expect(calculateGladiatorMarketPrice(strongGladiator)).toBeGreaterThan(
-      calculateGladiatorMarketPrice(weakGladiator),
+    expect(calculateGladiatorMarketPrice(rookieGladiator)).toBe(MARKET_CONFIG.minimumPrice);
+    expect(calculateGladiatorMarketPrice(veteranGladiator)).toBe(
+      MARKET_CONFIG.minimumPrice + MARKET_CONFIG.pricePerExperienceStep * 3,
     );
   });
 
-  it('uses floored skill values for market pricing', () => {
+  it('floors experience steps for market pricing', () => {
     const gladiator = createOwnedGladiator({
-      strength: 7.99,
-      agility: 6.99,
-      defense: 7.99,
+      experience: MARKET_CONFIG.priceExperienceStep * 2 + MARKET_CONFIG.priceExperienceStep - 1,
     });
 
     expect(calculateGladiatorMarketPrice(gladiator)).toBe(
-      calculateGladiatorMarketPrice(createOwnedGladiator()),
+      MARKET_CONFIG.minimumPrice + MARKET_CONFIG.pricePerExperienceStep * 2,
     );
   });
 

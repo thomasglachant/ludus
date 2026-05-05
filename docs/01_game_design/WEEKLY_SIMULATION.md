@@ -27,10 +27,7 @@ It also contains `buildingActivitySelections`, a per-activity selection map that
 
 All buckets share the same activity keys:
 
-- `strengthTraining`;
-- `agilityTraining`;
-- `defenseTraining`;
-- `lifeTraining`;
+- `training`;
 - `meals`;
 - `sleep`;
 - `production`;
@@ -61,10 +58,9 @@ Random events may also require selected building activities. A definition with `
 
 It resolves:
 
-- training progress and fatigue;
+- training XP and fatigue;
 - food and sleep penalties or bonuses;
 - injury chance;
-- contract income;
 - production income;
 - building efficiency;
 - active building and skill effects, scaled by building efficiency;
@@ -74,7 +70,7 @@ It resolves:
 - macro random events filtered by planned activities;
 - game over.
 
-Gladiators below `GAME_BALANCE.macroSimulation.physicalActivityHealthThreshold` are unavailable for incompatible physical work. They do not gain training progress from planned training, and they reduce gladiator contract income because their share of the roster is unavailable. If a gladiator is injured during training, that day also grants no training progress for that gladiator and `Gladiator.weeklyInjury` blocks physical activity for the rest of the current week.
+Gladiators with an active weekly injury are unavailable for incompatible physical work. They do not gain XP from planned training. If a gladiator is injured during training, that day also grants no training XP for that gladiator and `Gladiator.weeklyInjury` blocks physical activity for the rest of the current week.
 
 Macro effects are read from purchased building levels, improvements, policies and skills. Effects are multiplied by the current `BuildingState.efficiency`.
 
@@ -82,7 +78,7 @@ The weekly financial projection is recalculated separately from the current ledg
 
 Current applied macro effect types:
 
-- `increaseIncome`: boosts contract income;
+- `increaseIncome`: reserved for future income channels;
 - `increaseProduction`: boosts production income;
 - `reduceExpense`: reduces daily maintenance expenses;
 - `increaseHappiness`: improves daily happiness movement;

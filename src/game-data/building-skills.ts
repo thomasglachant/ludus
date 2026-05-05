@@ -119,15 +119,15 @@ const skillEffectPatternsByBuilding = {
     { type: 'decreaseRebellion', target: 'ludus', values: [0.5, 1, 1.5, 2] },
   ],
   trainingGround: [
-    { type: 'increaseStrength', target: 'plannedGladiators', values: [1, 1.5, 2, 2.5] },
-    { type: 'increaseAgility', target: 'plannedGladiators', values: [1, 1.5, 2, 2.5] },
-    { type: 'increaseDefense', target: 'plannedGladiators', values: [1, 1.5, 2, 2.5] },
+    { type: 'increaseTrainingExperience', target: 'plannedGladiators', values: [1, 1.5, 2, 2.5] },
+    { type: 'increaseTrainingExperience', target: 'plannedGladiators', values: [1, 1.5, 2, 2.5] },
+    { type: 'increaseTrainingExperience', target: 'plannedGladiators', values: [1, 1.5, 2, 2.5] },
     { type: 'reduceInjuryRisk', target: 'allGladiators', values: [0.5, 1, 1.5, 2] },
     { type: 'increaseReputation', target: 'ludus', values: [0.5, 1, 1.5, 2] },
   ],
   canteen: [
     { type: 'increaseHappiness', target: 'ludus', values: [1, 1.5, 2, 2.5] },
-    { type: 'increaseLife', target: 'plannedGladiators', values: [1, 1.5, 2, 2.5] },
+    { type: 'increaseHappiness', target: 'ludus', values: [1, 1.5, 2, 2.5] },
     { type: 'increaseIncome', target: 'ludus', values: [0.5, 1, 1.5, 2] },
     { type: 'increaseProduction', target: 'ludus', values: [0.5, 1, 1.5, 2] },
     { type: 'increaseHappiness', target: 'ludus', values: [1, 1.5, 2, 2.5] },
@@ -136,7 +136,7 @@ const skillEffectPatternsByBuilding = {
     { type: 'increaseHappiness', target: 'ludus', values: [1, 1.5, 2, 2.5] },
     { type: 'increaseReputation', target: 'ludus', values: [0.25, 0.5, 0.75, 1] },
     { type: 'decreaseRebellion', target: 'ludus', values: [1, 1.5, 2, 2.5] },
-    { type: 'increaseLife', target: 'plannedGladiators', values: [0.5, 1, 1.5, 2] },
+    { type: 'reduceInjuryRisk', target: 'allGladiators', values: [0.5, 1, 1.5, 2] },
     { type: 'increaseHappiness', target: 'ludus', values: [0.5, 1, 1.5, 2] },
   ],
 } satisfies Record<BuildingId, SkillEffectPatternRow>;

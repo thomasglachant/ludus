@@ -16,7 +16,9 @@ import {
   updateCurrentWeekSummary,
 } from '../economy/economy-actions';
 import { hasActiveWeeklyInjury } from '../gladiators/injuries';
-import { getEffectiveSkillValue, getGladiatorEffectiveSkill } from '../gladiators/skills';
+import { getGladiatorEffectiveSkill } from '../gladiators/skills';
+import { addGladiatorExperience, getGladiatorLevel } from '../gladiators/progression';
+import { synchronizePlanning } from '../planning/planning-actions';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
 import type {
@@ -163,23 +165,6 @@ function isCurrentWeekCombat(save: GameSave, combat: CombatState) {
   return combat.id.startsWith(getCurrentWeekCombatPrefix(save));
 }
 
-function getRandomOpponentSkillMultiplier(random: RandomSource) {
-  const minimum = GAME_BALANCE.combat.opponentGeneration.relativeSkillMultiplierMin;
-  const maximum = GAME_BALANCE.combat.opponentGeneration.relativeSkillMultiplierMax;
-
-  return minimum + random() * (maximum - minimum);
-}
-
-function createOpponentStat(baseValue: number, random: RandomSource) {
-  const multiplier = getRandomOpponentSkillMultiplier(random);
-
-  return clamp(
-    roundStat(getEffectiveSkillValue(baseValue) * multiplier),
-    GAME_BALANCE.combat.opponentGeneration.minGeneratedStat,
-    GAME_BALANCE.combat.opponentGeneration.maxGeneratedStat,
-  );
-}
-
 function getOpeningAttacker(
   player: CombatParticipant,
   opponent: CombatParticipant,
@@ -305,6 +290,49 @@ function compareArenaGladiatorOrder(left: Gladiator, right: Gladiator) {
   );
 }
 
+function createOpponentLevel(gladiator: Gladiator, random: RandomSource) {
+  const playerLevel = getGladiatorLevel(gladiator);
+  const levelOffset = pickIndex(3, random) - 1;
+
+  return clamp(playerLevel + levelOffset, 1, GAME_BALANCE.gladiators.progression.maxLevel);
+}
+
+function createOpponentSkillProfile(level: number, random: RandomSource) {
+  const skillNames = GAME_BALANCE.gladiators.skills.names;
+  const skills = Object.fromEntries(
+    skillNames.map((skill) => [skill, GAME_BALANCE.gladiators.skills.minimum]),
+  ) as Pick<Gladiator, (typeof skillNames)[number]>;
+  let remainingPoints =
+    GAME_BALANCE.gladiators.skills.initialTotalPoints +
+    (level - 1) -
+    skillNames.length * GAME_BALANCE.gladiators.skills.minimum;
+
+  while (remainingPoints > 0) {
+    const eligibleSkills = skillNames.filter(
+      (skill) => skills[skill] < GAME_BALANCE.gladiators.skills.maximum,
+    );
+
+    if (eligibleSkills.length === 0) {
+      break;
+    }
+
+    const selectedSkill = eligibleSkills[pickIndex(eligibleSkills.length, random)];
+
+    skills[selectedSkill] += 1;
+    remainingPoints -= 1;
+  }
+
+  return skills;
+}
+
+function getExperienceForLevel(level: number) {
+  return (
+    GAME_BALANCE.gladiators.progression.experienceByLevel[level - 1] ??
+    GAME_BALANCE.gladiators.progression.experienceByLevel.at(-1) ??
+    0
+  );
+}
+
 export function generateOpponent(
   save: GameSave,
   gladiator: Gladiator,
@@ -313,6 +341,7 @@ export function generateOpponent(
   const rank = getArenaRank(gladiator.reputation);
   const nameOffset = pickIndex(GLADIATOR_NAMES.length, random);
   const opponentId = getOpponentId(save, gladiator.id);
+  const opponentLevel = createOpponentLevel(gladiator, random);
   const age =
     GAME_BALANCE.combat.opponentGeneration.minAge +
     pickIndex(
@@ -321,12 +350,7 @@ export function generateOpponent(
         1,
       random,
     );
-  const skillProfile = {
-    strength: createOpponentStat(gladiator.strength, random),
-    agility: createOpponentStat(gladiator.agility, random),
-    defense: createOpponentStat(gladiator.defense, random),
-    life: createOpponentStat(gladiator.life, random),
-  };
+  const skillProfile = createOpponentSkillProfile(opponentLevel, random);
 
   return {
     id: opponentId,
@@ -336,12 +360,36 @@ export function generateOpponent(
     agility: skillProfile.agility,
     defense: skillProfile.defense,
     life: skillProfile.life,
+    experience: getExperienceForLevel(opponentLevel),
     reputation: ARENA_OPPONENT_CONFIG[rank].reputation,
     wins: GAME_BALANCE.gladiators.opponentDefaults.wins,
     losses: GAME_BALANCE.gladiators.opponentDefaults.losses,
     traits: [],
     visualIdentity: createGladiatorVisualIdentity(opponentId, { skillProfile }),
   };
+}
+
+export function calculateCombatExperienceChange(
+  gladiator: Gladiator,
+  opponent: Gladiator,
+  didWin: boolean,
+) {
+  const levelDifference = getGladiatorLevel(opponent) - getGladiatorLevel(gladiator);
+  const levelMultiplier = clamp(
+    1 + levelDifference * GAME_BALANCE.gladiators.combatExperience.levelDifferenceMultiplier,
+    GAME_BALANCE.gladiators.combatExperience.minimumLevelMultiplier,
+    GAME_BALANCE.gladiators.combatExperience.maximumLevelMultiplier,
+  );
+  const outcomeMultiplier = didWin
+    ? GAME_BALANCE.gladiators.combatExperience.winMultiplier
+    : GAME_BALANCE.gladiators.combatExperience.lossMultiplier;
+
+  return Math.round(
+    GAME_BALANCE.gladiators.training.experiencePerPoint *
+      GAME_BALANCE.gladiators.combatExperience.dailyTrainingEquivalentPoints *
+      outcomeMultiplier *
+      levelMultiplier,
+  );
 }
 
 export function resolveCombat(
@@ -421,6 +469,7 @@ export function resolveCombat(
   const winnerId = didPlayerWin ? gladiator.id : opponent.id;
   const loserId = didPlayerWin ? opponent.id : gladiator.id;
   const finalReputation = calculateGladiatorCombatReputation(gladiator.reputation, didPlayerWin);
+  const experienceChange = calculateCombatExperienceChange(gladiator, opponent, didPlayerWin);
   const reward = calculateArenaCombatReward(rank, playerDecimalOdds, random, opponentDecimalOdds);
   const playerReward = didPlayerWin ? reward.winnerReward : reward.loserReward;
 
@@ -439,6 +488,7 @@ export function resolveCombat(
     reward,
     consequence: {
       didPlayerWin,
+      experienceChange,
       playerReward,
       reputationChange: finalReputation - gladiator.reputation,
       finalReputation,
@@ -469,7 +519,7 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
     }
 
     return {
-      ...gladiator,
+      ...addGladiatorExperience(gladiator, consequence.experienceChange),
       reputation: consequence.finalReputation,
       wins: gladiator.wins + (consequence.didPlayerWin ? 1 : 0),
       losses: gladiator.losses + (consequence.didPlayerWin ? 0 : 1),
@@ -495,18 +545,20 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
   };
 
   if (rewardTotal <= 0) {
-    return updateCurrentWeekSummary(resolvedSave);
+    return synchronizePlanning(updateCurrentWeekSummary(resolvedSave));
   }
 
-  return updateCurrentWeekSummary(
-    addLedgerEntry(
-      resolvedSave,
-      createLedgerEntry(save, {
-        kind: 'income',
-        category: 'arena',
-        amount: rewardTotal,
-        labelKey: 'finance.ledger.arenaReward',
-      }),
+  return synchronizePlanning(
+    updateCurrentWeekSummary(
+      addLedgerEntry(
+        resolvedSave,
+        createLedgerEntry(save, {
+          kind: 'income',
+          category: 'arena',
+          amount: rewardTotal,
+          labelKey: 'finance.ledger.arenaReward',
+        }),
+      ),
     ),
   );
 }

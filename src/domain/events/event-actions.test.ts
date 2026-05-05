@@ -10,10 +10,11 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     id: 'gladiator-test',
     name: 'Aulus',
     age: 24,
-    strength: 20,
-    agility: 18,
-    defense: 18,
-    life: 100,
+    experience: 0,
+    strength: 3,
+    agility: 3,
+    defense: 2,
+    life: 2,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -39,7 +40,7 @@ function createTestSave(overrides: Partial<GameSave> = {}): GameSave {
 describe('event actions', () => {
   it('generates activity-gated daily events from the current plan', () => {
     const plan = createDefaultDailyPlan('monday');
-    plan.gladiatorTimePoints.strengthTraining = 1;
+    plan.gladiatorTimePoints.training = 1;
 
     const result = synchronizeMacroEvents(createTestSave(), plan, () => 0);
 
@@ -52,7 +53,7 @@ describe('event actions', () => {
 
   it('resolves event choices and records resolved events', () => {
     const plan = createDefaultDailyPlan('monday');
-    plan.gladiatorTimePoints.strengthTraining = 1;
+    plan.gladiatorTimePoints.training = 1;
     const synchronized = synchronizeMacroEvents(createTestSave(), plan, () => 0).save;
     const event = synchronized.events.pendingEvents[0];
     const result = resolveGameEventChoice(synchronized, event.id, 'grantRest').save;
@@ -63,6 +64,28 @@ describe('event actions', () => {
       selectedChoiceId: 'grantRest',
       status: 'resolved',
     });
+  });
+
+  it('resolves strict drill as training experience and refreshes skill alerts', () => {
+    const plan = createDefaultDailyPlan('monday');
+    plan.gladiatorTimePoints.training = 1;
+    const save = createTestSave({
+      gladiators: [createGladiator({ experience: 90, strength: 3 })],
+    });
+    const synchronized = synchronizeMacroEvents(save, plan, () => 0).save;
+    const event = synchronized.events.pendingEvents[0];
+    const result = resolveGameEventChoice(synchronized, event.id, 'strictDrill').save;
+
+    expect(result.gladiators[0].experience).toBeGreaterThan(save.gladiators[0].experience);
+    expect(result.gladiators[0].strength).toBe(save.gladiators[0].strength);
+    expect(result.planning.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actionKind: 'allocateGladiatorSkillPoint',
+          gladiatorId: 'gladiator-test',
+        }),
+      ]),
+    );
   });
 
   it('prioritizes rebellion crisis events when rebellion is critical', () => {

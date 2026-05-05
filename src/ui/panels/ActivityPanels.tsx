@@ -57,6 +57,10 @@ function getEventImpactItem(
     case 'removeGladiator':
     case 'releaseAllGladiators':
       return undefined;
+    case 'changeGladiatorExperience':
+      kind = 'xp';
+      labelKey = 'gladiatorPanel.experience';
+      break;
     case 'changeGladiatorStat':
       kind = effect.stat === 'life' ? 'health' : effect.stat;
       labelKey = `events.effect.stat.${effect.stat}`;

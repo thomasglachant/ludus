@@ -5,7 +5,7 @@ import {
   updateBuildingEfficiencies,
 } from '../buildings/building-efficiency';
 import { hasActiveWeeklyInjury } from '../gladiators/injuries';
-import { addSkillTrainingProgress } from '../gladiators/skills';
+import { addGladiatorExperience } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
 import { createMarketState } from '../market/market-actions';
 import type { GameSave } from '../saves/types';
@@ -29,6 +29,7 @@ import {
   createDefaultWeeklyPlan,
   getRemainingPlanningDays,
   isWeeklyPlanningComplete,
+  synchronizePlanning,
 } from '../planning/planning-actions';
 import type {
   DailyPlan,
@@ -38,7 +39,6 @@ import type {
 } from '../planning/types';
 
 type RandomSource = () => number;
-type TrainingFocus = keyof typeof GAME_BALANCE.macroSimulation.trainingFocus;
 
 export { createDefaultDailyPlan, createDefaultWeeklyPlan } from '../planning/planning-actions';
 
@@ -78,11 +78,8 @@ interface DailyGladiatorResolutionResult {
 
 interface DailyGladiatorModifiers {
   injuryRiskReductionPercent: number;
-  trainingAgilityProgressBonusPercent: number;
-  trainingDefenseProgressBonusPercent: number;
   trainingEfficiency: number;
-  trainingLifeProgressBonusPercent: number;
-  trainingStrengthProgressBonusPercent: number;
+  trainingExperienceBonusPercent: number;
 }
 
 function clamp(value: number, minimum: number, maximum: number) {
@@ -93,27 +90,8 @@ function getPoints(plan: DailyPlan, activity: DailyPlanActivity) {
   return plan.gladiatorTimePoints[activity] + plan.laborPoints[activity];
 }
 
-function getFocusedTrainingPoints(plan: DailyPlan, focus: TrainingFocus) {
-  switch (focus) {
-    case 'strength':
-      return plan.gladiatorTimePoints.strengthTraining;
-    case 'agility':
-      return plan.gladiatorTimePoints.agilityTraining;
-    case 'defense':
-      return plan.gladiatorTimePoints.defenseTraining;
-    case 'life':
-      return plan.gladiatorTimePoints.lifeTraining;
-  }
-}
-
 function getTrainingPressurePoints(plan: DailyPlan) {
-  return (Object.keys(GAME_BALANCE.macroSimulation.trainingFocus) as TrainingFocus[]).reduce(
-    (total, focus) =>
-      total +
-      getFocusedTrainingPoints(plan, focus) *
-        GAME_BALANCE.macroSimulation.trainingFocus[focus].pressureMultiplier,
-    0,
-  );
+  return plan.gladiatorTimePoints.training;
 }
 
 function getAverageTrainingPressurePoints(plan: DailyPlan, gladiatorPointDivisor: number) {
@@ -136,17 +114,12 @@ function getTrainingLoadScale(plan: DailyPlan, gladiatorPointDivisor: number) {
   return maximumTrainingPressurePoints / averageTrainingPressurePoints;
 }
 
-function getFocusedTrainingGain(
+function getTrainingExperiencePoints(
   plan: DailyPlan,
-  focus: TrainingFocus,
   gladiatorPointDivisor: number,
   trainingLoadScale: number,
 ) {
-  return (
-    (getFocusedTrainingPoints(plan, focus) / gladiatorPointDivisor) *
-    trainingLoadScale *
-    GAME_BALANCE.macroSimulation.trainingFocus[focus].progressMultiplier
-  );
+  return (getTrainingPressurePoints(plan) / gladiatorPointDivisor) * trainingLoadScale;
 }
 
 function getLudusEffectValue(
@@ -269,42 +242,23 @@ function applyDailyGladiatorEffects(
   const trainingPoints = canTrain
     ? getAverageTrainingPressurePoints(plan, gladiatorPointDivisor)
     : 0;
-  const overtrainingPenalty = Math.max(
-    0,
-    trainingPoints - GAME_BALANCE.macroSimulation.idealTrainingPressurePointsPerGladiator,
-  );
   const injuryChance =
     trainingPoints *
     GAME_BALANCE.macroSimulation.trainingInjuryChancePerPoint *
     Math.max(0.1, 1 - modifiers.injuryRiskReductionPercent / 100);
   const isInjured = trainingPoints > 0 && random() < injuryChance;
-  const focusedSkillGain = canTrain && !isInjured ? modifiers.trainingEfficiency : 0;
-  const strengthGain =
-    getFocusedTrainingGain(plan, 'strength', gladiatorPointDivisor, trainingLoadScale) *
-    focusedSkillGain *
-    getPercentMultiplier(modifiers.trainingStrengthProgressBonusPercent);
-  const agilityGain =
-    getFocusedTrainingGain(plan, 'agility', gladiatorPointDivisor, trainingLoadScale) *
-    focusedSkillGain *
-    getPercentMultiplier(modifiers.trainingAgilityProgressBonusPercent);
-  const defenseGain =
-    getFocusedTrainingGain(plan, 'defense', gladiatorPointDivisor, trainingLoadScale) *
-    focusedSkillGain *
-    getPercentMultiplier(modifiers.trainingDefenseProgressBonusPercent);
-  const lifeGain =
-    getFocusedTrainingGain(plan, 'life', gladiatorPointDivisor, trainingLoadScale) *
-    focusedSkillGain *
-    getPercentMultiplier(modifiers.trainingLifeProgressBonusPercent);
-  const lifePenalty = overtrainingPenalty * 4 + (isInjured ? 16 : 0);
+  const trainingExperience =
+    canTrain && !isInjured
+      ? getTrainingExperiencePoints(plan, gladiatorPointDivisor, trainingLoadScale) *
+        GAME_BALANCE.gladiators.training.experiencePerPoint *
+        modifiers.trainingEfficiency *
+        getPercentMultiplier(modifiers.trainingExperienceBonusPercent)
+      : 0;
 
   return {
     gladiator: {
-      ...gladiator,
+      ...addGladiatorExperience(gladiator, trainingExperience),
       weeklyInjury: isInjured ? { reason: 'training', week, year } : gladiator.weeklyInjury,
-      strength: addSkillTrainingProgress(gladiator.strength, strengthGain),
-      agility: addSkillTrainingProgress(gladiator.agility, agilityGain),
-      defense: addSkillTrainingProgress(gladiator.defense, defenseGain),
-      life: addSkillTrainingProgress(gladiator.life, lifeGain - lifePenalty),
     },
     isInjured,
     isUnavailableForPhysicalActivities: !canTrain || isInjured,
@@ -340,22 +294,10 @@ function resolveDailyPlanInternal(
     injuryRiskReductionPercent:
       getAllGladiatorsEffectValue(operationalSave, 'reduceInjuryRisk') +
       buildingActivityImpact.injuryRiskReductionPercent,
-    trainingAgilityProgressBonusPercent: getPlannedGladiatorsEffectValue(
-      operationalSave,
-      'increaseAgility',
-    ),
-    trainingDefenseProgressBonusPercent: getPlannedGladiatorsEffectValue(
-      operationalSave,
-      'increaseDefense',
-    ),
     trainingEfficiency,
-    trainingLifeProgressBonusPercent: getPlannedGladiatorsEffectValue(
+    trainingExperienceBonusPercent: getPlannedGladiatorsEffectValue(
       operationalSave,
-      'increaseLife',
-    ),
-    trainingStrengthProgressBonusPercent: getPlannedGladiatorsEffectValue(
-      operationalSave,
-      'increaseStrength',
+      'increaseTrainingExperience',
     ),
   };
   const gladiatorResults = operationalSave.gladiators.map((gladiator) =>
@@ -530,13 +472,16 @@ function resolveDailyPlanInternal(
       ? { save: summarizedSave, createdEventIds: [] }
       : synchronizeMacroEvents(summarizedSave, plan, random);
 
+  const resultSave =
+    eventResult.createdEventIds.length > 0
+      ? { ...eventResult.save, time: { ...eventResult.save.time, phase: 'event' as const } }
+      : eventResult.save;
+  const synchronizedSave = options.recordLedger ? synchronizePlanning(resultSave) : resultSave;
+
   return {
     expenseEntries,
     incomeEntries,
-    save:
-      eventResult.createdEventIds.length > 0
-        ? { ...eventResult.save, time: { ...eventResult.save.time, phase: 'event' } }
-        : eventResult.save,
+    save: synchronizedSave,
     summary: {
       ...summary,
       eventIds: eventResult.createdEventIds,
@@ -914,7 +859,7 @@ export function completeSundayArenaDay(
     return paidLoans;
   }
 
-  return {
+  return synchronizePlanning({
     ...paidLoans,
     gladiators: paidLoans.gladiators.map((gladiator) => ({
       ...gladiator,
@@ -931,7 +876,7 @@ export function completeSundayArenaDay(
       ...createDefaultWeeklyPlan(nextWeek.year, nextWeek.week),
       reports: [report, ...archivedReports].slice(0, 8),
     },
-  };
+  });
 }
 
 export function resolveWeekStep(save: GameSave, random: RandomSource = Math.random): GameSave {

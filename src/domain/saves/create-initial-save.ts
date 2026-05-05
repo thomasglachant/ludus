@@ -4,6 +4,7 @@ import { PROGRESSION_CONFIG } from '../../game-data/progression';
 import { createInitialBuildings } from '../buildings/initial-buildings';
 import { updateBuildingEfficiencies } from '../buildings/building-efficiency';
 import { createInitialEconomyState } from '../economy/economy-actions';
+import { normalizeGladiatorProgression } from '../gladiators/progression';
 import { createMarketState } from '../market/market-actions';
 import {
   createDefaultWeeklyPlan,
@@ -18,9 +19,13 @@ export interface InitialSaveInput {
   createdAt: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 14;
+export const CURRENT_SCHEMA_VERSION = 16;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
+  const market = createMarketState(
+    PROGRESSION_CONFIG.startingYear,
+    PROGRESSION_CONFIG.startingWeek,
+  );
   const save: GameSave = {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     gameId: input.gameId ?? input.saveId,
@@ -47,7 +52,10 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     buildings: createInitialBuildings(),
     gladiators: [],
     economy: createInitialEconomyState(),
-    market: createMarketState(PROGRESSION_CONFIG.startingYear, PROGRESSION_CONFIG.startingWeek),
+    market: {
+      ...market,
+      availableGladiators: market.availableGladiators.map(normalizeGladiatorProgression),
+    },
     arena: {
       resolvedCombats: [],
       isArenaDayActive: false,

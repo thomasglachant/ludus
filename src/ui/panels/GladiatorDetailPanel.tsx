@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { getEffectiveSkillValue } from '../../domain/gladiators/skills';
+import type { GladiatorSkillName } from '../../domain/gladiators/skills';
+import { getAvailableSkillPoints, getGladiatorLevel } from '../../domain/gladiators/progression';
 import type { GameSave, Gladiator } from '../../domain/types';
 import { useUiStore } from '../../state/ui-store-context';
-import { IconValueStat } from '../components/IconValueStat';
 import { MetricList, SectionCard } from '../components/shared';
 import { GladiatorAttributes } from '../gladiators/GladiatorAttributes';
+import { GladiatorExperienceBar } from '../gladiators/GladiatorExperienceBar';
+import { GladiatorSkillBars } from '../gladiators/GladiatorSkillBars';
 import { GameIcon } from '../icons/GameIcon';
 import {
   ModalContentFrame,
   ModalHeroCard,
-  ModalSection,
   ModalTabPanel,
   ModalTabs,
   type ModalTabItem,
@@ -19,15 +20,15 @@ import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 interface GladiatorDetailPanelProps {
   save: GameSave;
   gladiator: Gladiator;
+  onAllocateSkillPoint(gladiatorId: string, skill: GladiatorSkillName): void;
   onClose(): void;
 }
 
-type GladiatorDetailTab = 'overview' | 'planning' | 'training';
+type GladiatorDetailTab = 'overview' | 'planning';
 
 const gladiatorDetailTabs: ModalTabItem<GladiatorDetailTab>[] = [
   { id: 'overview', labelKey: 'gladiatorPanel.tabs.overview' },
   { id: 'planning', labelKey: 'gladiatorPanel.tabs.planning' },
-  { id: 'training', labelKey: 'gladiatorPanel.tabs.training' },
 ];
 
 function getCurrentArenaRecord(save: GameSave, gladiator: Gladiator) {
@@ -42,14 +43,17 @@ function getCurrentArenaRecord(save: GameSave, gladiator: Gladiator) {
   };
 }
 
-export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelProps) {
+export function GladiatorDetailPanel({
+  gladiator,
+  onAllocateSkillPoint,
+  save,
+}: GladiatorDetailPanelProps) {
   const { pushModal, t } = useUiStore();
   const [activeTab, setActiveTab] = useState<GladiatorDetailTab>('overview');
   const currentArenaRecord = getCurrentArenaRecord(save, gladiator);
-  const tabItems = gladiator.trainingPlan
-    ? gladiatorDetailTabs
-    : gladiatorDetailTabs.filter((tab) => tab.id !== 'training');
+  const tabItems = gladiatorDetailTabs;
   const selectedTab = tabItems.some((tab) => tab.id === activeTab) ? activeTab : 'overview';
+  const availableSkillPoints = getAvailableSkillPoints(gladiator);
 
   return (
     <ModalContentFrame>
@@ -62,6 +66,8 @@ export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelPr
           </span>
         }
         descriptionContent={<GladiatorAttributes gladiator={gladiator} />}
+        level={getGladiatorLevel(gladiator)}
+        levelLabelKey="gladiatorPanel.level"
         title={gladiator.name}
       />
 
@@ -75,6 +81,23 @@ export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelPr
       {selectedTab === 'overview' ? (
         <ModalTabPanel>
           <div className="gladiator-info-grid">
+            <section className="gladiator-info-panel gladiator-info-panel--progression">
+              <h2>
+                <GameIcon name="experience" size={18} />
+                {t('gladiatorPanel.progression')}
+              </h2>
+              <GladiatorSkillBars
+                gladiator={gladiator}
+                mode="allocation"
+                onAllocateSkillPoint={(skill) => onAllocateSkillPoint(gladiator.id, skill)}
+              />
+              <GladiatorExperienceBar gladiator={gladiator} />
+              <p className="gladiator-info-panel__note">
+                {availableSkillPoints > 0
+                  ? t('gladiatorPanel.skillPointsAvailable', { count: availableSkillPoints })
+                  : t('gladiatorPanel.noSkillPointsAvailable')}
+              </p>
+            </section>
             <section className="gladiator-info-panel">
               <h2>
                 <GameIcon name="record" size={18} />
@@ -128,35 +151,6 @@ export function GladiatorDetailPanel({ save, gladiator }: GladiatorDetailPanelPr
               <span>{t('navigation.weeklyPlanning')}</span>
             </button>
           </SectionCard>
-        </ModalTabPanel>
-      ) : null}
-
-      {selectedTab === 'training' && gladiator.trainingPlan ? (
-        <ModalTabPanel>
-          <ModalSection titleKey="gladiatorPanel.trainingPlan">
-            <div className="gladiator-skill-grid">
-              <IconValueStat
-                iconName="strength"
-                label={t('market.stats.strength')}
-                value={getEffectiveSkillValue(gladiator.trainingPlan.strength)}
-              />
-              <IconValueStat
-                iconName="agility"
-                label={t('market.stats.agility')}
-                value={getEffectiveSkillValue(gladiator.trainingPlan.agility)}
-              />
-              <IconValueStat
-                iconName="defense"
-                label={t('market.stats.defense')}
-                value={getEffectiveSkillValue(gladiator.trainingPlan.defense)}
-              />
-              <IconValueStat
-                iconName="health"
-                label={t('market.stats.life')}
-                value={getEffectiveSkillValue(gladiator.trainingPlan.life)}
-              />
-            </div>
-          </ModalSection>
         </ModalTabPanel>
       ) : null}
     </ModalContentFrame>

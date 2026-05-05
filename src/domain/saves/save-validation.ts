@@ -13,7 +13,13 @@ import type {
   WeeklyProjection,
 } from '../economy/types';
 import type { GameEvent, LaunchedGameEventRecord } from '../events/types';
+import { isGladiatorSkillValue } from '../gladiators/skills';
+import {
+  normalizeGladiatorProgression,
+  resetGladiatorToInitialProgression,
+} from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
+import { calculateGladiatorMarketPrice } from '../market/market-actions';
 import type { MarketGladiator } from '../market/types';
 import type {
   DailyPlan,
@@ -30,7 +36,7 @@ import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
 const dayOfWeeks = [...DAYS_OF_WEEK];
-const legacySupportedSchemaVersions = [CURRENT_SCHEMA_VERSION];
+const supportedSchemaVersions = [CURRENT_SCHEMA_VERSION];
 const gamePhases = ['planning', 'simulation', 'event', 'arena', 'report', 'gameOver'];
 const gameStatuses = ['active', 'lost'];
 const arenaRanks = [
@@ -57,25 +63,22 @@ const gladiatorTraits = [
   'stoic',
 ];
 const alertSeverities = ['info', 'warning', 'critical'];
+const alertActionKinds = ['allocateGladiatorSkillPoint'];
 const eventStatuses = ['pending', 'resolved', 'expired'];
-const dailyPlanActivities: DailyPlanActivity[] = [
+const dailyPlanActivities: DailyPlanActivity[] = ['training', 'meals', 'sleep', 'production'];
+const legacyFocusedTrainingActivities = [
   'strengthTraining',
   'agilityTraining',
   'defenseTraining',
   'lifeTraining',
-  'meals',
-  'sleep',
-  'production',
 ];
-const legacyDailyPlanActivities = ['training', 'contracts', 'maintenance', 'events'];
+const legacyDailyPlanActivities = [
+  ...legacyFocusedTrainingActivities,
+  'contracts',
+  'maintenance',
+  'events',
+];
 const supportedDailyPlanPointKeys = [...dailyPlanActivities, ...legacyDailyPlanActivities];
-const requiredDailyPlanPointKeys = dailyPlanActivities.filter(
-  (activity) =>
-    activity !== 'strengthTraining' &&
-    activity !== 'agilityTraining' &&
-    activity !== 'defenseTraining' &&
-    activity !== 'lifeTraining',
-);
 const economyEntryKinds = ['income', 'expense'];
 const economyCategories = [
   'arena',
@@ -116,6 +119,7 @@ const eventEffectTypes = [
   'changeLudusRebellion',
   'removeGladiator',
   'releaseAllGladiators',
+  'changeGladiatorExperience',
   'changeGladiatorStat',
 ];
 const eventStatFields = ['strength', 'agility', 'defense', 'life'];
@@ -226,19 +230,39 @@ function isGladiatorWeeklyInjury(value: unknown) {
   );
 }
 
-function isGladiator(value: unknown): value is Gladiator {
+function hasLegacyGladiatorSkillProfile(value: Record<string, unknown>) {
+  return (
+    hasNumber(value, 'strength') &&
+    hasNumber(value, 'agility') &&
+    hasNumber(value, 'defense') &&
+    (hasNumber(value, 'life') || hasNumber(value, 'health'))
+  );
+}
+
+function hasCurrentGladiatorSkillProfile(value: Record<string, unknown>) {
+  return (
+    isGladiatorSkillValue(value.strength) &&
+    isGladiatorSkillValue(value.agility) &&
+    isGladiatorSkillValue(value.defense) &&
+    isGladiatorSkillValue(value.life)
+  );
+}
+
+function isGladiator(value: unknown, schemaVersion: number): value is Gladiator {
   if (!isRecord(value)) {
     return false;
   }
+
+  const hasSupportedProgression =
+    schemaVersion < CURRENT_SCHEMA_VERSION
+      ? hasLegacyGladiatorSkillProfile(value)
+      : hasCurrentGladiatorSkillProfile(value) && hasNonNegativeNumber(value, 'experience');
 
   return (
     hasString(value, 'id') &&
     hasString(value, 'name') &&
     hasNumber(value, 'age') &&
-    hasNumber(value, 'strength') &&
-    hasNumber(value, 'agility') &&
-    hasNumber(value, 'defense') &&
-    (hasNumber(value, 'life') || hasNumber(value, 'health')) &&
+    hasSupportedProgression &&
     hasNumber(value, 'reputation') &&
     hasNumber(value, 'wins') &&
     hasNumber(value, 'losses') &&
@@ -264,18 +288,18 @@ function isTimeState(value: unknown) {
   );
 }
 
-function isMarketState(value: unknown) {
+function isMarketState(value: unknown, schemaVersion: number) {
   return (
     isRecord(value) &&
     hasNumber(value, 'week') &&
     hasNumber(value, 'year') &&
     Array.isArray(value.availableGladiators) &&
-    value.availableGladiators.every(isMarketGladiator)
+    value.availableGladiators.every((gladiator) => isMarketGladiator(gladiator, schemaVersion))
   );
 }
 
-function isMarketGladiator(value: unknown): value is MarketGladiator {
-  return isRecord(value) && isGladiator(value) && hasNumber(value, 'price');
+function isMarketGladiator(value: unknown, schemaVersion: number): value is MarketGladiator {
+  return isRecord(value) && isGladiator(value, schemaVersion) && hasNumber(value, 'price');
 }
 
 function isCombatTurn(value: unknown) {
@@ -311,18 +335,19 @@ function isCombatConsequence(value: unknown) {
   return (
     isRecord(value) &&
     hasBoolean(value, 'didPlayerWin') &&
+    (value.experienceChange === undefined || hasNumber(value, 'experienceChange')) &&
     hasNumber(value, 'playerReward') &&
     hasNumber(value, 'reputationChange') &&
     hasNumber(value, 'finalReputation')
   );
 }
 
-function isCombatState(value: unknown): value is CombatState {
+function isCombatState(value: unknown, schemaVersion: number): value is CombatState {
   return (
     isRecord(value) &&
     hasString(value, 'id') &&
-    isGladiator(value.gladiator) &&
-    isGladiator(value.opponent) &&
+    isGladiator(value.gladiator, schemaVersion) &&
+    isGladiator(value.opponent, schemaVersion) &&
     hasStringFrom(value, 'rank', arenaRanks) &&
     Array.isArray(value.turns) &&
     value.turns.every(isCombatTurn) &&
@@ -344,12 +369,12 @@ function isArenaDayState(value: unknown): value is ArenaDayState {
   );
 }
 
-function isArenaState(value: unknown) {
+function isArenaState(value: unknown, schemaVersion: number) {
   return (
     isRecord(value) &&
     (value.arenaDay === undefined || isArenaDayState(value.arenaDay)) &&
     Array.isArray(value.resolvedCombats) &&
-    value.resolvedCombats.every(isCombatState) &&
+    value.resolvedCombats.every((combat) => isCombatState(combat, schemaVersion)) &&
     hasBoolean(value, 'isArenaDayActive')
   );
 }
@@ -361,20 +386,51 @@ function isGameAlert(value: unknown): value is GameAlert {
     hasStringFrom(value, 'severity', alertSeverities) &&
     hasString(value, 'titleKey') &&
     hasString(value, 'descriptionKey') &&
+    (value.actionKind === undefined || isStringFrom(value.actionKind, alertActionKinds)) &&
     (value.gladiatorId === undefined || typeof value.gladiatorId === 'string') &&
     (value.buildingId === undefined || isStringFrom(value.buildingId, requiredBuildingIds)) &&
     hasString(value, 'createdAt')
   );
 }
 
-function isDailyPlanPoints(value: unknown): value is DailyPlanPoints {
+function isDailyPlanPoints(value: unknown, schemaVersion: number): value is DailyPlanPoints {
+  const supportedPointKeys =
+    schemaVersion === CURRENT_SCHEMA_VERSION ? dailyPlanActivities : supportedDailyPlanPointKeys;
+  const requiredPointKeys =
+    schemaVersion === CURRENT_SCHEMA_VERSION
+      ? dailyPlanActivities
+      : dailyPlanActivities.filter((activity) => activity !== 'training');
+
   return (
     isRecord(value) &&
-    requiredDailyPlanPointKeys.every((activity) => hasNonNegativeNumber(value, activity)) &&
+    requiredPointKeys.every((activity) => hasNonNegativeNumber(value, activity)) &&
     Object.keys(value).every(
-      (key) => isStringFrom(key, supportedDailyPlanPointKeys) && hasNonNegativeNumber(value, key),
+      (key) => isStringFrom(key, supportedPointKeys) && hasNonNegativeNumber(value, key),
     )
   );
+}
+
+function getNormalizedDailyPlanPointValue(
+  value: Record<string, unknown>,
+  activity: DailyPlanActivity,
+  fallbackValue: number,
+) {
+  if (hasNonNegativeNumber(value, activity)) {
+    return value[activity] as number;
+  }
+
+  if (activity === 'training') {
+    const legacyTrainingPoints = legacyFocusedTrainingActivities.reduce(
+      (total, legacyActivity) =>
+        total +
+        (hasNonNegativeNumber(value, legacyActivity) ? (value[legacyActivity] as number) : 0),
+      0,
+    );
+
+    return legacyTrainingPoints > 0 ? legacyTrainingPoints : fallbackValue;
+  }
+
+  return fallbackValue;
 }
 
 function normalizeDailyPlanPoints(
@@ -388,7 +444,7 @@ function normalizeDailyPlanPoints(
   return Object.fromEntries(
     dailyPlanActivities.map((activity) => [
       activity,
-      hasNonNegativeNumber(value, activity) ? value[activity] : fallbackPoints[activity],
+      getNormalizedDailyPlanPointValue(value, activity, fallbackPoints[activity]),
     ]),
   ) as DailyPlanPoints;
 }
@@ -416,22 +472,26 @@ function isBuildingActivitySelections(
   });
 }
 
-function isDailyPlan(value: unknown, dayOfWeek: DayOfWeek): value is DailyPlan {
+function isDailyPlan(
+  value: unknown,
+  dayOfWeek: DayOfWeek,
+  schemaVersion: number,
+): value is DailyPlan {
   return (
     isRecord(value) &&
     value.dayOfWeek === dayOfWeek &&
-    isDailyPlanPoints(value.gladiatorTimePoints) &&
-    isDailyPlanPoints(value.laborPoints) &&
-    isDailyPlanPoints(value.adminPoints) &&
+    isDailyPlanPoints(value.gladiatorTimePoints, schemaVersion) &&
+    isDailyPlanPoints(value.laborPoints, schemaVersion) &&
+    isDailyPlanPoints(value.adminPoints, schemaVersion) &&
     (value.buildingActivitySelections === undefined ||
       isBuildingActivitySelections(value.buildingActivitySelections))
   );
 }
 
-function isDailyPlansRecord(value: unknown) {
+function isDailyPlansRecord(value: unknown, schemaVersion: number) {
   return (
     isRecord(value) &&
-    dayOfWeeks.every((dayOfWeek) => isDailyPlan(value[dayOfWeek], dayOfWeek)) &&
+    dayOfWeeks.every((dayOfWeek) => isDailyPlan(value[dayOfWeek], dayOfWeek, schemaVersion)) &&
     Object.keys(value).every((key) => isStringFrom(key, dayOfWeeks))
   );
 }
@@ -465,12 +525,12 @@ function isWeeklyReport(value: unknown): value is WeeklyReport {
   );
 }
 
-function isPlanningState(value: unknown) {
+function isPlanningState(value: unknown, schemaVersion: number) {
   return (
     isRecord(value) &&
     hasNumber(value, 'week') &&
     hasNumber(value, 'year') &&
-    isDailyPlansRecord(value.days) &&
+    isDailyPlansRecord(value.days, schemaVersion) &&
     Array.isArray(value.reports) &&
     value.reports.every(isWeeklyReport) &&
     Array.isArray(value.alerts) &&
@@ -698,9 +758,11 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     return false;
   }
 
-  if (!hasNumberFrom(value, 'schemaVersion', legacySupportedSchemaVersions)) {
+  if (!hasNumberFrom(value, 'schemaVersion', supportedSchemaVersions)) {
     return false;
   }
+
+  const schemaVersion = value.schemaVersion as number;
 
   if (value.schemaVersion === CURRENT_SCHEMA_VERSION && !hasString(value, 'gameId')) {
     return false;
@@ -746,11 +808,11 @@ function isSupportedGameSave(value: unknown): value is GameSave {
   return (
     requiredBuildingIds.every((buildingId) => isBuildingState(buildings[buildingId], buildingId)) &&
     Array.isArray(value.gladiators) &&
-    value.gladiators.every(isGladiator) &&
+    value.gladiators.every((gladiator) => isGladiator(gladiator, schemaVersion)) &&
     isEconomyState(value.economy) &&
-    isMarketState(value.market) &&
-    isArenaState(value.arena) &&
-    isPlanningState(value.planning) &&
+    isMarketState(value.market, schemaVersion) &&
+    isArenaState(value.arena, schemaVersion) &&
+    isPlanningState(value.planning, schemaVersion) &&
     isEventState(value.events)
   );
 }
@@ -847,31 +909,33 @@ function stripLegacyGladiatorFields(gladiator: Gladiator): Gladiator {
         : typeof (gladiator as Gladiator & { health?: unknown }).health === 'number'
           ? (gladiator as Gladiator & { health: number }).health
           : 10,
-    trainingPlan: gladiator.trainingPlan
-      ? {
-          ...gladiator.trainingPlan,
-          life: gladiator.trainingPlan.life ?? gladiatorWithoutClass.life ?? 10,
-        }
-      : undefined,
     weeklyInjury: gladiator.weeklyInjury,
     visualIdentity: normalizeVisualIdentity(gladiatorWithoutClass.visualIdentity),
   };
 }
 
-function normalizeGladiator(gladiator: Gladiator): Gladiator {
-  return stripLegacyGladiatorFields(gladiator);
+function normalizeGladiator(
+  gladiator: Gladiator,
+  options: { resetProgression: boolean },
+): Gladiator {
+  const strippedGladiator = stripLegacyGladiatorFields(gladiator);
+
+  return options.resetProgression
+    ? resetGladiatorToInitialProgression(strippedGladiator)
+    : normalizeGladiatorProgression(strippedGladiator);
 }
 
 function normalizeCombatState<TCombat extends GameSave['arena']['resolvedCombats'][number]>(
   combat: TCombat,
+  options: { resetProgression: boolean },
 ): TCombat {
   const combatWithoutStrategy = { ...combat } as TCombat & {
     strategy?: unknown;
     gauges?: unknown;
   };
   delete combatWithoutStrategy.strategy;
-  const gladiator = normalizeGladiator(combat.gladiator);
-  const opponent = normalizeGladiator(combat.opponent);
+  const gladiator = normalizeGladiator(combat.gladiator, options);
+  const opponent = normalizeGladiator(combat.opponent, options);
   const createFallbackGauges = (fighter: Gladiator) => {
     const maxHealth = Math.min(100, Math.max(1, Math.round(40 + fighter.life * 4)));
     const maxEnergy = Math.min(
@@ -895,6 +959,10 @@ function normalizeCombatState<TCombat extends GameSave['arena']['resolvedCombats
     ...combatWithoutStrategy,
     gladiator,
     opponent,
+    consequence: {
+      ...combat.consequence,
+      experienceChange: combat.consequence.experienceChange ?? 0,
+    },
     gauges:
       combat.gauges ??
       ({
@@ -980,6 +1048,7 @@ export function normalizeGameSave(save: GameSave): GameSave {
       map?: unknown;
     };
   const defaultWeeklyPlan = createDefaultWeeklyPlan(save.time.year, save.time.week);
+  const resetProgression = save.schemaVersion < 15;
   const normalizedSave: GameSave & { contracts?: unknown; settings?: unknown } = {
     ...save,
     schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -1003,18 +1072,26 @@ export function normalizeGameSave(save: GameSave): GameSave {
       phase: save.time.phase ?? 'planning',
     },
     buildings: normalizeBuildings(save.buildings),
-    gladiators: save.gladiators.map(normalizeGladiator),
+    gladiators: save.gladiators.map((gladiator) =>
+      normalizeGladiator(gladiator, { resetProgression }),
+    ),
     economy: normalizeEconomyState(save.economy),
     market: {
       ...save.market,
-      availableGladiators: save.market.availableGladiators.map((gladiator) => ({
-        ...normalizeGladiator(gladiator),
-        price: gladiator.price,
-      })),
+      availableGladiators: save.market.availableGladiators.map((gladiator) => {
+        const normalizedGladiator = normalizeGladiator(gladiator, { resetProgression });
+
+        return {
+          ...normalizedGladiator,
+          price: calculateGladiatorMarketPrice(normalizedGladiator),
+        };
+      }),
     },
     arena: {
       ...save.arena,
-      resolvedCombats: save.arena.resolvedCombats.map(normalizeCombatState),
+      resolvedCombats: save.arena.resolvedCombats.map((combat) =>
+        normalizeCombatState(combat, { resetProgression }),
+      ),
     },
     planning: {
       year: save.planning.year,

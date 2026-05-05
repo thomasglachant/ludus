@@ -40,7 +40,7 @@ describe('createInitialSave', () => {
     expect(Object.keys(save)).not.toContain('sta' + 'ff');
     expect(save.buildings.trainingGround.efficiency).toBe(100);
     expect(save.buildings.canteen.efficiency).toBe(100);
-    expect(save.planning.days.monday.gladiatorTimePoints.strengthTraining).toBe(0);
+    expect(save.planning.days.monday.gladiatorTimePoints.training).toBe(0);
     expect(save.buildings.canteen.configuration).toBeUndefined();
     expect(save.buildings.canteen.selectedPolicyId).toBeUndefined();
     expect(save.buildings.dormitory.configuration).toBeUndefined();

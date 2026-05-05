@@ -19,8 +19,21 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-export function getEffectiveSkillValue(value: number) {
+export function normalizeGladiatorSkillValue(value: number) {
   return Math.floor(clamp(value, SKILL_MINIMUM, SKILL_MAXIMUM));
+}
+
+export function isGladiatorSkillValue(value: unknown): value is number {
+  return (
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= SKILL_MINIMUM &&
+    value <= SKILL_MAXIMUM
+  );
+}
+
+export function getEffectiveSkillValue(value: number) {
+  return normalizeGladiatorSkillValue(value);
 }
 
 export function getGladiatorEffectiveSkill(gladiator: Gladiator, skill: GladiatorSkillName) {
@@ -40,31 +53,8 @@ export function inferGladiatorClassId(skillProfile: GladiatorSkillProfile): Glad
   return GLADIATOR_CLASS_BY_DOMINANT_SKILL[dominantSkill];
 }
 
-export function getSkillTrainingProgress(value: number) {
-  const clampedValue = clamp(value, SKILL_MINIMUM, SKILL_MAXIMUM);
-  const progress =
-    (clampedValue - Math.floor(clampedValue)) *
-    GAME_BALANCE.gladiators.skills.progressPointsPerLevel;
-
-  return Math.floor(
-    clamp(
-      progress,
-      GAME_BALANCE.gladiators.skills.minimum,
-      GAME_BALANCE.gladiators.skills.maximumDisplayedProgress,
-    ),
-  );
-}
-
-export function addSkillTrainingProgress(value: number, progressPoints: number) {
-  return clamp(
-    value + progressPoints / GAME_BALANCE.gladiators.skills.progressPointsPerLevel,
-    SKILL_MINIMUM,
-    SKILL_MAXIMUM,
-  );
-}
-
 export function addSkillLevels(value: number, levels: number) {
-  return clamp(value + levels, SKILL_MINIMUM, SKILL_MAXIMUM);
+  return normalizeGladiatorSkillValue(getEffectiveSkillValue(value) + levels);
 }
 
 export function isGladiatorSkillName(value: string): value is GladiatorSkillName {

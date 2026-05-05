@@ -84,10 +84,7 @@ export interface BuildingPolicyDefinition {
 }
 
 export type BuildingEffectType =
-  | 'increaseStrength'
-  | 'increaseAgility'
-  | 'increaseDefense'
-  | 'increaseLife'
+  | 'increaseTrainingExperience'
   | 'increaseCapacity'
   | 'increaseDailyGladiatorPoints'
   | 'reduceInjuryRisk'

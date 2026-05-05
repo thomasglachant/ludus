@@ -149,6 +149,7 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
     hasUnsavedChanges,
     isLoading,
     isSaving,
+    allocateGladiatorSkillPoint,
     purchaseBuilding,
     purchaseBuildingImprovement,
     purchaseBuildingSkill,
@@ -318,7 +319,12 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
         title={gladiator.name}
         onClose={closeModal}
       >
-        <GladiatorDetailPanel gladiator={gladiator} save={currentSave} onClose={closeModal} />
+        <GladiatorDetailPanel
+          gladiator={gladiator}
+          save={currentSave}
+          onAllocateSkillPoint={allocateGladiatorSkillPoint}
+          onClose={closeModal}
+        />
       </AppModal>
     );
   }

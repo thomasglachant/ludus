@@ -98,6 +98,12 @@ function CombatOutcomeImpacts({ combat }: { combat: CombatState }) {
             kind: 'reputation',
             label: t('arena.reputationChange'),
           },
+          {
+            amount: combat.consequence.experienceChange,
+            id: 'experience',
+            kind: 'xp',
+            label: t('arena.experienceChange'),
+          },
         ]}
       />
     </div>
@@ -237,6 +243,12 @@ function CombatImpactList({ combat }: { combat: CombatState }) {
           kind: 'reputation',
           label: t('arena.reputationChange'),
         },
+        {
+          amount: combat.consequence.experienceChange,
+          id: 'experience',
+          kind: 'xp',
+          label: t('arena.experienceChange'),
+        },
       ]}
       size="sm"
     />
@@ -300,6 +312,10 @@ function DayResultsView({
   const viewModel = getArenaDayViewModel(save);
   const totalTreasuryReward = viewModel.summary.totalReward;
   const totalReputationReward = viewModel.summary.reputationChange;
+  const totalExperienceReward = viewModel.resolvedCombats.reduce(
+    (total, combat) => total + combat.consequence.experienceChange,
+    0,
+  );
 
   return (
     <section
@@ -345,6 +361,12 @@ function DayResultsView({
               id: 'reputation',
               kind: 'reputation',
               label: t('arenaDay.totalReputationReward'),
+            },
+            {
+              amount: totalExperienceReward,
+              id: 'experience',
+              kind: 'xp',
+              label: t('arenaDay.totalExperienceReward'),
             },
           ]}
         />

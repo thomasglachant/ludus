@@ -16,10 +16,11 @@ Contains tunable balance and content definitions.
 
 Current macro data includes:
 
-- `balance.ts`: economy, progression, macro simulation, arena and building tuning;
+- `balance.ts`: economy, progression, gladiator XP, macro simulation, arena and building tuning;
 - `buildings.ts`: building definitions and unlock data;
 - `building-skills.ts`: generated four-tier skill trees;
 - `economy.ts`: loan definitions;
+- `market.ts`: market generation and experience-based price tuning;
 - demo saves.
 
 New tunable gameplay numbers should start in `GAME_BALANCE`.
@@ -30,10 +31,13 @@ Contains pure game logic.
 
 Important macro modules:
 
-- `weekly-simulation/weekly-simulation-actions.ts`: daily and weekly macro resolution, including finance projections from the weekly plan;
+- `weekly-simulation/weekly-simulation-actions.ts`: daily and weekly macro resolution, including training XP and finance projections from the weekly plan;
+- `gladiators/skills.ts`: integer 1..10 skill helpers;
+- `gladiators/progression.ts`: XP-derived level selectors and skill point allocation rules;
 - `economy/economy-actions.ts`: ledger summaries, loans and buyouts;
-- `planning/planning-actions.ts`: shared daily plan updates, alerts and macro recommendations;
-- `combat/combat-actions.ts`: Sunday combat resolution.
+- `planning/planning-actions.ts`: shared daily plan updates, skill allocation alerts and macro recommendations;
+- `market/market-actions.ts`: market generation, purchase, sale and experience-based price calculation;
+- `combat/combat-actions.ts`: Sunday combat resolution and combat XP awards.
 
 Domain modules should be deterministic when a random source is provided.
 
@@ -53,6 +57,8 @@ Gameplay progression runs through explicit macro actions, primarily daily and we
 ### `src/ui`
 
 React renders the game shell, panels and modals. Components display state and call store/domain actions. They must not hardcode visible text or gameplay formulas.
+
+Gladiator UI should consume derived view models for level, XP toward the next level, available skill points and integer skills. React components should not infer levels from raw XP or calculate skill allocation rules.
 
 The target UI hierarchy is:
 
@@ -89,7 +95,7 @@ Current macro UI surfaces include:
 
 Persistence handles local saves, demo templates and mocked cloud provider behavior.
 
-The macro refactor introduced a current-schema-only gate. Saves with old schema versions are rejected instead of migrated.
+The save validator supports only the current schema version. Older schema versions are rejected cleanly.
 
 ### `src/i18n`
 
@@ -97,13 +103,17 @@ All visible UI copy uses i18n keys in French and English.
 
 ## Save Compatibility
 
-`CURRENT_SCHEMA_VERSION` is the only supported schema. The save validator rejects older schemas cleanly. Demo saves are generated with the current schema and include economy and weekly planning state.
+`CURRENT_SCHEMA_VERSION` is the only supported save schema. New, updated and demo saves are emitted with it; older schema versions are rejected cleanly. Demo saves are generated with the current schema and include economy and weekly planning state.
 
 ## Testing
 
 Current test focus:
 
 - building validation and macro building state;
+- integer gladiator skills and XP-derived levels;
+- training and combat XP awards;
+- skill allocation alerts and spending rules;
+- market prices based exclusively on experience;
 - combat rewards without participation payouts;
 - arena reward ledger entries;
 - building and gladiator market ledger entries;

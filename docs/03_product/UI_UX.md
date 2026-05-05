@@ -151,7 +151,7 @@ Shared modal content components:
 
 - `ModalContentFrame` wraps the modal body content and provides the common spacing rhythm.
 - `ModalHeroCard` renders the item identity block with avatar, eyebrow, title, description, optional level and a configurable metric strip.
-- `ModalTabs` renders tab navigation with optional count badges, including count badges for progress values.
+- `ModalTabs` renders tab navigation with optional count badges, including count badges for available skill points or actionable alerts.
 - `ModalTabPanel` wraps the active tab content.
 - `ModalSection` groups related content inside a tab with a consistent heading style.
 - `ModalActionDock` centers primary CTAs at the bottom of a modal tab.
@@ -182,7 +182,9 @@ Gladiator detail template:
 
 - Use the same hero card structure with portrait, name, short description and key stats.
 - Use tabs for overview, assignment or planning, progression and finances only when those sections exist.
-- Use `GladiatorAttributes` from `src/ui/gladiators/GladiatorAttributes.tsx` whenever a gladiator row or gladiator hero needs the standard compact attributes. The order is reputation, life, strength, agility and defense.
+- Show derived level, total XP, XP toward the next level and available skill points through view-model values, not component-local formulas.
+- Progression contains skill allocation controls for strength, agility, defense and life. Allocation spends whole points only, clamps skills to 1..10 and disables maxed skills.
+- Use `GladiatorAttributes` from `src/ui/gladiators/GladiatorAttributes.tsx` whenever a gladiator row or gladiator hero needs the standard compact attributes. The order is reputation, life, strength, agility and defense, and skill values are displayed as integers from 1 to 10.
 - Use `GladiatorListRow` from `src/ui/gladiators/GladiatorListRow.tsx` for gladiator lists, including market and owned roster rows. Customize it through props for price, primary action and clickability instead of rebuilding row markup.
 - Use `IconValueStat` from `src/ui/components/IconValueStat.tsx` for compact aptitude, reputation, life and cost values. Do not create feature-local stat chip components or manually pair `GameIcon` with a numeric value for these facts.
 - Do not create isolated bespoke stat cards when `ModalHeroCard`, `MetricList`, `ImpactIndicator`, `ImpactList` or chart primitives can represent the data. Avoid wrapping these primitives in extra cards unless the grouping changes the meaning.
@@ -250,11 +252,13 @@ It shows:
 
 The weekly planning panel includes the shared daily allocation grid. The player edits daily gladiator time points.
 
-Current visible task options are unlocked from owned buildings and building skills. Starting options focus on training and production tasks.
+Current visible task options are unlocked from owned buildings and building skills. The current player-facing planner exposes a single `training` task.
 
 The panel shows projected daily deltas and an aggregate weekly projection before the player resolves the next step.
 
 The panel exposes a `Resolve next day` action that calls the weekly macro step.
+
+Skill allocation alerts should appear when owned gladiators have available skill points. Alert actions should open the relevant gladiator progression UI. The alert layer, gladiator list rows and gladiator detail tabs may show badges, but allocation remains a deliberate player action.
 
 ## Gladiators
 

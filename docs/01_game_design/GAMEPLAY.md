@@ -26,15 +26,13 @@ The planning model is day-based. The current player-facing planner uses one acti
 
 Legacy `laborPoints` and `adminPoints` fields may still exist in the save shape for compatibility with the current schema, but the app no longer exposes or resolves them as active planning notions. Synchronization clears those buckets to prevent stale hidden allocations.
 
-Current visible planning tasks are:
+Current visible planning task:
 
-- `strengthTraining`;
-- `agilityTraining`;
-- `defenseTraining`;
-- `lifeTraining`;
-- `production`.
+- `training`.
 
-The default planning baseline is 6 gladiator time points per day before building effects and roster scaling. Training pressure increases injury risk and can reduce happiness when overdone. Training injuries create a weekly injury state that blocks physical activity and gladiator contract participation until the next week begins. Gladiator health, energy and morale are not daily attributes; they are temporary combat gauges calculated at fight start from aptitudes, especially life.
+The default planning baseline is 6 gladiator time points per day before building effects and roster scaling. Training pressure increases injury risk and can reduce happiness when overdone. Training injuries create a weekly injury state that blocks physical activity until the next week begins. Gladiator health, energy and morale are not daily attributes; they are temporary combat gauges calculated at fight start from aptitudes, especially life.
+
+Training tasks award training XP instead of directly changing strength, agility, defense or life.
 
 Gladiator planning points are budgeted and clamped by the domain. The planning UI previews daily and weekly projected deltas before the week is resolved.
 
@@ -45,15 +43,31 @@ Gladiator planning points are budgeted and clamped by the domain. The planning U
 Each day resolves:
 
 - vital needs and gauge changes;
-- training progress;
+- training XP;
 - injury checks;
-- contract and production income;
+- production income;
 - building efficiency updates;
 - happiness and rebellion movement;
+- level-up and skill allocation alerts;
 - ledger entries and current week summary;
 - game over if treasury reaches the defeat threshold.
 
-Injured gladiators lose their personal gains for incompatible activities through the daily result and become a week-level planning risk.
+Injured gladiators lose XP from incompatible physical activities through the daily result and become a week-level planning risk.
+
+## Gladiator Progression
+
+Gladiators progress through lifetime experience.
+
+- Training and combat award XP.
+- Level is derived from total XP thresholds and is not an independently tuned stat.
+- Reaching a new level derives one additional whole skill point to allocate.
+- Available skill points are calculated from XP-derived level and allocated skills.
+
+Strength, agility, defense and life are integer skills from 1 to 10. Skill increases are applied as whole-point allocations, then clamped to the 1..10 range.
+
+Training allocations influence daily training pressure. Training-ground effects increase XP earned from the daily plan. Combat XP is awarded from arena outcome, with victory and tougher opposition allowed to grant stronger XP rewards.
+
+When a gladiator has available skill points, planning alerts and gladiator detail UI should make that actionable without forcing immediate allocation. Manual allocation remains the default; any future auto-allocation behavior must be an explicit player-facing option.
 
 ## Economy
 
@@ -70,6 +84,8 @@ The economy now includes:
 - loan buyout.
 
 The ledger records daily income and expenses, building activity income, arena rewards, event treasury choices, gladiator market purchase and sale, building purchase and upgrade, improvements, policies and skill purchases. The finance projection is calculated from the weekly plan and active loan repayments, not from one-shot ledger lines already recorded.
+
+Gladiator market prices are based exclusively on accumulated experience. Sale value is calculated dynamically from the purchase price multiplier.
 
 Loans:
 
@@ -117,6 +133,8 @@ Arena reward rule:
 - reputation and combat consequences still apply.
 
 Combat rewards remain odds-based for winners and include the public stake modifier.
+
+Combat XP is separate from treasury rewards. A combat can grant XP even when it does not grant money, but the treasury rule above remains unchanged.
 
 ## Events
 

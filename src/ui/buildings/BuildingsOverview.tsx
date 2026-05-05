@@ -7,6 +7,7 @@ import { GameIcon } from '../icons/GameIcon';
 interface BuildingsOverviewProps {
   save: GameSave;
   onOpenBuilding(buildingId: BuildingId): void;
+  onOpenGladiator(gladiatorId: string): void;
   onOpenPlanning(): void;
 }
 
@@ -28,6 +29,7 @@ function getHighestAlertSeverity(alerts: GameAlert[]) {
 
 export function BuildingsOverview({
   onOpenBuilding,
+  onOpenGladiator,
   onOpenPlanning,
   save,
 }: BuildingsOverviewProps) {
@@ -113,15 +115,36 @@ export function BuildingsOverview({
             <h2>{t('buildingsOverview.alertsTitle')}</h2>
             {save.planning.alerts.length > 0 ? (
               <div className="buildings-overview__alert-list">
-                {save.planning.alerts.slice(0, 4).map((alert) => (
-                  <span
-                    className={`buildings-overview__alert buildings-overview__alert--${alert.severity}`}
-                    key={alert.id}
-                  >
-                    <GameIcon name="alert" size={16} />
-                    {t(alert.titleKey)}
-                  </span>
-                ))}
+                {save.planning.alerts.slice(0, 4).map((alert) => {
+                  const className = `buildings-overview__alert buildings-overview__alert--${alert.severity}`;
+                  const content = (
+                    <>
+                      <GameIcon name="alert" size={16} />
+                      {t(alert.titleKey)}
+                    </>
+                  );
+
+                  if (alert.actionKind === 'allocateGladiatorSkillPoint' && alert.gladiatorId) {
+                    const gladiatorId = alert.gladiatorId;
+
+                    return (
+                      <button
+                        className={className}
+                        key={alert.id}
+                        type="button"
+                        onClick={() => onOpenGladiator(gladiatorId)}
+                      >
+                        {content}
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <span className={className} key={alert.id}>
+                      {content}
+                    </span>
+                  );
+                })}
                 {unassignedAlertCount > 0 ? (
                   <button type="button" onClick={onOpenPlanning}>
                     {t('buildingsOverview.unassignedAlerts', { count: unassignedAlertCount })}

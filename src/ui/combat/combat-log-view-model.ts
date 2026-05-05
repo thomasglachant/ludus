@@ -2,6 +2,7 @@ import type { CombatState, CombatTurn } from '../../domain/types';
 
 export interface CombatConsequenceViewModel {
   didPlayerWin: boolean;
+  experienceChange: number;
   playerReward: number;
   reputationChange: number;
   resultKey: string;
@@ -24,6 +25,7 @@ export function getCombatLogViewModel(combat: CombatState): CombatLogViewModel {
     combat,
     consequence: {
       didPlayerWin: combat.consequence.didPlayerWin,
+      experienceChange: combat.consequence.experienceChange,
       playerReward: combat.consequence.playerReward,
       reputationChange: combat.consequence.reputationChange,
       resultKey: combat.consequence.didPlayerWin ? 'arena.result.win' : 'arena.result.loss',

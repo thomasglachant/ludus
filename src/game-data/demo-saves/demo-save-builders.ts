@@ -2,6 +2,8 @@ import { synchronizePlanning } from '../../domain/planning/planning-actions';
 import { CURRENT_SCHEMA_VERSION } from '../../domain/saves/create-initial-save';
 import { createInitialBuildings } from '../../domain/buildings/initial-buildings';
 import { createInitialEconomyState } from '../../domain/economy/economy-actions';
+import { normalizeGladiatorProgression } from '../../domain/gladiators/progression';
+import { calculateGladiatorMarketPrice } from '../../domain/market/market-actions';
 import {
   createDefaultWeeklyPlan,
   synchronizeEconomyProjection,
@@ -19,7 +21,9 @@ import type {
 export const DEMO_CREATED_AT = '2026-01-01T00:00:00.000Z';
 export const DEMO_UPDATED_AT = '2026-01-01T00:00:00.000Z';
 
-export type DemoGladiatorInput = Gladiator;
+export type DemoGladiatorInput = Omit<Gladiator, 'experience'> &
+  Partial<Pick<Gladiator, 'experience'>>;
+type DemoMarketGladiatorInput = DemoGladiatorInput & { price: number };
 
 interface DemoSaveInput {
   id: DemoSaveId;
@@ -28,7 +32,7 @@ interface DemoSaveInput {
   time: Pick<GameSave['time'], 'year' | 'week' | 'dayOfWeek'> & Partial<GameSave['time']>;
   buildings: Partial<Record<BuildingId, BuildingState>>;
   gladiators: DemoGladiatorInput[];
-  market: MarketGladiator[];
+  market: DemoMarketGladiatorInput[];
 }
 
 export function createPurchasedBuilding(
@@ -44,33 +48,40 @@ export function createPurchasedBuilding(
   };
 }
 
-export function createDemoSave(input: DemoSaveInput): GameSave {
-  const gladiators = input.gladiators.map<Gladiator>((gladiator) => {
-    const skillProfile = {
-      strength: gladiator.strength,
-      agility: gladiator.agility,
-      defense: gladiator.defense,
-      life: gladiator.life,
-    };
-
-    return {
-      id: gladiator.id,
-      name: gladiator.name,
-      age: gladiator.age,
-      strength: gladiator.strength,
-      agility: gladiator.agility,
-      defense: gladiator.defense,
-      life: gladiator.life,
-      reputation: gladiator.reputation,
-      wins: gladiator.wins,
-      losses: gladiator.losses,
-      traits: gladiator.traits,
-      trainingPlan: gladiator.trainingPlan,
-      visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, {
-        skillProfile,
-      }),
-    };
+function createDemoGladiator(gladiator: DemoGladiatorInput): Gladiator {
+  const normalizedGladiator = normalizeGladiatorProgression({
+    id: gladiator.id,
+    name: gladiator.name,
+    age: gladiator.age,
+    strength: gladiator.strength,
+    agility: gladiator.agility,
+    defense: gladiator.defense,
+    life: gladiator.life,
+    experience: gladiator.experience ?? 0,
+    reputation: gladiator.reputation,
+    wins: gladiator.wins,
+    losses: gladiator.losses,
+    traits: gladiator.traits,
+    weeklyInjury: gladiator.weeklyInjury,
+    visualIdentity: gladiator.visualIdentity,
   });
+  const skillProfile = {
+    strength: normalizedGladiator.strength,
+    agility: normalizedGladiator.agility,
+    defense: normalizedGladiator.defense,
+    life: normalizedGladiator.life,
+  };
+
+  return {
+    ...normalizedGladiator,
+    visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, {
+      skillProfile,
+    }),
+  };
+}
+
+export function createDemoSave(input: DemoSaveInput): GameSave {
+  const gladiators = input.gladiators.map<Gladiator>(createDemoGladiator);
   const marketGladiators = input.market.map(createMarketGladiator);
   const time: GameSave['time'] = {
     phase: 'planning',
@@ -123,18 +134,11 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
   return synchronizeEconomyProjection(synchronizePlanning(baseSave, DEMO_UPDATED_AT));
 }
 
-export function createMarketGladiator(gladiator: Gladiator & { price: number }): MarketGladiator {
-  const skillProfile = {
-    strength: gladiator.strength,
-    agility: gladiator.agility,
-    defense: gladiator.defense,
-    life: gladiator.life,
-  };
+export function createMarketGladiator(gladiator: DemoMarketGladiatorInput): MarketGladiator {
+  const normalizedGladiator = createDemoGladiator(gladiator);
 
   return {
-    ...gladiator,
-    visualIdentity: getGladiatorVisualIdentity(gladiator.id, gladiator.visualIdentity, {
-      skillProfile,
-    }),
+    ...normalizedGladiator,
+    price: calculateGladiatorMarketPrice(normalizedGladiator),
   };
 }

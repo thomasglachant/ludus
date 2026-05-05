@@ -53,14 +53,20 @@ export const GAME_BALANCE = {
 
   planning: {
     taskDefaultPoints: {
-      strengthTraining: 3,
-      agilityTraining: 2,
-      defenseTraining: 2,
-      lifeTraining: 2,
+      training: 3,
     },
   },
 
   gladiators: {
+    progression: {
+      // Highest derived gladiator level supported by the current progression curve.
+      maxLevel: 20,
+      // Cumulative experience thresholds by level index. Level 1 starts at 0 XP.
+      experienceByLevel: [
+        0, 100, 230, 390, 580, 800, 1050, 1330, 1640, 1980, 2350, 2750, 3180, 3640, 4130, 4650,
+        5200, 5780, 6390, 7030,
+      ],
+    },
     gauges: {
       // Minimum value for temporary combat gauges.
       minimum: 0,
@@ -70,16 +76,34 @@ export const GAME_BALANCE = {
       minimumAliveHealth: 1,
     },
     skills: {
-      // Skill names that can gain training progress.
+      // Skill names that can receive allocated level-up points.
       names: ['strength', 'agility', 'defense', 'life'] as const,
       // Minimum stored skill value.
-      minimum: 0,
+      minimum: 1,
       // Maximum stored skill value.
-      maximum: 100,
-      // Progress points required to gain one effective skill level.
-      progressPointsPerLevel: 100,
-      // Maximum displayed fractional progress before the next level.
-      maximumDisplayedProgress: 99,
+      maximum: 10,
+      // Total skill points assigned to a newly recruited level 1 gladiator.
+      initialTotalPoints: 10,
+      // Maximum value allowed for one skill in the initial market distribution.
+      initialMaximum: 5,
+    },
+    training: {
+      // Experience gained by each effective training point before bonuses.
+      experiencePerPoint: 8,
+    },
+    combatExperience: {
+      // Training-point equivalent used as the base combat XP reward at equal level.
+      dailyTrainingEquivalentPoints: 4,
+      // Multiplier used when the player's gladiator wins.
+      winMultiplier: 1,
+      // Multiplier used when the player's gladiator loses.
+      lossMultiplier: 0.4,
+      // XP multiplier delta per opponent level above or below the gladiator.
+      levelDifferenceMultiplier: 0.08,
+      // Lower clamp for level-difference XP scaling.
+      minimumLevelMultiplier: 0.6,
+      // Upper clamp for level-difference XP scaling.
+      maximumLevelMultiplier: 1.6,
     },
     marketDefaults: {
       // Reputation assigned to newly generated market gladiators.
@@ -151,14 +175,14 @@ export const GAME_BALANCE = {
       },
       trainingGround: {
         1: {
-          // Skill progress support granted by Training Ground level 1.
-          skillProgressPerPoint: 1,
+          // Training XP bonus percent granted by Training Ground level 1.
+          trainingExperienceBonusPercent: 1,
           // Injury-risk pressure applied by Training Ground level 1.
           injuryRiskPerPoint: 4,
         },
         2: {
-          // Skill progress support granted by Training Ground level 2.
-          skillProgressPerPoint: 2,
+          // Training XP bonus percent granted by Training Ground level 2.
+          trainingExperienceBonusPercent: 2,
           // Injury-risk pressure applied by Training Ground level 2.
           injuryRiskPerPoint: 4,
         },
@@ -173,24 +197,6 @@ export const GAME_BALANCE = {
     idealTrainingPressurePointsPerGladiator: 4,
     maximumTrainingEfficiencyMultiplier: 1.25,
     trainingInjuryChancePerPoint: 0.015,
-    trainingFocus: {
-      strength: {
-        progressMultiplier: 1.15,
-        pressureMultiplier: 1.15,
-      },
-      agility: {
-        progressMultiplier: 1.05,
-        pressureMultiplier: 1,
-      },
-      defense: {
-        progressMultiplier: 1,
-        pressureMultiplier: 0.9,
-      },
-      life: {
-        progressMultiplier: 0.85,
-        pressureMultiplier: 0.75,
-      },
-    },
     heavyScheduleHappinessPenalty: 2,
     productionIncomePerPoint: 8,
     rebellionPressureHappinessThreshold: 40,
@@ -232,24 +238,14 @@ export const GAME_BALANCE = {
     minAge: 16,
     // Maximum age for generated market gladiators.
     maxAge: 20,
-    // Minimum total skill points distributed on generated market gladiators.
-    minGeneratedTotalStatPoints: 16,
-    // Maximum total skill points distributed on generated market gladiators.
-    maxGeneratedTotalStatPoints: 34,
-    // Legacy baseline used by tests and docs as the midpoint of generated market stat totals.
-    totalStatPoints: 20,
-    // Minimum generated value for each market gladiator skill.
-    minGeneratedStat: 1,
-    // Maximum generated value for each market gladiator skill.
-    maxGeneratedStat: 10,
-    // Flat denarii cost added to every market price.
-    basePrice: 100,
-    // Denarii added to market price per reputation point.
-    reputationPriceMultiplier: 5,
-    // Denarii added to market price per effective skill point.
-    statPriceMultiplier: 10,
+    // Minimum denarii purchase price for an XP 0 gladiator.
+    minimumPrice: 300,
+    // Cumulative XP step used by the market price scale.
+    priceExperienceStep: 100,
+    // Denarii added to purchase price for each XP step.
+    pricePerExperienceStep: 25,
     // Fraction of market price returned when selling a gladiator.
-    saleValueMultiplier: 0.5,
+    saleValueMultiplier: 0.75,
     // Trait pool used by generated market gladiators.
     generatedTraitPool: [
       // Trait making the gladiator thematically disciplined.
@@ -451,14 +447,6 @@ export const GAME_BALANCE = {
       },
     } as const satisfies Record<ArenaRank, { reputation: number }>,
     opponentGeneration: {
-      // Minimum relative multiplier applied to generated opponent skills.
-      relativeSkillMultiplierMin: 0.8,
-      // Maximum relative multiplier applied to generated opponent skills.
-      relativeSkillMultiplierMax: 1.2,
-      // Minimum generated arena opponent skill.
-      minGeneratedStat: 3,
-      // Maximum generated arena opponent skill.
-      maxGeneratedStat: 100,
       // Minimum generated arena opponent age.
       minAge: 18,
       // Maximum generated arena opponent age.

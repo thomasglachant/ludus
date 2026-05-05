@@ -21,10 +21,11 @@ function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
     id: 'gladiator-test',
     name: 'Aulus',
     age: 20,
-    strength: 8,
-    agility: 7,
-    defense: 6,
-    life: 80,
+    experience: 0,
+    strength: 3,
+    agility: 3,
+    defense: 2,
+    life: 2,
     reputation: 0,
     wins: 0,
     losses: 0,
@@ -57,10 +58,7 @@ function withCompleteWeeklyPlanning(save: GameSave): GameSave {
       ...days[dayOfWeek],
       gladiatorTimePoints: {
         ...days[dayOfWeek].gladiatorTimePoints,
-        strengthTraining: 3 * gladiatorCount,
-        agilityTraining: 2 * gladiatorCount,
-        defenseTraining: 1 * gladiatorCount,
-        lifeTraining: 2 * gladiatorCount,
+        training: 8 * gladiatorCount,
         meals: 0,
         sleep: 0,
       },
@@ -100,7 +98,7 @@ describe('weekly simulation actions', () => {
   it('applies capped need penalties and records injuries for heavy training days', () => {
     const save = createTestSave();
     const plan = createDefaultDailyPlan('monday');
-    plan.gladiatorTimePoints.strengthTraining = 12;
+    plan.gladiatorTimePoints.training = 12;
     plan.gladiatorTimePoints.meals = 0;
     plan.gladiatorTimePoints.sleep = 0;
 
@@ -110,78 +108,99 @@ describe('weekly simulation actions', () => {
     expect(result.summary.injuredGladiatorIds).toContain('gladiator-test');
     expect(result.summary.happinessDelta).toBeLessThan(0);
     expect(gladiator.weeklyInjury).toEqual({ reason: 'training', week: 1, year: 1 });
-    expect(gladiator.strength).toBe(8);
-    expect(gladiator.life).toBeLessThan(80);
-    expect(gladiator.life).toBeLessThan(80);
-    expect(gladiator.life).toBeLessThan(80);
+    expect(gladiator.experience).toBe(save.gladiators[0].experience);
+    expect(gladiator.strength).toBe(save.gladiators[0].strength);
+    expect(gladiator.life).toBe(save.gladiators[0].life);
   });
 
   it('excludes already injured gladiators from incompatible training gains', () => {
     const save = createTestSave({
       gladiators: [
         createGladiator({
-          life: 90,
-          strength: 8,
+          life: 2,
+          strength: 3,
           weeklyInjury: { reason: 'training', week: 1, year: 1 },
         }),
       ],
     });
     const plan = createDefaultDailyPlan('monday');
-    plan.gladiatorTimePoints.strengthTraining = 8;
+    plan.gladiatorTimePoints.training = 8;
 
     const result = resolveDailyPlan(save, plan, () => 1);
 
     expect(result.summary.injuredGladiatorIds).toEqual([]);
-    expect(result.save.gladiators[0].strength).toBe(8);
+    expect(result.save.gladiators[0].experience).toBe(save.gladiators[0].experience);
+    expect(result.save.gladiators[0].strength).toBe(save.gladiators[0].strength);
   });
 
-  it('applies focused training gains only to the targeted aptitude', () => {
+  it('applies focused training as experience without directly changing skills', () => {
     const save = createTestSave();
     const plan = createDefaultDailyPlan('monday');
-    plan.gladiatorTimePoints.strengthTraining = 3;
+    plan.gladiatorTimePoints.training = 3;
 
     const result = resolveDailyPlan(save, plan, () => 1);
     const gladiator = result.save.gladiators[0];
 
-    expect(gladiator.strength).toBeGreaterThan(8);
-    expect(gladiator.agility).toBe(7);
-    expect(gladiator.defense).toBe(6);
-    expect(gladiator.life).toBe(80);
+    expect(gladiator.experience).toBeGreaterThan(save.gladiators[0].experience);
+    expect(gladiator.strength).toBe(save.gladiators[0].strength);
+    expect(gladiator.agility).toBe(save.gladiators[0].agility);
+    expect(gladiator.defense).toBe(save.gladiators[0].defense);
+    expect(gladiator.life).toBe(save.gladiators[0].life);
+  });
+
+  it('regenerates skill allocation alerts when daily training grants a level', () => {
+    const save = createTestSave({
+      gladiators: [createGladiator({ experience: 90 })],
+    });
+    const plan = createDefaultDailyPlan('monday');
+    plan.gladiatorTimePoints.training = 2;
+
+    const result = resolveDailyPlan(save, plan, () => 1);
+
+    expect(result.save.gladiators[0].experience).toBeGreaterThanOrEqual(100);
+    expect(result.save.planning.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actionKind: 'allocateGladiatorSkillPoint',
+          gladiatorId: 'gladiator-test',
+        }),
+      ]),
+    );
   });
 
   it('normalizes training gains per available gladiator', () => {
     const oneGladiatorSave = createTestSave();
     const oneGladiatorPlan = createDefaultDailyPlan('monday');
-    oneGladiatorPlan.gladiatorTimePoints.strengthTraining = 3;
+    oneGladiatorPlan.gladiatorTimePoints.training = 3;
     const manyGladiatorSave = createTestSave({
       gladiators: Array.from({ length: 10 }, (_, index) =>
         createGladiator({ id: `gladiator-test-${index}` }),
       ),
     });
     const manyGladiatorPlan = createDefaultDailyPlan('monday');
-    manyGladiatorPlan.gladiatorTimePoints.strengthTraining = 30;
+    manyGladiatorPlan.gladiatorTimePoints.training = 30;
 
     const oneGladiatorResult = resolveDailyPlan(oneGladiatorSave, oneGladiatorPlan, () => 1);
     const manyGladiatorResult = resolveDailyPlan(manyGladiatorSave, manyGladiatorPlan, () => 1);
 
-    expect(manyGladiatorResult.save.gladiators[0].strength).toBeCloseTo(
-      oneGladiatorResult.save.gladiators[0].strength,
+    expect(manyGladiatorResult.save.gladiators[0].experience).toBeCloseTo(
+      oneGladiatorResult.save.gladiators[0].experience,
     );
   });
 
   it('caps excessive training gains above the daily realistic ceiling', () => {
     const normalPlan = createDefaultDailyPlan('monday');
-    normalPlan.gladiatorTimePoints.strengthTraining =
+    normalPlan.gladiatorTimePoints.training =
       GAME_BALANCE.macroSimulation.idealTrainingPressurePointsPerGladiator;
     const excessivePlan = createDefaultDailyPlan('monday');
-    excessivePlan.gladiatorTimePoints.strengthTraining = 12;
+    excessivePlan.gladiatorTimePoints.training = 12;
 
     const normalResult = resolveDailyPlan(createTestSave(), normalPlan, () => 1);
     const excessiveResult = resolveDailyPlan(createTestSave(), excessivePlan, () => 1);
     const normalGain =
-      normalResult.save.gladiators[0].strength - createTestSave().gladiators[0].strength;
+      normalResult.save.gladiators[0].experience - createTestSave().gladiators[0].experience;
     const excessiveGain =
-      excessiveResult.save.gladiators[0].strength - createTestSave().gladiators[0].strength;
+      excessiveResult.save.gladiators[0].experience - createTestSave().gladiators[0].experience;
 
     expect(excessiveGain).toBeGreaterThan(normalGain);
     expect(excessiveGain).toBeLessThan(normalGain * 3);
@@ -217,6 +236,41 @@ describe('weekly simulation actions', () => {
 
     expect(result.time).toMatchObject({ week: 2, dayOfWeek: 'monday', phase: 'report' });
     expect(result.gladiators[0].weeklyInjury).toBeUndefined();
+  });
+
+  it('regenerates next-week skill alerts after Sunday completion', () => {
+    const sundaySave: GameSave = {
+      ...createTestSave({
+        gladiators: [createGladiator({ experience: 100 })],
+      }),
+      arena: {
+        ...createTestSave().arena,
+        arenaDay: {
+          year: 1,
+          week: 1,
+          phase: 'summary',
+          presentedCombatIds: [],
+        },
+        isArenaDayActive: true,
+      },
+      time: {
+        ...createTestSave().time,
+        dayOfWeek: 'sunday',
+        phase: 'arena',
+      },
+    };
+
+    const result = completeSundayArenaDay(sundaySave, () => 1);
+
+    expect(result.time).toMatchObject({ week: 2, dayOfWeek: 'monday' });
+    expect(result.planning.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actionKind: 'allocateGladiatorSkillPoint',
+          gladiatorId: 'gladiator-test',
+        }),
+      ]),
+    );
   });
 
   it('uses the macro happiness threshold for rebellion pressure', () => {
@@ -256,7 +310,7 @@ describe('weekly simulation actions', () => {
 
   it('applies planned gladiator building effects during daily resolution', () => {
     const save = createTestSave({
-      gladiators: [createGladiator({ life: 50 })],
+      gladiators: [createGladiator({ life: 2 })],
     });
     const plan = createDefaultDailyPlan('monday');
     plan.gladiatorTimePoints.sleep = 4;
@@ -333,7 +387,8 @@ describe('weekly simulation actions', () => {
     expect(projection.treasuryDelta).not.toBe(0);
     expect(projection.eventIds).toEqual([]);
     expect(save.economy.ledgerEntries).toEqual([]);
-    expect(save.gladiators[0].strength).toBe(8);
+    expect(save.gladiators[0].experience).toBe(0);
+    expect(save.gladiators[0].strength).toBe(3);
   });
 
   it('projects the planned week with aggregated macro deltas', () => {
