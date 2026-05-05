@@ -21,6 +21,7 @@ export interface GameSave {
   planning: WeeklyPlanningState;
   economy: EconomyState;
   events: EventState;
+  notifications: GameNotification[];
   metadata?: SaveMetadata;
 }
 ```
@@ -202,6 +203,26 @@ cleared during planning synchronization and should stay zero.
 `planning.alerts` is the current storage field for active alerts. The business owner is
 `src/domain/alerts`, which derives the active list from the current save and replaces this
 field during alert refresh.
+
+## Notifications
+
+```ts
+export interface GameNotification {
+  id: string;
+  occurredAt: GameDate;
+  titleKey: string;
+  descriptionKey: string;
+  params?: Record<string, string | number>;
+  target?:
+    | { kind: 'building'; buildingId: BuildingId }
+    | { kind: 'gladiator'; gladiatorId: string };
+  archivedAt?: GameDate;
+}
+```
+
+Notifications are persisted history for ludus-life events that happened outside a direct player command. They are distinct from alerts: alerts are regenerated from current state, while notifications remain in the save until archived and stay visible in the full notification history.
+
+`occurredAt` and `archivedAt` use game dates. Unarchived notifications appear in the right sidebar. The full notifications surface sorts all notifications by descending game date, then newest insertion first for events on the same day.
 
 ```ts
 export type DailyPlanActivity = 'training' | 'meals' | 'sleep' | 'production';

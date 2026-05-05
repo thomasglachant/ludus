@@ -177,6 +177,14 @@ Gladiator alerts show the gladiator portrait and open the relevant gladiator sur
 
 Future rules such as low happiness or low treasury should be added to the central alert engine as Ludus rules, with matching i18n keys and tests. UI routing should continue to rely on `actionKind`, `buildingId` and `gladiatorId` rather than feature-specific trigger code.
 
+## Notifications
+
+Notifications are persisted records of ludus-life events that happened without a direct player command. They appear in a dedicated right-sidebar widget below alerts and above global action CTAs while unarchived.
+
+Each notification shows its game date, title, description and optional building or gladiator subject. If the subject still exists, clicking the notification opens the related building or gladiator surface. The archive button hides it from the sidebar.
+
+The full notifications surface lists all notifications, including archived entries, sorted newest first. Unarchived entries use stronger text weight; archived entries are visually muted and labeled as archived.
+
 ## Building Panels
 
 Clicking a building opens its second-level detail inside the Buildings surface in

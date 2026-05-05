@@ -229,6 +229,13 @@ describe('combat actions', () => {
         },
       ]),
     );
+    expect(nextWeek.notifications).toEqual([
+      expect.objectContaining({
+        titleKey: 'notifications.injury.title',
+        params: { name: 'Aulus' },
+        target: { kind: 'gladiator', gladiatorId: 'gladiator-test' },
+      }),
+    ]);
   });
 
   it('applies possible combat injuries to Sunday losers on the next Monday', () => {
@@ -254,6 +261,13 @@ describe('combat actions', () => {
         traitId: 'injury',
         expiresAt: { dayOfWeek: 'wednesday', week: 2, year: 1 },
       },
+    ]);
+    expect(nextWeek.notifications).toEqual([
+      expect.objectContaining({
+        titleKey: 'notifications.injury.title',
+        params: { name: 'Aulus' },
+        target: { kind: 'gladiator', gladiatorId: 'gladiator-test' },
+      }),
     ]);
   });
 

@@ -24,6 +24,7 @@ import {
   upgradeBuilding,
 } from '../domain/buildings/building-actions';
 import { buyMarketGladiator, sellGladiator } from '../domain/market/market-actions';
+import { archiveGameNotification } from '../domain/notifications/notification-actions';
 import {
   completeSundayArenaDay as completeSundayArenaDayAction,
   resolvePendingGameAction as resolvePendingGameActionAction,
@@ -438,6 +439,13 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     [applyPlayerChange],
   );
 
+  const archiveNotification = useCallback(
+    (notificationId: string) => {
+      applyPlayerChange((save) => archiveGameNotification(save, notificationId));
+    },
+    [applyPlayerChange],
+  );
+
   const allocateGladiatorSkillPoint = useCallback(
     (gladiatorId: string, skill: GladiatorSkillName) => {
       applyPlayerChange((save) => ({
@@ -814,6 +822,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       upgradeBuilding: upgradeBuildingAction,
       buyMarketGladiator: buyMarketGladiatorAction,
       sellGladiator: sellGladiatorAction,
+      archiveNotification,
       allocateGladiatorSkillPoint,
       updateDailyPlan,
       updateDailyPlanBuildingActivitySelection,
@@ -838,6 +847,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     advanceWeekStepAction,
     activeModal,
     activeSurface,
+    archiveNotification,
     allocateGladiatorSkillPoint,
     buyoutLoan,
     buyMarketGladiatorAction,

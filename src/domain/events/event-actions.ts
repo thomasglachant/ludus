@@ -19,6 +19,7 @@ import {
 import { addSkillLevels } from '../gladiators/skills';
 import { addGladiatorExperience } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
+import { addGameNotification } from '../notifications/notification-actions';
 import { synchronizePlanning } from '../planning/planning-actions';
 import type { DailyPlan, DailyPlanActivity } from '../planning/types';
 import type { GameSave } from '../saves/types';
@@ -443,6 +444,43 @@ function applyTreasuryEventEffect(
   };
 }
 
+function addGladiatorInjuryNotification(save: GameSave, gladiatorId: string): GameSave {
+  const gladiator = save.gladiators.find((candidate) => candidate.id === gladiatorId);
+
+  if (!gladiator) {
+    return save;
+  }
+
+  return addGameNotification(save, {
+    titleKey: 'notifications.injury.title',
+    descriptionKey: 'notifications.injury.description',
+    params: { name: gladiator.name },
+    target: { kind: 'gladiator', gladiatorId },
+  });
+}
+
+function addGladiatorDepartureNotification(save: GameSave, gladiatorId: string): GameSave {
+  const gladiator = save.gladiators.find((candidate) => candidate.id === gladiatorId);
+
+  if (!gladiator) {
+    return save;
+  }
+
+  return addGameNotification(save, {
+    titleKey: 'notifications.gladiatorLeft.title',
+    descriptionKey: 'notifications.gladiatorLeft.description',
+    params: { name: gladiator.name },
+  });
+}
+
+function addAllGladiatorsReleasedNotification(save: GameSave): GameSave {
+  return addGameNotification(save, {
+    titleKey: 'notifications.allGladiatorsReleased.title',
+    descriptionKey: 'notifications.allGladiatorsReleased.description',
+    params: { count: save.gladiators.length },
+  });
+}
+
 function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: string): GameSave {
   if (effect.type === 'changeTreasury') {
     return applyTreasuryEventEffect(save, effect, labelKey);
@@ -476,21 +514,29 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
   }
 
   if (effect.type === 'removeGladiator') {
+    const notificationSave = addGladiatorDepartureNotification(save, effect.gladiatorId);
+
     return {
-      ...save,
-      gladiators: save.gladiators.filter((gladiator) => gladiator.id !== effect.gladiatorId),
+      ...notificationSave,
+      gladiators: notificationSave.gladiators.filter(
+        (gladiator) => gladiator.id !== effect.gladiatorId,
+      ),
       planning: {
-        ...save.planning,
-        alerts: save.planning.alerts.filter((alert) => alert.gladiatorId !== effect.gladiatorId),
+        ...notificationSave.planning,
+        alerts: notificationSave.planning.alerts.filter(
+          (alert) => alert.gladiatorId !== effect.gladiatorId,
+        ),
       },
     };
   }
 
   if (effect.type === 'releaseAllGladiators') {
+    const notificationSave = addAllGladiatorsReleasedNotification(save);
+
     return {
-      ...save,
+      ...notificationSave,
       gladiators: [],
-      planning: { ...save.planning, alerts: [] },
+      planning: { ...notificationSave.planning, alerts: [] },
     };
   }
 
@@ -506,7 +552,16 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
   }
 
   if (effect.type === 'applyGladiatorTrait') {
-    return applyGladiatorTrait(save, effect.traitId, effect.durationDays, effect.gladiatorId);
+    const traitSave = applyGladiatorTrait(
+      save,
+      effect.traitId,
+      effect.durationDays,
+      effect.gladiatorId,
+    );
+
+    return effect.traitId === 'injury' && traitSave !== save
+      ? addGladiatorInjuryNotification(traitSave, effect.gladiatorId)
+      : traitSave;
   }
 
   if (effect.type === 'changeGladiatorStat') {

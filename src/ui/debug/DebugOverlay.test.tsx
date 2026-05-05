@@ -87,6 +87,7 @@ function createGameStore(overrides: Partial<GameStoreValue> = {}): GameStoreValu
     upgradeBuilding: vi.fn(),
     buyMarketGladiator: vi.fn(),
     sellGladiator: vi.fn(),
+    archiveNotification: vi.fn(),
     allocateGladiatorSkillPoint: vi.fn(),
     updateDailyPlan: vi.fn(),
     updateDailyPlanBuildingActivitySelection: vi.fn(),

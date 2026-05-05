@@ -207,6 +207,117 @@ describe('event actions', () => {
         }),
       ]),
     );
+    expect(result.notifications).toEqual([
+      expect.objectContaining({
+        titleKey: 'notifications.injury.title',
+        params: { name: 'Aulus' },
+        target: { kind: 'gladiator', gladiatorId: 'gladiator-test' },
+      }),
+    ]);
+  });
+
+  it('notifies when an event removes a gladiator from the ludus', () => {
+    const save = createTestSave();
+    const event = {
+      id: 'event-remove-test',
+      definitionId: 'removeTest',
+      titleKey: 'events.trainingRefusal.title',
+      descriptionKey: 'events.trainingRefusal.description',
+      status: 'pending' as const,
+      createdAtYear: save.time.year,
+      createdAtWeek: save.time.week,
+      createdAtDay: save.time.dayOfWeek,
+      gladiatorId: 'gladiator-test',
+      choices: [
+        {
+          id: 'remove',
+          labelKey: 'events.trainingRefusal.grantRest.label',
+          consequenceKey: 'events.trainingRefusal.grantRest.consequence',
+          consequences: [
+            {
+              kind: 'certain' as const,
+              effects: [{ type: 'removeGladiator' as const, gladiatorId: 'gladiator-test' }],
+            },
+          ],
+        },
+      ],
+    };
+    const result = resolveGameEventChoice(
+      {
+        ...save,
+        events: {
+          ...save.events,
+          pendingEvents: [event],
+        },
+        time: {
+          ...save.time,
+          phase: 'event',
+        },
+      },
+      event.id,
+      'remove',
+    ).save;
+
+    expect(result.gladiators).toEqual([]);
+    expect(result.notifications).toEqual([
+      expect.objectContaining({
+        titleKey: 'notifications.gladiatorLeft.title',
+        params: { name: 'Aulus' },
+        target: undefined,
+      }),
+    ]);
+  });
+
+  it('creates one global notification when all gladiators are released', () => {
+    const save = createTestSave({
+      gladiators: [createGladiator(), createGladiator({ id: 'gladiator-second', name: 'Brutus' })],
+    });
+    const event = {
+      id: 'event-release-test',
+      definitionId: 'releaseTest',
+      titleKey: 'events.rebellionCrisis.title',
+      descriptionKey: 'events.rebellionCrisis.description',
+      status: 'pending' as const,
+      createdAtYear: save.time.year,
+      createdAtWeek: save.time.week,
+      createdAtDay: save.time.dayOfWeek,
+      choices: [
+        {
+          id: 'release',
+          labelKey: 'events.rebellionCrisis.freeGladiators.label',
+          consequenceKey: 'events.rebellionCrisis.freeGladiators.consequence',
+          consequences: [
+            {
+              kind: 'certain' as const,
+              effects: [{ type: 'releaseAllGladiators' as const }],
+            },
+          ],
+        },
+      ],
+    };
+    const result = resolveGameEventChoice(
+      {
+        ...save,
+        events: {
+          ...save.events,
+          pendingEvents: [event],
+        },
+        time: {
+          ...save.time,
+          phase: 'event',
+        },
+      },
+      event.id,
+      'release',
+    ).save;
+
+    expect(result.gladiators).toEqual([]);
+    expect(result.notifications).toEqual([
+      expect.objectContaining({
+        titleKey: 'notifications.allGladiatorsReleased.title',
+        params: { count: 2 },
+      }),
+    ]);
   });
 
   it('prioritizes rebellion crisis events when rebellion is critical', () => {

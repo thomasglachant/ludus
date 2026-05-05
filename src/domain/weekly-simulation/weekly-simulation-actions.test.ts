@@ -125,6 +125,14 @@ describe('weekly simulation actions', () => {
     expect(gladiator.experience).toBe(save.gladiators[0].experience);
     expect(gladiator.strength).toBe(save.gladiators[0].strength);
     expect(gladiator.life).toBe(save.gladiators[0].life);
+    expect(result.save.notifications).toEqual([
+      expect.objectContaining({
+        titleKey: 'notifications.injury.title',
+        descriptionKey: 'notifications.injury.description',
+        params: { name: 'Aulus' },
+        target: { kind: 'gladiator', gladiatorId: 'gladiator-test' },
+      }),
+    ]);
   });
 
   it('excludes already injured gladiators from incompatible training gains', () => {
@@ -424,6 +432,7 @@ describe('weekly simulation actions', () => {
     expect(projection.treasuryDelta).not.toBe(0);
     expect(projection.eventIds).toEqual([]);
     expect(save.economy.ledgerEntries).toEqual([]);
+    expect(save.notifications).toEqual([]);
     expect(save.gladiators[0].experience).toBe(0);
     expect(save.gladiators[0].strength).toBe(3);
   });

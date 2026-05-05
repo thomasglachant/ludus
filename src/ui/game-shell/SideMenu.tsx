@@ -3,10 +3,12 @@ import {
   getGladiatorTraitDefinition,
   getRemainingGladiatorTraitDuration,
 } from '../../domain/gladiator-traits/gladiator-trait-actions';
+import { sortGameNotificationsByDateDesc } from '../../domain/notifications/notification-actions';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { useUiStore } from '../../state/ui-store-context';
 import { BuildingAvatar } from '../buildings/BuildingAvatar';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
+import { NotificationList } from '../notifications/NotificationList';
 import { GladiatorPortrait } from '../roster/GladiatorPortrait';
 import { GameActionDock, type GameActionDockAction } from './GameActionDock';
 import { ShellWidgetPanel } from './ShellWidgetPanel';
@@ -17,15 +19,27 @@ interface SideMenuProps {
   onOpenBuilding(buildingId: BuildingId): void;
   onOpenGladiator(gladiatorId: string): void;
   onOpenMarket(): void;
+  onOpenNotifications(): void;
+  onOpenWeeklyPlanning(): void;
+  onArchiveNotification(notificationId: string): void;
+}
+
+interface AlertsListProps {
+  alerts: GameAlert[];
+  save: GameSave;
+  onOpenBuilding(buildingId: BuildingId): void;
+  onOpenGladiator(gladiatorId: string): void;
+  onOpenMarket(): void;
   onOpenWeeklyPlanning(): void;
 }
 
-interface AlertsListProps extends SideMenuProps {
-  alerts: GameAlert[];
-}
-
-interface AlertItemProps extends SideMenuProps {
+interface AlertItemProps {
   alert: GameAlert;
+  save: GameSave;
+  onOpenBuilding(buildingId: BuildingId): void;
+  onOpenGladiator(gladiatorId: string): void;
+  onOpenMarket(): void;
+  onOpenWeeklyPlanning(): void;
 }
 
 const ALERT_SEVERITY_ORDER: Record<GameAlert['severity'], number> = {
@@ -52,9 +66,14 @@ export function SideMenu({
   onOpenBuilding,
   onOpenGladiator,
   onOpenMarket,
+  onOpenNotifications,
   onOpenWeeklyPlanning,
+  onArchiveNotification,
 }: SideMenuProps) {
   const { t } = useUiStore();
+  const activeNotifications = sortGameNotificationsByDateDesc(
+    save.notifications.filter((notification) => !notification.archivedAt),
+  );
 
   return (
     <aside className="side-menu" aria-label={t('sideMenu.title')}>
@@ -68,6 +87,27 @@ export function SideMenu({
           onOpenMarket={onOpenMarket}
           onOpenWeeklyPlanning={onOpenWeeklyPlanning}
         />
+      </ShellWidgetPanel>
+      <ShellWidgetPanel className="side-menu__notifications-panel">
+        <h2>{t('notifications.title')}</h2>
+        <NotificationList
+          emptyMessageKey="notifications.empty"
+          notifications={activeNotifications}
+          save={save}
+          variant="side"
+          onArchive={onArchiveNotification}
+          onOpenBuilding={onOpenBuilding}
+          onOpenGladiator={onOpenGladiator}
+        />
+        <button
+          className="side-menu__notifications-view-all"
+          data-testid="side-menu-view-notifications"
+          type="button"
+          onClick={onOpenNotifications}
+        >
+          <GameIcon name="notification" size={17} />
+          <span>{t('notifications.viewAll')}</span>
+        </button>
       </ShellWidgetPanel>
       <GameActionDock actions={actions} />
     </aside>

@@ -13,6 +13,7 @@ import { SurfaceHost } from '../surfaces/SurfaceHost';
 
 export function GameShell() {
   const {
+    archiveNotification,
     currentSave,
     errorKey,
     gameClockLabel,
@@ -25,7 +26,18 @@ export function GameShell() {
   } = useGameStore();
   const { activeSurface, openEntity, openModal, openSurface, t } = useUiStore();
 
-  const activePanelKind: PrimaryNavigationKind = activeSurface.kind;
+  const primaryNavigationKinds: PrimaryNavigationKind[] = [
+    'buildings',
+    'finance',
+    'gladiators',
+    'market',
+    'planning',
+  ];
+  const activePanelKind = primaryNavigationKinds.includes(
+    activeSurface.kind as PrimaryNavigationKind,
+  )
+    ? (activeSurface.kind as PrimaryNavigationKind)
+    : undefined;
 
   const openPanel = useCallback(
     (panelKind: PrimaryNavigationKind) => {
@@ -110,9 +122,11 @@ export function GameShell() {
         <SideMenu
           actions={dockActions}
           save={currentSave}
+          onArchiveNotification={archiveNotification}
           onOpenBuilding={selectBuilding}
           onOpenGladiator={selectGladiator}
           onOpenMarket={() => openSurface({ kind: 'market' })}
+          onOpenNotifications={() => openSurface({ kind: 'notifications' })}
           onOpenWeeklyPlanning={() => openSurface({ kind: 'planning' })}
         />
       </div>

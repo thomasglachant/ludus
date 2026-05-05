@@ -133,6 +133,7 @@ export function createDemoSave(input: DemoSaveInput): GameSave {
       resolvedEvents: [],
       launchedEvents: [],
     },
+    notifications: [],
     metadata: {
       demoSaveId: input.id,
     },

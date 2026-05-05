@@ -4,7 +4,13 @@ import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { BuildingId, GameAlert, GameSave, Gladiator } from '../../domain/types';
+import type {
+  BuildingId,
+  GameAlert,
+  GameNotification,
+  GameSave,
+  Gladiator,
+} from '../../domain/types';
 import { refreshGameAlerts } from '../../domain/alerts/alert-actions';
 import { synchronizePlanning } from '../../domain/planning/planning-actions';
 import { createInitialSave } from '../../domain/saves/create-initial-save';
@@ -84,6 +90,38 @@ function createUiStore(): UiStoreValue {
         return 'No active alert.';
       }
 
+      if (key === 'notifications.title') {
+        return 'Notifications';
+      }
+
+      if (key === 'notifications.empty') {
+        return 'No notification.';
+      }
+
+      if (key === 'notifications.viewAll') {
+        return 'View all notifications';
+      }
+
+      if (key === 'notifications.archive') {
+        return 'Archive notification';
+      }
+
+      if (key === 'notifications.archived') {
+        return 'Archived';
+      }
+
+      if (key === 'notifications.dateLabel') {
+        return `${params?.day} · Week ${params?.week}, year ${params?.year}`;
+      }
+
+      if (key === 'notifications.injury.title') {
+        return `${params?.name} was injured`;
+      }
+
+      if (key === 'notifications.injury.description') {
+        return `${params?.name} must recover`;
+      }
+
       return key;
     },
   };
@@ -153,18 +191,22 @@ function getAlertButton(container: HTMLElement, label: string): HTMLButtonElemen
 function renderSideMenu(
   save: GameSave,
   handlers: Partial<{
+    onArchiveNotification(notificationId: string): void;
     onOpenBuilding(buildingId: BuildingId): void;
     onOpenGladiator(gladiatorId: string): void;
     onOpenMarket(): void;
+    onOpenNotifications(): void;
     onOpenWeeklyPlanning(): void;
   }> = {},
 ) {
   return render(
     <SideMenu
       save={save}
+      onArchiveNotification={handlers.onArchiveNotification ?? vi.fn()}
       onOpenBuilding={handlers.onOpenBuilding ?? vi.fn()}
       onOpenGladiator={handlers.onOpenGladiator ?? vi.fn()}
       onOpenMarket={handlers.onOpenMarket ?? vi.fn()}
+      onOpenNotifications={handlers.onOpenNotifications ?? vi.fn()}
       onOpenWeeklyPlanning={handlers.onOpenWeeklyPlanning ?? vi.fn()}
     />,
   );
@@ -359,6 +401,78 @@ describe('SideMenu', () => {
       'Maintenance needed',
       'General warning',
     ]);
+
+    cleanup(container, root);
+  });
+
+  it('renders active notifications, routes clickable targets and archives them', () => {
+    const onArchiveNotification = vi.fn();
+    const onOpenGladiator = vi.fn();
+    const gladiator = createGladiator();
+    const notifications: GameNotification[] = [
+      {
+        id: 'archived-notification',
+        occurredAt: { year: 1, week: 1, dayOfWeek: 'monday' },
+        titleKey: 'notifications.injury.title',
+        descriptionKey: 'notifications.injury.description',
+        params: { name: 'Archived' },
+        archivedAt: { year: 1, week: 1, dayOfWeek: 'tuesday' },
+      },
+      {
+        id: 'active-notification',
+        occurredAt: { year: 1, week: 1, dayOfWeek: 'wednesday' },
+        titleKey: 'notifications.injury.title',
+        descriptionKey: 'notifications.injury.description',
+        params: { name: 'Marcus' },
+        target: { kind: 'gladiator', gladiatorId: gladiator.id },
+      },
+    ];
+    const save = createTestSave({ gladiators: [gladiator], notifications });
+    const { container, root } = renderSideMenu(save, { onArchiveNotification, onOpenGladiator });
+
+    expect(container.textContent).toContain('Marcus was injured');
+    expect(container.textContent).not.toContain('Archived was injured');
+
+    const notificationButton = container.querySelector<HTMLButtonElement>(
+      '[data-testid="notification-active-notification"] .notification-card__body',
+    );
+    const archiveButton = container.querySelector<HTMLButtonElement>(
+      '[data-testid="notification-archive-active-notification"]',
+    );
+
+    expect(notificationButton).not.toBeNull();
+    expect(archiveButton).not.toBeNull();
+
+    act(() => {
+      notificationButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onOpenGladiator).toHaveBeenCalledWith(gladiator.id);
+
+    act(() => {
+      archiveButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onArchiveNotification).toHaveBeenCalledWith('active-notification');
+
+    cleanup(container, root);
+  });
+
+  it('opens the full notifications surface from the side menu', () => {
+    const onOpenNotifications = vi.fn();
+    const save = createTestSave();
+    const { container, root } = renderSideMenu(save, { onOpenNotifications });
+    const viewAllButton = container.querySelector<HTMLButtonElement>(
+      '[data-testid="side-menu-view-notifications"]',
+    );
+
+    expect(viewAllButton).not.toBeNull();
+
+    act(() => {
+      viewAllButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onOpenNotifications).toHaveBeenCalledTimes(1);
 
     cleanup(container, root);
   });

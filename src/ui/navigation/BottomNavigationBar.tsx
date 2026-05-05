@@ -6,7 +6,7 @@ import { RomanButton } from '../game/RomanButton';
 import { GameIcon, type GameIconName } from '../icons/GameIcon';
 
 interface BottomNavigationBarProps {
-  activePanelKind: PrimaryNavigationKind;
+  activePanelKind?: PrimaryNavigationKind;
   save: GameSave;
   onOpenPanel(panelKind: PrimaryNavigationKind): void;
 }

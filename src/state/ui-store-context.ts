@@ -104,7 +104,13 @@ export type BuildingSurfaceTab =
   | 'overview'
   | 'upgrades';
 export type ContentPresentation = 'contextSheet' | 'modal' | 'surface';
-export type LudusSurfaceKind = 'buildings' | 'finance' | 'gladiators' | 'market' | 'planning';
+export type LudusSurfaceKind =
+  | 'buildings'
+  | 'finance'
+  | 'gladiators'
+  | 'market'
+  | 'notifications'
+  | 'planning';
 export type RosterFilter = 'all' | 'injured' | 'levelUp' | 'ready';
 export type SurfaceContextSource = 'alert' | 'building' | 'finance' | 'roster';
 

@@ -4,6 +4,7 @@ import { refreshGameAlerts } from '../alerts/alert-actions';
 import { addGladiatorExperience } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
 import { createMarketState } from '../market/market-actions';
+import { addGameNotification } from '../notifications/notification-actions';
 import type { GameSave } from '../saves/types';
 import type { DayOfWeek, GameTimeState, PendingActionTrigger } from '../time/types';
 import { getCombatInjuryChance, startArenaDay } from '../combat/combat-actions';
@@ -195,6 +196,21 @@ function createProjectionFromDailyDrafts(
   );
 }
 
+function addGladiatorInjuryNotification(save: GameSave, gladiatorId: string): GameSave {
+  const gladiator = save.gladiators.find((candidate) => candidate.id === gladiatorId);
+
+  if (!gladiator) {
+    return save;
+  }
+
+  return addGameNotification(save, {
+    titleKey: 'notifications.injury.title',
+    descriptionKey: 'notifications.injury.description',
+    params: { name: gladiator.name },
+    target: { kind: 'gladiator', gladiatorId },
+  });
+}
+
 function applyDailyGladiatorEffects(
   gladiator: Gladiator,
   plan: DailyPlan,
@@ -373,12 +389,16 @@ function resolveDailyPlanInternal(
   };
 
   for (const gladiatorId of summary.injuredGladiatorIds) {
-    nextSave = applyGladiatorTrait(
+    const injuredSave = applyGladiatorTrait(
       nextSave,
       'injury',
       GAME_BALANCE.traits.injury.trainingDurationDays,
       gladiatorId,
     );
+
+    nextSave = options.recordLedger
+      ? addGladiatorInjuryNotification(injuredSave, gladiatorId)
+      : injuredSave;
   }
 
   if (options.recordLedger) {
@@ -803,12 +823,17 @@ function applyPostArenaTraits(save: GameSave, sourceSave: GameSave, random: Rand
         getGladiatorInjuryRiskMultiplier(traitSave, combat.gladiator.id);
 
       if (random() < injuryChance) {
-        traitSave = applyGladiatorTrait(
+        const injuredSave = applyGladiatorTrait(
           traitSave,
           'injury',
           getRandomCombatInjuryDuration(random),
           combat.gladiator.id,
         );
+
+        traitSave =
+          injuredSave === traitSave
+            ? traitSave
+            : addGladiatorInjuryNotification(injuredSave, combat.gladiator.id);
       }
 
       return traitSave;

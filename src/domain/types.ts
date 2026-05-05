@@ -107,6 +107,11 @@ export type {
   LaunchedGameEventRecord,
 } from './events/types';
 export type {
+  GameNotification,
+  GameNotificationParams,
+  GameNotificationTarget,
+} from './notifications/types';
+export type {
   DemoSaveId,
   GameSave,
   GameSaveMetadata,

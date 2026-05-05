@@ -34,6 +34,7 @@ Important macro modules:
 
 - `weekly-simulation/weekly-simulation-actions.ts`: daily and weekly macro resolution, including training XP and finance projections from the weekly plan;
 - `alerts/alert-actions.ts`: central derived alert engine for ludus, building and gladiator alerts;
+- `notifications/notification-actions.ts`: persisted ludus-life notification history and archive actions;
 - `gladiators/skills.ts`: integer 1..10 skill helpers;
 - `gladiators/progression.ts`: XP-derived level selectors and skill point allocation rules;
 - `gladiator-traits/gladiator-trait-actions.ts`: active trait lookup, duration pruning and trait modifier selectors;
@@ -46,6 +47,8 @@ Important macro modules:
 Domain modules should be deterministic when a random source is provided.
 
 Alerts are derived from the current save. `planning.alerts` remains the persisted storage location for compatibility, but `src/domain/alerts` owns alert generation rules. Rules are stateless and return at most one active alert for the evaluated target. New alerts should be added as ludus, building or gladiator rules in that module, plus i18n keys and tests.
+
+Notifications are persisted and authored by the domain action that caused the fact. They should be used for autonomous ludus-life events such as injuries or gladiator departures, not for direct player actions. Projection paths must not create notifications.
 
 ### `src/state`
 

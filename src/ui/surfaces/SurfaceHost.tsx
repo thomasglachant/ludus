@@ -3,6 +3,7 @@ import { hasActiveGladiatorTrait } from '../../domain/gladiator-traits/gladiator
 import { getAvailableSkillPoints } from '../../domain/gladiators/progression';
 import { getAvailableLudusGladiatorPlaces } from '../../domain/ludus/capacity';
 import { calculateGladiatorSaleValue } from '../../domain/market/market-actions';
+import { sortGameNotificationsByDateDesc } from '../../domain/notifications/notification-actions';
 import type { GameSave, Gladiator, MarketGladiator } from '../../domain/types';
 import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
 import { useGameStore } from '../../state/game-store-context';
@@ -17,6 +18,7 @@ import { EntityList } from '../components/EntityList';
 import { formatMoneyAmount } from '../formatters/money';
 import { GameIcon } from '../icons/GameIcon';
 import { MarketContent } from '../market/MarketContent';
+import { NotificationList } from '../notifications/NotificationList';
 import { BuildingPanel } from '../panels/BuildingPanel';
 import { FinancePanel } from '../panels/FinancePanel';
 import { GladiatorDetailPanel } from '../panels/GladiatorDetailPanel';
@@ -347,6 +349,40 @@ function MarketSurface({ save }: { save: GameSave }) {
   );
 }
 
+function NotificationsSurface({ save }: { save: GameSave }) {
+  const { openSurface } = useUiStore();
+  const { archiveNotification } = useGameStore();
+  const notifications = sortGameNotificationsByDateDesc(save.notifications);
+
+  return (
+    <GameSurface className="game-surface--notifications" testId="notifications-surface">
+      <SurfaceHeader titleKey="notifications.title" />
+      <div className="game-surface__body">
+        <NotificationList
+          emptyMessageKey="notifications.empty"
+          notifications={notifications}
+          save={save}
+          variant="full"
+          onArchive={archiveNotification}
+          onOpenBuilding={(buildingId) =>
+            openSurface({
+              kind: 'buildings',
+              selectedBuildingId: buildingId,
+              selectedBuildingTab: 'overview',
+            })
+          }
+          onOpenGladiator={(gladiatorId) =>
+            openSurface({
+              kind: 'gladiators',
+              selectedGladiatorId: gladiatorId,
+            })
+          }
+        />
+      </div>
+    </GameSurface>
+  );
+}
+
 export function SurfaceHost() {
   const { activeSurface } = useUiStore();
   const { currentSave } = useGameStore();
@@ -373,6 +409,10 @@ export function SurfaceHost() {
 
   if (activeSurface.kind === 'market') {
     return <MarketSurface save={currentSave} />;
+  }
+
+  if (activeSurface.kind === 'notifications') {
+    return <NotificationsSurface save={currentSave} />;
   }
 
   return null;

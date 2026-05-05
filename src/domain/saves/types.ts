@@ -5,6 +5,7 @@ import type { EventState } from '../events/types';
 import type { Gladiator } from '../gladiators/types';
 import type { LudusState } from '../ludus/types';
 import type { MarketState } from '../market/types';
+import type { GameNotification } from '../notifications/types';
 import type { WeeklyPlanningState } from '../planning/types';
 import type { GameTimeState } from '../time/types';
 
@@ -30,6 +31,7 @@ export interface GameSave {
   arena: ArenaState;
   planning: WeeklyPlanningState;
   events: EventState;
+  notifications: GameNotification[];
   metadata?: SaveMetadata;
 }
 

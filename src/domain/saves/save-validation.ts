@@ -21,6 +21,7 @@ import {
 import type { Gladiator } from '../gladiators/types';
 import { calculateGladiatorMarketPrice } from '../market/market-actions';
 import type { MarketGladiator } from '../market/types';
+import type { GameNotification, GameNotificationTarget } from '../notifications/types';
 import type {
   DailyPlan,
   DailyPlanActivity,
@@ -36,7 +37,7 @@ import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 
 const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
 const dayOfWeeks = [...DAYS_OF_WEEK];
-const supportedSchemaVersions = [CURRENT_SCHEMA_VERSION];
+const supportedSchemaVersions = [CURRENT_SCHEMA_VERSION, CURRENT_SCHEMA_VERSION - 1];
 const gamePhases = ['planning', 'simulation', 'event', 'arena', 'report', 'gameOver'];
 const pendingActionTriggers = ['startWeek', 'enterArena'];
 const gameStatuses = ['active', 'lost'];
@@ -191,7 +192,7 @@ function isBuildingState(value: unknown, buildingId: BuildingId, schemaVersion: 
   }
 
   const hasSupportedEfficiencyShape =
-    schemaVersion < CURRENT_SCHEMA_VERSION
+    schemaVersion < CURRENT_SCHEMA_VERSION - 1
       ? hasNumber(value, 'efficiency')
       : value.efficiency === undefined;
 
@@ -746,6 +747,31 @@ function isLaunchedGameEventRecord(value: unknown): value is LaunchedGameEventRe
   );
 }
 
+function isGameNotificationTarget(value: unknown): value is GameNotificationTarget {
+  if (!isRecord(value) || !hasStringFrom(value, 'kind', ['building', 'gladiator'])) {
+    return false;
+  }
+
+  if (value.kind === 'building') {
+    return isBuildingId(value.buildingId);
+  }
+
+  return typeof value.gladiatorId === 'string';
+}
+
+function isGameNotification(value: unknown): value is GameNotification {
+  return (
+    isRecord(value) &&
+    hasString(value, 'id') &&
+    isGameDate(value.occurredAt) &&
+    hasString(value, 'titleKey') &&
+    hasString(value, 'descriptionKey') &&
+    (value.params === undefined || isStringNumberRecord(value.params)) &&
+    (value.target === undefined || isGameNotificationTarget(value.target)) &&
+    (value.archivedAt === undefined || isGameDate(value.archivedAt))
+  );
+}
+
 function isEventState(value: unknown) {
   return (
     isRecord(value) &&
@@ -768,6 +794,11 @@ function isSupportedGameSave(value: unknown): value is GameSave {
   }
 
   const schemaVersion = value.schemaVersion as number;
+  const hasSupportedNotifications =
+    schemaVersion < CURRENT_SCHEMA_VERSION
+      ? value.notifications === undefined ||
+        (Array.isArray(value.notifications) && value.notifications.every(isGameNotification))
+      : Array.isArray(value.notifications) && value.notifications.every(isGameNotification);
 
   if (value.schemaVersion === CURRENT_SCHEMA_VERSION && !hasString(value, 'gameId')) {
     return false;
@@ -820,7 +851,8 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     isMarketState(value.market) &&
     isArenaState(value.arena) &&
     isPlanningState(value.planning, schemaVersion) &&
-    isEventState(value.events)
+    isEventState(value.events) &&
+    hasSupportedNotifications
   );
 }
 
@@ -1057,6 +1089,7 @@ export function normalizeGameSave(save: GameSave): GameSave {
     Record<string, unknown> & {
       gameId?: unknown;
       map?: unknown;
+      notifications?: unknown;
     };
   const defaultWeeklyPlan = createDefaultWeeklyPlan(save.time.year, save.time.week);
   const resetProgression = false;
@@ -1119,6 +1152,9 @@ export function normalizeGameSave(save: GameSave): GameSave {
       resolvedEvents: [],
       launchedEvents: save.events.launchedEvents.filter(isLaunchedGameEventRecord),
     },
+    notifications: Array.isArray(saveWithLegacyFields.notifications)
+      ? saveWithLegacyFields.notifications.filter(isGameNotification)
+      : [],
   };
 
   delete normalizedSave.settings;

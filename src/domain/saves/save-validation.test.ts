@@ -118,11 +118,12 @@ describe('save validation', () => {
     expect(parsed).toBeNull();
   });
 
-  it('rejects previous-schema saves through the current schema gate', () => {
+  it('migrates previous-schema saves with empty notification history', () => {
     const save = createJsonClone(createTestSave());
     const legacySave = {
       ...save,
       schemaVersion: CURRENT_SCHEMA_VERSION - 1,
+      notifications: undefined,
       ludus: {
         ...save.ludus,
         glory: 4,
@@ -130,7 +131,18 @@ describe('save validation', () => {
     };
     const parsed = parseGameSave(JSON.stringify(legacySave));
 
-    expect(parsed).toBeNull();
+    expect(parsed).not.toBeNull();
+    expect(parsed?.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    expect(parsed?.notifications).toEqual([]);
+  });
+
+  it('rejects current-schema saves without notifications', () => {
+    const save = createJsonClone(createTestSave());
+    const incompleteSave = { ...save } as Partial<typeof save>;
+    delete incompleteSave.notifications;
+
+    expect(isGameSave(incompleteSave)).toBe(false);
+    expect(parseGameSave(JSON.stringify(incompleteSave))).toBeNull();
   });
 
   it('strips obsolete real-time fields from current-schema transitional saves', () => {
