@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
-import { featureFlags } from '../config/features';
-import { isDemoSaveId } from '../game-data/demo-saves';
-import { useGameStore } from '../state/game-store-context';
-import { useUiStore } from '../state/ui-store-context';
-import { ActionButton } from '../ui/components/ActionButton';
-import { GameIcon } from '../ui/icons/GameIcon';
-import { ScreenShell } from '../ui/layout/ScreenShell';
+import { featureFlags } from '@/config/features';
+import { isDemoSaveId } from '@/game-data/demo-saves';
+import { useGameStore } from '@/state/game-store-context';
+import { useUiStore } from '@/state/ui-store-context';
+import { ActionBar } from '@/ui/shared/ludus/ActionBar';
+import { Button } from '@/ui/shared/ludus/Button';
+import { GameStatusMessage } from '@/ui/shared/ludus/GameFeedback';
+import { GameIcon } from '@/ui/shared/icons/GameIcon';
+import { ScreenShell } from '@/ui/app-shell/ScreenShell';
 
 interface DevDemoRouteProps {
   demoSaveId: string;
@@ -32,19 +34,22 @@ export function DevDemoRoute({ demoSaveId }: DevDemoRouteProps) {
   if (!featureFlags.enableDemoMode) {
     return (
       <ScreenShell titleKey="demoMode.routeTitle">
-        <p className="form-error" data-testid="dev-demo-unavailable">
-          {t('demoMode.unavailable')}
-        </p>
-        <div className="form-actions">
-          <ActionButton
+        <GameStatusMessage
+          messageKey="demoMode.unavailable"
+          testId="dev-demo-unavailable"
+          tone="danger"
+        />
+        <ActionBar>
+          <Button
             icon={<GameIcon name="back" size={18} />}
-            label={t('common.back')}
             onClick={() => {
               window.history.replaceState(null, '', '/');
               navigate('mainMenu');
             }}
-          />
-        </div>
+          >
+            <span>{t('common.back')}</span>
+          </Button>
+        </ActionBar>
       </ScreenShell>
     );
   }
@@ -52,24 +57,28 @@ export function DevDemoRoute({ demoSaveId }: DevDemoRouteProps) {
   if (routeErrorKey || errorKey) {
     return (
       <ScreenShell titleKey="demoMode.routeTitle">
-        <p className="form-error">{t(routeErrorKey ?? errorKey ?? 'demoMode.loadError')}</p>
-        <div className="form-actions">
-          <ActionButton
+        <GameStatusMessage
+          messageKey={routeErrorKey ?? errorKey ?? 'demoMode.loadError'}
+          tone="danger"
+        />
+        <ActionBar>
+          <Button
             icon={<GameIcon name="back" size={18} />}
-            label={t('common.back')}
             onClick={() => {
               window.history.replaceState(null, '', '/');
               navigate('mainMenu');
             }}
-          />
-        </div>
+          >
+            <span>{t('common.back')}</span>
+          </Button>
+        </ActionBar>
       </ScreenShell>
     );
   }
 
   return (
     <ScreenShell titleKey="demoMode.routeTitle">
-      <p className="empty-state">{t(isLoading ? 'common.loading' : 'demoMode.loadingRoute')}</p>
+      <GameStatusMessage messageKey={isLoading ? 'common.loading' : 'demoMode.loadingRoute'} />
     </ScreenShell>
   );
 }

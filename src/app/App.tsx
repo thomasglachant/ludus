@@ -1,13 +1,14 @@
 import { lazy, Suspense } from 'react';
 import type { ScreenName } from './routes';
-import { useUiStore } from '../state/ui-store-context';
+import { useUiStore } from '@/state/ui-store-context';
 import { DevDemoRoute } from './DevDemoRoute';
 import { getDevDemoSaveId } from './dev-demo-route-utils';
-import { AppLayout } from '../ui/layout/AppLayout';
-import { ArenaScreen } from '../ui/screens/ArenaScreen';
-import { LudusScreen } from '../ui/screens/LudusScreen';
-import { MainMenuScreen } from '../ui/screens/MainMenuScreen';
-import { NewGameScreen } from '../ui/screens/NewGameScreen';
+import { AppLayout } from '@/ui/app-shell/AppLayout';
+import { GameStatusMessage } from '@/ui/shared/ludus/GameFeedback';
+import { ArenaScreen } from '@/ui/features/arena/ArenaScreen';
+import { LudusScreen } from '@/ui/features/ludus/LudusScreen';
+import { MainMenuScreen } from '@/ui/features/main-menu/MainMenuScreen';
+import { NewGameScreen } from '@/ui/features/new-game/NewGameScreen';
 
 const DevDebugDashboardRoute = lazy(() =>
   import('./DevDebugDashboardRoute').then((module) => ({
@@ -29,14 +30,14 @@ function renderScreen(screen: ScreenName) {
 }
 
 export function App() {
-  const { screen, t } = useUiStore();
+  const { screen } = useUiStore();
   const devDemoSaveId = getDevDemoSaveId(window.location.pathname);
   const isDebugDashboardRoute = window.location.pathname === '/dev/debug-dashboard';
 
   return (
     <AppLayout>
       {isDebugDashboardRoute ? (
-        <Suspense fallback={<p className="empty-state">{t('common.loading')}</p>}>
+        <Suspense fallback={<GameStatusMessage messageKey="common.loading" surface="dark" />}>
           <DevDebugDashboardRoute />
         </Suspense>
       ) : devDemoSaveId ? (

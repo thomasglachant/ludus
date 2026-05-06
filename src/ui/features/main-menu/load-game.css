@@ -1,0 +1,92 @@
+.save-card p {
+  color: var(--text-muted);
+}
+
+.load-game-content {
+  display: grid;
+  gap: 14px;
+}
+
+.load-game-tabs {
+  width: min(100%, 360px);
+}
+
+.save-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.save-card {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.save-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .save-card {
+    flex-direction: column;
+  }
+}
+
+.save-card {
+  border: 1px solid rgba(111, 69, 35, 0.42);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(255, 248, 226, 0.84), rgba(229, 209, 163, 0.7)),
+    rgba(229, 209, 163, 0.74);
+}
+
+.local-save-group {
+  display: grid;
+  gap: 10px;
+}
+
+.local-save-group__other-saves {
+  display: grid;
+  gap: 8px;
+  padding-left: 16px;
+  border-left: 1px solid rgba(231, 185, 97, 0.24);
+}
+
+.save-card__actions {
+  display: grid;
+  min-width: 180px;
+  gap: 8px;
+}
+
+.save-card__actions .button {
+  width: 100%;
+}
+
+.save-card__actions .button--ghost {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(247, 221, 177, 0.78);
+  font-size: 0.8rem;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  box-shadow: none;
+}
+
+.save-card__actions .button--ghost:hover {
+  color: #fff6dc;
+  filter: none;
+}
+
+@media (max-width: 560px) {
+  .save-card__actions {
+    min-width: 0;
+  }
+}

@@ -4,9 +4,9 @@
 
 The application is a browser game built with Vite, React, TypeScript and Vitest.
 
-The UI migration target uses Tailwind CSS for styling, shadcn/ui-style
-composition for reusable component APIs and Radix UI or React Aria for
-accessibility primitives where appropriate.
+The UI uses plain CSS colocated with the React component or feature that owns
+the selectors. Radix UI or React Aria may be used for accessibility primitives
+where appropriate.
 
 ## Layer Responsibilities
 
@@ -71,20 +71,34 @@ React renders the game shell, panels and modals. Components display state and ca
 
 Gladiator UI should consume derived view models for level, XP toward the next level, available skill points and integer skills. React components should not infer levels from raw XP or calculate skill allocation rules.
 
-The target UI hierarchy is:
+The UI hierarchy is:
 
-- `src/ui/primitives`: accessible low-level primitives, Tailwind variants and
-  adapters around shadcn/ui, Radix UI or React Aria APIs. This layer has no game
-  concepts, store access or feature-specific copy.
-- `src/ui/game`: reusable Ludus components that compose primitives into the
-  Roman-themed game language. Core contracts include `RomanButton`,
-  `ParchmentModal`, `StonePanel`, `ParchmentPanel`, `WaxTabletTabs`,
-  `ResourceBadge`, `TreasuryBadge`, `ReputationBadge` and `GamePanel`.
-- `src/ui/screens`: route, screen and modal surfaces that bind store state,
-  selectors, actions and view models, then compose `src/ui/game` components.
+- `src/ui/shared/primitives`: accessible low-level primitives and adapters
+  around Radix UI or React Aria APIs. This layer has no game concepts, store
+  access or feature-specific copy.
+- `src/ui/shared/ludus`: reusable Ludus components that compose primitives into
+  the Roman-themed game language. Core contracts include `Button`,
+  `PrimaryActionButton`, `IconButton`, `ListActionButton`, `SegmentedControl`,
+  `ActionBar`, `AppDialogShell`, `StonePanel`, `LightPanel`,
+  `WaxTabletTabs`, `GameFact`, `GameMeter`, `GameList`, `GameSection`,
+  `GameFeedback` and `GamePanel`.
+- `src/ui/shared/components`: cross-feature Ludus helpers such as entity lists,
+  tooltips, impact indicators, alerts, ledgers and menu cards.
+- `src/ui/app-shell`: global application layout and modal infrastructure.
+- `src/ui/features`: player-facing feature folders. Each feature owns its
+  screens, surfaces, panels, local components and view models.
 
-Dependency direction is `src/ui/screens -> src/ui/game -> src/ui/primitives`.
-Lower layers must not import screens, feature state or domain services.
+Dependency direction is `src/ui/features -> src/ui/shared/ludus ->
+src/ui/shared/primitives`. Shared layers must not import feature state or domain
+services.
+
+Styling follows the same ownership rule. `src/index.css` imports only durable
+global files from `src/styles`: `ludus-theme.css` and `foundation.css`.
+Component, shell and feature CSS lives beside its owner, such as
+`src/ui/features/ludus/shell/ludus-shell.css` or
+`src/ui/shared/ludus/ludus-controls.css`. Use plain CSS by default; do not add
+`styled-components`, CSS Modules or another styling dependency without a
+separate architectural decision.
 
 Reuse is mandatory by default. Before adding feature-local UI, check whether a
 screen can be built from the existing game components, modal/list frameworks,

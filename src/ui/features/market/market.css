@@ -1,0 +1,17 @@
+.market-content {
+  display: grid;
+  gap: 18px;
+}
+
+.market-candidates {
+  display: grid;
+  gap: 14px;
+}
+
+.market-candidates__owned-capacity {
+  justify-self: end;
+  margin: 0;
+  color: #7a6045;
+  font-size: 0.78rem;
+  font-weight: 800;
+}

@@ -6,9 +6,9 @@
 :root {
   --background: var(--obsidian);
   --foreground: var(--text);
-  --card: var(--parchment-light);
+  --card: var(--warm-surface-light);
   --card-foreground: var(--text);
-  --popover: var(--parchment-light);
+  --popover: var(--warm-surface-light);
   --popover-foreground: var(--text);
   --secondary: var(--stone);
   --secondary-foreground: #fff1c7;
@@ -26,10 +26,24 @@
     inset 0 0 0 2px rgba(255, 248, 226, 0.32), inset 0 0 0 7px rgba(111, 69, 35, 0.22),
     0 24px 48px rgba(8, 6, 4, 0.36);
   --ludus-shadow-raised: inset 0 -3px 0 rgba(111, 69, 35, 0.16), 0 8px 18px rgba(20, 14, 10, 0.18);
-  --ludus-texture-parchment:
+  --ludus-border-light: rgba(111, 69, 35, 0.3);
+  --ludus-border-dark: rgba(214, 163, 74, 0.24);
+  --ludus-focus-ring: rgba(214, 163, 74, 0.44);
+  --ludus-surface-light:
+    linear-gradient(180deg, rgba(255, 248, 226, 0.92), rgba(229, 204, 145, 0.82)),
+    var(--warm-surface);
+  --ludus-surface-light-soft: rgba(255, 248, 226, 0.5);
+  --ludus-surface-dark:
+    linear-gradient(180deg, rgba(48, 37, 27, 0.95), rgba(26, 20, 15, 0.95)), var(--obsidian-raised);
+  --ludus-surface-dark-soft: rgba(255, 241, 199, 0.07);
+  --ludus-text-dark: #2f2118;
+  --ludus-text-dark-muted: #6d5035;
+  --ludus-text-light: #fff1c7;
+  --ludus-text-light-muted: #d7bd84;
+  --ludus-texture-light-panel:
     linear-gradient(180deg, rgba(255, 246, 222, 0.98), rgba(229, 203, 145, 0.98)),
     repeating-linear-gradient(0deg, rgba(111, 69, 35, 0.04) 0 1px, transparent 1px 6px),
-    var(--parchment);
+    var(--warm-surface);
   --ludus-texture-stone:
     linear-gradient(180deg, rgba(47, 39, 30, 0.99), rgba(25, 21, 17, 0.99)), var(--obsidian-raised);
   --ludus-texture-glass:

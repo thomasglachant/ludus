@@ -1,0 +1,16 @@
+.main-menu-screen {
+  display: grid;
+  place-items: center;
+  position: relative;
+  min-height: 100dvh;
+  padding: clamp(20px, 4vw, 56px);
+  color: #fff2cf;
+}
+
+@media (max-width: 960px) {
+  .main-menu-screen {
+    min-height: 100dvh;
+    overflow: auto;
+    padding: 18px;
+  }
+}

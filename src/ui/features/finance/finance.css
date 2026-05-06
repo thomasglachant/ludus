@@ -1,0 +1,125 @@
+.finance-card-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.finance-card-grid--loans {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.finance-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.finance-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.finance-report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.finance-chart-list {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-chart-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.finance-chart-row > span {
+  overflow: hidden;
+  color: #5e4630;
+  font-size: 0.8rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.finance-chart-row > strong {
+  color: #2f241b;
+  font-size: 0.84rem;
+  text-align: right;
+}
+
+.finance-chart-row__track {
+  grid-column: 1 / -1;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(111, 82, 54, 0.18);
+}
+
+.finance-chart-row__bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.finance-chart-row__bar--income {
+  background: #2f7d66;
+}
+
+.finance-chart-row__bar--expense {
+  background: #b05a3a;
+}
+
+.finance-ledger {
+  display: grid;
+  gap: 8px;
+}
+
+.finance-ledger .context-panel__muted {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.finance-loan-card {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(111, 69, 35, 0.055);
+}
+
+.finance-loan-card > strong,
+.finance-loan-offer > strong {
+  color: #2f241b;
+}
+
+.finance-active-loan-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .finance-card-grid--loans {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .finance-chart-grid,
+  .finance-report-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-card-grid--loans,
+  .finance-active-loan-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

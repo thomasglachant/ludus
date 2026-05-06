@@ -16,7 +16,7 @@ The player should understand at first glance:
 - Sunday combat is a theatrical climax, not just a log table.
 
 The tone is warm, readable and game-like: dark Roman HUDs, bronze and stone
-frames, parchment panels, red banners, gold accents, countryside terrain,
+frames, warm ivory panels, red banners, gold accents, countryside terrain,
 visible building art, memorable gladiator portraits and theatrical arena
 presentation.
 
@@ -48,7 +48,7 @@ The interface and assets should use:
 
 - warm Roman countryside colors;
 - dark bronze, charcoal and stone HUD frames;
-- parchment surfaces for panels, modals and repeated cards;
+- warm ivory surfaces for panels, modals and repeated cards;
 - bronze, gold and ochre borders/highlights;
 - red banners, laurels and Roman motifs where useful;
 - readable comic-inspired buildings, portraits, combatants and icons.
@@ -111,7 +111,7 @@ It should show:
 - left-side primary actions for New Game, Load and Options;
 - a visible demo indicator only when demo mode is enabled;
 - a last-save presentation when local save metadata exists;
-- parchment/bronze buttons and Roman frame details.
+- warm ivory/bronze buttons and Roman frame details.
 
 Load and Options open as modal overlays. Language selection belongs in Options,
 not as a permanent main-menu switcher.
@@ -146,7 +146,7 @@ Required main scene behavior:
   readable state.
 
 The visual target is a dense Roman building-first scene with a dark bronze HUD,
-parchment panels, clear building silhouettes and theatrical arena presentation.
+warm ivory panels, clear building silhouettes and theatrical arena presentation.
 Final quality comes from production backgrounds and building assets that follow
 the Roman American comic / BD-inspired direction.
 

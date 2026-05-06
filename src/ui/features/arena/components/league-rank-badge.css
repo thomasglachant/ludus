@@ -1,0 +1,20 @@
+.league-rank-badge {
+  display: inline-grid;
+  width: 46px;
+  height: 46px;
+  min-height: 46px;
+  aspect-ratio: 1;
+  place-items: center;
+  padding: 6px;
+  border: 1px solid rgba(214, 163, 74, 0.16);
+  border-radius: 4px;
+  background: rgba(255, 241, 199, 0.05);
+  color: #fff1c7;
+  line-height: 1;
+  text-align: center;
+}
+
+.league-rank-badge__icon {
+  width: 34px;
+  height: 34px;
+}

@@ -1,0 +1,111 @@
+.modal-frame {
+  display: grid;
+  gap: 16px;
+  color: #38291d;
+}
+
+.modal-icon-avatar {
+  position: relative;
+  display: grid;
+  width: min(116px, 100%);
+  min-height: 116px;
+  place-items: center;
+  border: 2px solid rgba(214, 163, 74, 0.42);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 231, 129, 0.44), transparent 42%),
+    linear-gradient(180deg, rgba(119, 76, 33, 0.96), rgba(48, 34, 24, 0.98));
+  box-shadow:
+    inset 0 0 0 4px rgba(9, 7, 5, 0.18),
+    0 10px 18px rgba(9, 7, 5, 0.22);
+}
+
+.modal-icon-avatar svg {
+  color: #fff1c7;
+  filter: drop-shadow(0 3px 0 rgba(9, 7, 5, 0.5));
+}
+
+.modal-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 7px;
+  padding: 7px;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(55, 42, 31, 0.98), rgba(37, 29, 22, 0.98)), var(--obsidian-raised);
+}
+
+.modal-tabs button {
+  display: flex;
+  min-width: 0;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255, 241, 199, 0.06);
+  color: #d7bd84;
+  font-weight: 900;
+}
+
+.modal-tabs button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-tabs button strong {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(214, 163, 74, 0.16);
+  color: #fff1c7;
+  font-size: 0.72rem;
+}
+
+.modal-tabs button.is-selected {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--green-action), #f0dfb8 12%),
+      var(--green-action)
+    ),
+    var(--green-action);
+  color: #fff9e7;
+  box-shadow: 0 3px 0 rgba(8, 60, 38, 0.28);
+}
+
+.modal-tab-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.modal-action-dock {
+  position: sticky;
+  bottom: -28px;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 0;
+  background: linear-gradient(180deg, rgba(235, 206, 147, 0), rgba(235, 206, 147, 0.94) 54%);
+}
+
+.modal-action-dock .primary-action-button,
+.modal-action-dock button {
+  min-width: min(280px, 100%);
+}
+
+@media (max-width: 760px) {
+  .modal-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .modal-tabs {
+    grid-template-columns: 1fr;
+  }
+}

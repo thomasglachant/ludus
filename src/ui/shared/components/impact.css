@@ -1,0 +1,98 @@
+.impact-indicator {
+  position: relative;
+  display: inline-flex;
+  min-height: 30px;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px 4px 9px;
+  border: 1px solid rgba(214, 163, 74, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 241, 199, 0.05);
+  color: #4f3825;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.impact-indicator--sm {
+  min-height: 24px;
+  gap: 4px;
+  padding: 3px 7px 3px 6px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+}
+
+.impact-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+.impact-indicator__icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.impact-indicator__symbol {
+  color: #2d7c70;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.impact-indicator__tooltip-target {
+  flex: 0 0 auto;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tooltip:focus-visible {
+  outline: 2px solid rgba(214, 163, 74, 0.46);
+  outline-offset: 2px;
+}
+
+.impact-indicator__amount {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.impact-indicator--sm .impact-indicator__amount {
+  font-size: 0.78rem;
+}
+
+.impact-indicator__chance {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(111, 69, 35, 0.12);
+  color: #5d452e;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.impact-indicator--sm .impact-indicator__chance {
+  padding: 1px 4px;
+  font-size: 0.64rem;
+}
+
+.impact-indicator--positive {
+  color: #4f3825;
+}
+
+.impact-indicator--positive .impact-indicator__amount {
+  color: #267042;
+}
+
+.impact-indicator--negative {
+  color: #4f3825;
+}
+
+.impact-indicator--negative .impact-indicator__amount {
+  color: #9a382b;
+}

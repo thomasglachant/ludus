@@ -20,7 +20,6 @@ The game combines:
 - Prettier
 - Husky
 - lint-staged
-- commitlint
 - Vitest
 
 ## Development

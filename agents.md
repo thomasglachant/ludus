@@ -11,21 +11,21 @@ Useful commands: `npm run build`, `npm run lint`, `npm run test`.
 ## Required Conventions
 
 - Speak French with the user; write code, identifiers, comments and technical docs in English.
-- Use Conventional Commits when committing.
 - Player-facing UI copy must use i18n keys for French and English; React components must not hardcode visible copy.
 - Game rules and balance data belong in `src/game-data`; new tunable balance variables must start in `src/game-data/balance.ts`; pure business logic belongs in `src/domain`.
 - React components should render state and call store actions, selectors or domain services.
 - Reuse shared UI primitives and modal infrastructure before adding feature-specific UI; one-off components need an explicit component contract before implementation.
+- UI dependency direction is `src/ui/features` -> `src/ui/shared/ludus` -> `src/ui/shared/primitives`; shared layers must not import feature state or domain services.
 - Use the shared `CardBlured` component for translucent blurred cards or panels over scenic backgrounds.
-- Primary CTAs use the shared green `CTAButton` / `.cta-button` style by default unless the user explicitly asks for another treatment.
-- CSS lives in `src/styles` by functional area; keep `src/index.css` as an import manifest and split large or mixed stylesheet files as routine maintenance.
+- Primary CTAs use the shared green `PrimaryActionButton` by default unless the user explicitly asks for another treatment.
+- `src/index.css` imports only durable global files from `src/styles`; component, shell and feature CSS lives beside its owner in `src/ui/app-shell`, `src/ui/features` or `src/ui/shared`.
 - Generated production images must be WebP before being referenced by the app.
 - Save data must include `schemaVersion`; local save is always available; cloud save remains behind an abstraction.
 
 ## Product Guardrails
 
 - Default UI is a full-screen, building-first game shell, not a dashboard.
-- Preserve the Roman American comic / BD-inspired art direction: bold readable silhouettes, simple colors, quality illustrative details, dark bronze/stone HUDs, parchment panels, visible buildings, portraits and theatrical arena combat.
+- Preserve the Roman American comic / BD-inspired art direction: bold readable silhouettes, simple colors, quality illustrative details, dark bronze/stone HUDs, warm ivory panels, visible buildings, portraits and theatrical arena combat.
 - Debug/dashboard UI may exist only behind `VITE_ENABLE_DEBUG_UI=true` or `/dev/debug-dashboard`.
 - Do not reintroduce the removed 1-to-10 building budget system.
 - Weekly objectives, recommendations and alerts should reduce micromanagement while keeping manual overrides possible.
