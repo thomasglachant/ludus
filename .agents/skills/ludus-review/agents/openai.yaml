@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ludus Review"
+  short_description: "Review local or PR Ludus code changes"
+  default_prompt: "Use $ludus-review to deeply review these local or PR code changes before I merge or commit, and answer me in French."
