@@ -103,7 +103,16 @@ function getModifierIndicator(
   t: ReturnType<typeof useUiStore>['t'],
   key: string,
 ) {
-  if (modifier.type === 'arenaCombatEligibility') {
+  if (modifier.type === 'arenaCombatEligibility' || modifier.type === 'activityEligibility') {
+    const labelKey =
+      modifier.type === 'arenaCombatEligibility'
+        ? modifier.value
+          ? 'traits.modifiers.arenaAllowed'
+          : 'traits.modifiers.arenaBlocked'
+        : modifier.value
+          ? 'traits.modifiers.activityAllowed'
+          : 'traits.modifiers.activityBlocked';
+
     return (
       <span
         className={[
@@ -115,9 +124,7 @@ function getModifierIndicator(
         key={key}
       >
         <GameIcon name={modifier.value ? 'victory' : 'warning'} size={15} />
-        <span>
-          {t(modifier.value ? 'traits.modifiers.arenaAllowed' : 'traits.modifiers.arenaBlocked')}
-        </span>
+        <span>{t(labelKey)}</span>
       </span>
     );
   }

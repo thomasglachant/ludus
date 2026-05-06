@@ -21,6 +21,10 @@ export interface PlanningActivityImpactDefinition {
   labelKey: string;
 }
 
+export type PlanningActivityExecution =
+  | { kind: 'proportional' }
+  | { kind: 'threshold'; requiredPoints: number };
+
 export interface PlanningActivityDefinition {
   activity: DailyPlanActivity;
   buildingId: BuildingId;
@@ -28,6 +32,7 @@ export interface PlanningActivityDefinition {
   category: PlanningActivityCategory;
   color: string;
   defaultPoints: number;
+  execution: PlanningActivityExecution;
   impacts: PlanningActivityImpactDefinition[];
   requiredBuildingLevel?: number;
   requiredSkillId?: string;
@@ -40,6 +45,7 @@ function createGladiatorTask(
   activity: DefinedPlanningActivity,
   color: string,
   impacts: PlanningActivityImpactDefinition[],
+  execution: PlanningActivityExecution,
   options: Pick<PlanningActivityDefinition, 'requiredBuildingLevel' | 'requiredSkillId'> = {},
 ): BuildingPlanningActivityDefinition {
   return {
@@ -48,6 +54,7 @@ function createGladiatorTask(
     category: 'gladiatorTimePoints',
     color,
     defaultPoints: GAME_BALANCE.planning.taskDefaultPoints[activity],
+    execution,
     impacts,
     subcategoryKey: `weeklyPlan.taskSubcategories.${activity}`,
     ...options,
@@ -56,10 +63,15 @@ function createGladiatorTask(
 
 export const BUILDING_PLANNING_ACTIVITY_DEFINITIONS = {
   trainingGround: [
-    createGladiatorTask('training', '#b75f45', [
-      { amount: 1, kind: 'xp', labelKey: 'weeklyPlan.taskImpacts.experience' },
-      { amount: -1, kind: 'warning', labelKey: 'weeklyPlan.taskImpacts.injuryRisk' },
-    ]),
+    createGladiatorTask(
+      'training',
+      '#b75f45',
+      [
+        { amount: 1, kind: 'xp', labelKey: 'weeklyPlan.taskImpacts.experience' },
+        { amount: -1, kind: 'warning', labelKey: 'weeklyPlan.taskImpacts.injuryRisk' },
+      ],
+      { kind: 'proportional' },
+    ),
   ],
 } as const satisfies Partial<Record<BuildingId, readonly BuildingPlanningActivityDefinition[]>>;
 

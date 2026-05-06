@@ -78,10 +78,24 @@ function sumNumericModifiers(
   }, 0);
 }
 
+function hasBlockingBooleanModifier(
+  gladiator: Gladiator,
+  type: GladiatorTraitModifier['type'],
+  date?: GameDate,
+) {
+  return getTraitModifierValues(gladiator, type, date).some((value) => value === false);
+}
+
 function pruneExpiredGladiatorTraits(gladiator: Gladiator, date: GameDate): Gladiator {
   const traits = gladiator.traits.filter((trait) => isGladiatorTraitActiveAt(trait, date));
 
   return traits.length === gladiator.traits.length ? gladiator : { ...gladiator, traits };
+}
+
+function hasActiveTraitFromGladiator(gladiator: Gladiator, traitId: string, date: GameDate) {
+  return gladiator.traits.some(
+    (trait) => trait.traitId === traitId && isGladiatorTraitActiveAt(trait, date),
+  );
 }
 
 export function getCurrentGameDate(save: GameSave): GameDate {
@@ -205,6 +219,22 @@ export function getGladiatorCombatMoraleBonus(gladiator: Gladiator, date?: GameD
   return sumNumericModifiers(gladiator, 'combatMoraleBonus', date);
 }
 
+export function canGladiatorPerformActivities(
+  save: GameSave,
+  gladiatorId: string,
+  date = getCurrentGameDate(save),
+) {
+  const gladiator = getGladiator(save, gladiatorId);
+
+  return gladiator ? !hasBlockingBooleanModifier(gladiator, 'activityEligibility', date) : false;
+}
+
+export function getActivityEligibleGladiators(save: GameSave, date = getCurrentGameDate(save)) {
+  return save.gladiators.filter((gladiator) =>
+    canGladiatorPerformActivities(save, gladiator.id, date),
+  );
+}
+
 export function canGladiatorFightInArena(
   save: GameSave,
   gladiatorId: string,
@@ -216,14 +246,10 @@ export function canGladiatorFightInArena(
     return false;
   }
 
-  return !getActiveGladiatorTraitsFromGladiator(gladiator, date).some((trait) => {
-    const definition = getGladiatorTraitDefinition(trait.traitId);
-    const modifierValue = definition
-      ? getTraitModifierValue(definition, 'arenaCombatEligibility')
-      : undefined;
-
-    return modifierValue === false;
-  });
+  return (
+    canGladiatorPerformActivities(save, gladiatorId, date) &&
+    !hasBlockingBooleanModifier(gladiator, 'arenaCombatEligibility', date)
+  );
 }
 
 export function hasActiveGladiatorTrait(
@@ -259,18 +285,33 @@ export function applyGladiatorTraitAtDate(
       return gladiator;
     }
 
-    const existingTrait = gladiator.traits.find((trait) => trait.traitId === resolvedTraitId);
+    if (resolvedTraitId === 'rest' && hasActiveTraitFromGladiator(gladiator, 'injury', date)) {
+      return gladiator;
+    }
+
+    const traits =
+      resolvedTraitId === 'injury'
+        ? gladiator.traits.filter((trait) => trait.traitId !== 'rest')
+        : gladiator.traits;
+    const didRemoveRest = traits.length !== gladiator.traits.length;
+    const existingTrait = traits.find((trait) => trait.traitId === resolvedTraitId);
 
     if (!existingTrait) {
       didChange = true;
 
       return {
         ...gladiator,
-        traits: [...gladiator.traits, { traitId: resolvedTraitId, expiresAt }],
+        traits: [...traits, { traitId: resolvedTraitId, expiresAt }],
       };
     }
 
     if (!existingTrait.expiresAt || compareGameDates(existingTrait.expiresAt, expiresAt) >= 0) {
+      if (didRemoveRest) {
+        didChange = true;
+
+        return { ...gladiator, traits };
+      }
+
       return gladiator;
     }
 
@@ -278,7 +319,7 @@ export function applyGladiatorTraitAtDate(
 
     return {
       ...gladiator,
-      traits: gladiator.traits.map((trait) =>
+      traits: traits.map((trait) =>
         trait.traitId === resolvedTraitId ? { ...trait, expiresAt } : trait,
       ),
     };

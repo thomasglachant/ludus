@@ -7,15 +7,16 @@ import { DAYS_OF_WEEK } from '../../game-data/time';
 import type { BuildingActivityId } from '../buildings/types';
 import { getSelectableBuildingActivities } from '../buildings/building-activities';
 import { sumActiveBuildingEffectValues } from '../buildings/building-effects';
+import { getActivityEligibleGladiators } from '../gladiator-traits/gladiator-trait-actions';
 import type { GameSave } from '../saves/types';
-import type { DayOfWeek } from '../time/types';
+import type { DayOfWeek, GameDate } from '../time/types';
 import type { DailyPlan, DailyPlanActivity, DailyPlanBucket, DailyPlanPoints } from './types';
 
 export type { DailyPlanBucket } from './types';
 
 export interface DailyPlanActivityConstraint {
   activity: DailyPlanActivity;
-  maximum: number;
+  maximum?: number;
   minimum: number;
 }
 
@@ -28,6 +29,8 @@ export interface DailyPlanBucketValidation {
   bucket: DailyPlanBucket;
   budget: number;
   constraints: DailyPlanConstraintStatus[];
+  effectiveUsed: number;
+  ignored: number;
   isComplete: boolean;
   remaining: number;
   used: number;
@@ -50,6 +53,7 @@ export interface WeeklyPlanningValidation {
 }
 
 const dailyPlanBuckets: DailyPlanBucket[] = ['gladiatorTimePoints'];
+const dailyPlanActivities: DailyPlanActivity[] = ['training', 'meals', 'sleep', 'production'];
 
 export const DAILY_PLAN_BUCKET_BUDGETS = {
   gladiatorTimePoints: GAME_BALANCE.macroSimulation.baseDailyGladiatorPoints,
@@ -94,6 +98,14 @@ function sanitizeDailyPlan(plan: DailyPlan): DailyPlan {
     ...plan,
     laborPoints: createEmptyPoints(),
     adminPoints: createEmptyPoints(),
+  };
+}
+
+function getPlanDate(save: GameSave, dayOfWeek: DayOfWeek): GameDate {
+  return {
+    year: save.planning.year,
+    week: save.planning.week,
+    dayOfWeek,
   };
 }
 
@@ -149,7 +161,11 @@ export function synchronizePlanning(save: GameSave): GameSave {
   };
 }
 
-export function getDailyPlanBucketBudget(save: GameSave, bucket: DailyPlanBucket) {
+export function getDailyPlanBucketBudget(
+  save: GameSave,
+  bucket: DailyPlanBucket,
+  date: GameDate = getPlanDate(save, save.time.dayOfWeek),
+) {
   if (bucket === 'gladiatorTimePoints') {
     return (
       (DAILY_PLAN_BUCKET_BUDGETS.gladiatorTimePoints +
@@ -159,7 +175,7 @@ export function getDailyPlanBucketBudget(save: GameSave, bucket: DailyPlanBucket
             type: 'increaseDailyGladiatorPoints',
           }),
         )) *
-      save.gladiators.length
+      getActivityEligibleGladiators(save, date).length
     );
   }
 
@@ -175,7 +191,142 @@ export function getDailyPlanBucketRemaining(
   plan: DailyPlan,
   bucket: DailyPlanBucket,
 ) {
-  return getDailyPlanBucketBudget(save, bucket) - getDailyPlanBucketTotal(plan[bucket]);
+  return (
+    getDailyPlanBucketBudget(save, bucket, getPlanDate(save, plan.dayOfWeek)) -
+    getDailyPlanBucketTotal(plan[bucket])
+  );
+}
+
+function scaleDailyPlanPoints(points: DailyPlanPoints, budget: number): DailyPlanPoints {
+  const total = getDailyPlanBucketTotal(points);
+
+  if (total <= budget) {
+    return points;
+  }
+
+  if (budget <= 0) {
+    return createEmptyPoints();
+  }
+
+  const scaledEntries = dailyPlanActivities.map((activity, index) => {
+    const exact = (points[activity] * budget) / total;
+
+    return {
+      activity,
+      floor: Math.floor(exact),
+      index,
+      remainder: exact - Math.floor(exact),
+    };
+  });
+  const scaledPoints = Object.fromEntries(
+    scaledEntries.map((entry) => [entry.activity, entry.floor]),
+  ) as DailyPlanPoints;
+  const remainingPoints =
+    budget - scaledEntries.reduce((totalFloor, entry) => totalFloor + entry.floor, 0);
+  const recipients = [...scaledEntries].sort(
+    (left, right) => right.remainder - left.remainder || left.index - right.index,
+  );
+
+  for (const recipient of recipients.slice(0, remainingPoints)) {
+    scaledPoints[recipient.activity] += 1;
+  }
+
+  return scaledPoints;
+}
+
+export function getEffectiveDailyPlan(save: GameSave, plan: DailyPlan): DailyPlan {
+  const date = getPlanDate(save, plan.dayOfWeek);
+
+  return {
+    ...plan,
+    gladiatorTimePoints: scaleDailyPlanPoints(
+      plan.gladiatorTimePoints,
+      getDailyPlanBucketBudget(save, 'gladiatorTimePoints', date),
+    ),
+    laborPoints: scaleDailyPlanPoints(
+      plan.laborPoints,
+      getDailyPlanBucketBudget(save, 'laborPoints', date),
+    ),
+    adminPoints: scaleDailyPlanPoints(
+      plan.adminPoints,
+      getDailyPlanBucketBudget(save, 'adminPoints', date),
+    ),
+  };
+}
+
+function applyPlanningExecutionRules(
+  save: GameSave,
+  rawPlan: DailyPlan,
+  effectivePlan: DailyPlan,
+): DailyPlan {
+  return getAvailablePlanningActivityDefinitions(save).reduce<DailyPlan>((nextPlan, task) => {
+    const rawPoints = rawPlan[task.bucket][task.activity];
+    const effectivePoints = nextPlan[task.bucket][task.activity];
+    const executablePoints = getExecutablePlanningActivityPoints(task, rawPoints, effectivePoints);
+
+    if (executablePoints === effectivePoints) {
+      return nextPlan;
+    }
+
+    return {
+      ...nextPlan,
+      [task.bucket]: {
+        ...nextPlan[task.bucket],
+        [task.activity]: executablePoints,
+      },
+    };
+  }, effectivePlan);
+}
+
+export function getExecutableDailyPlan(save: GameSave, plan: DailyPlan): DailyPlan {
+  return applyPlanningExecutionRules(save, plan, getEffectiveDailyPlan(save, plan));
+}
+
+export function getExecutablePlanningActivityPoints(
+  task: Pick<PlanningActivityDefinition, 'execution'>,
+  rawPoints: number,
+  effectivePoints: number,
+) {
+  return rawPoints > 0 && canPlanningActivityExecute(task, effectivePoints) ? effectivePoints : 0;
+}
+
+export function canPlanningActivityExecute(
+  task: Pick<PlanningActivityDefinition, 'execution'>,
+  effectivePoints: number,
+) {
+  if (task.execution.kind === 'threshold') {
+    return effectivePoints >= task.execution.requiredPoints;
+  }
+
+  return effectivePoints > 0;
+}
+
+export function getPlanningActivityExecutionConstraint(
+  task: Pick<PlanningActivityDefinition, 'activity' | 'execution'>,
+): DailyPlanActivityConstraint | null {
+  if (task.execution.kind !== 'threshold') {
+    return null;
+  }
+
+  return {
+    activity: task.activity,
+    minimum: task.execution.requiredPoints,
+  };
+}
+
+export function getPlanningActivityConstraintStatus(
+  task: Pick<PlanningActivityDefinition, 'activity' | 'execution'>,
+  effectivePoints: number,
+): DailyPlanConstraintStatus | null {
+  const constraint = getPlanningActivityExecutionConstraint(task);
+
+  return constraint
+    ? {
+        ...constraint,
+        isSatisfied: canPlanningActivityExecute(task, effectivePoints),
+        points: effectivePoints,
+      }
+    : null;
 }
 
 export function isPastPlanningDay(save: GameSave, dayOfWeek: DayOfWeek) {
@@ -194,50 +345,50 @@ export function getDailyPlanActivityConstraint(
   bucket: DailyPlanBucket,
   activity: DailyPlanActivity,
 ): DailyPlanActivityConstraint | null {
-  void activity;
+  const task = getAvailablePlanningActivityDefinitions(save).find(
+    (definition) => definition.bucket === bucket && definition.activity === activity,
+  );
 
-  if (bucket !== 'gladiatorTimePoints' || save.gladiators.length === 0) {
-    return null;
-  }
-
-  return null;
+  return task ? getPlanningActivityExecutionConstraint(task) : null;
 }
 
 export function validateDailyPlan(save: GameSave, plan: DailyPlan): DailyPlanValidation {
   const isPast = isPastPlanningDay(save, plan.dayOfWeek);
+  const effectivePlan = getEffectiveDailyPlan(save, plan);
   const buckets = dailyPlanBuckets.map<DailyPlanBucketValidation>((bucket) => {
-    const budget = getDailyPlanBucketBudget(save, bucket);
+    const budget = getDailyPlanBucketBudget(save, bucket, getPlanDate(save, plan.dayOfWeek));
     const used = getDailyPlanBucketTotal(plan[bucket]);
+    const effectiveUsed = getDailyPlanBucketTotal(effectivePlan[bucket]);
     const constraints = Object.entries(plan[bucket]).flatMap<DailyPlanConstraintStatus>(
-      ([activity, points]) => {
-        const constraint = getDailyPlanActivityConstraint(
-          save,
-          bucket,
-          activity as DailyPlanActivity,
+      ([activity, rawPoints]) => {
+        const dailyPlanActivity = activity as DailyPlanActivity;
+        const task = getAvailablePlanningActivityDefinitions(save).find(
+          (definition) => definition.bucket === bucket && definition.activity === dailyPlanActivity,
         );
 
-        if (!constraint) {
+        if (!task || rawPoints <= 0) {
           return [];
         }
 
-        return [
-          {
-            ...constraint,
-            isSatisfied: points >= constraint.minimum && points <= constraint.maximum,
-            points,
-          },
-        ];
+        const constraint = getPlanningActivityConstraintStatus(
+          task,
+          effectivePlan[bucket][dailyPlanActivity],
+        );
+
+        return constraint ? [constraint] : [];
       },
     );
+    const ignored = Math.max(0, used - effectiveUsed);
+    const remaining = Math.max(0, budget - effectiveUsed);
 
     return {
       bucket,
       budget,
       constraints,
-      isComplete:
-        budget === 0 ||
-        (used === budget && constraints.every((constraint) => constraint.isSatisfied)),
-      remaining: budget - used,
+      effectiveUsed,
+      ignored,
+      isComplete: remaining === 0 && constraints.every((constraint) => constraint.isSatisfied),
+      remaining,
       used,
     };
   });
@@ -274,8 +425,7 @@ export function validateWeeklyPlanning(save: GameSave): WeeklyPlanningValidation
     isComplete: incompleteDays.length === 0,
     missingPoints: days.reduce(
       (total, day) =>
-        total +
-        day.buckets.reduce((bucketTotal, bucket) => bucketTotal + Math.abs(bucket.remaining), 0),
+        total + day.buckets.reduce((bucketTotal, bucket) => bucketTotal + bucket.remaining, 0),
       0,
     ),
     remainingDays,
@@ -296,7 +446,10 @@ function clampDailyPlanBucketPoints(
   const roundedPoints = Math.max(0, Math.round(Number.isFinite(points) ? points : 0));
   const currentPoints = plan[bucket][activity];
   const otherPoints = getDailyPlanBucketTotal(plan[bucket]) - currentPoints;
-  const availablePoints = Math.max(0, getDailyPlanBucketBudget(save, bucket) - otherPoints);
+  const availablePoints = Math.max(
+    0,
+    getDailyPlanBucketBudget(save, bucket, getPlanDate(save, plan.dayOfWeek)) - otherPoints,
+  );
 
   return Math.min(roundedPoints, availablePoints);
 }

@@ -4,6 +4,7 @@ import type { DayOfWeek } from '../time/types';
 export type GladiatorTraitModifier =
   | { type: 'trainingExperienceMultiplier'; value: number }
   | { type: 'arenaCombatEligibility'; value: boolean }
+  | { type: 'activityEligibility'; value: boolean }
   | { type: 'combatMoraleBonus'; value: number }
   | { type: 'combatEnergyBonus'; value: number }
   | { type: 'combatExperienceMultiplier'; value: number }

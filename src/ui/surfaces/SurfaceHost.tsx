@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { hasActiveGladiatorTrait } from '../../domain/gladiator-traits/gladiator-trait-actions';
+import { canGladiatorPerformActivities } from '../../domain/gladiator-traits/gladiator-trait-actions';
 import { getAvailableSkillPoints } from '../../domain/gladiators/progression';
 import { getAvailableLudusGladiatorPlaces } from '../../domain/ludus/capacity';
 import { calculateGladiatorSaleValue } from '../../domain/market/market-actions';
@@ -33,17 +33,17 @@ import { ContextSheet, GameSurface, SurfaceHeader, SurfaceTabs } from './Surface
 
 const rosterFilters: RosterFilter[] = ['all', 'ready', 'injured', 'levelUp'];
 
-function hasInjury(save: GameSave, gladiatorId: string) {
-  return hasActiveGladiatorTrait(save, gladiatorId, 'injury');
+function canPerformActivities(save: GameSave, gladiatorId: string) {
+  return canGladiatorPerformActivities(save, gladiatorId);
 }
 
 function getFilteredGladiators(save: GameSave, filter: RosterFilter) {
   if (filter === 'ready') {
-    return save.gladiators.filter((gladiator) => !hasInjury(save, gladiator.id));
+    return save.gladiators.filter((gladiator) => canPerformActivities(save, gladiator.id));
   }
 
   if (filter === 'injured') {
-    return save.gladiators.filter((gladiator) => hasInjury(save, gladiator.id));
+    return save.gladiators.filter((gladiator) => !canPerformActivities(save, gladiator.id));
   }
 
   if (filter === 'levelUp') {

@@ -137,6 +137,10 @@ function hasBoolean(value: Record<string, unknown>, key: string) {
   return typeof value[key] === 'boolean';
 }
 
+function hasOptionalBoolean(value: Record<string, unknown>, key: string) {
+  return value[key] === undefined || typeof value[key] === 'boolean';
+}
+
 function hasArray(value: Record<string, unknown>, key: string) {
   return Array.isArray(value[key]);
 }
@@ -616,6 +620,10 @@ function normalizeEconomyState(economyState?: EconomyState): EconomyState {
 
 function isGameEventEffect(value: unknown) {
   if (!isRecord(value) || !hasStringFrom(value, 'type', eventEffectTypes)) {
+    return false;
+  }
+
+  if (!hasOptionalBoolean(value, 'bypassActivityEligibility')) {
     return false;
   }
 

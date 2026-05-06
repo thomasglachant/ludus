@@ -341,6 +341,14 @@ describe('save validation', () => {
                 year: save.time.year,
               },
             },
+            {
+              traitId: 'rest',
+              expiresAt: {
+                dayOfWeek: 'thursday',
+                week: save.time.week,
+                year: save.time.year,
+              },
+            },
           ],
         },
       ],
@@ -354,7 +362,68 @@ describe('save validation', () => {
         traitId: 'injury',
         expiresAt: { dayOfWeek: 'wednesday', week: save.time.week, year: save.time.year },
       },
+      {
+        traitId: 'rest',
+        expiresAt: { dayOfWeek: 'thursday', week: save.time.week, year: save.time.year },
+      },
     ]);
+  });
+
+  it('accepts event effects with explicit activity eligibility bypasses', () => {
+    const save = createTestSave();
+    const saveWithBypassEvent = {
+      ...save,
+      events: {
+        ...save.events,
+        pendingEvents: [
+          {
+            id: 'event-bypass-test',
+            definitionId: 'bypassTest',
+            titleKey: 'events.trainingRefusal.title',
+            descriptionKey: 'events.trainingRefusal.description',
+            status: 'pending',
+            createdAtYear: save.time.year,
+            createdAtWeek: save.time.week,
+            createdAtDay: save.time.dayOfWeek,
+            gladiatorId: 'gladiator-test',
+            choices: [
+              {
+                id: 'treat',
+                labelKey: 'events.trainingRefusal.grantRest.label',
+                consequenceKey: 'events.trainingRefusal.grantRest.consequence',
+                consequences: [
+                  {
+                    kind: 'certain',
+                    effects: [
+                      {
+                        type: 'changeGladiatorExperience',
+                        gladiatorId: 'gladiator-test',
+                        amount: 1,
+                        bypassActivityEligibility: true,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const invalidSave = createJsonClone(saveWithBypassEvent);
+
+    (
+      invalidSave.events.pendingEvents[0].choices[0].consequences[0].effects[0] as Record<
+        string,
+        unknown
+      >
+    ).bypassActivityEligibility = 'yes';
+
+    expect(isGameSave(saveWithBypassEvent)).toBe(true);
+    expect(parseGameSave(JSON.stringify(saveWithBypassEvent))).not.toBeNull();
+    expect(isGameSave(invalidSave)).toBe(false);
+    expect(parseGameSave(JSON.stringify(invalidSave))).toBeNull();
   });
 
   it('normalizes daily plans that do not yet store specialized activity selections', () => {

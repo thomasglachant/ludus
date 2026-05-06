@@ -60,4 +60,5 @@ export type GladiatorTraitId =
   | 'rivalrous'
   | 'stoic'
   | 'injury'
+  | 'rest'
   | 'victoryAura';

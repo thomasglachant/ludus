@@ -121,6 +121,7 @@ export interface GladiatorTrait {
 export type GladiatorTraitModifier =
   | { type: 'trainingExperienceMultiplier'; value: number }
   | { type: 'arenaCombatEligibility'; value: boolean }
+  | { type: 'activityEligibility'; value: boolean }
   | { type: 'combatMoraleBonus'; value: number }
   | { type: 'combatEnergyBonus'; value: number }
   | { type: 'combatExperienceMultiplier'; value: number }
@@ -146,7 +147,8 @@ Current native permanent trait modifiers:
 
 Current temporary traits:
 
-- `injury`: training XP x0, blocks arena eligibility and shows an alert;
+- `injury`: activity eligibility false and shows an alert;
+- `rest`: activity eligibility false and shows an alert;
 - `victoryAura`: training XP x1.1 and does not show an alert.
 
 ```ts

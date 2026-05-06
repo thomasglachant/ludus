@@ -159,6 +159,45 @@ describe('weekly simulation actions', () => {
     expect(result.save.gladiators[0].strength).toBe(save.gladiators[0].strength);
   });
 
+  it('applies effective planning points only to activity-eligible gladiators', () => {
+    const save = applyGladiatorTrait(
+      createTestSave({
+        gladiators: [
+          createGladiator({ id: 'gladiator-ready' }),
+          createGladiator({ id: 'gladiator-resting' }),
+        ],
+      }),
+      'rest',
+      2,
+      'gladiator-resting',
+    );
+    const plan = createDefaultDailyPlan('monday');
+    plan.gladiatorTimePoints.training = 16;
+
+    const result = resolveDailyPlan(save, plan, () => 1);
+    const readyGladiator = result.save.gladiators.find(
+      (gladiator) => gladiator.id === 'gladiator-ready',
+    );
+    const restingGladiator = result.save.gladiators.find(
+      (gladiator) => gladiator.id === 'gladiator-resting',
+    );
+
+    expect(readyGladiator?.experience).toBeGreaterThan(0);
+    expect(restingGladiator?.experience).toBe(0);
+  });
+
+  it('resolves no gladiator activity when every gladiator is unavailable', () => {
+    const save = applyGladiatorTrait(createTestSave(), 'rest', 2, 'gladiator-test');
+    const plan = createDefaultDailyPlan('monday');
+    plan.gladiatorTimePoints.training = 8;
+
+    const result = resolveDailyPlan(save, plan, () => 0);
+
+    expect(result.summary.injuredGladiatorIds).toEqual([]);
+    expect(result.summary.reputationDelta).toBe(0);
+    expect(result.save.gladiators[0].experience).toBe(save.gladiators[0].experience);
+  });
+
   it('applies focused training as experience without directly changing skills', () => {
     const save = createTestSave();
     const plan = createDefaultDailyPlan('monday');

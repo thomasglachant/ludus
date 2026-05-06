@@ -159,10 +159,18 @@ export const GLADIATOR_TRAIT_DEFINITIONS = [
       iconName: 'health',
       color: '#b33a2e',
     },
-    modifiers: [
-      { type: 'trainingExperienceMultiplier', value: 0 },
-      { type: 'arenaCombatEligibility', value: false },
-    ],
+    modifiers: [{ type: 'activityEligibility', value: false }],
+  },
+  {
+    id: 'rest',
+    nameKey: 'traits.rest.name',
+    descriptionKey: 'traits.rest.description',
+    showAlert: true,
+    visual: {
+      iconName: 'energy',
+      color: '#7f7a6b',
+    },
+    modifiers: [{ type: 'activityEligibility', value: false }],
   },
   {
     id: 'victoryAura',

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Gladiator } from '../gladiators/types';
+import { applyGladiatorTrait } from '../gladiator-traits/gladiator-trait-actions';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
 import { createDefaultDailyPlan } from '../weekly-simulation/weekly-simulation-actions';
@@ -55,6 +56,17 @@ describe('event actions', () => {
     });
   });
 
+  it('does not select unavailable gladiators for default targeted events', () => {
+    const plan = createDefaultDailyPlan('monday');
+    plan.gladiatorTimePoints.training = 1;
+    const save = applyGladiatorTrait(createTestSave(), 'rest', 2, 'gladiator-test');
+
+    const result = synchronizeMacroEvents(save, plan, () => 0);
+
+    expect(result.createdEventIds).toEqual([]);
+    expect(result.save.events.pendingEvents).toEqual([]);
+  });
+
   it('resolves event choices and records resolved events', () => {
     const plan = createDefaultDailyPlan('monday');
     plan.gladiatorTimePoints.training = 1;
@@ -68,6 +80,20 @@ describe('event actions', () => {
       selectedChoiceId: 'grantRest',
       status: 'resolved',
     });
+    expect(result.gladiators[0].traits).toEqual([
+      {
+        traitId: 'rest',
+        expiresAt: { dayOfWeek: 'wednesday', week: 1, year: 1 },
+      },
+    ]);
+    expect(result.planning.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          gladiatorId: 'gladiator-test',
+          traitId: 'rest',
+        }),
+      ]),
+    );
   });
 
   it('starts Sunday arena after resolving the final Saturday interruption', () => {
@@ -274,6 +300,99 @@ describe('event actions', () => {
         target: undefined,
       }),
     ]);
+  });
+
+  it('ignores targeted event effects for unavailable gladiators by default', () => {
+    const save = applyGladiatorTrait(createTestSave(), 'rest', 2, 'gladiator-test');
+    const event = {
+      id: 'event-unavailable-target-test',
+      definitionId: 'unavailableTargetTest',
+      titleKey: 'events.trainingRefusal.title',
+      descriptionKey: 'events.trainingRefusal.description',
+      status: 'pending' as const,
+      createdAtYear: save.time.year,
+      createdAtWeek: save.time.week,
+      createdAtDay: save.time.dayOfWeek,
+      gladiatorId: 'gladiator-test',
+      choices: [
+        {
+          id: 'reward',
+          labelKey: 'events.trainingRefusal.grantRest.label',
+          consequenceKey: 'events.trainingRefusal.grantRest.consequence',
+          consequences: [
+            {
+              kind: 'certain' as const,
+              effects: [
+                {
+                  type: 'changeGladiatorExperience' as const,
+                  gladiatorId: 'gladiator-test',
+                  amount: 100,
+                },
+                { type: 'removeGladiator' as const, gladiatorId: 'gladiator-test' },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const result = resolveGameEventChoice(
+      {
+        ...save,
+        events: { ...save.events, pendingEvents: [event] },
+        time: { ...save.time, phase: 'event' },
+      },
+      event.id,
+      'reward',
+    ).save;
+
+    expect(result.gladiators[0].experience).toBe(save.gladiators[0].experience);
+    expect(result.gladiators).toHaveLength(1);
+  });
+
+  it('allows targeted event effects to bypass activity eligibility explicitly', () => {
+    const save = applyGladiatorTrait(createTestSave(), 'rest', 2, 'gladiator-test');
+    const event = {
+      id: 'event-unavailable-bypass-test',
+      definitionId: 'unavailableBypassTest',
+      titleKey: 'events.trainingRefusal.title',
+      descriptionKey: 'events.trainingRefusal.description',
+      status: 'pending' as const,
+      createdAtYear: save.time.year,
+      createdAtWeek: save.time.week,
+      createdAtDay: save.time.dayOfWeek,
+      gladiatorId: 'gladiator-test',
+      choices: [
+        {
+          id: 'treat',
+          labelKey: 'events.trainingRefusal.grantRest.label',
+          consequenceKey: 'events.trainingRefusal.grantRest.consequence',
+          consequences: [
+            {
+              kind: 'certain' as const,
+              effects: [
+                {
+                  type: 'changeGladiatorExperience' as const,
+                  gladiatorId: 'gladiator-test',
+                  amount: 100,
+                  bypassActivityEligibility: true,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const result = resolveGameEventChoice(
+      {
+        ...save,
+        events: { ...save.events, pendingEvents: [event] },
+        time: { ...save.time, phase: 'event' },
+      },
+      event.id,
+      'treat',
+    ).save;
+
+    expect(result.gladiators[0].experience).toBeGreaterThan(save.gladiators[0].experience);
   });
 
   it('creates one global notification when all gladiators are released', () => {

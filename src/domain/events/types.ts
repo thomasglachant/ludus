@@ -63,18 +63,25 @@ export type GameEventEffect =
   | { type: 'changeLudusReputation'; amount: number }
   | { type: 'changeLudusHappiness'; amount: number }
   | { type: 'changeLudusRebellion'; amount: number }
-  | { type: 'removeGladiator'; gladiatorId: string }
+  | { type: 'removeGladiator'; gladiatorId: string; bypassActivityEligibility?: boolean }
   | { type: 'releaseAllGladiators' }
-  | { type: 'changeGladiatorExperience'; gladiatorId: string; amount: number }
+  | {
+      type: 'changeGladiatorExperience';
+      gladiatorId: string;
+      amount: number;
+      bypassActivityEligibility?: boolean;
+    }
   | {
       type: 'applyGladiatorTrait';
       gladiatorId: string;
       traitId: string;
       durationDays: number;
+      bypassActivityEligibility?: boolean;
     }
   | {
       type: 'changeGladiatorStat';
       gladiatorId: string;
       stat: 'strength' | 'agility' | 'defense' | 'life';
       amount: number;
+      bypassActivityEligibility?: boolean;
     };

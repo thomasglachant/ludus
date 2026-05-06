@@ -20,21 +20,27 @@ export type DailyEventEffectTemplate =
   | { type: 'changeLudusReputation'; amount: number }
   | { type: 'changeLudusHappiness'; amount: number }
   | { type: 'changeLudusRebellion'; amount: number }
-  | { type: 'removeSelectedGladiator' }
+  | { type: 'removeSelectedGladiator'; bypassActivityEligibility?: boolean }
   | { type: 'releaseAllGladiators' }
-  | { type: 'changeSelectedGladiatorHealth'; amount: number }
-  | { type: 'changeSelectedGladiatorEnergy'; amount: number }
-  | { type: 'changeSelectedGladiatorMorale'; amount: number }
-  | { type: 'changeSelectedGladiatorExperience'; amount: number }
+  | { type: 'changeSelectedGladiatorHealth'; amount: number; bypassActivityEligibility?: boolean }
+  | { type: 'changeSelectedGladiatorEnergy'; amount: number; bypassActivityEligibility?: boolean }
+  | { type: 'changeSelectedGladiatorMorale'; amount: number; bypassActivityEligibility?: boolean }
+  | {
+      type: 'changeSelectedGladiatorExperience';
+      amount: number;
+      bypassActivityEligibility?: boolean;
+    }
   | {
       type: 'applySelectedGladiatorTrait';
       traitId: GladiatorTraitDefinitionId;
       durationDays: number;
+      bypassActivityEligibility?: boolean;
     }
   | {
       type: 'changeSelectedGladiatorStat';
       stat: 'strength' | 'agility' | 'defense' | 'life';
       amount: number;
+      bypassActivityEligibility?: boolean;
     };
 
 export interface DailyEventOutcomeDefinition {
@@ -149,6 +155,11 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
             effects: [
               { type: 'changeSelectedGladiatorMorale', amount: 8 },
               { type: 'changeSelectedGladiatorEnergy', amount: 6 },
+              {
+                type: 'applySelectedGladiatorTrait',
+                traitId: 'rest',
+                durationDays: GAME_BALANCE.traits.rest.durationDays,
+              },
             ],
           },
         ],

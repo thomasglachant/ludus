@@ -30,11 +30,11 @@ Current visible planning task:
 
 - `training`.
 
-The default planning baseline is 6 gladiator time points per day before building effects and roster scaling. Training pressure increases injury risk and can reduce happiness when overdone. Training injuries create a temporary `injury` gladiator trait that blocks training XP and arena eligibility while it is active. Gladiator health, energy and morale are not daily attributes; they are temporary combat gauges calculated at fight start from aptitudes, especially life.
+The default planning baseline is 6 gladiator time points per day before building effects and roster scaling. Training pressure increases injury risk and can reduce happiness when overdone. Training injuries create a temporary `injury` gladiator trait that blocks all gladiator activity while it is active. Gladiator health, energy and morale are not daily attributes; they are temporary combat gauges calculated at fight start from aptitudes, especially life.
 
 Training tasks award training XP instead of directly changing strength, agility, defense or life.
 
-Gladiator planning points are budgeted and clamped by the domain. The planning UI previews daily and weekly projected deltas before the week is resolved.
+Gladiator planning points are budgeted and clamped by the domain. Saved plans keep their raw allocations, but simulation and projection use an effective plan capped by the number of activity-eligible gladiators for that day. The planning UI previews daily and weekly projected deltas before the week is resolved.
 
 ## Daily Resolution
 
@@ -52,7 +52,7 @@ Each day resolves:
 - ledger entries and current week summary;
 - game over if treasury reaches the defeat threshold.
 
-Gladiator traits can modify daily gains, combat gauges, combat XP, arena rewards and injury risk. Permanent traits are profile characteristics and do not create alerts. Temporary traits represent short-lived states: `injury` sets training XP to zero, blocks Sunday combat and creates an alert; `victoryAura` boosts training XP after an arena win without creating an alert.
+Gladiator traits can modify daily gains, combat gauges, combat XP, arena rewards and injury risk. Permanent traits are profile characteristics and do not create alerts. Temporary traits represent short-lived states: `injury` and `rest` block all gladiator activity and create alerts; `victoryAura` boosts training XP after an arena win without creating an alert.
 
 ## Gladiator Progression
 

@@ -74,7 +74,9 @@ It resolves:
 
 Gladiators carry permanent and temporary traits in `Gladiator.traits`. A trait without `expiresAt` is permanent and always active. A trait with `expiresAt` is temporary and stays active while `currentDate < expiresAt`.
 
-Permanent traits can modify training, combat, reward or injury-risk calculations without generating alerts. Temporary traits represent short-lived states. `injury` sets the gladiator training XP multiplier to `0`, blocks Sunday arena eligibility and shows an alert. If a gladiator is injured during training, that day grants no training XP for that gladiator and applies `injury` for 2 days. `victoryAura` is applied on the Monday after a Sunday arena win, lasts 3 days, increases training XP by 10% and does not show an alert.
+Permanent traits can modify training, combat, reward or injury-risk calculations without generating alerts. Temporary traits represent short-lived states. `injury` and `rest` set `activityEligibility` to `false`, remove the gladiator from effective daily planning capacity, block all gladiator activity effects, block Sunday arena eligibility and show an alert. If a gladiator is injured during training, that day grants no training XP for that gladiator and applies `injury` for 2 days. `victoryAura` is applied on the Monday after a Sunday arena win, lasts 3 days, increases training XP by 10% and does not show an alert.
+
+Saved daily plans remain raw player intent. Daily simulation, projections, building activity contributions and activity-gated random events use an effective daily plan capped to the activity-eligible gladiator budget for that day. Over-budget points are ignored by the resolver instead of blocking week advancement. Planning activities declare an execution mode: proportional activities scale down with their effective points, while threshold activities require their effective allocation to reach the declared minimum before discrete effects can run.
 
 Macro effects are read from purchased building levels, improvements, policies and skills. Effect values are applied directly from their definitions.
 
@@ -90,7 +92,7 @@ Current applied macro effect types:
 - `increaseReputation`: adds reputation from public/admin activity;
 - `reduceInjuryRisk`: lowers training injury chance;
 
-If a random event is created, its id is recorded in the daily summary and the save enters `event` phase. `resolveWeekStep` will not advance again while pending events remain. Event definitions can be gated by broad `triggerActivities`, specific `triggerBuildingActivities`, or remain global. Treasury changes caused by event choices are recorded in the financial ledger and can trigger debt defeat.
+If a random event is created, its id is recorded in the daily summary and the save enters `event` phase. `resolveWeekStep` will not advance again while pending events remain. Event definitions can be gated by broad `triggerActivities`, specific `triggerBuildingActivities`, or remain global. Default targeted events select activity-eligible gladiators only, and targeted effects ignore unavailable gladiators unless they explicitly set `bypassActivityEligibility`. Treasury changes caused by event choices are recorded in the financial ledger and can trigger debt defeat.
 
 ## Projection
 

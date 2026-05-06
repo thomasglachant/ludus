@@ -28,6 +28,8 @@ import type { DailyPlan, DailyPlanActivity } from '../planning/types';
 import type { GameSave } from '../saves/types';
 import {
   applyGladiatorTrait,
+  canGladiatorPerformActivities,
+  getActivityEligibleGladiators,
   hasActiveGladiatorTrait,
 } from '../gladiator-traits/gladiator-trait-actions';
 import type {
@@ -150,7 +152,7 @@ function canUseDefinition(save: GameSave, definition: DailyEventDefinition) {
     );
   }
 
-  return save.gladiators.length > 0;
+  return getActivityEligibleGladiators(save).length > 0;
 }
 
 function getPlannedActivityPoints(plan: DailyPlan, activity: DailyPlanActivity) {
@@ -207,7 +209,7 @@ function selectGladiator(
   const candidates =
     definition.gladiatorSelector === 'injured'
       ? save.gladiators.filter((gladiator) => hasActiveGladiatorTrait(save, gladiator.id, 'injury'))
-      : save.gladiators;
+      : getActivityEligibleGladiators(save);
 
   return candidates.length > 0 ? candidates[pickIndex(candidates.length, random)] : undefined;
 }
@@ -219,7 +221,13 @@ function resolveEffectTemplate(
   switch (template.type) {
     case 'changeSelectedGladiatorHealth':
       return gladiatorId
-        ? { type: 'changeGladiatorStat', gladiatorId, stat: 'life', amount: template.amount }
+        ? {
+            type: 'changeGladiatorStat',
+            gladiatorId,
+            stat: 'life',
+            amount: template.amount,
+            bypassActivityEligibility: template.bypassActivityEligibility,
+          }
         : { type: 'changeLudusHappiness', amount: Math.round(template.amount / 3) };
     case 'changeSelectedGladiatorEnergy':
       return { type: 'changeLudusHappiness', amount: Math.round(template.amount / 3) };
@@ -227,7 +235,12 @@ function resolveEffectTemplate(
       return { type: 'changeLudusHappiness', amount: template.amount };
     case 'changeSelectedGladiatorExperience':
       return gladiatorId
-        ? { type: 'changeGladiatorExperience', gladiatorId, amount: template.amount }
+        ? {
+            type: 'changeGladiatorExperience',
+            gladiatorId,
+            amount: template.amount,
+            bypassActivityEligibility: template.bypassActivityEligibility,
+          }
         : null;
     case 'applySelectedGladiatorTrait':
       return gladiatorId
@@ -236,14 +249,27 @@ function resolveEffectTemplate(
             gladiatorId,
             traitId: template.traitId,
             durationDays: template.durationDays,
+            bypassActivityEligibility: template.bypassActivityEligibility,
           }
         : null;
     case 'changeSelectedGladiatorStat':
       return gladiatorId
-        ? { type: 'changeGladiatorStat', gladiatorId, stat: template.stat, amount: template.amount }
+        ? {
+            type: 'changeGladiatorStat',
+            gladiatorId,
+            stat: template.stat,
+            amount: template.amount,
+            bypassActivityEligibility: template.bypassActivityEligibility,
+          }
         : null;
     case 'removeSelectedGladiator':
-      return gladiatorId ? { type: 'removeGladiator', gladiatorId } : null;
+      return gladiatorId
+        ? {
+            type: 'removeGladiator',
+            gladiatorId,
+            bypassActivityEligibility: template.bypassActivityEligibility,
+          }
+        : null;
     case 'changeTreasury':
     case 'changeLudusReputation':
     case 'changeLudusHappiness':
@@ -484,6 +510,14 @@ function addAllGladiatorsReleasedNotification(save: GameSave): GameSave {
   });
 }
 
+function canApplyTargetedEventEffect(save: GameSave, effect: GameEventEffect) {
+  return (
+    !('gladiatorId' in effect) ||
+    effect.bypassActivityEligibility ||
+    canGladiatorPerformActivities(save, effect.gladiatorId)
+  );
+}
+
 function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: string): GameSave {
   if (effect.type === 'changeTreasury') {
     return applyTreasuryEventEffect(save, effect, labelKey);
@@ -517,6 +551,10 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
   }
 
   if (effect.type === 'removeGladiator') {
+    if (!canApplyTargetedEventEffect(save, effect)) {
+      return save;
+    }
+
     const notificationSave = addGladiatorDepartureNotification(save, effect.gladiatorId);
 
     return {
@@ -544,6 +582,10 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
   }
 
   if (effect.type === 'changeGladiatorExperience') {
+    if (!canApplyTargetedEventEffect(save, effect)) {
+      return save;
+    }
+
     const experienceSave = {
       ...save,
       gladiators: save.gladiators.map((gladiator) =>
@@ -557,6 +599,10 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
   }
 
   if (effect.type === 'applyGladiatorTrait') {
+    if (!canApplyTargetedEventEffect(save, effect)) {
+      return save;
+    }
+
     const traitSave = applyGladiatorTrait(
       save,
       effect.traitId,
@@ -570,6 +616,10 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
   }
 
   if (effect.type === 'changeGladiatorStat') {
+    if (!canApplyTargetedEventEffect(save, effect)) {
+      return save;
+    }
+
     return {
       ...save,
       gladiators: save.gladiators.map((gladiator) =>

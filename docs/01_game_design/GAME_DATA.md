@@ -174,7 +174,8 @@ Current definitions:
 - `crowdFavorite`: arena reward x1.05;
 - `rivalrous`: combat energy +4 and combat morale -3;
 - `stoic`: injury risk x0.90;
-- `injury`: temporary, shows an alert, sets training XP multiplier to `0`, and blocks arena combat eligibility;
+- `injury`: temporary, shows an alert and blocks all gladiator activity;
+- `rest`: temporary, shows an alert and blocks all gladiator activity;
 - `victoryAura`: temporary, does not show an alert and sets training XP multiplier to `1.1`.
 
 Runtime traits are stored directly in `Gladiator.traits` as `{ traitId, expiresAt? }`. Traits without `expiresAt` are permanent. Temporary trait durations are exclusive by day, and reapplying the same temporary trait extends `expiresAt` without creating a duplicate.

@@ -299,13 +299,16 @@ export function WeeklyPlanningPanel({
   const availableTasks = useMemo(() => getAvailablePlanningActivityDefinitions(save), [save]);
   const visibleTaskGroups = planningTaskGroups.filter(
     (group) =>
-      getDailyPlanBucketBudget(save, group.bucket) > 0 &&
-      availableTasks.some((task) => task.bucket === group.bucket),
+      weeklyValidation.remainingDays.some(
+        (dayOfWeek) =>
+          getDailyPlanBucketBudget(save, group.bucket, {
+            year: save.planning.year,
+            week: save.planning.week,
+            dayOfWeek,
+          }) > 0,
+      ) && availableTasks.some((task) => task.bucket === group.bucket),
   );
-  const activityTotals = useMemo(
-    () => getActivityTotals(save, weeklyValidation.remainingDays, availableTasks),
-    [availableTasks, save, weeklyValidation.remainingDays],
-  );
+  const activityTotals = getActivityTotals(save, weeklyValidation.remainingDays, availableTasks);
   const firstEditableDay = weeklyValidation.remainingDays[0] ?? 'monday';
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>(firstEditableDay);
   const [draggedTask, setDraggedTask] = useState<DraggedPlanningTask | null>(null);
@@ -490,7 +493,11 @@ export function WeeklyPlanningPanel({
           ) : null}
           {visibleTaskGroups.map((group) => {
             const tasks = availableTasks.filter((task) => task.bucket === group.bucket);
-            const budget = getDailyPlanBucketBudget(save, group.bucket);
+            const budget = getDailyPlanBucketBudget(save, group.bucket, {
+              year: save.planning.year,
+              week: save.planning.week,
+              dayOfWeek: activeDay,
+            });
 
             return (
               <ParchmentPanel
@@ -602,12 +609,18 @@ export function WeeklyPlanningPanel({
                         >
                           <GameIcon name={getActivityIcon(constraint.activity)} size={15} />
                           <span>
-                            {t('weeklyPlan.constraintRange', {
-                              activity: t(`weeklyPlan.activities.${constraint.activity}`),
-                              current: constraint.points,
-                              max: constraint.maximum,
-                              min: constraint.minimum,
-                            })}
+                            {constraint.maximum === undefined
+                              ? t('weeklyPlan.constraintMinimum', {
+                                  activity: t(`weeklyPlan.activities.${constraint.activity}`),
+                                  current: constraint.points,
+                                  min: constraint.minimum,
+                                })
+                              : t('weeklyPlan.constraintRange', {
+                                  activity: t(`weeklyPlan.activities.${constraint.activity}`),
+                                  current: constraint.points,
+                                  max: constraint.maximum,
+                                  min: constraint.minimum,
+                                })}
                           </span>
                         </div>
                       )),
@@ -620,6 +633,7 @@ export function WeeklyPlanningPanel({
                       (bucket) => bucket.bucket === group.bucket,
                     );
                     const budget = bucketValidation?.budget ?? 0;
+                    const ignored = bucketValidation?.ignored ?? 0;
                     const used = getDailyPlanBucketTotal(dayPlan[group.bucket]);
                     const progress = budget === 0 ? 100 : Math.min(100, (used / budget) * 100);
                     const bucketTasks = availableTasks.filter(
@@ -643,6 +657,12 @@ export function WeeklyPlanningPanel({
                             })}
                           </strong>
                         </header>
+                        {ignored > 0 ? (
+                          <div className="weekly-planner__constraint weekly-planner__constraint--invalid">
+                            <GameIcon name="warning" size={15} />
+                            <span>{t('weeklyPlan.ignoredPoints', { points: ignored })}</span>
+                          </div>
+                        ) : null}
                         <div className="weekly-planner__bucket-track">
                           <span style={{ width: `${progress}%` }} />
                         </div>

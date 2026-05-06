@@ -7,6 +7,7 @@ import {
   applyGladiatorTrait,
   applyGladiatorTraitAtDate,
   canGladiatorFightInArena,
+  canGladiatorPerformActivities,
   getActiveGladiatorTraits,
   getGladiatorTrainingExperienceMultiplier,
 } from './gladiator-trait-actions';
@@ -73,7 +74,7 @@ describe('gladiator trait actions', () => {
     ).toEqual([]);
   });
 
-  it('combines training multipliers and arena eligibility modifiers', () => {
+  it('combines training multipliers with global activity eligibility modifiers', () => {
     const save = applyGladiatorTraitAtDate(
       applyGladiatorTrait(createTestSave(), 'victoryAura', 3, 'gladiator-test'),
       'injury',
@@ -82,7 +83,39 @@ describe('gladiator trait actions', () => {
       { dayOfWeek: 'monday', week: 1, year: 1 },
     );
 
-    expect(getGladiatorTrainingExperienceMultiplier(save, 'gladiator-test')).toBe(0);
+    expect(getGladiatorTrainingExperienceMultiplier(save, 'gladiator-test')).toBe(1.1);
+    expect(canGladiatorPerformActivities(save, 'gladiator-test')).toBe(false);
     expect(canGladiatorFightInArena(save, 'gladiator-test')).toBe(false);
+  });
+
+  it('uses rest as a temporary global activity blocker', () => {
+    const save = applyGladiatorTrait(createTestSave(), 'rest', 2, 'gladiator-test');
+
+    expect(canGladiatorPerformActivities(save, 'gladiator-test')).toBe(false);
+    expect(canGladiatorFightInArena(save, 'gladiator-test')).toBe(false);
+  });
+
+  it('does not add rest to an already injured gladiator', () => {
+    const injured = applyGladiatorTrait(createTestSave(), 'injury', 2, 'gladiator-test');
+    const rested = applyGladiatorTrait(injured, 'rest', 2, 'gladiator-test');
+
+    expect(rested.gladiators[0].traits).toEqual([
+      {
+        traitId: 'injury',
+        expiresAt: { dayOfWeek: 'wednesday', week: 1, year: 1 },
+      },
+    ]);
+  });
+
+  it('replaces rest when an injury is applied later', () => {
+    const rested = applyGladiatorTrait(createTestSave(), 'rest', 2, 'gladiator-test');
+    const injured = applyGladiatorTrait(rested, 'injury', 2, 'gladiator-test');
+
+    expect(injured.gladiators[0].traits).toEqual([
+      {
+        traitId: 'injury',
+        expiresAt: { dayOfWeek: 'wednesday', week: 1, year: 1 },
+      },
+    ]);
   });
 });

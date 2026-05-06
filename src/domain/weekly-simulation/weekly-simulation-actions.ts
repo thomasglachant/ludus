@@ -27,11 +27,14 @@ import type { BuildingEffect, BuildingId } from '../buildings/types';
 import type { EconomyCategory, WeeklyProjection } from '../economy/types';
 import {
   createDefaultWeeklyPlan,
+  getExecutableDailyPlan,
   getRemainingPlanningDays,
   synchronizePlanning,
 } from '../planning/planning-actions';
 import {
   applyGladiatorTrait,
+  canGladiatorPerformActivities,
+  getActivityEligibleGladiators,
   getRandomCombatInjuryDuration,
   getGladiatorInjuryRiskMultiplier,
   getGladiatorTrainingExperienceMultiplier,
@@ -83,6 +86,7 @@ interface DailyGladiatorResolutionResult {
 }
 
 interface DailyGladiatorModifiers {
+  canPerformActivities: boolean;
   injuryRiskMultiplier: number;
   injuryRiskReductionPercent: number;
   traitTrainingExperienceMultiplier: number;
@@ -155,7 +159,7 @@ function getPercentMultiplier(percent: number) {
 }
 
 function canGladiatorGainTrainingExperience(modifiers: DailyGladiatorModifiers) {
-  return modifiers.traitTrainingExperienceMultiplier > 0;
+  return modifiers.canPerformActivities && modifiers.traitTrainingExperienceMultiplier > 0;
 }
 
 function getFinanceCategoryForActivity(activity: DailyPlanActivity): EconomyCategory {
@@ -267,8 +271,16 @@ function resolveDailyPlanInternal(
   random: RandomSource = Math.random,
   options: DailyResolutionOptions,
 ): DailyResolutionResult {
-  const buildingActivityContributions = getBuildingActivityContributions(save, plan);
-  const buildingActivityImpact = calculateBuildingActivityImpact(save, plan);
+  const planDate = {
+    year: save.planning.year,
+    week: save.planning.week,
+    dayOfWeek: plan.dayOfWeek,
+  };
+  const effectivePlan = getExecutableDailyPlan(save, plan);
+  const eligibleGladiatorCount = getActivityEligibleGladiators(save, planDate).length;
+  const gladiatorPointDivisor = Math.max(1, eligibleGladiatorCount);
+  const buildingActivityContributions = getBuildingActivityContributions(save, effectivePlan);
+  const buildingActivityImpact = calculateBuildingActivityImpact(save, effectivePlan);
   const baseModifiers = {
     injuryRiskReductionPercent:
       getAllGladiatorsEffectValue(save, 'reduceInjuryRisk') +
@@ -281,29 +293,30 @@ function resolveDailyPlanInternal(
   const gladiatorResults = save.gladiators.map((gladiator) =>
     applyDailyGladiatorEffects(
       gladiator,
-      plan,
+      effectivePlan,
       {
         ...baseModifiers,
-        injuryRiskMultiplier: getGladiatorInjuryRiskMultiplier(save, gladiator.id),
+        canPerformActivities: canGladiatorPerformActivities(save, gladiator.id, planDate),
+        injuryRiskMultiplier: getGladiatorInjuryRiskMultiplier(save, gladiator.id, planDate),
         traitTrainingExperienceMultiplier: getGladiatorTrainingExperienceMultiplier(
           save,
           gladiator.id,
+          planDate,
         ),
       },
       random,
-      Math.max(1, save.gladiators.length),
+      gladiatorPointDivisor,
     ),
   );
   const productionBonusPercent = getLudusEffectValue(save, 'increaseProduction');
   const productionIncome = Math.round(
-    getPoints(plan, 'production') *
+    getPoints(effectivePlan, 'production') *
       GAME_BALANCE.macroSimulation.productionIncomePerPoint *
       getPercentMultiplier(productionBonusPercent),
   );
-  const gladiatorPointDivisor = Math.max(1, save.gladiators.length);
-  const totalTrainingPressurePoints = getTrainingPressurePoints(plan);
+  const totalTrainingPressurePoints = getTrainingPressurePoints(effectivePlan);
   const averageGladiatorTrainingPoints = getAverageTrainingPressurePoints(
-    plan,
+    effectivePlan,
     gladiatorPointDivisor,
   );
   const happinessBuildingBonus = Math.round(getLudusEffectValue(save, 'increaseHappiness') / 5);
@@ -462,7 +475,7 @@ function resolveDailyPlanInternal(
   const eventResult =
     isLost || !options.createEvents
       ? { save: summarizedSave, createdEventIds: [] }
-      : synchronizeMacroEvents(summarizedSave, plan, random);
+      : synchronizeMacroEvents(summarizedSave, effectivePlan, random);
 
   const resultSave =
     eventResult.createdEventIds.length > 0

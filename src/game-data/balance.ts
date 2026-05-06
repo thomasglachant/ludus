@@ -181,6 +181,10 @@ export const GAME_BALANCE = {
         maxDurationDays: 8,
       },
     },
+    rest: {
+      // Days applied by event choices that grant a gladiator rest.
+      durationDays: 2,
+    },
     victoryAura: {
       // Days applied after a Sunday arena victory.
       durationDays: 3,
