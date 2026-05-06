@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ludus Commit Push"
+  short_description: "Commit and push current-branch Ludus changes"
+  default_prompt: "Use $ludus-commit-push to commit and push the current Ludus changes on the current branch, and answer me in French."

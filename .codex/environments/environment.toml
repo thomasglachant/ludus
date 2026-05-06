@@ -1,0 +1,17 @@
+version = 1
+name = "ludus"
+
+[setup]
+script = """
+npm ci
+"""
+
+[[actions]]
+name = "Run web app"
+icon = "run"
+command = "npm run dev -- --host 0.0.0.0"
+
+[[actions]]
+name = "Run quality gate"
+icon = "check"
+command = "npm run check:assets && npm run build && npm run lint && npm run test"
