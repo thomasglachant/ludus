@@ -97,7 +97,7 @@ const save = createDemoSave({
       reputation: 0,
       wins: 0,
       losses: 0,
-      traits: ['brave'],
+      traits: ['brave', 'limping', 'disciplined'],
       price: 300,
     }),
     createMarketGladiator({
@@ -112,7 +112,7 @@ const save = createDemoSave({
       reputation: 0,
       wins: 0,
       losses: 0,
-      traits: ['stoic'],
+      traits: ['stoic', 'cowardly', 'broadShouldered'],
       price: 300,
     }),
     createMarketGladiator({
@@ -127,7 +127,7 @@ const save = createDemoSave({
       reputation: 0,
       wins: 0,
       losses: 1,
-      traits: ['lazy'],
+      traits: ['lazy', 'fleetFooted', 'showboater'],
       price: 300,
     }),
     createMarketGladiator({
@@ -142,7 +142,7 @@ const save = createDemoSave({
       reputation: 0,
       wins: 0,
       losses: 0,
-      traits: ['disciplined'],
+      traits: ['disciplined', 'fragile', 'tactical'],
       price: 300,
     }),
     createMarketGladiator({
@@ -157,13 +157,13 @@ const save = createDemoSave({
       reputation: 0,
       wins: 0,
       losses: 0,
-      traits: ['cowardly'],
+      traits: ['cowardly', 'quickLearner', 'brawler'],
       price: 300,
     }),
   ],
 });
 
-export const demoEarlyLudus: DemoSaveDefinition = {
+export const demoEarlyLudus = {
   id: 'demo-early-ludus',
   nameKey: 'demoSaves.early.name',
   descriptionKey: 'demoSaves.early.description',
@@ -172,4 +172,4 @@ export const demoEarlyLudus: DemoSaveDefinition = {
   save,
   preferredRoute: 'ludus',
   preferredCameraTarget: 'ludus',
-};
+} satisfies DemoSaveDefinition;

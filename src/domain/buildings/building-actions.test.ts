@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { calculateBuildingUpgradeCost } from '../../game-data/building-levels';
-import { BUILDING_IDS } from '../../game-data/buildings';
+import { calculateBuildingUpgradeCost } from '../../game-data/buildings/levels';
+import { BUILDING_IDS } from '../../game-data/buildings/definitions';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
 import {

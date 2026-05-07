@@ -1,15 +1,17 @@
-import { GAME_BALANCE } from '../../game-data/balance';
+import { ARENA_RULES } from '../../game-data/arena/rules';
 import {
   PLANNING_ACTIVITY_DEFINITIONS,
   type PlanningActivityDefinition,
 } from '../../game-data/planning';
 import { DAYS_OF_WEEK } from '../../game-data/time';
+import { WEEKLY_SIMULATION_CONFIG } from '../../game-data/weekly-simulation';
 import type { BuildingActivityId } from '../buildings/types';
 import { getSelectableBuildingActivities } from '../buildings/building-activities';
 import { sumActiveBuildingEffectValues } from '../buildings/building-effects';
-import { getActivityEligibleGladiators } from '../gladiator-traits/gladiator-trait-actions';
+import { getActivityEligibleGladiators } from '../gladiators/trait-actions';
 import type { GameSave } from '../saves/types';
 import type { DayOfWeek, GameDate } from '../time/types';
+import { DAILY_PLAN_ACTIVITIES } from './types';
 import type { DailyPlan, DailyPlanActivity, DailyPlanBucket, DailyPlanPoints } from './types';
 
 export type { DailyPlanBucket } from './types';
@@ -52,13 +54,13 @@ export interface WeeklyPlanningValidation {
   remainingDays: DayOfWeek[];
 }
 
-const dailyPlanBuckets: DailyPlanBucket[] = ['gladiatorTimePoints'];
-const dailyPlanActivities: DailyPlanActivity[] = ['training', 'meals', 'sleep', 'production'];
+const dailyPlanBuckets: readonly DailyPlanBucket[] = ['gladiatorTimePoints'];
+const dailyPlanActivities: readonly DailyPlanActivity[] = DAILY_PLAN_ACTIVITIES;
 
 export const DAILY_PLAN_BUCKET_BUDGETS = {
-  gladiatorTimePoints: GAME_BALANCE.macroSimulation.baseDailyGladiatorPoints,
-  laborPoints: GAME_BALANCE.macroSimulation.baseDailyLaborPoints,
-  adminPoints: GAME_BALANCE.macroSimulation.baseDailyAdminPoints,
+  gladiatorTimePoints: WEEKLY_SIMULATION_CONFIG.baseDailyGladiatorPoints,
+  laborPoints: WEEKLY_SIMULATION_CONFIG.baseDailyLaborPoints,
+  adminPoints: WEEKLY_SIMULATION_CONFIG.baseDailyAdminPoints,
 } as const satisfies Record<DailyPlanBucket, number>;
 
 export interface DailyPlanUpdate {
@@ -335,8 +337,7 @@ export function isPastPlanningDay(save: GameSave, dayOfWeek: DayOfWeek) {
 
 export function getRemainingPlanningDays(save: GameSave): DayOfWeek[] {
   return DAYS_OF_WEEK.filter(
-    (dayOfWeek) =>
-      dayOfWeek !== GAME_BALANCE.arena.dayOfWeek && !isPastPlanningDay(save, dayOfWeek),
+    (dayOfWeek) => dayOfWeek !== ARENA_RULES.dayOfWeek && !isPastPlanningDay(save, dayOfWeek),
   );
 }
 
@@ -397,7 +398,7 @@ export function validateDailyPlan(save: GameSave, plan: DailyPlan): DailyPlanVal
     dayOfWeek: plan.dayOfWeek,
     buckets,
     isComplete: buckets.every((bucket) => bucket.isComplete),
-    isEditable: plan.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek && !isPast,
+    isEditable: plan.dayOfWeek !== ARENA_RULES.dayOfWeek && !isPast,
     isPast,
   };
 }

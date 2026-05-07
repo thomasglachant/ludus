@@ -1,23 +1,32 @@
 import type { BuildingId } from '../domain/buildings/types';
 import type { DailyPlanActivity, DailyPlanBucket } from '../domain/planning/types';
-import { GAME_BALANCE } from './balance';
 
 export type PlanningActivityCategory = DailyPlanBucket;
-type DefinedPlanningActivity = keyof typeof GAME_BALANCE.planning.taskDefaultPoints;
+
+export const PLANNING_TASK_DEFAULT_POINTS = {
+  training: 3,
+} as const;
+
+type DefinedPlanningActivity = keyof typeof PLANNING_TASK_DEFAULT_POINTS;
+
+export const PLANNING_ACTIVITY_IMPACT_KINDS = [
+  'agility',
+  'defense',
+  'energy',
+  'health',
+  'morale',
+  'reputation',
+  'strength',
+  'treasury',
+  'warning',
+  'xp',
+] as const;
+
+export type PlanningActivityImpactKind = (typeof PLANNING_ACTIVITY_IMPACT_KINDS)[number];
 
 export interface PlanningActivityImpactDefinition {
   amount: number;
-  kind:
-    | 'agility'
-    | 'defense'
-    | 'energy'
-    | 'health'
-    | 'morale'
-    | 'reputation'
-    | 'strength'
-    | 'treasury'
-    | 'warning'
-    | 'xp';
+  kind: PlanningActivityImpactKind;
   labelKey: string;
 }
 
@@ -53,7 +62,7 @@ function createGladiatorTask(
     bucket: 'gladiatorTimePoints',
     category: 'gladiatorTimePoints',
     color,
-    defaultPoints: GAME_BALANCE.planning.taskDefaultPoints[activity],
+    defaultPoints: PLANNING_TASK_DEFAULT_POINTS[activity],
     execution,
     impacts,
     subcategoryKey: `weeklyPlan.taskSubcategories.${activity}`,

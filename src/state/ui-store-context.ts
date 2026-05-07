@@ -10,7 +10,9 @@ interface ModalBase {
   testId?: string;
 }
 
-export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
+export const MODAL_SIZES = ['sm', 'md', 'lg', 'xl', 'full'] as const;
+
+export type ModalSize = (typeof MODAL_SIZES)[number];
 
 export interface ConfirmModalRequest extends ModalBase {
   kind: 'confirm';
@@ -97,22 +99,38 @@ export interface ArenaModalRequest {
   kind: 'arena';
 }
 
-export type BuildingSurfaceTab =
-  | 'configuration'
-  | 'finance'
-  | 'gladiators'
-  | 'overview'
-  | 'upgrades';
-export type ContentPresentation = 'contextSheet' | 'modal' | 'surface';
-export type LudusSurfaceKind =
-  | 'buildings'
-  | 'finance'
-  | 'gladiators'
-  | 'market'
-  | 'notifications'
-  | 'planning';
-export type RosterFilter = 'all' | 'injured' | 'levelUp' | 'ready';
-export type SurfaceContextSource = 'alert' | 'building' | 'finance' | 'roster';
+export const BUILDING_SURFACE_TABS = [
+  'configuration',
+  'finance',
+  'gladiators',
+  'overview',
+  'upgrades',
+] as const;
+
+export type BuildingSurfaceTab = (typeof BUILDING_SURFACE_TABS)[number];
+
+export const CONTENT_PRESENTATIONS = ['contextSheet', 'modal', 'surface'] as const;
+
+export type ContentPresentation = (typeof CONTENT_PRESENTATIONS)[number];
+
+export const LUDUS_SURFACE_KINDS = [
+  'buildings',
+  'finance',
+  'gladiators',
+  'market',
+  'notifications',
+  'planning',
+] as const;
+
+export type LudusSurfaceKind = (typeof LUDUS_SURFACE_KINDS)[number];
+
+export const ROSTER_FILTERS = ['all', 'injured', 'levelUp', 'ready'] as const;
+
+export type RosterFilter = (typeof ROSTER_FILTERS)[number];
+
+export const SURFACE_CONTEXT_SOURCES = ['alert', 'building', 'finance', 'roster'] as const;
+
+export type SurfaceContextSource = (typeof SURFACE_CONTEXT_SOURCES)[number];
 
 export interface LudusContextSheetState {
   id: string;

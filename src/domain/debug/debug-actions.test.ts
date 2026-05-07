@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GAME_BALANCE } from '../../game-data/balance';
+import { GLADIATOR_PROGRESSION_CONFIG } from '../../game-data/gladiators/progression';
 import type { GameEvent } from '../events/types';
 import {
   getAvailableSkillPoints,
@@ -123,7 +123,7 @@ describe('debug actions', () => {
     const result = levelUpDebugGladiator(save, 'gladiator-test');
     const gladiator = result.gladiators[0];
 
-    expect(gladiator.experience).toBe(GAME_BALANCE.gladiators.progression.experienceByLevel[1]);
+    expect(gladiator.experience).toBe(GLADIATOR_PROGRESSION_CONFIG.experienceByLevel[1]);
     expect(getGladiatorLevel(gladiator)).toBe(2);
     expect(getAvailableSkillPoints(gladiator)).toBe(1);
     expect(result.planning.alerts).toEqual(
@@ -137,13 +137,13 @@ describe('debug actions', () => {
   });
 
   it('does not change a gladiator already at max level', () => {
-    const maxLevelExperience = GAME_BALANCE.gladiators.progression.experienceByLevel.at(-1)!;
+    const maxLevelExperience = GLADIATOR_PROGRESSION_CONFIG.experienceByLevel.at(-1)!;
     const save = createTestSave({
       gladiators: [createGladiator({ experience: maxLevelExperience })],
     });
 
     expect(getGladiatorLevelFromExperience(maxLevelExperience)).toBe(
-      GAME_BALANCE.gladiators.progression.maxLevel,
+      GLADIATOR_PROGRESSION_CONFIG.maxLevel,
     );
     expect(levelUpDebugGladiator(save, 'gladiator-test')).toBe(save);
   });

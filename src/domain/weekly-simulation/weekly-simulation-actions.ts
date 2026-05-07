@@ -1,5 +1,8 @@
-import { GAME_BALANCE } from '../../game-data/balance';
-import { DAYS_OF_WEEK } from '../../game-data/time';
+import { ARENA_RULES } from '../../game-data/arena/rules';
+import { GLADIATOR_TEMPORARY_TRAITS } from '../../game-data/gladiators/traits';
+import { GLADIATOR_TRAINING_CONFIG } from '../../game-data/gladiators/combat';
+import { DAYS_OF_WEEK, GAME_TIME_CONFIG } from '../../game-data/time';
+import { WEEKLY_SIMULATION_CONFIG } from '../../game-data/weekly-simulation';
 import { refreshGameAlerts } from '../alerts/alert-actions';
 import { addGladiatorExperience } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
@@ -24,7 +27,7 @@ import {
   recordIncome,
 } from '../economy/treasury-service';
 import type { BuildingEffect, BuildingId } from '../buildings/types';
-import type { EconomyCategory, WeeklyProjection } from '../economy/types';
+import type { EconomyCategory, EconomyEntryKind, WeeklyProjection } from '../economy/types';
 import {
   createDefaultWeeklyPlan,
   getExecutableDailyPlan,
@@ -39,7 +42,7 @@ import {
   getGladiatorInjuryRiskMultiplier,
   getGladiatorTrainingExperienceMultiplier,
   pruneExpiredTraits,
-} from '../gladiator-traits/gladiator-trait-actions';
+} from '../gladiators/trait-actions';
 import type {
   DailyPlan,
   DailyPlanActivity,
@@ -115,8 +118,8 @@ function getTrainingLoadScale(plan: DailyPlan, gladiatorPointDivisor: number) {
     gladiatorPointDivisor,
   );
   const maximumTrainingPressurePoints =
-    GAME_BALANCE.macroSimulation.idealTrainingPressurePointsPerGladiator *
-    GAME_BALANCE.macroSimulation.maximumTrainingEfficiencyMultiplier;
+    WEEKLY_SIMULATION_CONFIG.idealTrainingPressurePointsPerGladiator *
+    WEEKLY_SIMULATION_CONFIG.maximumTrainingEfficiencyMultiplier;
 
   if (averageTrainingPressurePoints <= maximumTrainingPressurePoints) {
     return 1;
@@ -172,7 +175,7 @@ function getFinanceCategoryForActivity(activity: DailyPlanActivity): EconomyCate
 
 function addDailyDraftsToProjection(
   projection: WeeklyProjection,
-  kind: 'income' | 'expense',
+  kind: EconomyEntryKind,
   entries: DailyLedgerDraft[],
 ): WeeklyProjection {
   const categoryKey = kind === 'income' ? 'incomeByCategory' : 'expenseByCategory';
@@ -232,14 +235,14 @@ function applyDailyGladiatorEffects(
     : 0;
   const injuryChance =
     trainingPoints *
-    GAME_BALANCE.macroSimulation.trainingInjuryChancePerPoint *
+    WEEKLY_SIMULATION_CONFIG.trainingInjuryChancePerPoint *
     Math.max(0.1, 1 - modifiers.injuryRiskReductionPercent / 100) *
     modifiers.injuryRiskMultiplier;
   const isInjured = trainingPoints > 0 && random() < injuryChance;
   const trainingExperience =
     canTrain && !isInjured
       ? getTrainingExperiencePoints(plan, gladiatorPointDivisor, trainingLoadScale) *
-        GAME_BALANCE.gladiators.training.experiencePerPoint *
+        GLADIATOR_TRAINING_CONFIG.experiencePerPoint *
         getPercentMultiplier(modifiers.trainingExperienceBonusPercent) *
         modifiers.traitTrainingExperienceMultiplier
       : 0;
@@ -311,7 +314,7 @@ function resolveDailyPlanInternal(
   const productionBonusPercent = getLudusEffectValue(save, 'increaseProduction');
   const productionIncome = Math.round(
     getPoints(effectivePlan, 'production') *
-      GAME_BALANCE.macroSimulation.productionIncomePerPoint *
+      WEEKLY_SIMULATION_CONFIG.productionIncomePerPoint *
       getPercentMultiplier(productionBonusPercent),
   );
   const totalTrainingPressurePoints = getTrainingPressurePoints(effectivePlan);
@@ -324,19 +327,19 @@ function resolveDailyPlanInternal(
     -Math.max(
       0,
       averageGladiatorTrainingPoints -
-        GAME_BALANCE.macroSimulation.idealTrainingPressurePointsPerGladiator,
+        WEEKLY_SIMULATION_CONFIG.idealTrainingPressurePointsPerGladiator,
     ) *
-      GAME_BALANCE.macroSimulation.heavyScheduleHappinessPenalty +
+      WEEKLY_SIMULATION_CONFIG.heavyScheduleHappinessPenalty +
     happinessBuildingBonus +
     Math.round(buildingActivityImpact.happinessDelta);
   const rebellionReduction = Math.round(getLudusEffectValue(save, 'decreaseRebellion') / 5);
   const isUnderRebellionPressure =
     save.ludus.happiness + happinessDelta <
-    GAME_BALANCE.macroSimulation.rebellionPressureHappinessThreshold;
+    WEEKLY_SIMULATION_CONFIG.rebellionPressureHappinessThreshold;
   const rebellionDelta =
     (isUnderRebellionPressure
-      ? GAME_BALANCE.macroSimulation.rebellionPressureDailyIncrease
-      : -GAME_BALANCE.macroSimulation.rebellionCalmDailyReduction) -
+      ? WEEKLY_SIMULATION_CONFIG.rebellionPressureDailyIncrease
+      : -WEEKLY_SIMULATION_CONFIG.rebellionCalmDailyReduction) -
     rebellionReduction +
     Math.round(buildingActivityImpact.rebellionDelta);
   const reputationBonusPoints = totalTrainingPressurePoints;
@@ -412,7 +415,7 @@ function resolveDailyPlanInternal(
     const injuredSave = applyGladiatorTrait(
       nextSave,
       'injury',
-      GAME_BALANCE.traits.injury.trainingDurationDays,
+      GLADIATOR_TEMPORARY_TRAITS.injury.trainingDurationDays,
       gladiatorId,
     );
 
@@ -521,7 +524,7 @@ export function projectWeeklyPlan(save: GameSave): WeeklyReport {
   const days: DailySimulationSummary[] = [];
 
   for (const dayOfWeek of DAYS_OF_WEEK) {
-    if (dayOfWeek === GAME_BALANCE.arena.dayOfWeek) {
+    if (dayOfWeek === ARENA_RULES.dayOfWeek) {
       continue;
     }
 
@@ -668,7 +671,7 @@ export function projectWeeklyEconomy(save: GameSave): WeeklyProjection {
   const projectedIncomeEntries: DailyLedgerDraft[] = [];
 
   for (const dayOfWeek of DAYS_OF_WEEK) {
-    if (dayOfWeek === GAME_BALANCE.arena.dayOfWeek) {
+    if (dayOfWeek === ARENA_RULES.dayOfWeek) {
       continue;
     }
 
@@ -775,7 +778,7 @@ function getNextDay(dayOfWeek: DayOfWeek) {
 function getNextWeek(year: number, week: number) {
   const nextWeek = week + 1;
 
-  if (nextWeek > GAME_BALANCE.progression.weeksPerYear) {
+  if (nextWeek > GAME_TIME_CONFIG.weeksPerYear) {
     return { year: year + 1, week: 1 };
   }
 
@@ -809,7 +812,7 @@ function applyPostArenaTraits(save: GameSave, sourceSave: GameSave, random: Rand
         traitSave = applyGladiatorTrait(
           traitSave,
           'victoryAura',
-          GAME_BALANCE.traits.victoryAura.durationDays,
+          GLADIATOR_TEMPORARY_TRAITS.victoryAura.durationDays,
           combat.gladiator.id,
         );
       }
@@ -902,7 +905,7 @@ export function resolvePendingGameAction(
     );
   }
 
-  if (save.time.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek) {
+  if (save.time.dayOfWeek !== ARENA_RULES.dayOfWeek) {
     return save;
   }
 
@@ -1039,10 +1042,10 @@ export function resolveWeekStep(save: GameSave, random: RandomSource = Math.rand
             phase:
               result.save.time.phase === 'event'
                 ? 'event'
-                : nextDay === GAME_BALANCE.arena.dayOfWeek
+                : nextDay === ARENA_RULES.dayOfWeek
                   ? 'arena'
                   : 'planning',
-            ...(result.save.time.phase !== 'event' && nextDay === GAME_BALANCE.arena.dayOfWeek
+            ...(result.save.time.phase !== 'event' && nextDay === ARENA_RULES.dayOfWeek
               ? { pendingActionTrigger: 'enterArena' as const }
               : {}),
           },

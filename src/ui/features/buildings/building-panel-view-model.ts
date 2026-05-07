@@ -17,10 +17,10 @@ import type {
   BuildingId,
   GameSave,
 } from '@/domain/types';
-import { getBuildingActivityDefinitions } from '@/game-data/building-activities';
-import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '@/game-data/building-improvements';
-import { BUILDING_SKILLS } from '@/game-data/building-skills';
-import { BUILDING_DEFINITIONS } from '@/game-data/buildings';
+import { getBuildingActivityDefinitions } from '@/game-data/buildings/activities';
+import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '@/game-data/buildings/improvements';
+import { BUILDING_SKILLS } from '@/game-data/buildings/skills';
+import { BUILDING_DEFINITIONS } from '@/game-data/buildings/definitions';
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
 

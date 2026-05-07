@@ -7,20 +7,20 @@ import { formatNumber } from '@/ui/shared/formatters/number';
 import { GameFact } from '@/ui/shared/ludus/GameFact';
 import type { GameIconName } from '@/ui/shared/icons/GameIcon';
 
-interface GladiatorAttributesProps {
+interface GladiatorSkillsProps {
   gladiator: Pick<
     Gladiator,
     'agility' | 'defense' | 'experience' | 'life' | 'reputation' | 'strength'
   >;
 }
 
-interface GladiatorAttributeFactProps {
+interface GladiatorSkillFactProps {
   iconName: GameIconName;
   label: string;
   value: number;
 }
 
-function GladiatorAttributeFact({ iconName, label, value }: GladiatorAttributeFactProps) {
+function GladiatorSkillFact({ iconName, label, value }: GladiatorSkillFactProps) {
   return (
     <Tooltip content={label}>
       <GameFact
@@ -35,37 +35,37 @@ function GladiatorAttributeFact({ iconName, label, value }: GladiatorAttributeFa
   );
 }
 
-export function GladiatorAttributes({ gladiator }: GladiatorAttributesProps) {
+export function GladiatorSkills({ gladiator }: GladiatorSkillsProps) {
   const { t } = useUiStore();
 
   return (
-    <div className="gladiator-attributes">
-      <GladiatorAttributeFact
+    <div className="gladiator-skills">
+      <GladiatorSkillFact
         iconName="level"
         label={t('gladiatorPanel.level')}
         value={getGladiatorLevel(gladiator)}
       />
-      <GladiatorAttributeFact
+      <GladiatorSkillFact
         iconName="reputation"
         label={t('gladiatorPanel.reputation')}
         value={gladiator.reputation}
       />
-      <GladiatorAttributeFact
+      <GladiatorSkillFact
         iconName="health"
         label={t('market.stats.life')}
         value={Math.floor(gladiator.life)}
       />
-      <GladiatorAttributeFact
+      <GladiatorSkillFact
         iconName="strength"
         label={t('market.stats.strength')}
         value={Math.floor(gladiator.strength)}
       />
-      <GladiatorAttributeFact
+      <GladiatorSkillFact
         iconName="agility"
         label={t('market.stats.agility')}
         value={Math.floor(gladiator.agility)}
       />
-      <GladiatorAttributeFact
+      <GladiatorSkillFact
         iconName="defense"
         label={t('market.stats.defense')}
         value={Math.floor(gladiator.defense)}

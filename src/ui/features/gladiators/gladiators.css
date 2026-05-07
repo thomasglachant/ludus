@@ -125,14 +125,14 @@
   font-weight: 700;
 }
 
-.gladiator-attributes {
+.gladiator-skills {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
   align-items: center;
 }
 
-.game-hero__description-content .gladiator-attributes {
+.game-hero__description-content .gladiator-skills {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;

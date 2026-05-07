@@ -52,7 +52,7 @@ Each day resolves:
 - ledger entries and current week summary;
 - reactive events such as debt crisis when treasury goes negative.
 
-Gladiator traits can modify daily gains, combat gauges, combat XP, arena rewards and injury risk. Permanent traits are profile characteristics and do not create alerts. Temporary traits represent short-lived states: `injury` and `rest` block all gladiator activity and create alerts; `victoryAura` boosts training XP after an arena win without creating an alert.
+Gladiator traits can modify daily gains, combat gauges, combat XP, arena rewards, injury risk and effective skills. Permanent traits are profile characteristics, do not create alerts and affect market value. Temporary traits represent short-lived states applied by events or simulation outcomes.
 
 ## Gladiator Progression
 
@@ -85,7 +85,7 @@ The economy now includes:
 
 The ledger records daily income and expenses, building activity income, arena rewards, event treasury choices, gladiator market purchase and sale, building purchase and upgrade, improvements, policies and skill purchases. The finance projection is calculated from the weekly plan and active loan repayments, not from one-shot ledger lines already recorded.
 
-Gladiator market prices are based exclusively on accumulated experience. Sale value is calculated dynamically from the purchase price multiplier.
+Gladiator market prices are calculated from `MARKET_PRICING_CONFIG`: base value, effective skill points, floored XP steps, non-negative reputation, combat record and permanent trait price modifiers. Sale value is calculated dynamically from the purchase price multiplier.
 
 Loans:
 

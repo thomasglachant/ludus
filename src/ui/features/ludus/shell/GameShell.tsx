@@ -7,7 +7,7 @@ import { GameStatusMessage } from '@/ui/shared/ludus/GameFeedback';
 import { TopHud } from '@/ui/features/ludus/shell/TopHud';
 import { ScenicScreen } from '@/ui/app-shell/ScenicScreen';
 import { BottomNavigationBar } from '@/ui/features/ludus/shell/BottomNavigationBar';
-import type { PrimaryNavigationKind } from './game-shell-types';
+import { PRIMARY_NAVIGATION_KINDS, type PrimaryNavigationKind } from './game-shell-types';
 import type { GameActionDockAction } from './GameActionDock';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
 import { SideMenu } from './SideMenu';
@@ -29,14 +29,7 @@ export function GameShell() {
   } = useGameStore();
   const { activeSurface, navigate, openEntity, openModal, openSurface } = useUiStore();
 
-  const primaryNavigationKinds: PrimaryNavigationKind[] = [
-    'buildings',
-    'finance',
-    'gladiators',
-    'market',
-    'planning',
-  ];
-  const activePanelKind = primaryNavigationKinds.includes(
+  const activePanelKind = PRIMARY_NAVIGATION_KINDS.includes(
     activeSurface.kind as PrimaryNavigationKind,
   )
     ? (activeSurface.kind as PrimaryNavigationKind)

@@ -735,8 +735,8 @@ button.game-fact:hover {
 
 .game-list-row__fact .game-fact,
 .game-list-row__info .game-fact,
-.game-list-row__info .gladiator-attributes .game-fact,
-.game-list-row__info .gladiator-attributes .icon-value-stat {
+.game-list-row__info .gladiator-skills .game-fact,
+.game-list-row__info .gladiator-skills .icon-value-stat {
   min-width: 54px;
   justify-content: center;
   padding: 7px 9px;

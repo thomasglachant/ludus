@@ -1,6 +1,6 @@
 import { useGameStore } from '@/state/game-store-context';
 import { useUiStore, type UiModalState } from '@/state/ui-store-context';
-import { BUILDING_DEFINITIONS } from '@/game-data/buildings';
+import { BUILDING_DEFINITIONS } from '@/game-data/buildings/definitions';
 import { ArenaPanel } from '@/ui/features/arena/ArenaPanel';
 import { EventDecisionPanel } from '@/ui/features/events/EventDecisionPanel';
 import { BuildingPanel } from '@/ui/features/buildings/BuildingPanel';

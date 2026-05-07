@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Gladiator } from '../gladiators/types';
-import { applyGladiatorTrait } from '../gladiator-traits/gladiator-trait-actions';
+import { applyGladiatorTrait } from '../gladiators/trait-actions';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
 import { createDefaultDailyPlan } from '../weekly-simulation/weekly-simulation-actions';
@@ -10,6 +10,7 @@ import {
   synchronizeReactiveEvents,
   validateGameEventChoice,
 } from './event-actions';
+import type { GameEvent } from './types';
 
 function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
   return {
@@ -103,7 +104,7 @@ describe('event actions', () => {
 
   it('starts Sunday arena after resolving the final Saturday interruption', () => {
     const save = createTestSave();
-    const event = {
+    const event: GameEvent = {
       id: 'event-saturday-test',
       definitionId: 'saturdayInterruptionTest',
       titleKey: 'events.trainingRefusal.title',
@@ -185,7 +186,7 @@ describe('event actions', () => {
 
   it('applies gladiator traits from event consequences', () => {
     const save = createTestSave();
-    const event = {
+    const event: GameEvent = {
       id: 'event-trait-test',
       definitionId: 'traitTest',
       titleKey: 'events.trainingRefusal.title',

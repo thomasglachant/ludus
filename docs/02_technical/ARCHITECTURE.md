@@ -12,19 +12,22 @@ where appropriate.
 
 ### `src/game-data`
 
-Contains tunable balance and content definitions.
+Contains tunable game rules, catalogs and content definitions.
 
 Current macro data includes:
 
-- `balance.ts`: economy, progression, gladiator XP, macro simulation, arena and building tuning;
-- `buildings.ts`: building definitions and unlock data;
-- `building-skills.ts`: generated four-tier skill trees;
-- `gladiator-traits.ts`: permanent and temporary gladiator trait definitions;
-- `economy.ts`: loan definitions;
-- `market.ts`: market generation and experience-based price tuning;
+- `buildings/`: building definitions, visual assets, levels, improvements, policies, activities and skills;
+- `gladiators/`: names, skills, progression, combat gauge, traits and visual identity data;
+- `ludus/`: ludus-specific reference data such as name generation pools;
+- `economy/`: treasury defaults and loan definitions;
+- `market/`: market generation and pricing rules;
+- `arena/` and `combat/`: arena scheduling, rewards, odds and combat tuning;
+- `events/`: event definitions and event generation rules;
+- `visual-assets.ts`: cross-system visual asset manifest access for locations, UI and generated assets;
+- `weekly-simulation.ts`, `planning.ts` and `time.ts`: cross-system macro rules;
 - demo saves.
 
-New tunable gameplay numbers should start in `GAME_BALANCE`.
+New tunable gameplay values should live with the catalog or subsystem they describe. Domain-specific files should be placed inside the owning `game-data` folder rather than using a root-level prefix. Add a separate config file only for rules that are genuinely shared across several definitions.
 
 ### `src/domain`
 
@@ -36,8 +39,9 @@ Important macro modules:
 - `alerts/alert-actions.ts`: central derived alert engine for ludus, building and gladiator alerts;
 - `notifications/notification-actions.ts`: persisted ludus-life notification history and archive actions;
 - `gladiators/skills.ts`: integer 1..10 skill helpers;
+- `gladiators/traits.ts`: derived permanent and temporary gladiator trait definitions from the `src/game-data/gladiators/traits.ts` catalog;
 - `gladiators/progression.ts`: XP-derived level selectors and skill point allocation rules;
-- `gladiator-traits/gladiator-trait-actions.ts`: active trait lookup, duration pruning and trait modifier selectors;
+- `gladiators/trait-actions.ts`: active trait lookup, duration pruning and trait modifier selectors;
 - `economy/treasury-service.ts`: the only authorized domain service for mutating `ludus.treasury`; it validates voluntary expenses, applies forced expenses and records ledger entries;
 - `economy/economy-actions.ts`: ledger summaries, loans and buyouts;
 - `planning/planning-actions.ts`: shared daily plan updates, validation and macro recommendations;
@@ -46,6 +50,14 @@ Important macro modules:
 - `combat/combat-actions.ts`: Sunday combat resolution and combat XP awards.
 
 Domain modules should be deterministic when a random source is provided.
+
+## Type Sources
+
+Catalog IDs and shared finite state values must have one source of truth. Define the runtime list or object first with `as const`, then derive the TypeScript type from that value with indexed access, `keyof typeof`, or a typed projection from the canonical definition. Do not hand-maintain parallel literal unions for buildings, traits, loans, arena ranks, weekdays, planning activities, event statuses or similar data-backed identifiers.
+
+Local component-only variants may stay as narrow prop types when they are not reused as runtime lists. If a variant list is reused, exported, validated, persisted or shared across modules, promote it to a named constant and derive the type from that constant.
+
+Game data modules are the source of truth for both reference data and the tunable values attached to that data. Avoid central balance mirrors and parallel metadata maps. For example, `src/game-data/gladiators/traits.ts` is the single declaration point for trait i18n keys, visuals, alert visibility, market metadata, gameplay modifiers and trait-specific durations. Domain code may derive typed definitions and selectors from game-data catalogs, but must not maintain duplicate trait metadata maps.
 
 Alerts are derived from the current save. `planning.alerts` remains the persisted storage location for compatibility, but `src/domain/alerts` owns alert generation rules. Rules are stateless and return at most one active alert for the evaluated target. New alerts should be added as ludus, building or gladiator rules in that module, plus i18n keys and tests. The low treasury alert is a ludus rule and routes to the finance surface.
 
@@ -144,7 +156,7 @@ Current test focus:
 - training and combat XP awards;
 - central alerts for ludus planning, low treasury, Dormitory roster capacity, gladiator skill points and visible gladiator traits;
 - skill point spending rules;
-- market prices based exclusively on experience;
+- market prices derived from `MARKET_PRICING_CONFIG`;
 - combat rewards without participation payouts;
 - arena reward ledger entries;
 - building and gladiator market ledger entries;

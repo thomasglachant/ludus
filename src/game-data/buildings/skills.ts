@@ -2,8 +2,8 @@ import type {
   BuildingEffect,
   BuildingId,
   BuildingSkillDefinition,
-} from '../domain/buildings/types';
-import { getBuildingActivityIdsBySkill } from './building-activities';
+} from '../../domain/buildings/types';
+import { getBuildingActivityIdsBySkill } from './activities';
 
 const skillNamesByBuilding = {
   domus: [

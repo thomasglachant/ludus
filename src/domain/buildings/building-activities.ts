@@ -1,7 +1,7 @@
 import {
   BUILDING_ACTIVITY_DEFINITIONS,
   type BuildingActivityDefinition,
-} from '../../game-data/building-activities';
+} from '../../game-data/buildings/activities';
 import type { DailyPlan, DailyPlanActivity } from '../planning/types';
 import type { GameSave } from '../saves/types';
 import type { BuildingActivityId, BuildingId } from './types';

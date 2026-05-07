@@ -1,10 +1,11 @@
-import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/building-activities';
-import { BUILDING_IDS } from '../../game-data/buildings';
-import { GLADIATOR_TRAIT_DEFINITIONS } from '../../game-data/gladiator-traits';
+import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/buildings/activities';
+import { LOAN_DEFINITIONS } from '../../game-data/economy/loans';
 import { createInitialEconomyState, updateCurrentWeekSummary } from '../economy/economy-actions';
 import { createDefaultWeeklyPlan } from '../weekly-simulation/weekly-simulation-actions';
-import { DAYS_OF_WEEK } from '../../game-data/time';
+import { GLADIATOR_TRAIT_DEFINITIONS } from '../gladiators/traits';
+import { BUILDING_IDS } from '../buildings/types';
 import type { BuildingId, BuildingState } from '../buildings/types';
+import { ARENA_DAY_PHASES, ARENA_RANKS } from '../combat/types';
 import type { ArenaDayState, CombatState } from '../combat/types';
 import type {
   ActiveLoan,
@@ -12,8 +13,15 @@ import type {
   EconomyState,
   WeeklyProjection,
 } from '../economy/types';
+import { ECONOMY_CATEGORIES, ECONOMY_ENTRY_KINDS } from '../economy/types';
+import {
+  GAME_EVENT_CONSEQUENCE_KINDS,
+  GAME_EVENT_EFFECT_TYPES,
+  GAME_EVENT_SOURCES,
+  GAME_EVENT_STATUSES,
+} from '../events/types';
 import type { GameEvent, LaunchedGameEventRecord } from '../events/types';
-import { isGladiatorSkillValue } from '../gladiators/skills';
+import { GLADIATOR_SKILL_NAMES, isGladiatorSkillValue } from '../gladiators/skills';
 import {
   normalizeGladiatorProgression,
   resetGladiatorToInitialProgression,
@@ -22,6 +30,11 @@ import type { Gladiator } from '../gladiators/types';
 import { calculateGladiatorMarketPrice } from '../market/market-actions';
 import type { MarketGladiator } from '../market/types';
 import type { GameNotification, GameNotificationTarget } from '../notifications/types';
+import {
+  ALERT_SEVERITIES,
+  DAILY_PLAN_ACTIVITIES,
+  GAME_ALERT_ACTION_KINDS,
+} from '../planning/types';
 import type {
   DailyPlan,
   DailyPlanActivity,
@@ -31,39 +44,18 @@ import type {
   GameAlert,
   WeeklyReport,
 } from '../planning/types';
-import type { DayOfWeek } from '../time/types';
+import { DAYS_OF_WEEK, GAME_PHASES, PENDING_ACTION_TRIGGERS } from '../time/types';
+import type { DayOfWeek, GameDate } from '../time/types';
+import { GAME_STATUSES } from '../ludus/types';
 import type { GameSave } from './types';
 import { CURRENT_SCHEMA_VERSION } from './create-initial-save';
 
-const requiredBuildingIds: BuildingId[] = [...BUILDING_IDS];
 const dayOfWeeks = [...DAYS_OF_WEEK];
 const supportedSchemaVersions = [CURRENT_SCHEMA_VERSION, CURRENT_SCHEMA_VERSION - 1];
-const gamePhases = ['planning', 'simulation', 'event', 'arena', 'report', 'gameOver'];
-const pendingActionTriggers = ['startWeek', 'enterArena'];
-const gameStatuses = ['active', 'lost'];
-const arenaRanks = [
-  'bronze3',
-  'bronze2',
-  'bronze1',
-  'silver3',
-  'silver2',
-  'silver1',
-  'gold3',
-  'gold2',
-  'gold1',
-];
-const arenaDayPhases = ['intro', 'summary'];
 const gladiatorTraitIds = GLADIATOR_TRAIT_DEFINITIONS.map((definition) => definition.id);
-const alertSeverities = ['info', 'warning', 'critical'];
-const alertActionKinds = [
-  'allocateGladiatorSkillPoint',
-  'openFinance',
-  'openWeeklyPlanning',
-  'openMarket',
-];
-const eventStatuses = ['pending', 'resolved', 'expired'];
-const eventSources = ['daily', 'reactive'];
-const dailyPlanActivities: DailyPlanActivity[] = ['training', 'meals', 'sleep', 'production'];
+const loanIds = LOAN_DEFINITIONS.map((definition) => definition.id);
+const dailyPlanActivities: readonly DailyPlanActivity[] = DAILY_PLAN_ACTIVITIES;
+const eventSources = GAME_EVENT_SOURCES;
 const legacyFocusedTrainingActivities = [
   'strengthTraining',
   'agilityTraining',
@@ -77,21 +69,6 @@ const legacyDailyPlanActivities = [
   'events',
 ];
 const supportedDailyPlanPointKeys = [...dailyPlanActivities, ...legacyDailyPlanActivities];
-const economyEntryKinds = ['income', 'expense'];
-const economyCategories = [
-  'arena',
-  'contracts',
-  'production',
-  'market',
-  'maintenance',
-  'food',
-  'medicine',
-  'loan',
-  'event',
-  'building',
-  'other',
-];
-const loanIds = ['smallLoan', 'businessLoan', 'patronLoan'];
 const legacyRemovedBuildingActivities = [
   {
     activity: 'maintenance',
@@ -109,21 +86,7 @@ const legacyRemovedBuildingActivities = [
     replacementId: 'trainingGround.nobleTraining',
   },
 ] as const;
-const eventConsequenceKinds = ['certain', 'chance', 'oneOf'];
-const eventEffectTypes = [
-  'changeTreasury',
-  'changeLudusReputation',
-  'changeLudusHappiness',
-  'changeLudusRebellion',
-  'setGameLost',
-  'startDebtGrace',
-  'removeGladiator',
-  'releaseAllGladiators',
-  'changeGladiatorExperience',
-  'applyGladiatorTrait',
-  'changeGladiatorStat',
-];
-const eventStatFields = ['strength', 'agility', 'defense', 'life'];
+const eventStatFields = GLADIATOR_SKILL_NAMES;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -178,7 +141,7 @@ function hasNumberFrom(
 }
 
 function isBuildingId(value: unknown): value is BuildingId {
-  return isStringFrom(value, requiredBuildingIds);
+  return isStringFrom(value, BUILDING_IDS);
 }
 
 function isOptionalBuildingId(value: unknown): value is BuildingId | undefined {
@@ -241,11 +204,50 @@ function isGameDate(value: unknown) {
 }
 
 function isGladiatorTrait(value: unknown) {
-  return (
-    isRecord(value) &&
-    hasStringFrom(value, 'traitId', gladiatorTraitIds) &&
-    (value.expiresAt === undefined || isGameDate(value.expiresAt))
+  if (!isRecord(value) || !hasStringFrom(value, 'traitId', gladiatorTraitIds)) {
+    return false;
+  }
+
+  const definition = GLADIATOR_TRAIT_DEFINITIONS.find(
+    (candidate) => candidate.id === value.traitId,
   );
+
+  if (!definition) {
+    return false;
+  }
+
+  const hasExpiration = value.expiresAt !== undefined;
+
+  return (
+    (definition.kind === 'temporary' ? hasExpiration : !hasExpiration) &&
+    (!hasExpiration || isGameDate(value.expiresAt))
+  );
+}
+
+function getGameDateSortValue(date: GameDate) {
+  return (date.year * 100 + date.week) * DAYS_OF_WEEK.length + DAYS_OF_WEEK.indexOf(date.dayOfWeek);
+}
+
+function normalizeGladiatorTraits(traits: Gladiator['traits']) {
+  const uniqueTraits = new Map<string, Gladiator['traits'][number]>();
+
+  for (const trait of traits) {
+    const existingTrait = uniqueTraits.get(trait.traitId);
+
+    if (!existingTrait || !trait.expiresAt) {
+      uniqueTraits.set(trait.traitId, trait);
+      continue;
+    }
+
+    if (
+      existingTrait.expiresAt &&
+      getGameDateSortValue(trait.expiresAt) > getGameDateSortValue(existingTrait.expiresAt)
+    ) {
+      uniqueTraits.set(trait.traitId, trait);
+    }
+  }
+
+  return [...uniqueTraits.values()];
 }
 
 function hasCurrentGladiatorSkillProfile(value: Record<string, unknown>) {
@@ -291,9 +293,9 @@ function isTimeState(value: unknown) {
     hasNumber(value, 'year') &&
     hasNumber(value, 'week') &&
     hasStringFrom(value, 'dayOfWeek', dayOfWeeks) &&
-    hasStringFrom(value, 'phase', gamePhases) &&
+    hasStringFrom(value, 'phase', GAME_PHASES) &&
     (value.pendingActionTrigger === undefined ||
-      isStringFrom(value.pendingActionTrigger, pendingActionTriggers))
+      isStringFrom(value.pendingActionTrigger, PENDING_ACTION_TRIGGERS))
   );
 }
 
@@ -357,7 +359,7 @@ function isCombatState(value: unknown): value is CombatState {
     hasString(value, 'id') &&
     isGladiator(value.gladiator) &&
     isGladiator(value.opponent) &&
-    hasStringFrom(value, 'rank', arenaRanks) &&
+    hasStringFrom(value, 'rank', ARENA_RANKS) &&
     Array.isArray(value.turns) &&
     value.turns.every(isCombatTurn) &&
     hasOptionalString(value, 'winnerId') &&
@@ -372,7 +374,7 @@ function isArenaDayState(value: unknown): value is ArenaDayState {
     isRecord(value) &&
     hasNumber(value, 'year') &&
     hasNumber(value, 'week') &&
-    hasStringFrom(value, 'phase', arenaDayPhases) &&
+    hasStringFrom(value, 'phase', ARENA_DAY_PHASES) &&
     Array.isArray(value.presentedCombatIds) &&
     value.presentedCombatIds.every((combatId) => typeof combatId === 'string')
   );
@@ -392,12 +394,12 @@ function isGameAlert(value: unknown): value is GameAlert {
   return (
     isRecord(value) &&
     hasString(value, 'id') &&
-    hasStringFrom(value, 'severity', alertSeverities) &&
+    hasStringFrom(value, 'severity', ALERT_SEVERITIES) &&
     hasString(value, 'titleKey') &&
     hasString(value, 'descriptionKey') &&
-    (value.actionKind === undefined || isStringFrom(value.actionKind, alertActionKinds)) &&
+    (value.actionKind === undefined || isStringFrom(value.actionKind, GAME_ALERT_ACTION_KINDS)) &&
     (value.gladiatorId === undefined || typeof value.gladiatorId === 'string') &&
-    (value.buildingId === undefined || isStringFrom(value.buildingId, requiredBuildingIds)) &&
+    (value.buildingId === undefined || isStringFrom(value.buildingId, BUILDING_IDS)) &&
     (value.traitId === undefined || isStringFrom(value.traitId, gladiatorTraitIds)) &&
     hasString(value, 'createdAt')
   );
@@ -553,7 +555,7 @@ function isEconomyCategoryTotals(value: unknown) {
     isRecord(value) &&
     Object.entries(value).every(
       ([category, amount]) =>
-        isStringFrom(category, economyCategories) &&
+        isStringFrom(category, ECONOMY_CATEGORIES) &&
         typeof amount === 'number' &&
         Number.isFinite(amount) &&
         amount >= 0,
@@ -577,8 +579,8 @@ function isEconomyLedgerEntry(value: unknown): value is EconomyLedgerEntry {
     hasNumber(value, 'year') &&
     hasNumber(value, 'week') &&
     hasStringFrom(value, 'dayOfWeek', dayOfWeeks) &&
-    hasStringFrom(value, 'kind', economyEntryKinds) &&
-    hasStringFrom(value, 'category', economyCategories) &&
+    hasStringFrom(value, 'kind', ECONOMY_ENTRY_KINDS) &&
+    hasStringFrom(value, 'category', ECONOMY_CATEGORIES) &&
     hasNonNegativeNumber(value, 'amount') &&
     hasString(value, 'labelKey') &&
     isOptionalBuildingId(value.buildingId) &&
@@ -637,7 +639,7 @@ function normalizeEconomyState(economyState?: EconomyState): EconomyState {
 }
 
 function isGameEventEffect(value: unknown) {
-  if (!isRecord(value) || !hasStringFrom(value, 'type', eventEffectTypes)) {
+  if (!isRecord(value) || !hasStringFrom(value, 'type', GAME_EVENT_EFFECT_TYPES)) {
     return false;
   }
 
@@ -714,7 +716,7 @@ function hasUniqueOutcomeIds(outcomes: Array<Record<string, unknown>>) {
 }
 
 function isGameEventConsequence(value: unknown) {
-  if (!isRecord(value) || !hasStringFrom(value, 'kind', eventConsequenceKinds)) {
+  if (!isRecord(value) || !hasStringFrom(value, 'kind', GAME_EVENT_CONSEQUENCE_KINDS)) {
     return false;
   }
 
@@ -752,12 +754,12 @@ function isGameEvent(value: unknown): value is GameEvent {
     (value.source === undefined || isStringFrom(value.source, eventSources)) &&
     hasString(value, 'titleKey') &&
     hasString(value, 'descriptionKey') &&
-    hasStringFrom(value, 'status', eventStatuses) &&
+    hasStringFrom(value, 'status', GAME_EVENT_STATUSES) &&
     hasNumber(value, 'createdAtYear') &&
     hasNumber(value, 'createdAtWeek') &&
     hasStringFrom(value, 'createdAtDay', dayOfWeeks) &&
     (value.gladiatorId === undefined || typeof value.gladiatorId === 'string') &&
-    (value.buildingId === undefined || isStringFrom(value.buildingId, requiredBuildingIds)) &&
+    (value.buildingId === undefined || isStringFrom(value.buildingId, BUILDING_IDS)) &&
     Array.isArray(value.choices) &&
     value.choices.every(isGameEventChoice) &&
     hasOptionalString(value, 'selectedChoiceId') &&
@@ -857,7 +859,7 @@ function isSupportedGameSave(value: unknown): value is GameSave {
     !hasNumber(value.ludus, 'reputation') ||
     !hasNumber(value.ludus, 'happiness') ||
     !hasNumber(value.ludus, 'rebellion') ||
-    !hasStringFrom(value.ludus, 'gameStatus', gameStatuses)
+    !hasStringFrom(value.ludus, 'gameStatus', GAME_STATUSES)
   ) {
     return false;
   }
@@ -873,7 +875,7 @@ function isSupportedGameSave(value: unknown): value is GameSave {
   }
 
   return (
-    requiredBuildingIds.every((buildingId) =>
+    BUILDING_IDS.every((buildingId) =>
       isBuildingState(buildings[buildingId], buildingId, schemaVersion),
     ) &&
     Array.isArray(value.gladiators) &&
@@ -930,7 +932,7 @@ function normalizeBuilding(building: NormalizableBuildingState): BuildingState {
 
 function normalizeBuildings(buildings: GameSave['buildings']): GameSave['buildings'] {
   return Object.fromEntries(
-    requiredBuildingIds.map((buildingId) => [
+    BUILDING_IDS.map((buildingId) => [
       buildingId,
       normalizeBuilding(buildings[buildingId] as NormalizableBuildingState),
     ]),
@@ -985,6 +987,7 @@ function stripLegacyGladiatorFields(gladiator: Gladiator): Gladiator {
           ? (gladiator as Gladiator & { health: number }).health
           : 10,
     visualIdentity: normalizeVisualIdentity(gladiatorWithoutClass.visualIdentity),
+    traits: normalizeGladiatorTraits(gladiator.traits),
   };
 }
 
@@ -1145,7 +1148,7 @@ export function normalizeGameSave(save: GameSave): GameSave {
       week: save.time.week,
       dayOfWeek: save.time.dayOfWeek,
       phase: save.time.phase ?? 'planning',
-      ...(isStringFrom(save.time.pendingActionTrigger, pendingActionTriggers)
+      ...(isStringFrom(save.time.pendingActionTrigger, PENDING_ACTION_TRIGGERS)
         ? { pendingActionTrigger: save.time.pendingActionTrigger }
         : {}),
     },

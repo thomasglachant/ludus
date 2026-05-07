@@ -4,9 +4,9 @@ import type { GladiatorSkillName } from '@/domain/gladiators/skills';
 import { getAvailableSkillPoints, getGladiatorLevel } from '@/domain/gladiators/progression';
 import type { GameSave, Gladiator } from '@/domain/types';
 import { useUiStore } from '@/state/ui-store-context';
-import { GladiatorAttributes } from '@/ui/features/gladiators/GladiatorAttributes';
 import { GladiatorExperienceBar } from '@/ui/features/gladiators/GladiatorExperienceBar';
 import { GladiatorSkillBars } from '@/ui/features/gladiators/GladiatorSkillBars';
+import { GladiatorSkills } from '@/ui/features/gladiators/GladiatorSkills';
 import { GladiatorTraits } from '@/ui/features/gladiators/GladiatorTraits';
 import { ActionBar } from '@/ui/shared/ludus/ActionBar';
 import { Button } from '@/ui/shared/ludus/Button';
@@ -66,7 +66,7 @@ export function GladiatorDetailPanel({
       <ModalHeroCard
         avatar={<GladiatorPortrait gladiator={gladiator} size="large" />}
         description={<span>{t('market.age', { age: gladiator.age })}</span>}
-        descriptionContent={<GladiatorAttributes gladiator={gladiator} />}
+        descriptionContent={<GladiatorSkills gladiator={gladiator} />}
         headingContent={<GladiatorTraits gladiator={gladiator} save={save} />}
         level={getGladiatorLevel(gladiator)}
         levelLabelKey="gladiatorPanel.level"

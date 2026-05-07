@@ -1,15 +1,29 @@
-export type GamePhase = 'planning' | 'simulation' | 'event' | 'arena' | 'report' | 'gameOver';
+export const GAME_PHASES = [
+  'planning',
+  'simulation',
+  'event',
+  'arena',
+  'report',
+  'gameOver',
+] as const;
 
-export type PendingActionTrigger = 'startWeek' | 'enterArena';
+export type GamePhase = (typeof GAME_PHASES)[number];
 
-export type DayOfWeek =
-  | 'monday'
-  | 'tuesday'
-  | 'wednesday'
-  | 'thursday'
-  | 'friday'
-  | 'saturday'
-  | 'sunday';
+export const PENDING_ACTION_TRIGGERS = ['startWeek', 'enterArena'] as const;
+
+export type PendingActionTrigger = (typeof PENDING_ACTION_TRIGGERS)[number];
+
+export const DAYS_OF_WEEK = [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+] as const;
+
+export type DayOfWeek = (typeof DAYS_OF_WEEK)[number];
 
 export interface GameTimeState {
   year: number;

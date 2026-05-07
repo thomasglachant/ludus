@@ -1,8 +1,8 @@
 import type { EconomyLedgerEntry } from '@/domain/types';
-import { BUILDING_ACTIVITY_DEFINITIONS } from '@/game-data/building-activities';
-import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '@/game-data/building-improvements';
-import { BUILDING_SKILLS } from '@/game-data/building-skills';
-import { BUILDING_DEFINITIONS } from '@/game-data/buildings';
+import { BUILDING_ACTIVITY_DEFINITIONS } from '@/game-data/buildings/activities';
+import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '@/game-data/buildings/improvements';
+import { BUILDING_SKILLS } from '@/game-data/buildings/skills';
+import { BUILDING_DEFINITIONS } from '@/game-data/buildings/definitions';
 import { formatMoneyAmount } from './money';
 
 type TranslationParams = Record<string, string | number>;

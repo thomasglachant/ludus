@@ -8,7 +8,7 @@ import type {
   GameSave,
 } from '@/domain/types';
 import { getGameEventChoiceTreasuryCost } from '@/domain/events/event-actions';
-import { GAME_BALANCE } from '@/game-data/balance';
+import { TREASURY_CONFIG } from '@/game-data/economy/treasury';
 import { useUiStore } from '@/state/ui-store-context';
 import { ActionBar } from '@/ui/shared/ludus/ActionBar';
 import { PrimaryActionButton } from '@/ui/shared/ludus/PrimaryActionButton';
@@ -93,7 +93,7 @@ function getTextEffectLabel(
       return t('events.outcome.gameLost');
     case 'startDebtGrace':
       return t('events.outcome.debtGrace', {
-        days: GAME_BALANCE.economy.debtGraceDays,
+        days: TREASURY_CONFIG.debtGraceDays,
       });
     default:
       return null;

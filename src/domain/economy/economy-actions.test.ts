@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LOAN_DEFINITIONS } from '../../game-data/economy';
+import { LOAN_DEFINITIONS } from '../../game-data/economy/loans';
 import { createInitialSave } from '../saves/create-initial-save';
 import { buyoutLoan, takeLoan } from './economy-actions';
 

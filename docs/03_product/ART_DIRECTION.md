@@ -234,10 +234,12 @@ All generated production images must be converted to WebP before being
 referenced by the application. React components must reference assets through
 manifests and game-data visual definitions, never through hardcoded image paths.
 
-Typed access to manifests belongs in `src/game-data/visual-assets.ts` and
-adjacent visual modules such as:
+Typed access to the cross-system manifest belongs in `src/game-data/visual-assets.ts`.
+Domain-specific visual data belongs in the owning game-data folder, such as:
 
-- `src/game-data/gladiator-visuals.ts`;
+- `src/game-data/buildings/assets.ts`;
+- `src/game-data/gladiators/assets.ts`;
+- `src/game-data/gladiators/visuals.ts`;
 
 Do not duplicate the full manifest in documentation. Document concepts and
 boundaries here; keep asset paths in data.

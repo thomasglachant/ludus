@@ -369,6 +369,52 @@ describe('save validation', () => {
     ]);
   });
 
+  it('rejects trait entries whose expiration does not match their catalog kind', () => {
+    const save = createTestSave();
+    const gladiator = {
+      id: 'gladiator-test',
+      name: 'Aulus',
+      age: 18,
+      experience: 0,
+      strength: 3,
+      agility: 3,
+      defense: 2,
+      life: 2,
+      reputation: 0,
+      wins: 0,
+      losses: 0,
+      traits: [] as Record<string, unknown>[],
+    };
+    const temporaryWithoutExpirationSave = {
+      ...save,
+      gladiators: [
+        {
+          ...gladiator,
+          traits: [{ traitId: 'injury' }],
+        },
+      ],
+    };
+    const permanentWithExpirationSave = {
+      ...save,
+      gladiators: [
+        {
+          ...gladiator,
+          traits: [
+            {
+              traitId: 'disciplined',
+              expiresAt: { dayOfWeek: 'wednesday', week: save.time.week, year: save.time.year },
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(isGameSave(temporaryWithoutExpirationSave)).toBe(false);
+    expect(parseGameSave(JSON.stringify(temporaryWithoutExpirationSave))).toBeNull();
+    expect(isGameSave(permanentWithExpirationSave)).toBe(false);
+    expect(parseGameSave(JSON.stringify(permanentWithExpirationSave))).toBeNull();
+  });
+
   it('accepts event effects with explicit activity eligibility bypasses', () => {
     const save = createTestSave();
     const saveWithBypassEvent = {
@@ -567,5 +613,62 @@ describe('save validation', () => {
 
     expect(parsed?.economy.currentWeekSummary.incomeByCategory.event).toBe(80);
     expect(parsed?.economy.currentWeekSummary.net).toBe(80);
+  });
+
+  it('deduplicates gladiator traits while preserving the latest temporary expiration', () => {
+    const save = createJsonClone(createTestSave());
+    const duplicatedTraitSave = {
+      ...save,
+      gladiators: [
+        {
+          id: 'gladiator-test',
+          name: 'Aulus',
+          age: 18,
+          experience: 0,
+          strength: 3,
+          agility: 3,
+          defense: 2,
+          life: 2,
+          reputation: 0,
+          wins: 0,
+          losses: 0,
+          traits: [
+            { traitId: 'disciplined' },
+            { traitId: 'disciplined' },
+            {
+              traitId: 'injury',
+              expiresAt: { dayOfWeek: 'tuesday', week: save.time.week, year: save.time.year },
+            },
+            {
+              traitId: 'injury',
+              expiresAt: { dayOfWeek: 'thursday', week: save.time.week, year: save.time.year },
+            },
+          ],
+        },
+      ],
+      market: {
+        ...save.market,
+        availableGladiators: [
+          {
+            ...save.market.availableGladiators[0],
+            traits: [{ traitId: 'lazy' }, { traitId: 'lazy' }, { traitId: 'brave' }],
+          },
+        ],
+      },
+    };
+
+    const parsed = parseGameSave(JSON.stringify(duplicatedTraitSave));
+
+    expect(parsed?.gladiators[0].traits).toEqual([
+      { traitId: 'disciplined' },
+      {
+        traitId: 'injury',
+        expiresAt: { dayOfWeek: 'thursday', week: save.time.week, year: save.time.year },
+      },
+    ]);
+    expect(parsed?.market.availableGladiators[0].traits).toEqual([
+      { traitId: 'lazy' },
+      { traitId: 'brave' },
+    ]);
   });
 });

@@ -4,7 +4,9 @@ import type { EconomyCategory, EconomyLedgerEntry } from './types';
 
 const LEDGER_ENTRY_LIMIT = 120;
 
-export type TreasuryExpenseFailureReason = 'insufficientTreasury';
+export const TREASURY_EXPENSE_FAILURE_REASONS = ['insufficientTreasury'] as const;
+
+export type TreasuryExpenseFailureReason = (typeof TREASURY_EXPENSE_FAILURE_REASONS)[number];
 
 export interface TreasuryExpenseValidation {
   isAllowed: boolean;
@@ -25,7 +27,7 @@ export interface TreasuryMutationResult {
   validation: TreasuryExpenseValidation;
 }
 
-function createLedgerEntry(
+export function createLedgerEntry(
   save: Pick<GameSave, 'time'> & Partial<Pick<GameSave, 'economy'>>,
   input: Omit<EconomyLedgerEntry, 'id' | 'year' | 'week' | 'dayOfWeek'>,
 ): EconomyLedgerEntry {
@@ -51,7 +53,7 @@ function createLedgerEntry(
   };
 }
 
-function appendTreasuryLedgerEntry(save: GameSave, entry: EconomyLedgerEntry): GameSave {
+export function addLedgerEntry(save: GameSave, entry: EconomyLedgerEntry): GameSave {
   const signedAmount = entry.kind === 'income' ? entry.amount : -entry.amount;
 
   return {
@@ -101,7 +103,7 @@ export function recordIncome(save: GameSave, input: TreasuryMutationInput): Game
     return save;
   }
 
-  return appendTreasuryLedgerEntry(
+  return addLedgerEntry(
     save,
     createLedgerEntry(save, {
       kind: 'income',
@@ -126,7 +128,7 @@ export function recordExpense(
 
   return {
     validation,
-    save: appendTreasuryLedgerEntry(
+    save: addLedgerEntry(
       save,
       createLedgerEntry(save, {
         kind: 'expense',
@@ -147,7 +149,7 @@ export function recordForcedExpense(save: GameSave, input: TreasuryMutationInput
     return save;
   }
 
-  return appendTreasuryLedgerEntry(
+  return addLedgerEntry(
     save,
     createLedgerEntry(save, {
       kind: 'expense',

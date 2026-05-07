@@ -3,10 +3,10 @@ import {
   ARENA_PUBLIC_STAKE_MODIFIER_SPREAD,
   ARENA_REWARDS,
   ARENA_VICTORY_ODDS_REWARD_MULTIPLIER,
-} from '../../game-data/combat';
-import { GLADIATOR_CLASS_VISUAL_ASSET_IDS } from '../../game-data/visual-assets';
+} from '../../game-data/arena/rules';
+import { GLADIATOR_CLASS_VISUAL_ASSET_IDS } from '../../game-data/gladiators/assets';
 import { createInitialSave } from '../saves/create-initial-save';
-import { applyGladiatorTraitAtDate } from '../gladiator-traits/gladiator-trait-actions';
+import { applyGladiatorTraitAtDate } from '../gladiators/trait-actions';
 import { completeSundayArenaDay } from '../weekly-simulation/weekly-simulation-actions';
 import type { GameSave, Gladiator } from '../types';
 import {

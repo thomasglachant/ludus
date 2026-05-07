@@ -2,7 +2,7 @@ import './debug.css';
 import { useMemo, useState } from 'react';
 import { featureFlags } from '@/config/features';
 import { DAYS_OF_WEEK } from '@/game-data/time';
-import { GAME_BALANCE } from '@/game-data/balance';
+import { DEBUG_TIME_SCALE_OPTIONS } from '@/game-data/time';
 import { getGladiatorExperienceProgress } from '@/domain/gladiators/progression';
 import { useGameStore } from '@/state/game-store-context';
 import { useUiStore } from '@/state/ui-store-context';
@@ -152,7 +152,7 @@ export function DebugOverlay() {
       timeSpeed: {
         id: 'timeSpeed',
         title: t('debug.timeSpeed'),
-        items: GAME_BALANCE.debug.timeScaleOptions.map((multiplier) => ({
+        items: DEBUG_TIME_SCALE_OPTIONS.map((multiplier) => ({
           id: `time-speed-${multiplier}`,
           isSelected: debugTimeScale === multiplier,
           label: t('debug.timeSpeedOption', { multiplier }),

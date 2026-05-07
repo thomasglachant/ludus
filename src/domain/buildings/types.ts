@@ -1,4 +1,37 @@
-export type BuildingId = 'domus' | 'canteen' | 'dormitory' | 'trainingGround';
+export const BUILDING_IDS = ['domus', 'trainingGround', 'canteen', 'dormitory'] as const;
+
+export type BuildingId = (typeof BUILDING_IDS)[number];
+
+export const BUILDING_ACTIVITY_IDS = [
+  'trainingGround.nobleTraining',
+  'trainingGround.soldierTraining',
+  'trainingGround.publicDrill',
+  'canteen.supplyContracts',
+  'canteen.festivalCatering',
+  'domus.profitForecasting',
+  'domus.championshipBooking',
+] as const;
+
+export type BuildingActivityId = (typeof BUILDING_ACTIVITY_IDS)[number];
+
+export const BUILDING_EFFECT_TYPES = [
+  'increaseTrainingExperience',
+  'increaseCapacity',
+  'increaseDailyGladiatorPoints',
+  'reduceInjuryRisk',
+  'increaseReputation',
+  'increaseHappiness',
+  'decreaseRebellion',
+  'increaseIncome',
+  'reduceExpense',
+  'increaseProduction',
+] as const;
+
+export type BuildingEffectType = (typeof BUILDING_EFFECT_TYPES)[number];
+
+export const BUILDING_EFFECT_TARGETS = ['plannedGladiators', 'allGladiators', 'ludus'] as const;
+
+export type BuildingEffectTarget = (typeof BUILDING_EFFECT_TARGETS)[number];
 
 export interface BuildingState {
   id: BuildingId;
@@ -44,15 +77,6 @@ export interface BuildingSkillDefinition {
   unlockedActivities?: BuildingActivityId[];
 }
 
-export type BuildingActivityId =
-  | 'trainingGround.nobleTraining'
-  | 'trainingGround.soldierTraining'
-  | 'trainingGround.publicDrill'
-  | 'canteen.supplyContracts'
-  | 'canteen.festivalCatering'
-  | 'domus.profitForecasting'
-  | 'domus.championshipBooking';
-
 export interface BuildingLevelDefinition {
   level: number;
   purchaseCost?: number;
@@ -82,20 +106,8 @@ export interface BuildingPolicyDefinition {
   cost?: number;
 }
 
-export type BuildingEffectType =
-  | 'increaseTrainingExperience'
-  | 'increaseCapacity'
-  | 'increaseDailyGladiatorPoints'
-  | 'reduceInjuryRisk'
-  | 'increaseReputation'
-  | 'increaseHappiness'
-  | 'decreaseRebellion'
-  | 'increaseIncome'
-  | 'reduceExpense'
-  | 'increaseProduction';
-
 export interface BuildingEffect {
   type: BuildingEffectType;
   value: number;
-  target?: 'plannedGladiators' | 'allGladiators' | 'ludus';
+  target?: BuildingEffectTarget;
 }

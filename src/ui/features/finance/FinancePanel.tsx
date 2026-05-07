@@ -1,6 +1,6 @@
 import './finance.css';
 import { useState, type CSSProperties } from 'react';
-import { LOAN_DEFINITIONS } from '@/game-data/economy';
+import { LOAN_DEFINITIONS } from '@/game-data/economy/loans';
 import type {
   ActiveLoan,
   EconomyCategory,

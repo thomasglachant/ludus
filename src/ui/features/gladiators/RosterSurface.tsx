@@ -1,6 +1,6 @@
 import './gladiators.css';
 import { useMemo } from 'react';
-import { canGladiatorPerformActivities } from '@/domain/gladiator-traits/gladiator-trait-actions';
+import { canGladiatorPerformActivities } from '@/domain/gladiators/trait-actions';
 import { getAvailableSkillPoints } from '@/domain/gladiators/progression';
 import { calculateGladiatorSaleValue } from '@/domain/market/market-actions';
 import type { GameSave, Gladiator } from '@/domain/types';

@@ -1,4 +1,6 @@
-export type ScreenName = 'mainMenu' | 'newGame' | 'ludus' | 'arena';
+export const SCREEN_NAMES = ['mainMenu', 'newGame', 'ludus', 'arena'] as const;
+
+export type ScreenName = (typeof SCREEN_NAMES)[number];
 
 export const GAME_SESSION_PATH = '/play';
 

@@ -1,7 +1,9 @@
-import { GAME_BALANCE } from '../../game-data/balance';
+import { GLADIATOR_SKILL_CONFIG } from '../../game-data/gladiators/skills';
+import { getGladiatorSkillBonus } from './trait-actions';
 import type { Gladiator, GladiatorClassId, GladiatorSkillProfile } from './types';
+import type { GameDate } from '../time/types';
 
-export const GLADIATOR_SKILL_NAMES = GAME_BALANCE.gladiators.skills.names;
+export const GLADIATOR_SKILL_NAMES = GLADIATOR_SKILL_CONFIG.names;
 
 export type GladiatorSkillName = (typeof GLADIATOR_SKILL_NAMES)[number];
 
@@ -12,8 +14,8 @@ export const GLADIATOR_CLASS_BY_DOMINANT_SKILL = {
   life: 'murmillo',
 } as const satisfies Record<GladiatorSkillName, GladiatorClassId>;
 
-const SKILL_MINIMUM = GAME_BALANCE.gladiators.skills.minimum;
-const SKILL_MAXIMUM = GAME_BALANCE.gladiators.skills.maximum;
+const SKILL_MINIMUM = GLADIATOR_SKILL_CONFIG.minimum;
+const SKILL_MAXIMUM = GLADIATOR_SKILL_CONFIG.maximum;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -36,8 +38,12 @@ export function getEffectiveSkillValue(value: number) {
   return normalizeGladiatorSkillValue(value);
 }
 
-export function getGladiatorEffectiveSkill(gladiator: Gladiator, skill: GladiatorSkillName) {
-  return getEffectiveSkillValue(gladiator[skill]);
+export function getGladiatorEffectiveSkill(
+  gladiator: Gladiator,
+  skill: GladiatorSkillName,
+  date?: GameDate,
+) {
+  return getEffectiveSkillValue(gladiator[skill] + getGladiatorSkillBonus(gladiator, skill, date));
 }
 
 export function inferGladiatorClassId(skillProfile: GladiatorSkillProfile): GladiatorClassId {

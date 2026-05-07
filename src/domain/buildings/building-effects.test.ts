@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BUILDING_SKILLS } from '../../game-data/building-skills';
+import { BUILDING_SKILLS } from '../../game-data/buildings/skills';
 import { createDefaultDailyPlan } from '../planning/planning-actions';
 import { createInitialSave } from '../saves/create-initial-save';
 import { purchaseBuildingSkill } from './building-actions';

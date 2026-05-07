@@ -12,7 +12,10 @@ Useful commands: `npm run build`, `npm run lint`, `npm run test`.
 
 - Speak French with the user; write code, identifiers, comments and technical docs in English.
 - Player-facing UI copy must use i18n keys for French and English; React components must not hardcode visible copy.
-- Game rules and balance data belong in `src/game-data`; new tunable balance variables must start in `src/game-data/balance.ts`; pure business logic belongs in `src/domain`.
+- Game rules, catalogs and tunable data belong in `src/game-data`; place values with the object or subsystem they describe instead of creating a central balance file; pure business logic belongs in `src/domain`.
+- Domain-specific game data belongs in its owner folder, such as `src/game-data/gladiators` or `src/game-data/ludus`; keep the root of `src/game-data` for cross-system rules, generated manifests and demo-save entry points.
+- Do not hand-maintain literal union types for catalog IDs or shared state values; define a canonical `as const` list/object and derive the type with `typeof ...[number]`, `keyof typeof ...`, or indexed access.
+- Keep gladiator trait catalog data in `src/game-data/gladiators/traits.ts`: i18n keys, visuals, alert visibility, market metadata, modifiers and trait-specific durations must not be duplicated in domain or UI maps.
 - React components should render state and call store actions, selectors or domain services.
 - Reuse shared UI primitives and modal infrastructure before adding feature-specific UI; one-off components need an explicit component contract before implementation.
 - UI dependency direction is `src/ui/features` -> `src/ui/shared/ludus` -> `src/ui/shared/primitives`; shared layers must not import feature state or domain services.

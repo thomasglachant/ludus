@@ -296,10 +296,10 @@ Gladiator detail template:
 - Use tabs for overview, assignment or planning, progression and finances only when those sections exist.
 - Show derived level, total XP, XP toward the next level and available skill points through view-model values, not component-local formulas.
 - Progression contains skill allocation controls for strength, agility, defense and life. Allocation spends whole points only, clamps skills to 1..10 and disables maxed skills.
-- Use `GladiatorAttributes` from `src/ui/features/gladiators/GladiatorAttributes.tsx` whenever a gladiator row or gladiator hero needs the standard compact attributes. The order is reputation, life, strength, agility and defense, and skill values are displayed as integers from 1 to 10.
+- Use `GladiatorSkills` from `src/ui/features/gladiators/GladiatorSkills.tsx` whenever a gladiator row or gladiator hero needs the standard compact skills. The order is reputation, life, strength, agility and defense, and skill values are displayed as intrinsic integers from 1 to 10.
 - Use `GladiatorListRow` from `src/ui/features/gladiators/GladiatorListRow.tsx` for gladiator lists, including market and owned roster rows. Customize it through props for price, primary action and clickability instead of rebuilding row markup.
 - Reuse `GladiatorTraits` in roster rows, market rows, contextual sheets and arena summaries whenever a gladiator identity block is shown.
-- Use `GladiatorAttributes` and `GameFact` for compact aptitude, reputation,
+- Use `GladiatorSkills` and `GameFact` for compact aptitude, reputation,
   life and cost values. Do not create feature-local stat chip components or
   manually pair `GameIcon` with a numeric value for these facts.
 - Do not create isolated bespoke stat cards when `GameHero`, `GameStats`,

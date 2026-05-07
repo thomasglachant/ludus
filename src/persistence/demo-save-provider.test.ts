@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { GAME_BALANCE } from '../game-data/balance';
+import { GLADIATOR_SKILL_CONFIG } from '../game-data/gladiators/skills';
 import { calculateGladiatorMarketPrice } from '../domain/market/market-actions';
 import { getAvailableSkillPoints } from '../domain/gladiators/progression';
 import { getLudusGladiatorCapacity } from '../domain/ludus/capacity';
 import { CURRENT_SCHEMA_VERSION } from '../domain/saves/create-initial-save';
 import { isGameSave } from '../domain/saves/save-validation';
-import { BUILDING_IDS } from '../game-data/buildings';
+import { BUILDING_IDS } from '../game-data/buildings/definitions';
 import { DEMO_SAVE_DEFINITIONS } from '../game-data/demo-saves';
 import { DemoSaveProvider } from './demo-save-provider';
 import { SaveNotFoundError } from './save-provider';
@@ -105,14 +105,14 @@ describe('demo save definitions', () => {
 
       for (const gladiator of [...save.gladiators, ...save.market.availableGladiators]) {
         expect(gladiator.experience).toBeGreaterThanOrEqual(0);
-        expect(gladiator.strength).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
-        expect(gladiator.strength).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.maximum);
-        expect(gladiator.agility).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
-        expect(gladiator.agility).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.maximum);
-        expect(gladiator.defense).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
-        expect(gladiator.defense).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.maximum);
-        expect(gladiator.life).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
-        expect(gladiator.life).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.maximum);
+        expect(gladiator.strength).toBeGreaterThanOrEqual(GLADIATOR_SKILL_CONFIG.minimum);
+        expect(gladiator.strength).toBeLessThanOrEqual(GLADIATOR_SKILL_CONFIG.maximum);
+        expect(gladiator.agility).toBeGreaterThanOrEqual(GLADIATOR_SKILL_CONFIG.minimum);
+        expect(gladiator.agility).toBeLessThanOrEqual(GLADIATOR_SKILL_CONFIG.maximum);
+        expect(gladiator.defense).toBeGreaterThanOrEqual(GLADIATOR_SKILL_CONFIG.minimum);
+        expect(gladiator.defense).toBeLessThanOrEqual(GLADIATOR_SKILL_CONFIG.maximum);
+        expect(gladiator.life).toBeGreaterThanOrEqual(GLADIATOR_SKILL_CONFIG.minimum);
+        expect(gladiator.life).toBeLessThanOrEqual(GLADIATOR_SKILL_CONFIG.maximum);
       }
 
       for (const gladiator of save.market.availableGladiators) {

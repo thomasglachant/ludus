@@ -2,10 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { GameSave, Gladiator } from '../types';
 import { getDailyPlanBucketBudget } from '../planning/planning-actions';
 import { createInitialSave } from '../saves/create-initial-save';
-import {
-  applyGladiatorTrait,
-  applyGladiatorTraitAtDate,
-} from '../gladiator-traits/gladiator-trait-actions';
+import { applyGladiatorTrait, applyGladiatorTraitAtDate } from '../gladiators/trait-actions';
 import { generateGameAlerts, refreshGameAlerts } from './alert-actions';
 
 function createTestSave(overrides: Partial<GameSave> = {}): GameSave {

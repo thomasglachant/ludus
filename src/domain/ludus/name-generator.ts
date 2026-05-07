@@ -1,4 +1,4 @@
-import { LUDUS_NAME_EPITHETS, LUDUS_NAME_PREFIXES } from '../../game-data/ludus-names';
+import { LUDUS_NAME_EPITHETS, LUDUS_NAME_PREFIXES } from '../../game-data/ludus/names';
 
 type RandomSource = () => number;
 

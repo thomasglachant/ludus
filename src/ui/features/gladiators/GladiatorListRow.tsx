@@ -3,7 +3,7 @@ import type { GameSave, Gladiator } from '@/domain/types';
 import { useUiStore } from '@/state/ui-store-context';
 import { EntityListRow, type EntityListActionItem } from '@/ui/shared/components/EntityList';
 import { GladiatorPortrait } from '@/ui/features/gladiators/GladiatorPortrait';
-import { GladiatorAttributes } from './GladiatorAttributes';
+import { GladiatorSkills } from './GladiatorSkills';
 import { GladiatorTraits } from './GladiatorTraits';
 
 interface GladiatorListRowProps {
@@ -33,7 +33,7 @@ export function GladiatorListRow({
       avatar={<GladiatorPortrait gladiator={gladiator} size="small" />}
       infoContent={
         <>
-          <GladiatorAttributes gladiator={gladiator} />
+          <GladiatorSkills gladiator={gladiator} />
           <GladiatorTraits gladiator={gladiator} save={save} variant="compact" />
         </>
       }

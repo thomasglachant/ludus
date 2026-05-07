@@ -3,7 +3,7 @@ import type { Gladiator, GladiatorSkillProfile } from '@/domain/types';
 import {
   getGladiatorAvatarAssetPath,
   getGladiatorVisualIdentity,
-} from '@/game-data/gladiator-visuals';
+} from '@/game-data/gladiators/visuals';
 
 interface GladiatorPortraitProps {
   gladiator: Pick<Gladiator, 'id' | 'name' | 'visualIdentity'> & GladiatorSkillProfile;

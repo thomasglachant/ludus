@@ -1,19 +1,17 @@
-import { GAME_BALANCE } from './balance';
-import type { GladiatorTraitDefinitionId } from './gladiator-traits';
-import type { BuildingActivityId } from '../domain/buildings/types';
-import type { DailyPlanActivity } from '../domain/planning/types';
+import { WEEKLY_SIMULATION_CONFIG } from '../weekly-simulation';
+import {
+  GLADIATOR_COMBAT_EXPERIENCE_CONFIG,
+  GLADIATOR_TRAINING_CONFIG,
+} from '../gladiators/combat';
+import { GLADIATOR_TEMPORARY_TRAITS } from '../gladiators/traits';
+import type { TemporaryGladiatorTraitId } from '../../domain/gladiators/traits';
+import type { BuildingActivityId } from '../../domain/buildings/types';
+import type { GladiatorSkillName } from '../../domain/gladiators/skills';
+import type { DailyPlanActivity } from '../../domain/planning/types';
 
-export const EVENT_CONFIG = {
-  maxEventsPerDay: GAME_BALANCE.events.maxEventsPerDay,
-  maxEventsPerWeek: GAME_BALANCE.events.maxEventsPerWeek,
-  defaultSelectionWeightPercent: GAME_BALANCE.events.defaultSelectionWeightPercent,
-  defaultCooldownWeeks: GAME_BALANCE.events.defaultCooldownWeeks,
-  launchedEventHistoryLimit: GAME_BALANCE.events.launchedEventHistoryLimit,
-  dailyEventProbabilityByDay: GAME_BALANCE.events.dailyEventProbabilityByDay,
-  resolvedEventHistoryLimit: GAME_BALANCE.events.resolvedEventHistoryLimit,
-} as const;
+export const DAILY_EVENT_GLADIATOR_SELECTORS = ['any', 'injured'] as const;
 
-export type DailyEventGladiatorSelector = 'any' | 'injured';
+export type DailyEventGladiatorSelector = (typeof DAILY_EVENT_GLADIATOR_SELECTORS)[number];
 
 export type DailyEventEffectTemplate =
   | { type: 'changeTreasury'; amount: number }
@@ -34,13 +32,13 @@ export type DailyEventEffectTemplate =
     }
   | {
       type: 'applySelectedGladiatorTrait';
-      traitId: GladiatorTraitDefinitionId;
+      traitId: TemporaryGladiatorTraitId;
       durationDays: number;
       bypassActivityEligibility?: boolean;
     }
   | {
       type: 'changeSelectedGladiatorStat';
-      stat: 'strength' | 'agility' | 'defense' | 'life';
+      stat: GladiatorSkillName;
       amount: number;
       bypassActivityEligibility?: boolean;
     };
@@ -112,7 +110,7 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
     descriptionKey: 'events.rebellionCrisis.description',
     priority: 'critical',
     requiredLudus: {
-      rebellionAtLeast: GAME_BALANCE.macroSimulation.rebellionCriticalThreshold,
+      rebellionAtLeast: WEEKLY_SIMULATION_CONFIG.rebellionCriticalThreshold,
     },
     cooldownWeeks: 1,
     choices: [
@@ -184,7 +182,7 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
               {
                 type: 'applySelectedGladiatorTrait',
                 traitId: 'rest',
-                durationDays: GAME_BALANCE.traits.rest.durationDays,
+                durationDays: GLADIATOR_TEMPORARY_TRAITS.rest.durationDays,
               },
             ],
           },
@@ -201,8 +199,8 @@ export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
               {
                 type: 'changeSelectedGladiatorExperience',
                 amount:
-                  GAME_BALANCE.gladiators.training.experiencePerPoint *
-                  GAME_BALANCE.gladiators.combatExperience.dailyTrainingEquivalentPoints,
+                  GLADIATOR_TRAINING_CONFIG.experiencePerPoint *
+                  GLADIATOR_COMBAT_EXPERIENCE_CONFIG.dailyTrainingEquivalentPoints,
               },
               { type: 'changeSelectedGladiatorMorale', amount: -8 },
               { type: 'changeSelectedGladiatorEnergy', amount: -6 },

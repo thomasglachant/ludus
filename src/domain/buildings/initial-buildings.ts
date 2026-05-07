@@ -3,7 +3,7 @@ import {
   BUILDING_IDS,
   INITIAL_BUILDING_CONFIGURATIONS,
   INITIAL_BUILDING_POLICY_IDS,
-} from '../../game-data/buildings';
+} from '../../game-data/buildings/definitions';
 import { cloneJson } from '../../utils/clone';
 import type { BuildingId, BuildingState } from './types';
 

@@ -1,4 +1,4 @@
-import { LOAN_DEFINITIONS } from '../../game-data/economy';
+import { LOAN_DEFINITIONS } from '../../game-data/economy/loans';
 import type { GameSave } from '../saves/types';
 import type {
   ActiveLoan,
@@ -9,12 +9,16 @@ import type {
   WeeklyProjection,
 } from './types';
 import { recordExpense, recordIncome, validateExpense } from './treasury-service';
+export { addLedgerEntry, createLedgerEntry } from './treasury-service';
 
-export type LoanActionFailureReason =
-  | 'loanNotFound'
-  | 'loanAlreadyActive'
-  | 'missingDomusLevel'
-  | 'insufficientTreasury';
+export const LOAN_ACTION_FAILURE_REASONS = [
+  'loanNotFound',
+  'loanAlreadyActive',
+  'missingDomusLevel',
+  'insufficientTreasury',
+] as const;
+
+export type LoanActionFailureReason = (typeof LOAN_ACTION_FAILURE_REASONS)[number];
 
 export interface LoanActionValidation {
   isAllowed: boolean;

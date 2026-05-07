@@ -1,9 +1,14 @@
-import { GAME_BALANCE } from './balance';
-import type { LoanDefinition } from '../domain/economy/types';
+export interface LoanDefinition {
+  id: string;
+  amount: number;
+  weeklyPayment: number;
+  durationWeeks: number;
+  requiredDomusLevel: number;
+  labelKey: string;
+  descriptionKey: string;
+}
 
-export const INITIAL_TREASURY = GAME_BALANCE.economy.initialTreasury;
-
-export const LOAN_DEFINITIONS: LoanDefinition[] = [
+export const LOAN_DEFINITIONS = [
   {
     id: 'smallLoan',
     amount: 500,
@@ -31,4 +36,6 @@ export const LOAN_DEFINITIONS: LoanDefinition[] = [
     labelKey: 'finance.loans.patronLoan.name',
     descriptionKey: 'finance.loans.patronLoan.description',
   },
-];
+] as const satisfies readonly LoanDefinition[];
+
+export type LoanId = (typeof LOAN_DEFINITIONS)[number]['id'];

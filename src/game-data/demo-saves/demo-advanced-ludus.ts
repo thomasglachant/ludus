@@ -219,7 +219,7 @@ const save = createDemoSave({
   ],
 });
 
-export const demoAdvancedLudus: DemoSaveDefinition = {
+export const demoAdvancedLudus = {
   id: 'demo-advanced-ludus',
   nameKey: 'demoSaves.advanced.name',
   descriptionKey: 'demoSaves.advanced.description',
@@ -228,4 +228,4 @@ export const demoAdvancedLudus: DemoSaveDefinition = {
   save,
   preferredRoute: 'ludus',
   preferredCameraTarget: 'arena',
-};
+} satisfies DemoSaveDefinition;

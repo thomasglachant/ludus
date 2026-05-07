@@ -1,20 +1,28 @@
 import type { BuildingId } from '../buildings/types';
 import type { DayOfWeek, GameDate } from '../time/types';
+import type { LoanId } from '../../game-data/economy/loans';
 
-export type EconomyEntryKind = 'income' | 'expense';
+export type { LoanDefinition, LoanId } from '../../game-data/economy/loans';
 
-export type EconomyCategory =
-  | 'arena'
-  | 'contracts'
-  | 'production'
-  | 'market'
-  | 'maintenance'
-  | 'food'
-  | 'medicine'
-  | 'loan'
-  | 'event'
-  | 'building'
-  | 'other';
+export const ECONOMY_ENTRY_KINDS = ['income', 'expense'] as const;
+
+export type EconomyEntryKind = (typeof ECONOMY_ENTRY_KINDS)[number];
+
+export const ECONOMY_CATEGORIES = [
+  'arena',
+  'contracts',
+  'production',
+  'market',
+  'maintenance',
+  'food',
+  'medicine',
+  'loan',
+  'event',
+  'building',
+  'other',
+] as const;
+
+export type EconomyCategory = (typeof ECONOMY_CATEGORIES)[number];
 
 export interface EconomyLedgerEntry {
   id: string;
@@ -27,18 +35,6 @@ export interface EconomyLedgerEntry {
   labelKey: string;
   buildingId?: BuildingId;
   relatedId?: string;
-}
-
-export type LoanId = 'smallLoan' | 'businessLoan' | 'patronLoan';
-
-export interface LoanDefinition {
-  id: LoanId;
-  amount: number;
-  weeklyPayment: number;
-  durationWeeks: number;
-  requiredDomusLevel: number;
-  labelKey: string;
-  descriptionKey: string;
 }
 
 export interface ActiveLoan {

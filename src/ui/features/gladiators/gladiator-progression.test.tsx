@@ -5,15 +5,16 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createInitialSave } from '@/domain/saves/create-initial-save';
-import { applyGladiatorTrait } from '@/domain/gladiator-traits/gladiator-trait-actions';
+import { applyGladiatorTrait } from '@/domain/gladiators/trait-actions';
+import { GLADIATOR_TRAIT_DEFINITIONS } from '@/domain/gladiators/traits';
 import type { GameSave, Gladiator } from '@/domain/types';
-import { GLADIATOR_TRAIT_DEFINITIONS } from '@/game-data/gladiator-traits';
 import { UiStoreContext, type UiStoreValue } from '@/state/ui-store-context';
 import { GAME_ICON_DEFINITIONS } from '@/ui/shared/icons/game-icon-definitions';
 import { TooltipProvider } from '@/ui/shared/primitives/Tooltip';
 import { GladiatorExperienceBar } from './GladiatorExperienceBar';
 import { GladiatorListRow } from './GladiatorListRow';
 import { GladiatorSkillBars } from './GladiatorSkillBars';
+import { GladiatorSkills } from './GladiatorSkills';
 import { GladiatorTraits } from './GladiatorTraits';
 
 function createUiStore(): UiStoreValue {
@@ -186,5 +187,20 @@ describe('gladiator progression UI', () => {
 
     expect(container.querySelector('.gladiator-traits__badge')).not.toBeNull();
     expect(container.textContent).toContain('traits.duration.shortDays');
+  });
+
+  it('renders intrinsic skill values even when traits change effective skills', () => {
+    const gladiator = createGladiator({
+      agility: 4,
+      traits: [{ traitId: 'limping' }],
+    });
+    const { container, root } = render(<GladiatorSkills gladiator={gladiator} />);
+    mountedRoots.push(root);
+
+    const values = [...container.querySelectorAll('.game-fact__value')].map(
+      (value) => value.textContent,
+    );
+
+    expect(values).toEqual(['2', '0', '2', '3', '4', '2']);
   });
 });

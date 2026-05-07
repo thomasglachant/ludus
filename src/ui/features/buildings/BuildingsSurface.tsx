@@ -1,5 +1,5 @@
 import type { GameSave } from '@/domain/types';
-import { BUILDING_DEFINITIONS } from '@/game-data/buildings';
+import { BUILDING_DEFINITIONS } from '@/game-data/buildings/definitions';
 import { useGameStore } from '@/state/game-store-context';
 import { useUiStore, type BuildingSurfaceTab } from '@/state/ui-store-context';
 import { GameSurface, SurfaceBody, SurfaceHeader } from '@/ui/features/ludus/surfaces/SurfaceFrame';

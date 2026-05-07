@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { PlanningActivityDefinition } from '../../game-data/planning';
 import type { GameSave, Gladiator } from '../types';
 import { createInitialSave } from '../saves/create-initial-save';
-import { applyGladiatorTraitAtDate } from '../gladiator-traits/gladiator-trait-actions';
+import { applyGladiatorTraitAtDate } from '../gladiators/trait-actions';
 import {
   canPlanningActivityExecute,
   getDailyPlanBucketBudget,

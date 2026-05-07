@@ -1,7 +1,7 @@
 import './buildings.css';
 import type { BuildingId, GameAlert, GameSave } from '@/domain/types';
-import { BUILDING_DEFINITIONS, BUILDING_IDS } from '@/game-data/buildings';
-import { getBuildingAssetSet } from '@/game-data/visual-assets';
+import { BUILDING_DEFINITIONS, BUILDING_IDS } from '@/game-data/buildings/definitions';
+import { getBuildingAssetSet } from '@/game-data/buildings/assets';
 import { useUiStore } from '@/state/ui-store-context';
 import { GameIcon } from '@/ui/shared/icons/GameIcon';
 

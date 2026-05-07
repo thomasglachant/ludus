@@ -1,5 +1,5 @@
 import { getAvailableSkillPoints } from '../gladiators/progression';
-import { GAME_BALANCE } from '../../game-data/balance';
+import { TREASURY_CONFIG } from '../../game-data/economy/treasury';
 import type { Gladiator } from '../gladiators/types';
 import { getAvailableLudusGladiatorPlaces } from '../ludus/capacity';
 import {
@@ -12,10 +12,12 @@ import {
   getActiveTemporaryGladiatorTraits,
   getGladiatorTraitDefinition,
   getRemainingGladiatorTraitDuration,
-} from '../gladiator-traits/gladiator-trait-actions';
+} from '../gladiators/trait-actions';
 import type { GladiatorTrait } from '../gladiators/types';
 
-export type AlertRuleScope = 'ludus' | 'building' | 'gladiator';
+export const ALERT_RULE_SCOPES = ['ludus', 'building', 'gladiator'] as const;
+
+export type AlertRuleScope = (typeof ALERT_RULE_SCOPES)[number];
 
 export interface AlertRuleContext {
   createdAt: string;
@@ -124,7 +126,7 @@ export const ludusAlertRules: AlertRule[] = [
     id: 'low-treasury',
     scope: 'ludus',
     evaluate(save, context) {
-      return save.ludus.treasury < GAME_BALANCE.economy.lowTreasuryWarningThreshold
+      return save.ludus.treasury < TREASURY_CONFIG.lowTreasuryWarningThreshold
         ? createLowTreasuryAlert(save, context.createdAt)
         : null;
     },
