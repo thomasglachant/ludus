@@ -25,11 +25,8 @@ import { TREASURY_CONFIG } from '../../game-data/economy/treasury';
 import { createGladiatorVisualIdentity } from '../../game-data/gladiators/visuals';
 import { GLADIATOR_NAMES } from '../../game-data/gladiators/names';
 import { refreshGameAlerts } from '../alerts/alert-actions';
-import {
-  addLedgerEntry,
-  createLedgerEntry,
-  updateCurrentWeekSummary,
-} from '../economy/economy-actions';
+import { updateCurrentWeekSummary } from '../economy/economy-actions';
+import { recordIncome } from '../economy/treasury-service';
 import { getGladiatorEffectiveSkill } from '../gladiators/skills';
 import { addGladiatorExperience, getGladiatorLevel } from '../gladiators/progression';
 import {
@@ -589,15 +586,11 @@ export function resolveArenaDay(save: GameSave, random: RandomSource = Math.rand
   return refreshGameAlerts(
     synchronizePlanning(
       updateCurrentWeekSummary(
-        addLedgerEntry(
-          notificationSave,
-          createLedgerEntry(notificationSave, {
-            kind: 'income',
-            category: 'arena',
-            amount: rewardTotal,
-            labelKey: 'finance.ledger.arenaReward',
-          }),
-        ),
+        recordIncome(notificationSave, {
+          category: 'arena',
+          amount: rewardTotal,
+          labelKey: 'finance.ledger.arenaReward',
+        }),
       ),
     ),
   );

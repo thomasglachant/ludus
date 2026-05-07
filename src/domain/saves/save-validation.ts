@@ -17,6 +17,7 @@ import { ECONOMY_CATEGORIES, ECONOMY_ENTRY_KINDS } from '../economy/types';
 import {
   GAME_EVENT_CONSEQUENCE_KINDS,
   GAME_EVENT_EFFECT_TYPES,
+  GAME_EVENT_SOURCES,
   GAME_EVENT_STATUSES,
 } from '../events/types';
 import type { GameEvent, LaunchedGameEventRecord } from '../events/types';
@@ -54,6 +55,7 @@ const supportedSchemaVersions = [CURRENT_SCHEMA_VERSION, CURRENT_SCHEMA_VERSION 
 const gladiatorTraitIds = GLADIATOR_TRAIT_DEFINITIONS.map((definition) => definition.id);
 const loanIds = LOAN_DEFINITIONS.map((definition) => definition.id);
 const dailyPlanActivities: readonly DailyPlanActivity[] = DAILY_PLAN_ACTIVITIES;
+const eventSources = GAME_EVENT_SOURCES;
 const legacyFocusedTrainingActivities = [
   'strengthTraining',
   'agilityTraining',
@@ -600,6 +602,15 @@ function isActiveLoan(value: unknown): value is ActiveLoan {
   );
 }
 
+function isDebtCrisisState(value: unknown) {
+  return (
+    isRecord(value) &&
+    value.status === 'grace' &&
+    isGameDate(value.startedAt) &&
+    isGameDate(value.deadlineAt)
+  );
+}
+
 function isEconomyState(value: unknown): value is EconomyState {
   return (
     isRecord(value) &&
@@ -607,6 +618,7 @@ function isEconomyState(value: unknown): value is EconomyState {
     value.ledgerEntries.every(isEconomyLedgerEntry) &&
     Array.isArray(value.activeLoans) &&
     value.activeLoans.every(isActiveLoan) &&
+    (value.debtCrisis === undefined || isDebtCrisisState(value.debtCrisis)) &&
     (value.currentWeekSummary === undefined || isWeeklyProjection(value.currentWeekSummary)) &&
     isWeeklyProjection(value.weeklyProjection)
   );
@@ -650,6 +662,10 @@ function isGameEventEffect(value: unknown) {
   }
 
   if (effectType === 'releaseAllGladiators') {
+    return true;
+  }
+
+  if (effectType === 'setGameLost' || effectType === 'startDebtGrace') {
     return true;
   }
 
@@ -735,6 +751,7 @@ function isGameEvent(value: unknown): value is GameEvent {
     isRecord(value) &&
     hasString(value, 'id') &&
     hasString(value, 'definitionId') &&
+    (value.source === undefined || isStringFrom(value.source, eventSources)) &&
     hasString(value, 'titleKey') &&
     hasString(value, 'descriptionKey') &&
     hasStringFrom(value, 'status', GAME_EVENT_STATUSES) &&

@@ -18,6 +18,8 @@ export type DailyEventEffectTemplate =
   | { type: 'changeLudusReputation'; amount: number }
   | { type: 'changeLudusHappiness'; amount: number }
   | { type: 'changeLudusRebellion'; amount: number }
+  | { type: 'setGameLost' }
+  | { type: 'startDebtGrace' }
   | { type: 'removeSelectedGladiator'; bypassActivityEligibility?: boolean }
   | { type: 'releaseAllGladiators' }
   | { type: 'changeSelectedGladiatorHealth'; amount: number; bypassActivityEligibility?: boolean }
@@ -76,6 +78,30 @@ export interface DailyEventDefinition {
   gladiatorSelector?: DailyEventGladiatorSelector;
   choices: DailyEventChoiceDefinition[];
 }
+
+export const REACTIVE_EVENT_DEFINITIONS: DailyEventDefinition[] = [
+  {
+    id: 'debtCrisis',
+    titleKey: 'events.debtCrisis.title',
+    descriptionKey: 'events.debtCrisis.description',
+    priority: 'critical',
+    cooldownWeeks: 0,
+    choices: [
+      {
+        id: 'abandon',
+        labelKey: 'events.debtCrisis.abandon.label',
+        consequenceKey: 'events.debtCrisis.abandon.consequence',
+        consequences: [{ kind: 'certain', effects: [{ type: 'setGameLost' }] }],
+      },
+      {
+        id: 'recover',
+        labelKey: 'events.debtCrisis.recover.label',
+        consequenceKey: 'events.debtCrisis.recover.consequence',
+        consequences: [{ kind: 'certain', effects: [{ type: 'startDebtGrace' }] }],
+      },
+    ],
+  },
+];
 
 export const DAILY_EVENT_DEFINITIONS: DailyEventDefinition[] = [
   {

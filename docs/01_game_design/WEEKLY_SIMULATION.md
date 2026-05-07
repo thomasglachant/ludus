@@ -70,7 +70,7 @@ It resolves:
 - daily ledger entries;
 - current week ledger summary;
 - macro random events filtered by planned activities;
-- game over.
+- reactive events such as debt crisis.
 
 Gladiators carry permanent and temporary traits in `Gladiator.traits`. A trait without `expiresAt` is permanent and always active. A trait with `expiresAt` is temporary and stays active while `currentDate < expiresAt`.
 
@@ -146,7 +146,9 @@ The save keeps the most recent reports in `planning.reports`.
 
 ## Failure
 
-If treasury reaches `WEEKLY_SIMULATION_CONFIG.gameOverTreasuryThreshold`, the save becomes:
+Debt crisis is handled as a reactive event rather than a raw treasury threshold. If treasury is below zero and no grace period is active, `synchronizeReactiveEvents(save)` creates a blocking `debtCrisis` event. Choosing recovery starts a grace deadline; choosing abandon ends the game immediately.
+
+If the grace deadline is reached while treasury is still negative, the save becomes:
 
 ```ts
 ludus.gameStatus = 'lost';

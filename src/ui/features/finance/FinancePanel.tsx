@@ -34,7 +34,7 @@ interface FinancePanelProps {
   onTakeLoan(loanId: LoanId): void;
 }
 
-type FinancePanelTab = 'ledger' | 'loans' | 'overview';
+type FinancePanelTab = 'expenses' | 'ledger' | 'loans' | 'overview';
 
 function FinanceAvatar() {
   return (
@@ -114,12 +114,16 @@ export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelPro
   const activeLoanTotals = getActiveLoanTotals(save.economy.activeLoans);
   const projectedTreasury = save.ludus.treasury + projectedWeekTotals.net;
   const recentLedgerEntries = save.economy.ledgerEntries.slice(0, LEDGER_ENTRY_LIMIT);
+  const recentExpenseEntries = save.economy.ledgerEntries
+    .filter((entry) => entry.kind === 'expense')
+    .slice(0, LEDGER_ENTRY_LIMIT);
   const maxProjectionAmount = Math.max(1, projectedWeekTotals.income, projectedWeekTotals.expenses);
   const incomeRows = createProjectionRows(projection.incomeByCategory, maxProjectionAmount);
   const expenseRows = createProjectionRows(projection.expenseByCategory, maxProjectionAmount);
   const tabItems: ModalTabItem<FinancePanelTab>[] = [
     { id: 'overview', labelKey: 'finance.tabs.overview' },
     { count: recentLedgerEntries.length, id: 'ledger', labelKey: 'finance.tabs.ledger' },
+    { count: recentExpenseEntries.length, id: 'expenses', labelKey: 'finance.tabs.expenses' },
     { count: save.economy.activeLoans.length, id: 'loans', labelKey: 'finance.tabs.loans' },
   ];
 
@@ -308,6 +312,20 @@ export function FinancePanel({ onBuyoutLoan, onTakeLoan, save }: FinancePanelPro
                 {t('finance.ledgerShowing', { count: recentLedgerEntries.length })}
               </p>
               <LedgerEntryList entries={recentLedgerEntries} emptyMessageKey="finance.noLedger" />
+            </div>
+          </ModalSection>
+        </ModalTabPanel>
+
+        <ModalTabPanel tabId="expenses">
+          <ModalSection titleKey="finance.expensesTitle">
+            <div className="finance-ledger">
+              <p className="context-panel__muted">
+                {t('finance.expensesShowing', { count: recentExpenseEntries.length })}
+              </p>
+              <LedgerEntryList
+                entries={recentExpenseEntries}
+                emptyMessageKey="finance.noExpenses"
+              />
             </div>
           </ModalSection>
         </ModalTabPanel>

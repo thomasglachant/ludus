@@ -59,6 +59,7 @@ export type AlertSeverity = (typeof ALERT_SEVERITIES)[number];
 
 export const GAME_ALERT_ACTION_KINDS = [
   'allocateGladiatorSkillPoint',
+  'openFinance',
   'openWeeklyPlanning',
   'openMarket',
 ] as const;

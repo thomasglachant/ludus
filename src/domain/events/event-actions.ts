@@ -1,5 +1,6 @@
 import {
   DAILY_EVENT_DEFINITIONS,
+  REACTIVE_EVENT_DEFINITIONS,
   type DailyEventConsequenceDefinition,
   type DailyEventDefinition,
   type DailyEventEffectTemplate,
@@ -10,14 +11,10 @@ import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/buildings/activit
 import { EVENT_GENERATION_CONFIG } from '../../game-data/events/generation';
 import { TREASURY_CONFIG } from '../../game-data/economy/treasury';
 import { GAME_TIME_CONFIG } from '../../game-data/time';
-import { WEEKLY_SIMULATION_CONFIG } from '../../game-data/weekly-simulation';
 import { refreshGameAlerts } from '../alerts/alert-actions';
 import type { BuildingActivityId } from '../buildings/types';
-import {
-  addLedgerEntry,
-  createLedgerEntry,
-  updateCurrentWeekSummary,
-} from '../economy/economy-actions';
+import { updateCurrentWeekSummary } from '../economy/economy-actions';
+import { recordExpense, recordIncome, validateExpense } from '../economy/treasury-service';
 import { addSkillLevels } from '../gladiators/skills';
 import { addGladiatorExperience } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
@@ -30,8 +27,11 @@ import type { DailyPlan, DailyPlanActivity } from '../planning/types';
 import type { GameSave } from '../saves/types';
 import {
   applyGladiatorTrait,
+  addDaysToGameDate,
   canGladiatorPerformActivities,
+  compareGameDates,
   getActivityEligibleGladiators,
+  getCurrentGameDate,
   hasActiveGladiatorTrait,
 } from '../gladiators/trait-actions';
 import type {
@@ -45,12 +45,17 @@ import type {
 
 type RandomSource = () => number;
 
-export const EVENT_ACTION_FAILURE_REASONS = ['eventNotFound', 'choiceNotFound'] as const;
+export const EVENT_ACTION_FAILURE_REASONS = [
+  'eventNotFound',
+  'choiceNotFound',
+  'insufficientTreasury',
+] as const;
 
 export type EventActionFailureReason = (typeof EVENT_ACTION_FAILURE_REASONS)[number];
 
 export interface EventActionValidation {
   isAllowed: boolean;
+  cost?: number;
   reason?: EventActionFailureReason;
 }
 
@@ -279,6 +284,8 @@ function resolveEffectTemplate(
     case 'changeLudusReputation':
     case 'changeLudusHappiness':
     case 'changeLudusRebellion':
+    case 'setGameLost':
+    case 'startDebtGrace':
     case 'releaseAllGladiators':
       return template;
   }
@@ -339,6 +346,7 @@ function createDailyEventFromDefinition(
   definition: DailyEventDefinition,
   random: RandomSource,
   idSuffix = definition.id,
+  source: GameEvent['source'] = 'daily',
 ): GameEvent | null {
   if (!canUseDefinition(save, definition)) {
     return null;
@@ -349,6 +357,7 @@ function createDailyEventFromDefinition(
   return {
     id: `event-${save.time.year}-${save.time.week}-${save.time.dayOfWeek}-${idSuffix}`,
     definitionId: definition.id,
+    source,
     titleKey: definition.titleKey,
     descriptionKey: definition.descriptionKey,
     status: 'pending',
@@ -419,9 +428,11 @@ export function synchronizeMacroEvents(
   random: RandomSource = Math.random,
 ): { save: GameSave; createdEventIds: string[] } {
   const expiredEvents = save.events.pendingEvents
-    .filter((event) => !isSameEventDay(save, event))
+    .filter((event) => event.source !== 'reactive' && !isSameEventDay(save, event))
     .map((event) => ({ ...event, status: 'expired' as const }));
-  const pendingEvents = save.events.pendingEvents.filter((event) => isSameEventDay(save, event));
+  const pendingEvents = save.events.pendingEvents.filter(
+    (event) => event.source === 'reactive' || isSameEventDay(save, event),
+  );
   const canCreateEvent =
     save.gladiators.length > 0 &&
     save.time.dayOfWeek !== ARENA_RULES.dayOfWeek &&
@@ -458,24 +469,23 @@ function applyTreasuryEventEffect(
     return save;
   }
 
-  const nextSave = updateCurrentWeekSummary(
-    addLedgerEntry(
-      save,
-      createLedgerEntry(save, {
-        kind: effect.amount > 0 ? 'income' : 'expense',
+  if (effect.amount > 0) {
+    return updateCurrentWeekSummary(
+      recordIncome(save, {
         category: 'event',
-        amount: Math.abs(effect.amount),
+        amount: effect.amount,
         labelKey,
       }),
-    ),
-  );
-  const isLost = nextSave.ludus.treasury <= WEEKLY_SIMULATION_CONFIG.gameOverTreasuryThreshold;
+    );
+  }
 
-  return {
-    ...nextSave,
-    ludus: { ...nextSave.ludus, gameStatus: isLost ? 'lost' : nextSave.ludus.gameStatus },
-    time: { ...nextSave.time, phase: isLost ? 'gameOver' : nextSave.time.phase },
-  };
+  return updateCurrentWeekSummary(
+    recordExpense(save, {
+      category: 'event',
+      amount: Math.abs(effect.amount),
+      labelKey,
+    }).save,
+  );
 }
 
 function addGladiatorInjuryNotification(save: GameSave, gladiatorId: string): GameSave {
@@ -552,6 +562,36 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
     return {
       ...save,
       ludus: { ...save.ludus, rebellion: clamp(save.ludus.rebellion + effect.amount, 0, 100) },
+    };
+  }
+
+  if (effect.type === 'setGameLost') {
+    return {
+      ...save,
+      ludus: {
+        ...save.ludus,
+        gameStatus: 'lost',
+      },
+      time: {
+        ...save.time,
+        phase: 'gameOver',
+      },
+    };
+  }
+
+  if (effect.type === 'startDebtGrace') {
+    const startedAt = getCurrentGameDate(save);
+
+    return {
+      ...save,
+      economy: {
+        ...save.economy,
+        debtCrisis: {
+          status: 'grace',
+          startedAt,
+          deadlineAt: addDaysToGameDate(startedAt, TREASURY_CONFIG.debtGraceDays),
+        },
+      },
     };
   }
 
@@ -711,6 +751,158 @@ function applyEventConsequences(
   );
 }
 
+function getEventEffectsExpenseCost(effects: GameEventEffect[] = []) {
+  return effects.reduce((total, effect) => {
+    return effect.type === 'changeTreasury' && effect.amount < 0
+      ? total + Math.abs(effect.amount)
+      : total;
+  }, 0);
+}
+
+function getEventConsequenceExpenseCost(consequence: GameEventConsequence): number {
+  switch (consequence.kind) {
+    case 'certain':
+      return getEventEffectsExpenseCost(consequence.effects);
+    case 'chance':
+      return getEventEffectsExpenseCost(consequence.effects);
+    case 'oneOf':
+      return consequence.outcomes.reduce(
+        (maxCost, outcome) => Math.max(maxCost, getEventEffectsExpenseCost(outcome.effects)),
+        0,
+      );
+  }
+}
+
+export function getGameEventChoiceTreasuryCost(choice: GameEventChoice) {
+  return choice.consequences.reduce(
+    (total, consequence) => total + getEventConsequenceExpenseCost(consequence),
+    0,
+  );
+}
+
+export function validateGameEventChoice(
+  save: GameSave,
+  eventId: string,
+  choiceId: string,
+): EventActionValidation {
+  const event = save.events.pendingEvents.find((candidate) => candidate.id === eventId);
+
+  if (!event) {
+    return { isAllowed: false, reason: 'eventNotFound' };
+  }
+
+  const choice = event.choices.find((candidate) => candidate.id === choiceId);
+
+  if (!choice) {
+    return { isAllowed: false, reason: 'choiceNotFound' };
+  }
+
+  const cost = getGameEventChoiceTreasuryCost(choice);
+  const treasuryValidation = validateExpense(save, cost);
+
+  if (!treasuryValidation.isAllowed) {
+    return { isAllowed: false, cost, reason: 'insufficientTreasury' };
+  }
+
+  return { isAllowed: true, cost };
+}
+
+function hasPendingDebtCrisisEvent(save: GameSave) {
+  return save.events.pendingEvents.some((event) => event.definitionId === 'debtCrisis');
+}
+
+function createDebtCrisisEvent(save: GameSave): GameEvent {
+  const definition = REACTIVE_EVENT_DEFINITIONS.find((event) => event.id === 'debtCrisis');
+  const event = definition
+    ? createDailyEventFromDefinition(save, definition, () => 0, 'reactive-debtCrisis', 'reactive')
+    : null;
+
+  if (!event) {
+    throw new Error('Missing debt crisis reactive event definition.');
+  }
+
+  return event;
+}
+
+function removePendingDebtCrisisEvent(save: GameSave): GameSave {
+  const pendingEvents = save.events.pendingEvents.filter(
+    (event) => event.definitionId !== 'debtCrisis',
+  );
+
+  return pendingEvents.length === save.events.pendingEvents.length
+    ? save
+    : {
+        ...save,
+        events: {
+          ...save.events,
+          pendingEvents,
+        },
+      };
+}
+
+export function synchronizeDebtCrisis(save: GameSave): GameSave {
+  const debtCrisis = save.economy.debtCrisis;
+
+  if (!debtCrisis) {
+    return save.ludus.treasury >= 0 ? removePendingDebtCrisisEvent(save) : save;
+  }
+
+  if (save.ludus.treasury >= 0) {
+    const { debtCrisis: _clearedDebtCrisis, ...economy } = save.economy;
+
+    void _clearedDebtCrisis;
+
+    return removePendingDebtCrisisEvent({
+      ...save,
+      economy,
+    });
+  }
+
+  if (compareGameDates(getCurrentGameDate(save), debtCrisis.deadlineAt) >= 0) {
+    return {
+      ...save,
+      ludus: {
+        ...save.ludus,
+        gameStatus: 'lost',
+      },
+      time: {
+        ...save.time,
+        phase: 'gameOver',
+      },
+    };
+  }
+
+  return save;
+}
+
+export function synchronizeReactiveEvents(save: GameSave): GameSave {
+  const debtSave = synchronizeDebtCrisis(save);
+
+  if (
+    debtSave.ludus.gameStatus === 'lost' ||
+    debtSave.ludus.treasury >= 0 ||
+    debtSave.economy.debtCrisis ||
+    hasPendingDebtCrisisEvent(debtSave)
+  ) {
+    return debtSave;
+  }
+
+  const event = createDebtCrisisEvent(debtSave);
+
+  return {
+    ...debtSave,
+    time: {
+      ...debtSave.time,
+      phase: 'event',
+    },
+    events: {
+      ...debtSave.events,
+      pendingEvents: [event, ...debtSave.events.pendingEvents],
+      launchedEvents: addLaunchedEventRecord(debtSave.events.launchedEvents, event),
+    },
+  };
+}
+
 export function triggerDebugDailyEvent(
   save: GameSave,
   definitionId: string,
@@ -749,6 +941,12 @@ export function resolveGameEventChoice(
   choiceId: string,
   random: RandomSource = Math.random,
 ): EventActionResult {
+  const validation = validateGameEventChoice(save, eventId, choiceId);
+
+  if (!validation.isAllowed) {
+    return { save, validation };
+  }
+
   const event = save.events.pendingEvents.find((candidate) => candidate.id === eventId);
 
   if (!event) {
@@ -816,7 +1014,7 @@ export function resolveGameEventChoice(
       : resolvedSave;
 
   return {
-    validation: { isAllowed: true },
-    save: refreshGameAlerts(synchronizePlanning(nextSave)),
+    validation,
+    save: refreshGameAlerts(synchronizePlanning(synchronizeReactiveEvents(nextSave))),
   };
 }

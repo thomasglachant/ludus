@@ -50,7 +50,7 @@ Each day resolves:
 - happiness and rebellion movement;
 - level-up and skill allocation alerts;
 - ledger entries and current week summary;
-- game over if treasury reaches the defeat threshold.
+- reactive events such as debt crisis when treasury goes negative.
 
 Gladiator traits can modify daily gains, combat gauges, combat XP, arena rewards, injury risk and effective skills. Permanent traits are profile characteristics, do not create alerts and affect market value. Temporary traits represent short-lived states applied by events or simulation outcomes.
 
@@ -93,7 +93,7 @@ Loans:
 - `businessLoan`: available from Domus level 2;
 - `patronLoan`: available from Domus level 4.
 
-If treasury reaches `-1000`, the save enters `gameOver`.
+If treasury goes below zero, a blocking debt crisis event appears. The player can abandon immediately, or choose to recover and receive the configured grace period to bring treasury back to zero or above.
 
 ## Buildings
 
@@ -156,4 +156,4 @@ When rebellion reaches a critical level, a priority rebellion crisis can appear 
 
 ## Loss State
 
-The game can now be lost. If treasury reaches `-1000`, the ludus status becomes `lost` and time phase becomes `gameOver`.
+The game can now be lost through debt crisis. If the player abandons the crisis, or if the grace deadline is reached while treasury is still negative, the ludus status becomes `lost` and time phase becomes `gameOver`.

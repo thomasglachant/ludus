@@ -1,5 +1,5 @@
 import './events.css';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type {
   GameEvent,
   GameEventConsequence,
@@ -7,12 +7,16 @@ import type {
   GameEventOutcome,
   GameSave,
 } from '@/domain/types';
+import { getGameEventChoiceTreasuryCost } from '@/domain/events/event-actions';
+import { TREASURY_CONFIG } from '@/game-data/economy/treasury';
 import { useUiStore } from '@/state/ui-store-context';
 import { ActionBar } from '@/ui/shared/ludus/ActionBar';
 import { PrimaryActionButton } from '@/ui/shared/ludus/PrimaryActionButton';
+import { GameNotice } from '@/ui/shared/ludus/GameFeedback';
 import { ImpactIndicator, type ImpactIndicatorKind } from '@/ui/shared/components/ImpactIndicator';
 import { ImpactList, type ImpactListItem } from '@/ui/shared/components/ImpactList';
 import { GladiatorPortrait } from '@/ui/features/gladiators/GladiatorPortrait';
+import { formatMoneyAmount } from '@/ui/shared/formatters/money';
 
 interface PanelProps {
   save: GameSave;
@@ -54,6 +58,8 @@ function getEventImpactItem(
     case 'removeGladiator':
     case 'releaseAllGladiators':
     case 'applyGladiatorTrait':
+    case 'setGameLost':
+    case 'startDebtGrace':
       return undefined;
     case 'changeGladiatorExperience':
       kind = 'xp';
@@ -74,7 +80,27 @@ function getEventImpactItem(
   } satisfies ImpactListItem;
 }
 
-function getEventImpactGroup(
+function getTextEffectLabel(
+  effect: GameEventEffect,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) {
+  switch (effect.type) {
+    case 'removeGladiator':
+      return t('events.outcome.gladiatorLeaves');
+    case 'releaseAllGladiators':
+      return t('events.outcome.allGladiatorsReleased');
+    case 'setGameLost':
+      return t('events.outcome.gameLost');
+    case 'startDebtGrace':
+      return t('events.outcome.debtGrace', {
+        days: TREASURY_CONFIG.debtGraceDays,
+      });
+    default:
+      return null;
+  }
+}
+
+function getEventImpactNodes(
   effects: GameEventEffect[],
   t: (key: string, params?: Record<string, string | number>) => string,
   chancePercent?: number,
@@ -82,26 +108,27 @@ function getEventImpactGroup(
   const impactItems = effects
     .map((effect, index) => getEventImpactItem(effect, t, chancePercent, index))
     .filter((impact): impact is ImpactListItem => Boolean(impact));
-  const textEffects = effects.filter(
-    (effect) => effect.type === 'removeGladiator' || effect.type === 'releaseAllGladiators',
-  );
+  const nodes: ReactNode[] = [];
 
-  return (
-    <>
-      {impactItems.length > 0 ? <ImpactList impacts={impactItems} /> : null}
-      {textEffects.map((effect, index) => (
+  if (impactItems.length > 0) {
+    nodes.push(<ImpactList impacts={impactItems} key="impact-list" />);
+  }
+
+  effects.forEach((effect, index) => {
+    const text = getTextEffectLabel(effect, t);
+
+    if (text) {
+      nodes.push(
         <ImpactIndicator
           chancePercent={chancePercent}
           key={`${effect.type}-${index}`}
-          text={t(
-            effect.type === 'releaseAllGladiators'
-              ? 'events.outcome.allGladiatorsReleased'
-              : 'events.outcome.gladiatorLeaves',
-          )}
-        />
-      ))}
-    </>
-  );
+          text={text}
+        />,
+      );
+    }
+  });
+
+  return nodes;
 }
 
 function getEventOutcomeIndicators(
@@ -109,21 +136,38 @@ function getEventOutcomeIndicators(
   t: (key: string, params?: Record<string, string | number>) => string,
 ) {
   if (outcome.textKey) {
-    return <ImpactIndicator chancePercent={outcome.chancePercent} text={t(outcome.textKey)} />;
+    return [
+      <ImpactIndicator
+        chancePercent={outcome.chancePercent}
+        key="text"
+        text={t(outcome.textKey)}
+      />,
+    ];
   }
 
-  return getEventImpactGroup(outcome.effects ?? [], t, outcome.chancePercent);
+  return getEventImpactNodes(outcome.effects ?? [], t, outcome.chancePercent);
 }
 
 function getEventOneOfConsequenceIndicators(
   consequence: Extract<GameEventConsequence, { kind: 'oneOf' }>,
   t: (key: string, params?: Record<string, string | number>) => string,
 ) {
+  const renderedOutcomes = consequence.outcomes
+    .map((outcome) => ({
+      id: outcome.id,
+      nodes: getEventOutcomeIndicators(outcome, t),
+    }))
+    .filter((outcome) => outcome.nodes.length > 0);
+
+  if (renderedOutcomes.length === 0) {
+    return null;
+  }
+
   return (
     <div className="events-panel__outcome-group-card">
-      {consequence.outcomes.map((outcome) => (
+      {renderedOutcomes.map((outcome) => (
         <div className="events-panel__outcome-option" key={outcome.id}>
-          {getEventOutcomeIndicators(outcome, t)}
+          {outcome.nodes}
         </div>
       ))}
     </div>
@@ -136,16 +180,27 @@ function getEventConsequenceIndicators(
   keyPrefix: string,
 ) {
   switch (consequence.kind) {
-    case 'certain':
-      return [<li key={`${keyPrefix}-effects`}>{getEventImpactGroup(consequence.effects, t)}</li>];
-    case 'chance':
-      return [<li key={`${keyPrefix}-chance`}>{getEventOutcomeIndicators(consequence, t)}</li>];
-    case 'oneOf':
-      return [
-        <li className="events-panel__outcome-group" key={`${keyPrefix}-one-of`}>
-          {getEventOneOfConsequenceIndicators(consequence, t)}
-        </li>,
-      ];
+    case 'certain': {
+      const nodes = getEventImpactNodes(consequence.effects, t);
+
+      return nodes.length > 0 ? [<li key={`${keyPrefix}-effects`}>{nodes}</li>] : [];
+    }
+    case 'chance': {
+      const nodes = getEventOutcomeIndicators(consequence, t);
+
+      return nodes.length > 0 ? [<li key={`${keyPrefix}-chance`}>{nodes}</li>] : [];
+    }
+    case 'oneOf': {
+      const node = getEventOneOfConsequenceIndicators(consequence, t);
+
+      return node
+        ? [
+            <li className="events-panel__outcome-group" key={`${keyPrefix}-one-of`}>
+              {node}
+            </li>,
+          ]
+        : [];
+    }
   }
 }
 
@@ -184,30 +239,43 @@ export function EventDecisionPanel({
           </div>
         </div>
         <div className="event-choice-grid" style={choiceGridStyle}>
-          {event.choices.map((choice) => (
-            <article className="events-panel__choice" key={choice.id}>
-              <div className="events-panel__choice-copy">
-                <h4>{t(choice.labelKey)}</h4>
-                <p>{t(choice.consequenceKey)}</p>
-              </div>
-              <div className="events-panel__impact">
-                <ul>
-                  {choice.consequences.flatMap((consequence, index) =>
-                    getEventConsequenceIndicators(
-                      consequence,
-                      t,
-                      `${choice.id}-consequence-${index}`,
-                    ),
-                  )}
-                </ul>
-              </div>
-              <ActionBar align="center" className="events-panel__choice-actions">
-                <PrimaryActionButton onClick={() => onResolveEventChoice(event.id, choice.id)}>
-                  {t('events.choose')}
-                </PrimaryActionButton>
-              </ActionBar>
-            </article>
-          ))}
+          {event.choices.map((choice) => {
+            const treasuryCost = getGameEventChoiceTreasuryCost(choice);
+            const canPayCost = treasuryCost <= 0 || treasuryCost <= save.ludus.treasury;
+            const consequenceIndicators = choice.consequences.flatMap((consequence, index) =>
+              getEventConsequenceIndicators(consequence, t, `${choice.id}-consequence-${index}`),
+            );
+
+            return (
+              <article className="events-panel__choice" key={choice.id}>
+                <div className="events-panel__choice-copy">
+                  <h4>{t(choice.labelKey)}</h4>
+                  <p>{t(choice.consequenceKey)}</p>
+                </div>
+                {consequenceIndicators.length > 0 && (
+                  <div className="events-panel__impact">
+                    <ul>{consequenceIndicators}</ul>
+                  </div>
+                )}
+                {!canPayCost ? (
+                  <GameNotice tone="warning">
+                    {t('events.insufficientTreasury', {
+                      amount: formatMoneyAmount(treasuryCost),
+                    })}
+                  </GameNotice>
+                ) : null}
+                <ActionBar align="center" className="events-panel__choice-actions">
+                  <PrimaryActionButton
+                    amountMoney={treasuryCost > 0 ? formatMoneyAmount(treasuryCost) : undefined}
+                    disabled={!canPayCost}
+                    onClick={() => onResolveEventChoice(event.id, choice.id)}
+                  >
+                    {t('events.choose')}
+                  </PrimaryActionButton>
+                </ActionBar>
+              </article>
+            );
+          })}
         </div>
       </article>
     </section>

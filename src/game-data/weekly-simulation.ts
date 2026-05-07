@@ -11,5 +11,4 @@ export const WEEKLY_SIMULATION_CONFIG = {
   rebellionPressureDailyIncrease: 8,
   rebellionCalmDailyReduction: 4,
   rebellionCriticalThreshold: 80,
-  gameOverTreasuryThreshold: -1000,
 } as const;

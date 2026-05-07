@@ -6,11 +6,8 @@ import { MARKET_GENERATION_CONFIG } from '../../game-data/market/generation';
 import { MARKET_PRICING_CONFIG } from '../../game-data/market/pricing';
 import { refreshGameAlerts } from '../alerts/alert-actions';
 import { getAvailableLudusGladiatorPlaces } from '../ludus/capacity';
-import {
-  addLedgerEntry,
-  createLedgerEntry,
-  updateCurrentWeekSummary,
-} from '../economy/economy-actions';
+import { updateCurrentWeekSummary } from '../economy/economy-actions';
+import { recordExpense, recordIncome, validateExpense } from '../economy/treasury-service';
 import {
   getGladiatorMarketPriceModifierPercent,
   getMarketPermanentGladiatorTraitDefinitions,
@@ -260,7 +257,9 @@ export function validateMarketPurchase(
     };
   }
 
-  if (save.ludus.treasury < candidate.price) {
+  const treasuryValidation = validateExpense(save, candidate.price);
+
+  if (!treasuryValidation.isAllowed) {
     return {
       isAllowed: false,
       cost: candidate.price,
@@ -315,7 +314,7 @@ export function buyMarketGladiator(save: GameSave, candidateId: string): MarketA
     visualIdentity: candidate.visualIdentity,
   };
 
-  const nextSave = addLedgerEntry(
+  const expenseResult = recordExpense(
     {
       ...save,
       gladiators: [...save.gladiators, gladiator],
@@ -326,18 +325,17 @@ export function buyMarketGladiator(save: GameSave, candidateId: string): MarketA
         ),
       },
     },
-    createLedgerEntry(save, {
-      kind: 'expense',
+    {
       category: 'market',
       amount: candidate.price,
       labelKey: 'finance.ledger.gladiatorPurchase',
       relatedId: candidate.id,
-    }),
+    },
   );
 
   return {
     validation,
-    save: refreshGameAlerts(synchronizePlanning(updateCurrentWeekSummary(nextSave))),
+    save: refreshGameAlerts(synchronizePlanning(updateCurrentWeekSummary(expenseResult.save))),
   };
 }
 
@@ -367,7 +365,7 @@ export function sellGladiator(save: GameSave, gladiatorId: string): MarketAction
     return { save, validation };
   }
 
-  const nextSave = addLedgerEntry(
+  const nextSave = recordIncome(
     {
       ...save,
       gladiators: save.gladiators.filter((gladiator) => gladiator.id !== gladiatorId),
@@ -376,13 +374,12 @@ export function sellGladiator(save: GameSave, gladiatorId: string): MarketAction
         alerts: save.planning.alerts.filter((alert) => alert.gladiatorId !== gladiatorId),
       },
     },
-    createLedgerEntry(save, {
-      kind: 'income',
+    {
       category: 'market',
       amount: validation.saleValue,
       labelKey: 'finance.ledger.gladiatorSale',
       relatedId: gladiatorId,
-    }),
+    },
   );
 
   return {

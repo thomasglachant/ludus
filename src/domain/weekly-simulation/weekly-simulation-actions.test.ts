@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LOAN_DEFINITIONS } from '../../game-data/economy/loans';
 import { WEEKLY_SIMULATION_CONFIG } from '../../game-data/weekly-simulation';
 import { takeLoan } from '../economy/economy-actions';
+import { resolveGameEventChoice } from '../events/event-actions';
 import type { Gladiator } from '../gladiators/types';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
@@ -563,11 +564,11 @@ describe('weekly simulation actions', () => {
     expect(result.planning.reports[0].days).toHaveLength(1);
   });
 
-  it('marks the game lost when treasury reaches the defeat threshold', () => {
+  it('queues a debt crisis event when the treasury is negative', () => {
     const save = createTestSave({
       ludus: {
         ...createTestSave().ludus,
-        treasury: WEEKLY_SIMULATION_CONFIG.gameOverTreasuryThreshold,
+        treasury: -1,
       },
     });
 
@@ -575,8 +576,12 @@ describe('weekly simulation actions', () => {
     plan.laborPoints.production = 0;
     const result = resolveDailyPlan(save, plan, () => 1);
 
-    expect(result.save.ludus.gameStatus).toBe('lost');
-    expect(result.save.time.phase).toBe('gameOver');
+    expect(result.save.ludus.gameStatus).toBe('active');
+    expect(result.save.time.phase).toBe('event');
+    expect(result.save.events.pendingEvents[0]).toMatchObject({
+      definitionId: 'debtCrisis',
+      source: 'reactive',
+    });
   });
 
   it('queues Sunday arena without rolling the week forward', () => {
@@ -685,6 +690,59 @@ describe('weekly simulation actions', () => {
       kind: 'expense',
       amount: loan.weeklyPayment,
       labelKey: 'finance.ledger.weeklyLoanPayment',
+    });
+  });
+
+  it('keeps the start-week gate when Sunday loan repayment triggers debt recovery', () => {
+    const loanedSave = takeLoan(createTestSave(), 'smallLoan').save;
+    const sundaySave: GameSave = {
+      ...loanedSave,
+      gladiators: [],
+      ludus: {
+        ...loanedSave.ludus,
+        treasury: 10,
+      },
+      arena: {
+        ...loanedSave.arena,
+        arenaDay: {
+          year: 1,
+          week: 1,
+          phase: 'summary',
+          presentedCombatIds: [],
+        },
+        isArenaDayActive: true,
+      },
+      time: {
+        ...loanedSave.time,
+        dayOfWeek: 'sunday',
+        phase: 'arena',
+      },
+    };
+
+    const debtEventSave = completeSundayArenaDay(sundaySave, () => 1);
+    const event = debtEventSave.events.pendingEvents[0];
+    const recoverSave = resolveGameEventChoice(debtEventSave, event.id, 'recover').save;
+
+    expect(debtEventSave.time).toMatchObject({
+      week: 2,
+      dayOfWeek: 'monday',
+      phase: 'event',
+      pendingActionTrigger: 'startWeek',
+    });
+    expect(event).toMatchObject({
+      definitionId: 'debtCrisis',
+      source: 'reactive',
+    });
+    expect(recoverSave.time).toMatchObject({
+      week: 2,
+      dayOfWeek: 'monday',
+      phase: 'planning',
+      pendingActionTrigger: 'startWeek',
+    });
+    expect(recoverSave.economy.debtCrisis?.deadlineAt).toEqual({
+      year: 1,
+      week: 3,
+      dayOfWeek: 'monday',
     });
   });
 

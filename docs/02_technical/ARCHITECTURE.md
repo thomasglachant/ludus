@@ -42,6 +42,7 @@ Important macro modules:
 - `gladiators/traits.ts`: derived permanent and temporary gladiator trait definitions from the `src/game-data/gladiators/traits.ts` catalog;
 - `gladiators/progression.ts`: XP-derived level selectors and skill point allocation rules;
 - `gladiators/trait-actions.ts`: active trait lookup, duration pruning and trait modifier selectors;
+- `economy/treasury-service.ts`: the only authorized domain service for mutating `ludus.treasury`; it validates voluntary expenses, applies forced expenses and records ledger entries;
 - `economy/economy-actions.ts`: ledger summaries, loans and buyouts;
 - `planning/planning-actions.ts`: shared daily plan updates, validation and macro recommendations;
 - `ludus/capacity.ts`: Dormitory-driven gladiator roster capacity selectors;
@@ -58,9 +59,13 @@ Local component-only variants may stay as narrow prop types when they are not re
 
 Game data modules are the source of truth for both reference data and the tunable values attached to that data. Avoid central balance mirrors and parallel metadata maps. For example, `src/game-data/gladiators/traits.ts` is the single declaration point for trait i18n keys, visuals, alert visibility, market metadata, gameplay modifiers and trait-specific durations. Domain code may derive typed definitions and selectors from game-data catalogs, but must not maintain duplicate trait metadata maps.
 
-Alerts are derived from the current save. `planning.alerts` remains the persisted storage location for compatibility, but `src/domain/alerts` owns alert generation rules. Rules are stateless and return at most one active alert for the evaluated target. New alerts should be added as ludus, building or gladiator rules in that module, plus i18n keys and tests.
+Alerts are derived from the current save. `planning.alerts` remains the persisted storage location for compatibility, but `src/domain/alerts` owns alert generation rules. Rules are stateless and return at most one active alert for the evaluated target. New alerts should be added as ludus, building or gladiator rules in that module, plus i18n keys and tests. The low treasury alert is a ludus rule and routes to the finance surface.
 
 Notifications are persisted and authored by the domain action that caused the fact. They should be used for autonomous ludus-life events such as injuries or gladiator departures, not for direct player actions. Projection paths must not create notifications.
+
+Treasury mutations must go through `src/domain/economy/treasury-service.ts`. Use `recordIncome` for income, `recordExpense` for voluntary player costs that must be blocked when unaffordable, and `recordForcedExpense` for automatic obligations that may push the treasury below zero. The service is also responsible for ledger entries. Do not write `ludus.treasury` directly from feature actions.
+
+Events have daily definitions and reactive definitions. Daily events are selected by `synchronizeMacroEvents(save, plan)`. Reactive events are synchronized by `synchronizeReactiveEvents(save)` after player mutations and forced simulation expenses. Reactive events are blocking and use the same modal infrastructure as daily events.
 
 ### `src/state`
 
@@ -75,7 +80,7 @@ The store exposes macro actions such as:
 
 Gameplay progression runs through explicit macro actions, primarily daily and weekly resolution.
 
-After each real player mutation, the store runs the derived-state pipeline: planning synchronization, economy projection synchronization, then `refreshGameAlerts`. A defensive alert refresh also runs every 5 seconds; alert-only refreshes do not mark the save dirty, update `updatedAt` or trigger autosave by themselves.
+After each real player mutation, the store runs the derived-state pipeline: reactive event synchronization, planning synchronization, economy projection synchronization, then `refreshGameAlerts`. A defensive alert refresh also runs every 5 seconds; alert-only refreshes do not mark the save dirty, update `updatedAt` or trigger autosave by themselves.
 
 ### `src/ui`
 
@@ -149,14 +154,14 @@ Current test focus:
 - building validation and macro building state;
 - integer gladiator skills and XP-derived levels;
 - training and combat XP awards;
-- central alerts for ludus planning, Dormitory roster capacity, gladiator skill points and visible gladiator traits;
+- central alerts for ludus planning, low treasury, Dormitory roster capacity, gladiator skill points and visible gladiator traits;
 - skill point spending rules;
 - market prices based exclusively on experience;
 - combat rewards without participation payouts;
 - arena reward ledger entries;
 - building and gladiator market ledger entries;
 - economy loans, projections and buyout;
-- event treasury ledger entries and debt defeat;
+- event treasury ledger entries and reactive debt crisis defeat;
 - weekly simulation daily/weekly resolution;
 - save validation and persistence;
 - i18n key alignment and hardcoded JSX copy detection.

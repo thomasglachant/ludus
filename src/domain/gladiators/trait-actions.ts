@@ -33,7 +33,7 @@ function getDateFromAbsoluteDay(absoluteDay: number): GameDate {
   return { year, week, dayOfWeek };
 }
 
-function compareGameDates(left: GameDate, right: GameDate) {
+export function compareGameDates(left: GameDate, right: GameDate) {
   return getAbsoluteDay(left) - getAbsoluteDay(right);
 }
 

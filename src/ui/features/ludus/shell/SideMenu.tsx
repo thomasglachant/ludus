@@ -20,6 +20,7 @@ interface SideMenuProps {
   save: GameSave;
   onOpenBuilding(buildingId: BuildingId): void;
   onOpenGladiator(gladiatorId: string): void;
+  onOpenFinance(): void;
   onOpenMarket(): void;
   onOpenNotifications(): void;
   onOpenWeeklyPlanning(): void;
@@ -31,6 +32,7 @@ interface AlertsListProps {
   save: GameSave;
   onOpenBuilding(buildingId: BuildingId): void;
   onOpenGladiator(gladiatorId: string): void;
+  onOpenFinance(): void;
   onOpenMarket(): void;
   onOpenWeeklyPlanning(): void;
 }
@@ -40,6 +42,7 @@ interface AlertItemProps {
   save: GameSave;
   onOpenBuilding(buildingId: BuildingId): void;
   onOpenGladiator(gladiatorId: string): void;
+  onOpenFinance(): void;
   onOpenMarket(): void;
   onOpenWeeklyPlanning(): void;
 }
@@ -67,6 +70,7 @@ export function SideMenu({
   save,
   onOpenBuilding,
   onOpenGladiator,
+  onOpenFinance,
   onOpenMarket,
   onOpenNotifications,
   onOpenWeeklyPlanning,
@@ -86,6 +90,7 @@ export function SideMenu({
           save={save}
           onOpenBuilding={onOpenBuilding}
           onOpenGladiator={onOpenGladiator}
+          onOpenFinance={onOpenFinance}
           onOpenMarket={onOpenMarket}
           onOpenWeeklyPlanning={onOpenWeeklyPlanning}
         />
@@ -121,6 +126,7 @@ function AlertsList({
   save,
   onOpenBuilding,
   onOpenGladiator,
+  onOpenFinance,
   onOpenMarket,
   onOpenWeeklyPlanning,
 }: AlertsListProps) {
@@ -143,6 +149,7 @@ function AlertsList({
           save={save}
           onOpenBuilding={onOpenBuilding}
           onOpenGladiator={onOpenGladiator}
+          onOpenFinance={onOpenFinance}
           onOpenMarket={onOpenMarket}
           onOpenWeeklyPlanning={onOpenWeeklyPlanning}
         />
@@ -156,6 +163,7 @@ function AlertItem({
   save,
   onOpenBuilding,
   onOpenGladiator,
+  onOpenFinance,
   onOpenMarket,
   onOpenWeeklyPlanning,
 }: AlertItemProps) {
@@ -214,13 +222,15 @@ function AlertItem({
   const actionHandler =
     alert.actionKind === 'openWeeklyPlanning'
       ? onOpenWeeklyPlanning
-      : alert.actionKind === 'openMarket'
-        ? onOpenMarket
-        : gladiator
-          ? () => onOpenGladiator(gladiator.id)
-          : buildingId && buildingDefinition
-            ? () => onOpenBuilding(buildingId)
-            : null;
+      : alert.actionKind === 'openFinance'
+        ? onOpenFinance
+        : alert.actionKind === 'openMarket'
+          ? onOpenMarket
+          : gladiator
+            ? () => onOpenGladiator(gladiator.id)
+            : buildingId && buildingDefinition
+              ? () => onOpenBuilding(buildingId)
+              : null;
 
   if (actionHandler) {
     return (

@@ -12,6 +12,7 @@ import type { GameActionDockAction } from './GameActionDock';
 import { ToastAndAlertLayer } from './ToastAndAlertLayer';
 import { SideMenu } from './SideMenu';
 import { SurfaceHost } from '@/ui/features/ludus/surfaces/SurfaceHost';
+import { GameOverModal } from './GameOverModal';
 
 export function GameShell() {
   const {
@@ -26,7 +27,7 @@ export function GameShell() {
     saveNoticeKey,
     toggleGamePause,
   } = useGameStore();
-  const { activeSurface, openEntity, openModal, openSurface } = useUiStore();
+  const { activeSurface, navigate, openEntity, openModal, openSurface } = useUiStore();
 
   const activePanelKind = PRIMARY_NAVIGATION_KINDS.includes(
     activeSurface.kind as PrimaryNavigationKind,
@@ -121,6 +122,7 @@ export function GameShell() {
           save={currentSave}
           onArchiveNotification={archiveNotification}
           onOpenBuilding={selectBuilding}
+          onOpenFinance={() => openSurface({ kind: 'finance' })}
           onOpenGladiator={selectGladiator}
           onOpenMarket={() => openSurface({ kind: 'market' })}
           onOpenNotifications={() => openSurface({ kind: 'notifications' })}
@@ -135,6 +137,9 @@ export function GameShell() {
         />
       </div>
       <ToastAndAlertLayer errorKey={errorKey} saveNoticeKey={saveNoticeKey} />
+      {currentSave.ludus.gameStatus === 'lost' ? (
+        <GameOverModal onNewGame={() => navigate('newGame')} />
+      ) : null}
     </ScenicScreen>
   );
 }

@@ -14,18 +14,18 @@ import {
 import type { GameSave } from '../saves/types';
 import type { DayOfWeek, GameTimeState, PendingActionTrigger } from '../time/types';
 import { getCombatInjuryChance, startArenaDay } from '../combat/combat-actions';
-import { synchronizeMacroEvents } from '../events/event-actions';
+import { synchronizeMacroEvents, synchronizeReactiveEvents } from '../events/event-actions';
 import {
   calculateBuildingActivityImpact,
   getBuildingActivityContributions,
 } from '../buildings/building-activities';
 import { sumActiveBuildingEffectValues } from '../buildings/building-effects';
+import { createEmptyProjection, updateCurrentWeekSummary } from '../economy/economy-actions';
 import {
-  addLedgerEntry,
-  createLedgerEntry,
-  createEmptyProjection,
-  updateCurrentWeekSummary,
-} from '../economy/economy-actions';
+  applyProjectedTreasuryDelta,
+  recordForcedExpense,
+  recordIncome,
+} from '../economy/treasury-service';
 import type { BuildingEffect, BuildingId } from '../buildings/types';
 import type { EconomyCategory, EconomyEntryKind, WeeklyProjection } from '../economy/types';
 import {
@@ -426,59 +426,47 @@ function resolveDailyPlanInternal(
 
   if (options.recordLedger) {
     for (const entry of incomeEntries) {
-      nextSave = addLedgerEntry(
-        nextSave,
-        createLedgerEntry(nextSave, {
-          kind: 'income',
-          category: entry.category,
-          amount: entry.amount,
-          labelKey: entry.labelKey,
-          buildingId: entry.buildingId,
-          relatedId: entry.relatedId,
-        }),
-      );
+      nextSave = recordIncome(nextSave, {
+        category: entry.category,
+        amount: entry.amount,
+        labelKey: entry.labelKey,
+        buildingId: entry.buildingId,
+        relatedId: entry.relatedId,
+      });
     }
 
     for (const entry of expenseEntries) {
-      nextSave = addLedgerEntry(
-        nextSave,
-        createLedgerEntry(nextSave, {
-          kind: 'expense',
-          category: entry.category,
-          amount: entry.amount,
-          labelKey: entry.labelKey,
-          buildingId: entry.buildingId,
-          relatedId: entry.relatedId,
-        }),
-      );
+      nextSave = recordForcedExpense(nextSave, {
+        category: entry.category,
+        amount: entry.amount,
+        labelKey: entry.labelKey,
+        buildingId: entry.buildingId,
+        relatedId: entry.relatedId,
+      });
     }
   } else if (treasuryDelta !== 0) {
-    nextSave = {
-      ...nextSave,
-      ludus: {
-        ...nextSave.ludus,
-        treasury: nextSave.ludus.treasury + treasuryDelta,
-      },
-    };
+    nextSave = applyProjectedTreasuryDelta(nextSave, treasuryDelta);
   }
 
-  const isLost = nextSave.ludus.treasury <= WEEKLY_SIMULATION_CONFIG.gameOverTreasuryThreshold;
   const phaseSave: GameSave = {
     ...nextSave,
-    ludus: {
-      ...nextSave.ludus,
-      gameStatus: isLost ? 'lost' : nextSave.ludus.gameStatus,
-    },
     time: {
       ...nextSave.time,
-      phase: isLost ? 'gameOver' : 'simulation',
+      phase: nextSave.ludus.gameStatus === 'lost' ? 'gameOver' : 'simulation',
     },
   };
   const summarizedSave = options.recordLedger ? updateCurrentWeekSummary(phaseSave) : phaseSave;
+  const reactiveInputIds = new Set(summarizedSave.events.pendingEvents.map((event) => event.id));
+  const reactiveSave = options.recordLedger
+    ? synchronizeReactiveEvents(summarizedSave)
+    : summarizedSave;
+  const reactiveEventIds = reactiveSave.events.pendingEvents
+    .filter((event) => !reactiveInputIds.has(event.id))
+    .map((event) => event.id);
   const eventResult =
-    isLost || !options.createEvents
-      ? { save: summarizedSave, createdEventIds: [] }
-      : synchronizeMacroEvents(summarizedSave, effectivePlan, random);
+    reactiveSave.ludus.gameStatus === 'lost' || reactiveEventIds.length > 0 || !options.createEvents
+      ? { save: reactiveSave, createdEventIds: reactiveEventIds }
+      : synchronizeMacroEvents(reactiveSave, effectivePlan, random);
 
   const resultSave =
     eventResult.createdEventIds.length > 0
@@ -764,7 +752,7 @@ function resolveWeeklyLoanPayments(save: GameSave): GameSave {
       };
     })
     .filter((loan) => loan.remainingBalance > 0 && loan.remainingWeeks > 0);
-  const nextSave = addLedgerEntry(
+  const nextSave = recordForcedExpense(
     {
       ...save,
       economy: {
@@ -772,26 +760,14 @@ function resolveWeeklyLoanPayments(save: GameSave): GameSave {
         activeLoans,
       },
     },
-    createLedgerEntry(save, {
-      kind: 'expense',
+    {
       category: 'loan',
       amount: paymentAmount,
       labelKey: 'finance.ledger.weeklyLoanPayment',
-    }),
+    },
   );
-  const isLost = nextSave.ludus.treasury <= WEEKLY_SIMULATION_CONFIG.gameOverTreasuryThreshold;
 
-  return updateCurrentWeekSummary({
-    ...nextSave,
-    ludus: {
-      ...nextSave.ludus,
-      gameStatus: isLost ? 'lost' : nextSave.ludus.gameStatus,
-    },
-    time: {
-      ...nextSave.time,
-      phase: isLost ? 'gameOver' : nextSave.time.phase,
-    },
-  });
+  return updateCurrentWeekSummary(nextSave);
 }
 
 function getNextDay(dayOfWeek: DayOfWeek) {
@@ -917,13 +893,15 @@ export function resolvePendingGameAction(
 
   if (trigger === 'startWeek') {
     return refreshGameAlerts(
-      synchronizePlanning({
-        ...save,
-        time: {
-          ...time,
-          phase: save.ludus.gameStatus === 'lost' ? 'gameOver' : 'planning',
-        },
-      }),
+      synchronizePlanning(
+        synchronizeReactiveEvents({
+          ...save,
+          time: {
+            ...time,
+            phase: save.ludus.gameStatus === 'lost' ? 'gameOver' : 'planning',
+          },
+        }),
+      ),
     );
   }
 
@@ -974,10 +952,6 @@ export function completeSundayArenaDay(
   };
   const paidLoans = resolveWeeklyLoanPayments(closedArenaSave);
 
-  if (paidLoans.ludus.gameStatus === 'lost') {
-    return paidLoans;
-  }
-
   const nextWeekSave: GameSave = {
     ...paidLoans,
     time: {
@@ -995,13 +969,23 @@ export function completeSundayArenaDay(
   };
 
   return refreshGameAlerts(
-    synchronizePlanning(pruneExpiredTraits(applyPostArenaTraits(nextWeekSave, save, random))),
+    synchronizePlanning(
+      synchronizeReactiveEvents(
+        pruneExpiredTraits(applyPostArenaTraits(nextWeekSave, save, random)),
+      ),
+    ),
   );
 }
 
 export function resolveWeekStep(save: GameSave, random: RandomSource = Math.random): GameSave {
   if (save.ludus.gameStatus === 'lost') {
     return { ...save, time: { ...save.time, phase: 'gameOver' } };
+  }
+
+  const reactiveSave = synchronizeReactiveEvents(save);
+
+  if (reactiveSave !== save) {
+    return resolveWeekStep(reactiveSave, random);
   }
 
   if (save.time.pendingActionTrigger) {
@@ -1049,26 +1033,28 @@ export function resolveWeekStep(save: GameSave, random: RandomSource = Math.rand
 
   const steppedSave = refreshGameAlerts(
     synchronizePlanning(
-      pruneExpiredTraits({
-        ...result.save,
-        time: {
-          ...clearPendingActionTrigger(result.save.time),
-          dayOfWeek: nextDay,
-          phase:
-            result.save.time.phase === 'event'
-              ? 'event'
-              : nextDay === ARENA_RULES.dayOfWeek
-                ? 'arena'
-                : 'planning',
-          ...(result.save.time.phase !== 'event' && nextDay === ARENA_RULES.dayOfWeek
-            ? { pendingActionTrigger: 'enterArena' as const }
-            : {}),
-        },
-        planning: {
-          ...result.save.planning,
-          reports: [runningReport, ...existingReports],
-        },
-      }),
+      synchronizeReactiveEvents(
+        pruneExpiredTraits({
+          ...result.save,
+          time: {
+            ...clearPendingActionTrigger(result.save.time),
+            dayOfWeek: nextDay,
+            phase:
+              result.save.time.phase === 'event'
+                ? 'event'
+                : nextDay === ARENA_RULES.dayOfWeek
+                  ? 'arena'
+                  : 'planning',
+            ...(result.save.time.phase !== 'event' && nextDay === ARENA_RULES.dayOfWeek
+              ? { pendingActionTrigger: 'enterArena' as const }
+              : {}),
+          },
+          planning: {
+            ...result.save.planning,
+            reports: [runningReport, ...existingReports],
+          },
+        }),
+      ),
     ),
   );
 

@@ -1,7 +1,8 @@
-import { TREASURY_CONFIG } from '../../game-data/economy/treasury';
 import { GLADIATOR_TEMPORARY_TRAITS } from '../../game-data/gladiators/traits';
 import { DAYS_OF_WEEK } from '../../game-data/time';
 import { refreshGameAlerts } from '../alerts/alert-actions';
+import { updateCurrentWeekSummary } from '../economy/economy-actions';
+import { recordForcedExpense, recordIncome } from '../economy/treasury-service';
 import { getGladiatorExperienceProgress } from '../gladiators/progression';
 import { getActiveGameInterruption } from '../game-flow/interruption';
 import { synchronizePlanning } from '../planning/planning-actions';
@@ -13,13 +14,25 @@ import type { DayOfWeek } from '../time/types';
 type RandomSource = () => number;
 
 export function adjustDebugTreasury(save: GameSave, amount: number): GameSave {
-  return {
-    ...save,
-    ludus: {
-      ...save.ludus,
-      treasury: Math.max(TREASURY_CONFIG.minimumTreasury, save.ludus.treasury + amount),
-    },
-  };
+  if (amount > 0) {
+    return updateCurrentWeekSummary(
+      recordIncome(save, {
+        amount,
+        category: 'other',
+        labelKey: 'finance.ledger.debugTreasuryAdjustment',
+      }),
+    );
+  }
+
+  const expense = Math.abs(amount);
+
+  return updateCurrentWeekSummary(
+    recordForcedExpense(save, {
+      amount: expense,
+      category: 'other',
+      labelKey: 'finance.ledger.debugTreasuryAdjustment',
+    }),
+  );
 }
 
 export function getDebugDayAdvanceDistance(currentDay: DayOfWeek, targetDay: DayOfWeek) {

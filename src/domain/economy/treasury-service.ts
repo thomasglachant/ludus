@@ -74,7 +74,9 @@ function normalizeAmount(amount: number) {
 }
 
 export function canAfford(save: GameSave, amount: number) {
-  return save.ludus.treasury >= normalizeAmount(amount);
+  const cost = normalizeAmount(amount);
+
+  return cost <= 0 || save.ludus.treasury >= cost;
 }
 
 export function validateExpense(save: GameSave, amount: number): TreasuryExpenseValidation {
@@ -158,4 +160,18 @@ export function recordForcedExpense(save: GameSave, input: TreasuryMutationInput
       relatedId: input.relatedId,
     }),
   );
+}
+
+export function applyProjectedTreasuryDelta(save: GameSave, amount: number): GameSave {
+  if (amount === 0) {
+    return save;
+  }
+
+  return {
+    ...save,
+    ludus: {
+      ...save.ludus,
+      treasury: save.ludus.treasury + amount,
+    },
+  };
 }

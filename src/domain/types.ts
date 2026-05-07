@@ -87,6 +87,7 @@ export {
 } from './planning/types';
 export type {
   ActiveLoan,
+  DebtCrisisState,
   EconomyCategory,
   EconomyEntryKind,
   EconomyLedgerEntry,
@@ -121,6 +122,7 @@ export { ARENA_DAY_PHASES, ARENA_RANKS } from './combat/types';
 export type { GameInterruption } from './game-flow/interruption';
 export type {
   GameEventStatus,
+  GameEventSource,
   GameEventChoice,
   GameEvent,
   EventState,

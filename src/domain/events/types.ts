@@ -7,6 +7,10 @@ export const GAME_EVENT_STATUSES = ['pending', 'resolved', 'expired'] as const;
 
 export type GameEventStatus = (typeof GAME_EVENT_STATUSES)[number];
 
+export const GAME_EVENT_SOURCES = ['daily', 'reactive'] as const;
+
+export type GameEventSource = (typeof GAME_EVENT_SOURCES)[number];
+
 export const GAME_EVENT_CONSEQUENCE_KINDS = ['certain', 'chance', 'oneOf'] as const;
 
 export type GameEventConsequenceKind = (typeof GAME_EVENT_CONSEQUENCE_KINDS)[number];
@@ -16,6 +20,8 @@ export const GAME_EVENT_EFFECT_TYPES = [
   'changeLudusReputation',
   'changeLudusHappiness',
   'changeLudusRebellion',
+  'setGameLost',
+  'startDebtGrace',
   'removeGladiator',
   'releaseAllGladiators',
   'changeGladiatorExperience',
@@ -53,6 +59,7 @@ export type GameEventConsequence =
 export interface GameEvent {
   id: string;
   definitionId: string;
+  source?: GameEventSource;
   titleKey: string;
   descriptionKey: string;
   status: GameEventStatus;
@@ -85,6 +92,8 @@ export type GameEventEffect =
   | { type: 'changeLudusReputation'; amount: number }
   | { type: 'changeLudusHappiness'; amount: number }
   | { type: 'changeLudusRebellion'; amount: number }
+  | { type: 'setGameLost' }
+  | { type: 'startDebtGrace' }
   | { type: 'removeGladiator'; gladiatorId: string; bypassActivityEligibility?: boolean }
   | { type: 'releaseAllGladiators' }
   | {
