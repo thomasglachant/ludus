@@ -2,13 +2,13 @@ import { getAvailableLudusGladiatorPlaces } from '@/domain/ludus/capacity';
 import type { GameSave, MarketGladiator } from '@/domain/types';
 import { useGameStore } from '@/state/game-store-context';
 import { useUiStore } from '@/state/ui-store-context';
-import { GameSurface, SurfaceHeader } from '@/ui/features/ludus/surfaces/SurfaceFrame';
-import { UserAlert } from '@/ui/shared/components/UserAlert';
+import { GameSurface, SurfaceBody, SurfaceHeader } from '@/ui/features/ludus/surfaces/SurfaceFrame';
+import { Alert } from '@/ui/shared/components/Alert';
 import { formatMoneyAmount } from '@/ui/shared/formatters/money';
 import { MarketContent } from './MarketContent';
 
 export function MarketSurface({ save }: { save: GameSave }) {
-  const { openConfirmModal } = useUiStore();
+  const { openConfirmModal, t } = useUiStore();
   const { buyMarketGladiator } = useGameStore();
   const isLudusFull = getAvailableLudusGladiatorPlaces(save) <= 0;
 
@@ -30,18 +30,17 @@ export function MarketSurface({ save }: { save: GameSave }) {
   return (
     <GameSurface className="game-surface--market" testId="market-surface">
       <SurfaceHeader eyebrowKey="market.eyebrow" titleKey="market.title" />
-      <div className="game-surface__body">
+      <SurfaceBody>
         {isLudusFull ? (
-          <UserAlert
+          <Alert
             className="market-modal__alert"
-            iconName="capacity"
+            description={t('market.capacityFullState')}
             level="error"
-            messageKey="market.capacityFullState"
             testId="market-capacity-full-notice"
           />
         ) : null}
         <MarketContent save={save} onBuy={requestBuy} />
-      </div>
+      </SurfaceBody>
     </GameSurface>
   );
 }

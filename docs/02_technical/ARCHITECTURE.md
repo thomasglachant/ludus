@@ -79,7 +79,7 @@ The UI hierarchy is:
 - `src/ui/shared/ludus`: reusable Ludus components that compose primitives into
   the Roman-themed game language. Core contracts include `Button`,
   `PrimaryActionButton`, `IconButton`, `ListActionButton`, `SegmentedControl`,
-  `ActionBar`, `AppDialogShell`, `StonePanel`, `LightPanel`,
+  `ActionBar`, `AppDialogShell`, `DarkPanel`, `LightPanel`,
   `WaxTabletTabs`, `GameFact`, `GameMeter`, `GameList`, `GameSection`,
   `GameFeedback` and `GamePanel`.
 - `src/ui/shared/components`: cross-feature Ludus helpers such as entity lists,

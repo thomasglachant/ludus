@@ -44,11 +44,8 @@
     linear-gradient(180deg, rgba(255, 246, 222, 0.98), rgba(229, 203, 145, 0.98)),
     repeating-linear-gradient(0deg, rgba(111, 69, 35, 0.04) 0 1px, transparent 1px 6px),
     var(--warm-surface);
-  --ludus-texture-stone:
+  --ludus-texture-dark-panel:
     linear-gradient(180deg, rgba(47, 39, 30, 0.99), rgba(25, 21, 17, 0.99)), var(--obsidian-raised);
-  --ludus-texture-glass:
-    linear-gradient(180deg, rgba(255, 244, 212, 0.08), rgba(255, 244, 212, 0.015)),
-    rgba(7, 5, 4, 0.7);
 }
 
 @theme inline {

@@ -2,7 +2,7 @@ import { getAvailableLudusGladiatorPlaces } from '@/domain/ludus/capacity';
 import type { MarketGladiator } from '@/domain/types';
 import { useGameStore } from '@/state/game-store-context';
 import { useUiStore } from '@/state/ui-store-context';
-import { UserAlert } from '@/ui/shared/components/UserAlert';
+import { Alert } from '@/ui/shared/components/Alert';
 import { formatMoneyAmount } from '@/ui/shared/formatters/money';
 import { MarketContent } from '@/ui/features/market/MarketContent';
 import { AppModal } from '@/ui/app-shell/modals/AppModal';
@@ -15,7 +15,7 @@ interface MarketModalProps {
 
 export function MarketModal({ isActive, onBack, onClose }: MarketModalProps) {
   const { buyMarketGladiator, currentSave } = useGameStore();
-  const { openConfirmModal } = useUiStore();
+  const { openConfirmModal, t } = useUiStore();
 
   if (!currentSave) {
     return null;
@@ -47,11 +47,10 @@ export function MarketModal({ isActive, onBack, onClose }: MarketModalProps) {
       onClose={onClose}
     >
       {isLudusFull ? (
-        <UserAlert
+        <Alert
           className="market-modal__alert"
-          iconName="capacity"
+          description={t('market.capacityFullState')}
           level="error"
-          messageKey="market.capacityFullState"
           testId="market-capacity-full-notice"
         />
       ) : null}

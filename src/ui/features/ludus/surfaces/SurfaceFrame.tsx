@@ -1,7 +1,9 @@
 import './ludus-surfaces.css';
-import type { ReactNode } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 import { useUiStore } from '@/state/ui-store-context';
 import { Button } from '@/ui/shared/ludus/Button';
+import { GameCard, GameCardBody, GameCardHeader } from '@/ui/shared/ludus/GameCard';
 import { IconButton } from '@/ui/shared/ludus/IconButton';
 import { WaxTabletTabs } from '@/ui/shared/ludus/WaxTabletTabs';
 import { GameIcon } from '@/ui/shared/icons/GameIcon';
@@ -21,6 +23,15 @@ interface SurfaceHeaderProps {
   title?: ReactNode;
   titleKey?: string;
   onBack?(): void;
+}
+
+type SurfaceBodyVariant = 'default' | 'detail' | 'list';
+
+interface SurfaceBodyProps extends HTMLAttributes<HTMLDivElement> {
+  children: ReactNode;
+  padding?: 'none' | 'compact' | 'normal' | 'roomy';
+  scrollable?: boolean;
+  variant?: SurfaceBodyVariant;
 }
 
 interface SurfaceTabItem<T extends string> {
@@ -46,9 +57,15 @@ interface ContextSheetProps {
 
 export function GameSurface({ children, className, testId }: GameSurfaceProps) {
   return (
-    <section className={['game-surface', className].filter(Boolean).join(' ')} data-testid={testId}>
+    <GameCard
+      as="section"
+      className={cn('game-surface', className)}
+      data-testid={testId}
+      layout="frame"
+      surface="dark"
+    >
       {children}
-    </section>
+    </GameCard>
   );
 }
 
@@ -64,7 +81,7 @@ export function SurfaceHeader({
   const { t } = useUiStore();
 
   return (
-    <header className="game-surface__header">
+    <GameCardHeader className="game-surface__header">
       <div className="game-surface__heading">
         {onBack ? (
           <Button
@@ -85,7 +102,31 @@ export function SurfaceHeader({
       </div>
       {actions ? <div className="game-surface__header-actions">{actions}</div> : null}
       {children ? <div className="game-surface__header-body">{children}</div> : null}
-    </header>
+    </GameCardHeader>
+  );
+}
+
+export function SurfaceBody({
+  children,
+  className,
+  padding = 'normal',
+  scrollable = true,
+  variant = 'default',
+  ...props
+}: SurfaceBodyProps) {
+  return (
+    <GameCardBody
+      className={cn(
+        'game-surface__body',
+        variant !== 'default' ? `game-surface__body--${variant}` : null,
+        className,
+      )}
+      padding={padding}
+      scrollable={scrollable}
+      {...props}
+    >
+      {children}
+    </GameCardBody>
   );
 }
 

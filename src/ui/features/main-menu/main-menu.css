@@ -7,6 +7,39 @@
   color: #fff2cf;
 }
 
+.main-menu__panel {
+  width: min(430px, 100%);
+  gap: 24px;
+  padding: clamp(20px, 4vw, 28px);
+}
+
+.main-menu__brand {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+}
+
+.main-menu__brand h1 {
+  color: #fff1c7;
+  font-size: clamp(2rem, 7vw, 3.1rem);
+  line-height: 0.96;
+  text-shadow:
+    0 2px 0 rgba(71, 45, 26, 0.82),
+    0 12px 28px rgba(0, 0, 0, 0.46);
+  text-transform: uppercase;
+}
+
+.main-menu__actions {
+  display: grid;
+  gap: 10px;
+}
+
+.main-menu__actions .button {
+  width: 100%;
+  justify-content: flex-start;
+}
+
 @media (max-width: 960px) {
   .main-menu-screen {
     min-height: 100dvh;

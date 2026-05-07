@@ -20,6 +20,7 @@ interface ConfirmDialogProps {
 
 export function ConfirmDialog({ isActive, modal }: ConfirmDialogProps) {
   const { closeModal, t } = useUiStore();
+  const inactiveProps = isActive ? {} : { 'data-app-inactive': true };
 
   return (
     <AlertDialog
@@ -32,58 +33,57 @@ export function ConfirmDialog({ isActive, modal }: ConfirmDialogProps) {
     >
       <AlertDialogPortal forceMount>
         <AlertDialogOverlay
-          aria-hidden={isActive ? undefined : true}
-          className={['app-modal-backdrop', isActive ? null : 'app-modal-backdrop--inactive']
-            .filter(Boolean)
-            .join(' ')}
+          className="app-modal-backdrop app-dialog__overlay"
           data-testid={modal.testId ?? 'confirm-dialog'}
           forceMount
+          {...inactiveProps}
+        />
+        <AlertDialogContent
+          className={`app-modal app-modal--${modal.size ?? 'md'} app-dialog__content`}
+          forceMount
+          {...inactiveProps}
         >
-          <AlertDialogContent className={`app-modal app-modal--${modal.size ?? 'md'}`} forceMount>
-            <div className="app-modal__header">
-              <div className="app-modal__title">
-                <AlertDialogTitle asChild>
-                  <h1>{t(modal.titleKey, modal.titleParams)}</h1>
-                </AlertDialogTitle>
+          <div className="app-modal__header">
+            <AlertDialogTitle asChild>
+              <h1 className="app-modal__title">{t(modal.titleKey, modal.titleParams)}</h1>
+            </AlertDialogTitle>
+          </div>
+          <div className="app-modal__body">
+            <AlertDialogDescription asChild>
+              <div
+                className={[
+                  'confirm-dialog',
+                  `confirm-dialog--${modal.tone ?? 'default'}`,
+                  modal.content ? 'confirm-dialog--rich' : null,
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
+                {modal.content ?? <p>{t(modal.messageKey, modal.messageParams)}</p>}
               </div>
-            </div>
-            <div className="app-modal__body">
-              <AlertDialogDescription asChild>
-                <div
-                  className={[
-                    'confirm-dialog',
-                    `confirm-dialog--${modal.tone ?? 'default'}`,
-                    modal.content ? 'confirm-dialog--rich' : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-                  {modal.content ?? <p>{t(modal.messageKey, modal.messageParams)}</p>}
-                </div>
-              </AlertDialogDescription>
-            </div>
-            <div className="app-modal__footer">
-              <ActionBar className="confirm-dialog__actions">
-                <AlertDialogCancel asChild>
-                  <Button>
-                    <span>{t(modal.cancelLabelKey ?? 'common.cancel')}</span>
+            </AlertDialogDescription>
+          </div>
+          <div className="app-modal__footer">
+            <ActionBar className="confirm-dialog__actions">
+              <AlertDialogCancel asChild>
+                <Button variant="ghost">
+                  <span>{t(modal.cancelLabelKey ?? 'common.cancel')}</span>
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                {modal.tone === 'danger' ? (
+                  <Button variant="danger" onClick={modal.onConfirm}>
+                    <span>{t(modal.confirmLabelKey ?? 'common.confirm')}</span>
                   </Button>
-                </AlertDialogCancel>
-                <AlertDialogAction asChild>
-                  {modal.tone === 'danger' ? (
-                    <Button variant="danger" onClick={modal.onConfirm}>
-                      <span>{t(modal.confirmLabelKey ?? 'common.confirm')}</span>
-                    </Button>
-                  ) : (
-                    <PrimaryActionButton onClick={modal.onConfirm}>
-                      <span>{t(modal.confirmLabelKey ?? 'common.confirm')}</span>
-                    </PrimaryActionButton>
-                  )}
-                </AlertDialogAction>
-              </ActionBar>
-            </div>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
+                ) : (
+                  <PrimaryActionButton onClick={modal.onConfirm}>
+                    <span>{t(modal.confirmLabelKey ?? 'common.confirm')}</span>
+                  </PrimaryActionButton>
+                )}
+              </AlertDialogAction>
+            </ActionBar>
+          </div>
+        </AlertDialogContent>
       </AlertDialogPortal>
     </AlertDialog>
   );

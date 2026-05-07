@@ -3,8 +3,6 @@ import { useState } from 'react';
 import { calculateDecimalOdds, calculateProjectedWinChance } from '@/domain/combat/combat-actions';
 import type { CombatState, GameSave } from '@/domain/types';
 import { useUiStore } from '@/state/ui-store-context';
-import { CardBlured } from '@/ui/shared/components/CardBlured';
-import { CardScrollArea } from '@/ui/features/arena/components/CardScrollArea';
 import { ImpactList } from '@/ui/shared/components/ImpactList';
 import { LeagueRankBadge } from '@/ui/features/arena/components/LeagueRankBadge';
 import { CombatLog } from '@/ui/features/arena/combat/CombatLog';
@@ -13,6 +11,7 @@ import { GladiatorSummary } from '@/ui/features/gladiators/GladiatorSummary';
 import { ActionBar } from '@/ui/shared/ludus/ActionBar';
 import { Button } from '@/ui/shared/ludus/Button';
 import { GameEmptyState } from '@/ui/shared/ludus/GameFeedback';
+import { GameCard, GameScrollArea } from '@/ui/shared/ludus/GameCard';
 import { IconButton } from '@/ui/shared/ludus/IconButton';
 import { PrimaryActionButton } from '@/ui/shared/ludus/PrimaryActionButton';
 import { Expandable, ExpandableContent, ExpandableTrigger } from '@/ui/shared/ludus/Expandable';
@@ -126,8 +125,9 @@ function BoutOverviewView({
   const opponentWon = combat.winnerId === combat.opponent.id;
 
   return (
-    <section
-      className="arena-route-panel arena-route-panel--bout-preview"
+    <GameCard
+      as="section"
+      className="arena-route-panel arena-route-panel--bout-preview game-scroll-area"
       data-testid="arena-route-bout-preview"
     >
       <header className="arena-route-step-header">
@@ -228,7 +228,7 @@ function BoutOverviewView({
           <CombatLog viewModel={getCombatLogViewModel(combat)} />
         </ExpandableContent>
       </Expandable>
-    </section>
+    </GameCard>
   );
 }
 
@@ -270,9 +270,10 @@ function CombatResultRow({ combat, onOpenCombat }: { combat: CombatState; onOpen
   const playerWon = combat.winnerId === combat.gladiator.id;
 
   return (
-    <CardBlured
+    <GameCard
       as="article"
       className={`arena-route-day-result-card arena-route-day-result-card--${didPlayerWin ? 'win' : 'loss'}`}
+      surface="dark"
     >
       <div className="arena-route-day-result-card__identity">
         <LeagueRankBadge label={t(`arena.ranks.${combat.rank}`)} rank={combat.rank} />
@@ -300,7 +301,7 @@ function CombatResultRow({ combat, onOpenCombat }: { combat: CombatState; onOpen
         name={didPlayerWin ? 'victory' : 'defeat'}
         size={34}
       />
-    </CardBlured>
+    </GameCard>
   );
 }
 
@@ -327,7 +328,8 @@ function DayResultsView({
   );
 
   return (
-    <section
+    <GameCard
+      as="section"
       className="arena-route-panel arena-route-panel--day-results"
       data-testid="arena-route-day-results"
     >
@@ -384,7 +386,7 @@ function DayResultsView({
         aria-label={t('arenaRoute.combatListTitle')}
         className="arena-route-day-results-section"
       >
-        <CardScrollArea className="arena-route-day-results-list">
+        <GameScrollArea className="arena-route-day-results-list">
           {viewModel.resolvedCombats.map((combat, combatIndex) => (
             <CombatResultRow
               combat={combat}
@@ -392,7 +394,7 @@ function DayResultsView({
               onOpenCombat={() => onOpenCombat(combatIndex)}
             />
           ))}
-        </CardScrollArea>
+        </GameScrollArea>
       </section>
       <ActionBar align="center" className="arena-route-action-bar arena-route-action-bar--footer">
         <PrimaryActionButton
@@ -404,7 +406,7 @@ function DayResultsView({
           <span>{t('arenaRoute.returnToLudus')}</span>
         </PrimaryActionButton>
       </ActionBar>
-    </section>
+    </GameCard>
   );
 }
 
@@ -435,14 +437,14 @@ export function ArenaRoute({ onCompleteArenaDay, onReturnToLudus, save }: ArenaR
   if (!save.arena.arenaDay) {
     return (
       <ScenicScreen className="arena-route">
-        <div className="arena-route-panel arena-route-panel--closed">
+        <GameCard as="div" className="arena-route-panel arena-route-panel--closed game-scroll-area">
           <p className="eyebrow">{t('arena.title')}</p>
           <h1>{t('arena.closedTitle')}</h1>
           <p>{t('arena.closedBody')}</p>
           <Button icon={<GameIcon name="back" size={18} />} onClick={onReturnToLudus}>
             <span>{t('arenaRoute.returnToLudus')}</span>
           </Button>
-        </div>
+        </GameCard>
       </ScenicScreen>
     );
   }
@@ -460,8 +462,9 @@ export function ArenaRoute({ onCompleteArenaDay, onReturnToLudus, save }: ArenaR
               onPrevious={() => setCurrentStepIndex(Math.max(totalCombats - 1, 0))}
             />
           ) : (
-            <section
-              className="arena-route-panel arena-route-panel--program"
+            <GameCard
+              as="section"
+              className="arena-route-panel arena-route-panel--program game-scroll-area"
               data-testid="arena-route-empty"
             >
               <GameEmptyState messageKey="arena.noEligible" />
@@ -478,7 +481,7 @@ export function ArenaRoute({ onCompleteArenaDay, onReturnToLudus, save }: ArenaR
                   <span>{t('arenaRoute.returnToLudus')}</span>
                 </PrimaryActionButton>
               </ActionBar>
-            </section>
+            </GameCard>
           )
         ) : currentCombat ? (
           <BoutOverviewView

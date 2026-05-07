@@ -16,7 +16,7 @@ Useful commands: `npm run build`, `npm run lint`, `npm run test`.
 - React components should render state and call store actions, selectors or domain services.
 - Reuse shared UI primitives and modal infrastructure before adding feature-specific UI; one-off components need an explicit component contract before implementation.
 - UI dependency direction is `src/ui/features` -> `src/ui/shared/ludus` -> `src/ui/shared/primitives`; shared layers must not import feature state or domain services.
-- Use the shared `CardBlured` component for translucent blurred cards or panels over scenic backgrounds.
+- Use the shared `GameCard` component for reusable card frames; prefer `surface="dark"` over scenic backgrounds and `surface="light"` for warm content panels.
 - Primary CTAs use the shared green `PrimaryActionButton` by default unless the user explicitly asks for another treatment.
 - `src/index.css` imports only durable global files from `src/styles`; component, shell and feature CSS lives beside its owner in `src/ui/app-shell`, `src/ui/features` or `src/ui/shared`.
 - Generated production images must be WebP before being referenced by the app.

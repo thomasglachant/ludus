@@ -167,47 +167,7 @@
   align-self: start;
   max-height: 100%;
   gap: 14px;
-  overflow: auto;
   padding: 14px;
-  scrollbar-color: rgba(238, 186, 92, 0.78) rgba(7, 5, 4, 0.42);
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
-}
-
-.weekly-planner__palette::-webkit-scrollbar,
-.weekly-planner__days::-webkit-scrollbar {
-  width: 10px;
-}
-
-.weekly-planner__palette::-webkit-scrollbar-track,
-.weekly-planner__days::-webkit-scrollbar-track {
-  border: 1px solid rgba(214, 163, 74, 0.14);
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(255, 244, 212, 0.055), rgba(255, 244, 212, 0.018)),
-    rgba(7, 5, 4, 0.42);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 240, 188, 0.08),
-    inset 0 -1px 0 rgba(121, 70, 31, 0.18);
-}
-
-.weekly-planner__palette::-webkit-scrollbar-thumb,
-.weekly-planner__days::-webkit-scrollbar-thumb {
-  border: 2px solid rgba(7, 5, 4, 0.7);
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(255, 232, 174, 0.86), rgba(190, 128, 50, 0.82)),
-    rgba(238, 186, 92, 0.78);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 246, 222, 0.34),
-    0 0 10px rgba(214, 163, 74, 0.14);
-}
-
-.weekly-planner__palette::-webkit-scrollbar-thumb:hover,
-.weekly-planner__days::-webkit-scrollbar-thumb:hover {
-  background:
-    linear-gradient(180deg, rgba(255, 240, 197, 0.95), rgba(214, 163, 74, 0.9)),
-    rgba(238, 186, 92, 0.9);
 }
 
 .weekly-planner__palette--drop-target {
@@ -377,11 +337,7 @@
   grid-template-columns: repeat(2, minmax(260px, 1fr));
   gap: 12px;
   align-content: start;
-  overflow: auto;
   padding-right: 4px;
-  scrollbar-color: rgba(238, 186, 92, 0.78) rgba(7, 5, 4, 0.42);
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
 }
 
 .weekly-planner__day {

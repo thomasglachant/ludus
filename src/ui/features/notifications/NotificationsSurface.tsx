@@ -2,7 +2,7 @@ import { sortGameNotificationsByDateDesc } from '@/domain/notifications/notifica
 import type { GameSave } from '@/domain/types';
 import { useGameStore } from '@/state/game-store-context';
 import { useUiStore } from '@/state/ui-store-context';
-import { GameSurface, SurfaceHeader } from '@/ui/features/ludus/surfaces/SurfaceFrame';
+import { GameSurface, SurfaceBody, SurfaceHeader } from '@/ui/features/ludus/surfaces/SurfaceFrame';
 import { NotificationList } from './NotificationList';
 
 export function NotificationsSurface({ save }: { save: GameSave }) {
@@ -13,7 +13,7 @@ export function NotificationsSurface({ save }: { save: GameSave }) {
   return (
     <GameSurface className="game-surface--notifications" testId="notifications-surface">
       <SurfaceHeader titleKey="notifications.title" />
-      <div className="game-surface__body">
+      <SurfaceBody>
         <NotificationList
           emptyMessageKey="notifications.empty"
           notifications={notifications}
@@ -34,7 +34,7 @@ export function NotificationsSurface({ save }: { save: GameSave }) {
             })
           }
         />
-      </div>
+      </SurfaceBody>
     </GameSurface>
   );
 }

@@ -6,7 +6,12 @@ import { calculateGladiatorSaleValue } from '@/domain/market/market-actions';
 import type { GameSave, Gladiator } from '@/domain/types';
 import { useGameStore } from '@/state/game-store-context';
 import { useUiStore, type RosterFilter } from '@/state/ui-store-context';
-import { GameSurface, SurfaceHeader, SurfaceTabs } from '@/ui/features/ludus/surfaces/SurfaceFrame';
+import {
+  GameSurface,
+  SurfaceBody,
+  SurfaceHeader,
+  SurfaceTabs,
+} from '@/ui/features/ludus/surfaces/SurfaceFrame';
 import { EntityList } from '@/ui/shared/components/EntityList';
 import { formatMoneyAmount } from '@/ui/shared/formatters/money';
 import { GladiatorDetailPanel } from './GladiatorDetailPanel';
@@ -68,7 +73,7 @@ export function RosterSurface({ save }: { save: GameSave }) {
           title={selectedGladiator.name}
           onBack={() => openSurface({ kind: 'gladiators', rosterFilter: filter })}
         />
-        <div className="game-surface__body game-surface__body--detail roster-surface__body">
+        <SurfaceBody className="roster-surface__body" variant="detail">
           <div className="roster-surface__detail">
             <GladiatorDetailPanel
               gladiator={selectedGladiator}
@@ -78,7 +83,7 @@ export function RosterSurface({ save }: { save: GameSave }) {
               onOpenPlanning={() => openSurface({ kind: 'planning' })}
             />
           </div>
-        </div>
+        </SurfaceBody>
       </GameSurface>
     );
   }
@@ -97,7 +102,7 @@ export function RosterSurface({ save }: { save: GameSave }) {
           onSelect={(rosterFilter) => openSurface({ kind: 'gladiators', rosterFilter })}
         />
       </SurfaceHeader>
-      <div className="game-surface__body game-surface__body--list roster-surface__body">
+      <SurfaceBody className="roster-surface__body" variant="list">
         <div className="roster-surface__list">
           <EntityList emptyMessageKey="ludus.noGladiators">
             {gladiators.map((gladiator) => (
@@ -127,7 +132,7 @@ export function RosterSurface({ save }: { save: GameSave }) {
             ))}
           </EntityList>
         </div>
-      </div>
+      </SurfaceBody>
     </GameSurface>
   );
 }

@@ -17,6 +17,7 @@
   "common.open": "Open",
   "common.or": "or",
   "common.purchased": "Purchased",
+  "common.requiredField": "This field is required.",
   "common.enabled": "Enabled",
   "common.reset": "Reset",
   "common.save": "Save",

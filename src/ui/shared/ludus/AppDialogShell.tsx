@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 import { useUiStore, type ModalSize } from '@/state/ui-store-context';
 import { GameIcon } from '@/ui/shared/icons/GameIcon';
@@ -47,52 +47,9 @@ export function AppDialogShell({
   titleParams,
 }: AppDialogShellProps) {
   const { t } = useUiStore();
-  const titleId = useId();
-  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-  const modalRef = useRef<HTMLDivElement | null>(null);
-  const [modalOffset, setModalOffset] = useState(0);
-  const [modalBottomOffset, setModalBottomOffset] = useState(18);
-
-  useEffect(() => {
-    if (!isActive) {
-      return undefined;
-    }
-
-    const modal = modalRef.current;
-
-    if (!modal) {
-      return undefined;
-    }
-
-    const updateModalOffset = () => {
-      const preferredTopOffset = Math.min(Math.max(window.innerHeight * 0.12, 28), 112);
-      const centeredTopOffset = Math.max((window.innerHeight - modal.offsetHeight) / 2, 18);
-      const modalOffset = Math.min(preferredTopOffset, centeredTopOffset);
-      const bottomOffset = Math.max(18, modalOffset);
-      const availableHeight = window.innerHeight - modalOffset - bottomOffset;
-
-      setModalOffset(modalOffset);
-      setModalBottomOffset(bottomOffset);
-      modal.style.setProperty('--app-modal-available-height', `${availableHeight}px`);
-    };
-
-    const resizeObserver = new ResizeObserver(updateModalOffset);
-
-    updateModalOffset();
-    resizeObserver.observe(modal);
-    window.addEventListener('resize', updateModalOffset);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', updateModalOffset);
-    };
-  }, [children, footer, isActive]);
-
-  const modalStyle: CSSProperties & Record<string, string | number> = {
-    marginBottom: modalBottomOffset,
-    marginTop: modalOffset,
-  };
   const descriptionContent = descriptionKey ? t(descriptionKey, descriptionParams) : description;
+  const inactiveProps = isActive ? {} : { 'data-app-inactive': true };
+  const descriptionProps = descriptionContent ? {} : { 'aria-describedby': undefined };
 
   return (
     <Dialog
@@ -105,74 +62,61 @@ export function AppDialogShell({
     >
       <DialogPortal forceMount>
         <DialogOverlay
-          aria-hidden={isActive ? undefined : true}
-          className={['app-modal-backdrop', isActive ? null : 'app-modal-backdrop--inactive']
-            .filter(Boolean)
-            .join(' ')}
+          className="app-modal-backdrop app-dialog__overlay"
           data-testid={testId}
           forceMount
+          {...inactiveProps}
+        />
+        <DialogContent
+          className={`app-modal app-modal--${size} app-dialog__content`}
+          forceMount
+          onEscapeKeyDown={(event) => {
+            if (!dismissible) {
+              event.preventDefault();
+            }
+          }}
+          onInteractOutside={(event) => {
+            if (!dismissible) {
+              event.preventDefault();
+            }
+          }}
+          {...descriptionProps}
+          {...inactiveProps}
         >
-          <DialogContent
-            aria-labelledby={titleId}
-            className={`app-modal app-modal--${size}`}
-            forceMount
-            ref={modalRef}
-            style={modalStyle}
-            onEscapeKeyDown={(event) => {
-              if (!dismissible) {
-                event.preventDefault();
-              }
-            }}
-            onInteractOutside={(event) => {
-              if (!dismissible) {
-                event.preventDefault();
-              }
-            }}
-            onOpenAutoFocus={(event) => {
-              if (dismissible) {
-                event.preventDefault();
-                closeButtonRef.current?.focus();
-              }
-            }}
-          >
-            <div className="app-modal__header">
-              {dismissible && onBack ? (
-                <IconButton
-                  aria-label={t('common.back')}
-                  className="app-modal__back"
-                  variant="secondary"
-                  onClick={onBack}
-                >
-                  <GameIcon color="currentColor" name="back" size={18} />
-                </IconButton>
-              ) : null}
-              <div className="app-modal__title">
-                <DialogTitle asChild>
-                  <h1 id={titleId}>{titleKey ? t(titleKey, titleParams) : title}</h1>
-                </DialogTitle>
-              </div>
-              {dismissible ? (
-                <DialogClose asChild>
-                  <IconButton
-                    aria-label={t('common.close')}
-                    className="app-modal__close"
-                    ref={closeButtonRef}
-                    variant="secondary"
-                  >
-                    <GameIcon color="currentColor" name="close" size={18} />
-                  </IconButton>
-                </DialogClose>
-              ) : null}
-            </div>
-            {descriptionContent ? (
-              <DialogDescription className="app-modal__description">
-                {descriptionContent}
-              </DialogDescription>
+          <div className="app-modal__header">
+            {dismissible && onBack ? (
+              <IconButton
+                aria-label={t('common.back')}
+                className="app-modal__back"
+                variant="ghost"
+                onClick={onBack}
+              >
+                <GameIcon color="currentColor" name="back" size={18} />
+              </IconButton>
             ) : null}
-            <div className="app-modal__body">{children}</div>
-            {footer ? <div className="app-modal__footer">{footer}</div> : null}
-          </DialogContent>
-        </DialogOverlay>
+            <DialogTitle asChild>
+              <h1 className="app-modal__title">{titleKey ? t(titleKey, titleParams) : title}</h1>
+            </DialogTitle>
+            {dismissible ? (
+              <DialogClose asChild>
+                <IconButton
+                  aria-label={t('common.close')}
+                  className="app-modal__close"
+                  variant="ghost"
+                >
+                  <GameIcon color="currentColor" name="close" size={18} />
+                </IconButton>
+              </DialogClose>
+            ) : null}
+          </div>
+          {descriptionContent ? (
+            <DialogDescription className="app-modal__description">
+              {descriptionContent}
+            </DialogDescription>
+          ) : null}
+          <div className="app-modal__body">{children}</div>
+          {footer ? <div className="app-modal__footer">{footer}</div> : null}
+        </DialogContent>
       </DialogPortal>
     </Dialog>
   );

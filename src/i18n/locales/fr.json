@@ -17,6 +17,7 @@
   "common.open": "Ouvrir",
   "common.or": "ou",
   "common.purchased": "Acheté",
+  "common.requiredField": "Ce champ est obligatoire.",
   "common.enabled": "Activée",
   "common.reset": "Réinitialiser",
   "common.save": "Enregistrer",

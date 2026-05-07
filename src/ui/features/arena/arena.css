@@ -38,55 +38,13 @@
 }
 
 .arena-route-panel {
-  position: relative;
-  display: grid;
   width: min(1040px, 100%);
   max-height: calc(100dvh - 48px);
   gap: 30px;
-  overflow: auto;
   padding: clamp(18px, 3vw, 32px);
-  border: 2px solid rgba(180, 122, 51, 0.62);
-  border-radius: 10px;
-  background:
-    linear-gradient(180deg, rgba(32, 26, 20, 0.95), rgba(18, 14, 10, 0.97)), var(--obsidian-raised);
   box-shadow:
     inset 0 0 0 1px rgba(255, 246, 222, 0.08),
     0 30px 80px rgba(0, 0, 0, 0.56);
-  scrollbar-color: rgba(238, 186, 92, 0.78) rgba(7, 5, 4, 0.42);
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
-}
-
-.arena-route-panel::-webkit-scrollbar {
-  width: 10px;
-}
-
-.arena-route-panel::-webkit-scrollbar-track {
-  border: 1px solid rgba(214, 163, 74, 0.14);
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(255, 244, 212, 0.055), rgba(255, 244, 212, 0.018)),
-    rgba(7, 5, 4, 0.42);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 240, 188, 0.08),
-    inset 0 -1px 0 rgba(121, 70, 31, 0.18);
-}
-
-.arena-route-panel::-webkit-scrollbar-thumb {
-  border: 2px solid rgba(7, 5, 4, 0.7);
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(255, 232, 174, 0.86), rgba(190, 128, 50, 0.82)),
-    rgba(238, 186, 92, 0.78);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 246, 222, 0.34),
-    0 0 10px rgba(214, 163, 74, 0.14);
-}
-
-.arena-route-panel::-webkit-scrollbar-thumb:hover {
-  background:
-    linear-gradient(180deg, rgba(255, 240, 197, 0.95), rgba(214, 163, 74, 0.9)),
-    rgba(238, 186, 92, 0.9);
 }
 
 .arena-route-panel--closed {

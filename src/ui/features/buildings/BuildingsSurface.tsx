@@ -2,7 +2,7 @@ import type { GameSave } from '@/domain/types';
 import { BUILDING_DEFINITIONS } from '@/game-data/buildings';
 import { useGameStore } from '@/state/game-store-context';
 import { useUiStore, type BuildingSurfaceTab } from '@/state/ui-store-context';
-import { GameSurface, SurfaceHeader } from '@/ui/features/ludus/surfaces/SurfaceFrame';
+import { GameSurface, SurfaceBody, SurfaceHeader } from '@/ui/features/ludus/surfaces/SurfaceFrame';
 import { SurfaceContextSheet } from '@/ui/features/ludus/surfaces/SurfaceContextSheet';
 import { BuildingPanel } from './BuildingPanel';
 import { BuildingsOverview } from './BuildingsOverview';
@@ -27,7 +27,7 @@ export function BuildingsSurface({ save }: { save: GameSave }) {
     return (
       <GameSurface className="game-surface--buildings" testId="buildings-surface">
         <SurfaceHeader eyebrowKey="buildingsOverview.eyebrow" titleKey="buildingsOverview.title" />
-        <div className="game-surface__body game-surface__body--list buildings-surface__body">
+        <SurfaceBody className="buildings-surface__body" variant="list">
           <BuildingsOverview
             save={save}
             showHeader={false}
@@ -40,7 +40,7 @@ export function BuildingsSurface({ save }: { save: GameSave }) {
               })
             }
           />
-        </div>
+        </SurfaceBody>
       </GameSurface>
     );
   }
@@ -55,7 +55,7 @@ export function BuildingsSurface({ save }: { save: GameSave }) {
         titleKey={definition.nameKey}
         onBack={() => openSurface({ kind: 'buildings' })}
       />
-      <div className="game-surface__body game-surface__body--detail buildings-surface__body">
+      <SurfaceBody className="buildings-surface__body" variant="detail">
         <div className="buildings-surface__detail">
           <BuildingPanel
             activeTab={tab}
@@ -80,7 +80,7 @@ export function BuildingsSurface({ save }: { save: GameSave }) {
             onUpgradeBuilding={upgradeBuilding}
           />
         </div>
-      </div>
+      </SurfaceBody>
       <SurfaceContextSheet save={save} />
     </GameSurface>
   );

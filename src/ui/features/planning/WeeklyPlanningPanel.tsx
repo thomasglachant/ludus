@@ -35,7 +35,8 @@ import {
 } from '@/ui/shared/components/ImpactIndicator';
 import { formatNumber } from '@/ui/shared/formatters/number';
 import { GameEmptyState, GameInlineHint } from '@/ui/shared/ludus/GameFeedback';
-import { LightPanel, StonePanel } from '@/ui/shared/ludus/GamePanel';
+import { GameScrollArea } from '@/ui/shared/ludus/GameCard';
+import { DarkPanel, LightPanel } from '@/ui/shared/ludus/GamePanel';
 import { Button } from '@/ui/shared/ludus/Button';
 import { GameProgress } from '@/ui/shared/ludus/GameProgress';
 import { SelectField } from '@/ui/shared/ludus/SelectField';
@@ -483,6 +484,7 @@ export function WeeklyPlanningPanel({
           as="aside"
           className={[
             'weekly-planner__palette',
+            'game-scroll-area',
             isPaletteDropTarget ? 'weekly-planner__palette--drop-target' : null,
           ]
             .filter(Boolean)
@@ -559,7 +561,7 @@ export function WeeklyPlanningPanel({
           })}
         </LightPanel>
 
-        <div className="weekly-planner__days" aria-label={t('weeklyPlan.daysGridLabel')}>
+        <GameScrollArea className="weekly-planner__days" aria-label={t('weeklyPlan.daysGridLabel')}>
           {playableDays.map((dayOfWeek) => {
             const dayPlan = save.planning.days[dayOfWeek];
             const dayValidation = validateDailyPlan(save, dayPlan);
@@ -808,7 +810,7 @@ export function WeeklyPlanningPanel({
             );
           })}
 
-          <StonePanel
+          <DarkPanel
             as="article"
             className="weekly-planner__day weekly-planner__day--arena"
             density="compact"
@@ -821,8 +823,8 @@ export function WeeklyPlanningPanel({
               <GameIcon name="victory" size={18} />
             </header>
             <p>{t('weeklyPlan.arenaDayDescription')}</p>
-          </StonePanel>
-        </div>
+          </DarkPanel>
+        </GameScrollArea>
       </div>
     </section>
   );

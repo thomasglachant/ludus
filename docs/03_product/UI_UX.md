@@ -69,7 +69,7 @@ The migration uses short, stable contracts for Ludus-themed components:
   chosen accessible dialog primitive. It owns warm ivory visual structure,
   title/description slots, body/footer layout and action placement. Modal state,
   focus policy and stack behavior stay with the modal infrastructure.
-- `StonePanel` / `LightPanel`: reusable visual containers. `StonePanel` is
+- `DarkPanel` / `LightPanel`: reusable visual containers. `DarkPanel` is
   for HUD, navigation, operational controls and high-contrast overlays.
   `LightPanel` is for readable entity content, forms and detail surfaces.
   Both expose header/body/footer slots and density variants; avoid nesting them.

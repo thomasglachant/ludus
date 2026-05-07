@@ -4,10 +4,10 @@ import { getEffectiveSkillValue } from '@/domain/gladiators/skills';
 import { getGladiatorLevel } from '@/domain/gladiators/progression';
 import type { GameSave, Gladiator } from '@/domain/types';
 import { useUiStore } from '@/state/ui-store-context';
-import { CardBlured } from '@/ui/shared/components/CardBlured';
 import { Tooltip } from '@/ui/shared/components/Tooltip';
 import { formatNumber } from '@/ui/shared/formatters/number';
 import { GameFact } from '@/ui/shared/ludus/GameFact';
+import { GameCard } from '@/ui/shared/ludus/GameCard';
 import { GameMeter } from '@/ui/shared/ludus/GameMeter';
 import type { GameIconName } from '@/ui/shared/icons/GameIcon';
 import { GladiatorPortrait } from '@/ui/features/gladiators/GladiatorPortrait';
@@ -144,7 +144,7 @@ export function GladiatorSummary({
     .join(' ');
 
   return (
-    <CardBlured as="article" className={classes} data-testid={testId}>
+    <GameCard as="article" className={classes} data-testid={testId} surface={tone}>
       {typeof odds === 'number' ? (
         <GladiatorOdds gladiatorName={gladiator.name} odds={odds} />
       ) : topRightContent ? (
@@ -203,6 +203,6 @@ export function GladiatorSummary({
         ))}
       </div>
       {children ? <div className="gladiator-summary__children">{children}</div> : null}
-    </CardBlured>
+    </GameCard>
   );
 }

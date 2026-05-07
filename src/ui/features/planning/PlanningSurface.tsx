@@ -1,6 +1,6 @@
 import type { GameSave } from '@/domain/types';
 import { useGameStore } from '@/state/game-store-context';
-import { GameSurface, SurfaceHeader } from '@/ui/features/ludus/surfaces/SurfaceFrame';
+import { GameSurface, SurfaceBody, SurfaceHeader } from '@/ui/features/ludus/surfaces/SurfaceFrame';
 import { WeeklyPlanningPanel } from './WeeklyPlanningPanel';
 
 export function PlanningSurface({ save }: { save: GameSave }) {
@@ -9,13 +9,13 @@ export function PlanningSurface({ save }: { save: GameSave }) {
   return (
     <GameSurface className="game-surface--planning" testId="planning-surface">
       <SurfaceHeader eyebrowKey="navigation.weeklyPlanning" titleKey="weeklyPlan.title" />
-      <div className="game-surface__body">
+      <SurfaceBody scrollable={false}>
         <WeeklyPlanningPanel
           save={save}
           onUpdateDailyPlan={updateDailyPlan}
           onUpdateBuildingActivitySelection={updateDailyPlanBuildingActivitySelection}
         />
-      </div>
+      </SurfaceBody>
     </GameSurface>
   );
 }

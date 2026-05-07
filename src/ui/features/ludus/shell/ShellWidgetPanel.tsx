@@ -1,4 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react';
+import { cn } from '@/lib/utils';
+import { GameCard } from '@/ui/shared/ludus/GameCard';
 
 interface ShellWidgetPanelProps extends HTMLAttributes<HTMLElement> {
   as?: 'article' | 'aside' | 'div' | 'nav' | 'section';
@@ -12,8 +14,13 @@ export function ShellWidgetPanel({
   ...props
 }: ShellWidgetPanelProps) {
   return (
-    <Component className={['shell-widget-panel', className].filter(Boolean).join(' ')} {...props}>
+    <GameCard
+      as={Component}
+      className={cn('shell-widget-panel', className)}
+      surface="dark"
+      {...props}
+    >
       {children}
-    </Component>
+    </GameCard>
   );
 }

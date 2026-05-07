@@ -1,0 +1,129 @@
+.modal-form {
+  display: grid;
+  gap: 16px;
+  color: #2f241b;
+}
+
+.modal-form__fields {
+  display: grid;
+  gap: 16px;
+}
+
+.modal-form-field {
+  display: grid;
+  gap: 8px;
+}
+
+.modal-form-field__label {
+  color: #34251a;
+  font-size: 0.9rem;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.modal-form-field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.modal-form .modal-form-field__input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(111, 69, 35, 0.36);
+  border-radius: 6px;
+  background: rgba(255, 251, 242, 0.96);
+  color: #231914;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 9px 12px;
+  box-shadow: none;
+}
+
+.modal-form .modal-form-field__input::placeholder {
+  color: rgba(82, 63, 45, 0.56);
+  font-weight: 400;
+}
+
+.modal-form .modal-form-field__input:hover {
+  border-color: rgba(111, 69, 35, 0.54);
+}
+
+.modal-form .modal-form-field__input:focus-visible {
+  border-color: #2f6e46;
+  outline: 2px solid rgba(47, 110, 70, 0.22);
+  outline-offset: 2px;
+}
+
+.modal-form-field__control:has(.modal-form-field__action) .modal-form-field__input {
+  padding-right: 44px;
+}
+
+.app-modal .modal-form-field__action {
+  position: absolute;
+  right: 5px;
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-color: transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #5f452f;
+  box-shadow: none;
+}
+
+.app-modal .modal-form-field__action:hover {
+  border-color: rgba(111, 69, 35, 0.14);
+  background: rgba(111, 69, 35, 0.08);
+  color: #34251a;
+}
+
+.app-modal .modal-form-field__action:focus-visible {
+  outline: 2px solid rgba(47, 110, 70, 0.24);
+  outline-offset: 2px;
+}
+
+.modal-form-field__message {
+  color: #9f3125;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.modal-form-actions {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.app-modal .modal-form-actions .button {
+  min-width: 112px;
+}
+
+.app-modal .modal-form-actions .modal-form-actions__cancel {
+  min-height: 40px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.app-modal .modal-form-actions .modal-form-actions__cancel:hover {
+  border-color: rgba(111, 69, 35, 0.18);
+  background: rgba(111, 69, 35, 0.08);
+}
+
+.app-modal .modal-form-actions .modal-form-actions__submit {
+  min-height: 40px;
+}
+
+@media (max-width: 560px) {
+  .modal-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .app-modal .modal-form-actions .button {
+    width: 100%;
+  }
+}

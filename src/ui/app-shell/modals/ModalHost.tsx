@@ -44,6 +44,18 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
     navigate('mainMenu');
   };
 
+  const requestQuitToMainMenu = () => {
+    openConfirmModal({
+      kind: 'confirm',
+      confirmLabelKey: 'gameMenu.quit',
+      messageKey: hasUnsavedChanges ? 'gameMenu.quitUnsavedMessage' : 'gameMenu.quitMessage',
+      onConfirm: quitToMainMenu,
+      testId: 'game-menu-quit-confirm-dialog',
+      titleKey: hasUnsavedChanges ? 'gameMenu.quitUnsavedTitle' : 'gameMenu.quitPrompt',
+      tone: 'danger',
+    });
+  };
+
   const requestSellGladiator = (gladiatorId: string) => {
     const gladiator = currentSave?.gladiators.find((candidate) => candidate.id === gladiatorId);
 
@@ -65,11 +77,12 @@ function GameModalRouter({ isActive, modal }: { isActive: boolean; modal: UiModa
   if (modal.kind === 'gameMenu') {
     return (
       <GameMenuModal
-        hasUnsavedChanges={hasUnsavedChanges}
         isActive={isActive}
         isSaving={isSaving || isLoading}
         onClose={closeModal}
-        onQuit={quitToMainMenu}
+        onOpenLoadGame={() => pushModal({ kind: 'loadGame' })}
+        onOpenOptions={() => pushModal({ kind: 'options' })}
+        onRequestQuit={requestQuitToMainMenu}
         onSave={() => void saveCurrentGame().then(closeModal)}
       />
     );

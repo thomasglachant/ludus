@@ -2,11 +2,10 @@ import './combat.css';
 import { useEffect, useRef, type ReactNode } from 'react';
 import type { Gladiator } from '@/domain/types';
 import { useUiStore } from '@/state/ui-store-context';
-import { CardBlured } from '@/ui/shared/components/CardBlured';
-import { CardScrollArea } from '@/ui/features/arena/components/CardScrollArea';
 import { ImpactIndicator } from '@/ui/shared/components/ImpactIndicator';
 import { ImpactList } from '@/ui/shared/components/ImpactList';
 import { GameIcon } from '@/ui/shared/icons/GameIcon';
+import { GameCard, GameScrollArea } from '@/ui/shared/ludus/GameCard';
 import type { CombatLogViewModel } from './combat-log-view-model';
 
 interface CombatLogProps {
@@ -285,11 +284,16 @@ export function CombatLog({ viewModel }: CombatLogProps) {
   }, [logTurns.length, viewModel.isComplete]);
 
   return (
-    <CardBlured as="section" className="combat-replay-log" data-testid="combat-replay-log">
+    <GameCard
+      as="section"
+      className="combat-replay-log"
+      data-testid="combat-replay-log"
+      surface="dark"
+    >
       <header>
         <strong>{t('arena.combatLog')}</strong>
       </header>
-      <CardScrollArea className="combat-replay-log__scroll" ref={listRef}>
+      <GameScrollArea className="combat-replay-log__scroll" ref={listRef}>
         <ul className="combat-replay-log__entries" aria-live="polite">
           <CombatLogEventEntry
             isLatest={viewModel.visibleTurns.length === 0}
@@ -331,7 +335,7 @@ export function CombatLog({ viewModel }: CombatLogProps) {
             </CombatLogEventEntry>
           ) : null}
         </ul>
-      </CardScrollArea>
-    </CardBlured>
+      </GameScrollArea>
+    </GameCard>
   );
 }

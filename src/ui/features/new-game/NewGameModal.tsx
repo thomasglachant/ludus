@@ -1,16 +1,8 @@
-import '@/ui/shared/components/form-controls.css';
 import { useState, type FormEvent } from 'react';
 import { generateLudusName } from '@/domain/ludus/name-generator';
 import { useGameStore } from '@/state/game-store-context';
 import { useUiStore } from '@/state/ui-store-context';
-import { ActionBar } from '@/ui/shared/ludus/ActionBar';
-import { GameFieldError } from '@/ui/shared/ludus/GameFeedback';
-import { Button } from '@/ui/shared/ludus/Button';
-import { IconButton } from '@/ui/shared/ludus/IconButton';
-import { PrimaryActionButton } from '@/ui/shared/ludus/PrimaryActionButton';
-import { GameIcon } from '@/ui/shared/icons/GameIcon';
-import { Input } from '@/ui/shared/primitives/Input';
-import { AppModal } from '@/ui/app-shell/modals/AppModal';
+import { ModalForm, ModalFormTextField } from '@/ui/app-shell/modals/ModalForm';
 
 interface NewGameModalProps {
   isActive?: boolean;
@@ -18,86 +10,58 @@ interface NewGameModalProps {
   onClose(): void;
 }
 
+const NON_BLANK_TEXT_PATTERN = '.*\\S.*';
+
 export function NewGameModal({ isActive = true, onBack, onClose }: NewGameModalProps) {
   const { createNewGame, isLoading } = useGameStore();
   const { t } = useUiStore();
+  const formId = 'new-game-modal-form';
   const [ludusName, setLudusName] = useState(() => generateLudusName(''));
-  const [showValidation, setShowValidation] = useState(false);
-
-  const updateLudusName = (nextLudusName: string) => {
-    setLudusName(nextLudusName);
-    setShowValidation(false);
-  };
 
   const submitNewGame = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!ludusName.trim()) {
-      setShowValidation(true);
-      return;
-    }
-
-    void createNewGame({ ludusName });
+    void createNewGame({ ludusName: ludusName.trim() });
   };
 
   return (
-    <AppModal
+    <ModalForm
+      formId={formId}
       isActive={isActive}
+      isSubmitting={isLoading}
       size="md"
+      submitLabel={t(isLoading ? 'common.loading' : 'newGame.submit')}
+      submitTestId="new-game-submit"
       testId="new-game-modal"
       titleKey="newGame.title"
       onBack={onBack}
       onClose={onClose}
-      footer={
-        <ActionBar>
-          <Button onClick={onClose}>
-            <span>{t('common.cancel')}</span>
-          </Button>
-          <PrimaryActionButton
-            disabled={isLoading}
-            icon={<GameIcon name="landmark" size={18} />}
-            data-testid="new-game-submit"
-            type="submit"
-            onClick={() => {
-              const form = document.querySelector<HTMLFormElement>('[data-new-game-form="active"]');
-              form?.requestSubmit();
-            }}
-          >
-            <span>{isLoading ? t('common.loading') : t('newGame.submit')}</span>
-          </PrimaryActionButton>
-        </ActionBar>
-      }
+      onSubmit={submitNewGame}
     >
-      <form
-        className="form-panel form-panel--modal"
-        data-new-game-form={isActive ? 'active' : 'inactive'}
-        data-testid="new-game-screen"
-        onSubmit={submitNewGame}
-      >
-        <label>
-          <span>{t('newGame.ludusName')}</span>
-          <div className="form-field-with-action">
-            <Input
-              autoComplete="organization"
-              data-testid="new-game-ludus-name"
-              placeholder={t('newGame.ludusNamePlaceholder')}
-              value={ludusName}
-              onChange={(event) => updateLudusName(event.target.value)}
-            />
-            <IconButton
-              aria-label={t('newGame.randomLudusName')}
-              className="form-field-with-action__button"
-              data-testid="new-game-random-ludus-name"
-              variant="ghost"
-              type="button"
-              onClick={() => updateLudusName(generateLudusName(ludusName))}
-            >
-              <GameIcon name="dice" size={18} />
-            </IconButton>
-          </div>
-        </label>
-        {showValidation ? <GameFieldError messageKey="newGame.validation" /> : null}
-      </form>
-    </AppModal>
+      <ModalFormTextField
+        actionLabel={t('newGame.randomLudusName')}
+        actionTestId="new-game-random-ludus-name"
+        autoComplete="organization"
+        label={t('newGame.ludusName')}
+        messages={[
+          {
+            content: t('newGame.validation'),
+            match: 'valueMissing',
+          },
+          {
+            content: t('newGame.validation'),
+            match: 'patternMismatch',
+          },
+        ]}
+        name="ludusName"
+        pattern={NON_BLANK_TEXT_PATTERN}
+        placeholder={t('newGame.ludusNamePlaceholder')}
+        required
+        testId="new-game-ludus-name"
+        value={ludusName}
+        onAction={() => setLudusName(generateLudusName(ludusName))}
+        onValueChange={setLudusName}
+      />
+    </ModalForm>
   );
 }

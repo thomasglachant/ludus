@@ -1,52 +1,69 @@
 import './language-switcher.css';
+import { useId } from 'react';
 import type { LanguageCode } from '@/domain/types';
 import { useGameStore } from '@/state/game-store-context';
 import { useUiStore } from '@/state/ui-store-context';
-import { SegmentedControl } from '@/ui/shared/ludus/SegmentedControl';
+import { RadioGroup, RadioGroupIndicator, RadioGroupItem } from '@/ui/shared/primitives/RadioGroup';
+
+const languageOptions: Array<{
+  codeKey: string;
+  labelKey: string;
+  value: LanguageCode;
+}> = [
+  {
+    codeKey: 'options.englishCode',
+    labelKey: 'options.english',
+    value: 'en',
+  },
+  {
+    codeKey: 'options.frenchCode',
+    labelKey: 'options.french',
+    value: 'fr',
+  },
+];
 
 export function LanguageSwitcher() {
   const { language, t } = useUiStore();
   const { changeLanguage, isLoading } = useGameStore();
+  const labelId = useId();
 
   const handleChange = (nextLanguage: LanguageCode) => {
     void changeLanguage(nextLanguage);
   };
 
   return (
-    <div className="language-switcher">
-      <p>{t('options.language')}</p>
-      <SegmentedControl
-        ariaLabel={t('options.language')}
+    <section className="language-switcher">
+      <h2 id={labelId}>{t('options.language')}</h2>
+      <RadioGroup
+        aria-labelledby={labelId}
         className="language-switcher__choices"
-        items={[
-          {
-            disabled: isLoading,
-            label: (
-              <>
-                <span aria-hidden="true" className="language-switcher__flag">
-                  🇬🇧
-                </span>
-                <strong>{t('options.english')}</strong>
-              </>
-            ),
-            value: 'en',
-          },
-          {
-            disabled: isLoading,
-            label: (
-              <>
-                <span aria-hidden="true" className="language-switcher__flag">
-                  🇫🇷
-                </span>
-                <strong>{t('options.french')}</strong>
-              </>
-            ),
-            value: 'fr',
-          },
-        ]}
         value={language}
-        onValueChange={handleChange}
-      />
-    </div>
+        onValueChange={(nextLanguage) => {
+          if (nextLanguage === 'en' || nextLanguage === 'fr') {
+            handleChange(nextLanguage);
+          }
+        }}
+      >
+        {languageOptions.map((option) => {
+          const optionId = `${labelId}-${option.value}`;
+
+          return (
+            <label className="language-switcher__option" htmlFor={optionId} key={option.value}>
+              <RadioGroupItem
+                className="language-switcher__radio"
+                disabled={isLoading}
+                id={optionId}
+                value={option.value}
+              >
+                <RadioGroupIndicator className="language-switcher__indicator" />
+              </RadioGroupItem>
+              <span className="language-switcher__copy">
+                <strong>{t(option.labelKey)}</strong>
+              </span>
+            </label>
+          );
+        })}
+      </RadioGroup>
+    </section>
   );
 }
