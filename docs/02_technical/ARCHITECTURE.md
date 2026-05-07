@@ -156,7 +156,7 @@ Current test focus:
 - training and combat XP awards;
 - central alerts for ludus planning, low treasury, Dormitory roster capacity, gladiator skill points and visible gladiator traits;
 - skill point spending rules;
-- market prices based exclusively on experience;
+- market prices derived from `MARKET_PRICING_CONFIG`;
 - combat rewards without participation payouts;
 - arena reward ledger entries;
 - building and gladiator market ledger entries;

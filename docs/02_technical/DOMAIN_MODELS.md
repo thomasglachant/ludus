@@ -170,7 +170,7 @@ export interface MarketGladiator extends Gladiator {
 }
 ```
 
-`MarketGladiator.price` is derived exclusively from the candidate's accumulated XP. Sale value is calculated dynamically from that purchase price and is not persisted on the gladiator.
+`MarketGladiator.price` is derived from the market pricing rules in `MARKET_PRICING_CONFIG`: base value, effective skill points, floored XP steps, non-negative reputation, combat record and permanent trait price modifiers. Sale value is calculated dynamically from that purchase price and is not persisted on the gladiator.
 
 ## Weekly Planning
 
