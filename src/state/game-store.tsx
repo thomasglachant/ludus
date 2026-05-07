@@ -6,6 +6,7 @@ import {
 } from '../domain/debug/debug-actions';
 import {
   resolveGameEventChoice as resolveGameEventChoiceAction,
+  synchronizeReactiveEvents,
   triggerDebugDailyEvent as triggerDebugDailyEventAction,
 } from '../domain/events/event-actions';
 import {
@@ -75,7 +76,9 @@ function createSaveService() {
 }
 
 function synchronizeDerivedSave(save: GameSave): GameSave {
-  return refreshGameAlerts(synchronizeEconomyProjection(synchronizePlanning(save)));
+  return refreshGameAlerts(
+    synchronizeEconomyProjection(synchronizePlanning(synchronizeReactiveEvents(save))),
+  );
 }
 
 function synchronizeLoadedSave(save: GameSave): GameSave {

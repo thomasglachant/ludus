@@ -20,7 +20,7 @@ export interface InitialSaveInput {
   createdAt: string;
 }
 
-export const CURRENT_SCHEMA_VERSION = 20;
+export const CURRENT_SCHEMA_VERSION = 21;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
   const market = createMarketState(

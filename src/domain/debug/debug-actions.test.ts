@@ -12,6 +12,7 @@ import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
 import type { DayOfWeek } from '../time/types';
 import {
+  adjustDebugTreasury,
   advanceDebugToDay,
   createDebugInjuryAlert,
   getDebugDayAdvanceDistance,
@@ -101,6 +102,19 @@ function withCompleteWeeklyPlanning(save: GameSave): GameSave {
 }
 
 describe('debug actions', () => {
+  it('allows debug treasury adjustments to push the ludus below zero', () => {
+    const save = createTestSave();
+    const result = adjustDebugTreasury(save, -600);
+
+    expect(result.ludus.treasury).toBe(-100);
+    expect(result.economy.ledgerEntries[0]).toMatchObject({
+      kind: 'expense',
+      category: 'other',
+      amount: 600,
+      labelKey: 'finance.ledger.debugTreasuryAdjustment',
+    });
+  });
+
   it('levels a gladiator up to the exact next threshold', () => {
     const save = createTestSave({
       gladiators: [createGladiator({ experience: 99 })],

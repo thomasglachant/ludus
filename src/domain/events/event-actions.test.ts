@@ -4,7 +4,12 @@ import { applyGladiatorTrait } from '../gladiator-traits/gladiator-trait-actions
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
 import { createDefaultDailyPlan } from '../weekly-simulation/weekly-simulation-actions';
-import { resolveGameEventChoice, synchronizeMacroEvents } from './event-actions';
+import {
+  resolveGameEventChoice,
+  synchronizeMacroEvents,
+  synchronizeReactiveEvents,
+  validateGameEventChoice,
+} from './event-actions';
 
 function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
   return {
@@ -462,5 +467,187 @@ describe('event actions', () => {
     expect(result.events.pendingEvents[0]).toMatchObject({
       definitionId: 'rebellionCrisis',
     });
+  });
+
+  it('creates a reactive debt crisis event when treasury drops below zero', () => {
+    const save = createTestSave({
+      ludus: {
+        ...createTestSave().ludus,
+        treasury: -1,
+      },
+    });
+    const result = synchronizeReactiveEvents(save);
+
+    expect(result.time.phase).toBe('event');
+    expect(result.events.pendingEvents[0]).toMatchObject({
+      definitionId: 'debtCrisis',
+      source: 'reactive',
+      status: 'pending',
+    });
+  });
+
+  it('does not duplicate the reactive debt crisis event', () => {
+    const save = synchronizeReactiveEvents(
+      createTestSave({
+        ludus: {
+          ...createTestSave().ludus,
+          treasury: -1,
+        },
+      }),
+    );
+    const result = synchronizeReactiveEvents(save);
+
+    expect(
+      result.events.pendingEvents.filter((event) => event.definitionId === 'debtCrisis'),
+    ).toHaveLength(1);
+  });
+
+  it('keeps reactive events ahead of random daily events', () => {
+    const save = synchronizeReactiveEvents(
+      createTestSave({
+        ludus: {
+          ...createTestSave().ludus,
+          rebellion: 85,
+          treasury: -1,
+        },
+      }),
+    );
+    const result = synchronizeMacroEvents(save, createDefaultDailyPlan('monday'), () => 0);
+
+    expect(result.createdEventIds).toEqual([]);
+    expect(result.save.events.pendingEvents[0]).toMatchObject({
+      definitionId: 'debtCrisis',
+      source: 'reactive',
+    });
+  });
+
+  it('marks the game lost when the player abandons the debt crisis', () => {
+    const save = synchronizeReactiveEvents(
+      createTestSave({
+        ludus: {
+          ...createTestSave().ludus,
+          treasury: -1,
+        },
+      }),
+    );
+    const event = save.events.pendingEvents[0];
+    const result = resolveGameEventChoice(save, event.id, 'abandon').save;
+
+    expect(result.ludus.gameStatus).toBe('lost');
+    expect(result.time.phase).toBe('gameOver');
+  });
+
+  it('starts a seven-day debt grace period from the current date', () => {
+    const save = synchronizeReactiveEvents(
+      createTestSave({
+        ludus: {
+          ...createTestSave().ludus,
+          treasury: -1,
+        },
+        time: {
+          ...createTestSave().time,
+          dayOfWeek: 'saturday',
+          phase: 'planning',
+        },
+      }),
+    );
+    const event = save.events.pendingEvents[0];
+    const result = resolveGameEventChoice(save, event.id, 'recover').save;
+
+    expect(result.economy.debtCrisis).toEqual({
+      status: 'grace',
+      startedAt: { dayOfWeek: 'saturday', week: 1, year: 1 },
+      deadlineAt: { dayOfWeek: 'saturday', week: 2, year: 1 },
+    });
+    expect(result.ludus.gameStatus).toBe('active');
+  });
+
+  it('waits until the exact grace deadline before losing the game', () => {
+    const save = synchronizeReactiveEvents(
+      createTestSave({
+        ludus: {
+          ...createTestSave().ludus,
+          treasury: -1,
+        },
+        time: {
+          ...createTestSave().time,
+          dayOfWeek: 'saturday',
+          phase: 'planning',
+        },
+      }),
+    );
+    const graceSave = resolveGameEventChoice(save, save.events.pendingEvents[0].id, 'recover').save;
+    const mondayResult = synchronizeReactiveEvents({
+      ...graceSave,
+      time: {
+        ...graceSave.time,
+        dayOfWeek: 'monday',
+        week: 2,
+        phase: 'planning',
+      },
+    });
+    const saturdayResult = synchronizeReactiveEvents({
+      ...graceSave,
+      time: {
+        ...graceSave.time,
+        dayOfWeek: 'saturday',
+        week: 2,
+        phase: 'planning',
+      },
+    });
+
+    expect(mondayResult.ludus.gameStatus).toBe('active');
+    expect(mondayResult.time.phase).toBe('planning');
+    expect(saturdayResult.ludus.gameStatus).toBe('lost');
+    expect(saturdayResult.time.phase).toBe('gameOver');
+  });
+
+  it('clears the debt crisis when the treasury is positive again', () => {
+    const save = synchronizeReactiveEvents(
+      createTestSave({
+        ludus: {
+          ...createTestSave().ludus,
+          treasury: -1,
+        },
+      }),
+    );
+    const graceSave = resolveGameEventChoice(save, save.events.pendingEvents[0].id, 'recover').save;
+    const result = synchronizeReactiveEvents({
+      ...graceSave,
+      ludus: {
+        ...graceSave.ludus,
+        treasury: 0,
+      },
+    });
+
+    expect(result.economy.debtCrisis).toBeUndefined();
+    expect(result.events.pendingEvents.some((event) => event.definitionId === 'debtCrisis')).toBe(
+      false,
+    );
+  });
+
+  it('blocks pay-for-calm when the player cannot afford the event cost', () => {
+    const save = synchronizeMacroEvents(
+      createTestSave({
+        ludus: {
+          ...createTestSave().ludus,
+          rebellion: 85,
+          treasury: 100,
+        },
+      }),
+      createDefaultDailyPlan('monday'),
+      () => 0,
+    ).save;
+    const event = save.events.pendingEvents[0];
+    const validation = validateGameEventChoice(save, event.id, 'payForCalm');
+    const result = resolveGameEventChoice(save, event.id, 'payForCalm').save;
+
+    expect(validation).toMatchObject({
+      isAllowed: false,
+      cost: 220,
+      reason: 'insufficientTreasury',
+    });
+    expect(result.events.pendingEvents[0]).toBe(event);
+    expect(result.ludus.treasury).toBe(100);
   });
 });

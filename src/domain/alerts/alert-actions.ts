@@ -1,4 +1,5 @@
 import { getAvailableSkillPoints } from '../gladiators/progression';
+import { GAME_BALANCE } from '../../game-data/balance';
 import type { Gladiator } from '../gladiators/types';
 import { getAvailableLudusGladiatorPlaces } from '../ludus/capacity';
 import {
@@ -96,6 +97,21 @@ function createOpenRegisterAlert(save: GameSave, createdAt: string): GameAlert {
   };
 }
 
+function createLowTreasuryAlert(save: GameSave, createdAt: string): GameAlert {
+  const isNegative = save.ludus.treasury < 0;
+
+  return {
+    id: 'alert-ludus-low-treasury',
+    severity: isNegative ? 'critical' : 'warning',
+    titleKey: isNegative ? 'alerts.negativeTreasury.title' : 'alerts.lowTreasury.title',
+    descriptionKey: isNegative
+      ? 'alerts.negativeTreasury.description'
+      : 'alerts.lowTreasury.description',
+    actionKind: 'openFinance',
+    createdAt,
+  };
+}
+
 function getAssignedPlanningPoints(validation: WeeklyPlanningValidation) {
   return validation.days.reduce(
     (total, day) => total + day.buckets.reduce((dayTotal, bucket) => dayTotal + bucket.used, 0),
@@ -104,6 +120,15 @@ function getAssignedPlanningPoints(validation: WeeklyPlanningValidation) {
 }
 
 export const ludusAlertRules: AlertRule[] = [
+  {
+    id: 'low-treasury',
+    scope: 'ludus',
+    evaluate(save, context) {
+      return save.ludus.treasury < GAME_BALANCE.economy.lowTreasuryWarningThreshold
+        ? createLowTreasuryAlert(save, context.createdAt)
+        : null;
+    },
+  },
   {
     id: 'weekly-planning',
     scope: 'ludus',

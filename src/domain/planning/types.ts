@@ -53,6 +53,7 @@ export type AlertSeverity = 'info' | 'warning' | 'critical';
 
 export type GameAlertActionKind =
   | 'allocateGladiatorSkillPoint'
+  | 'openFinance'
   | 'openWeeklyPlanning'
   | 'openMarket';
 

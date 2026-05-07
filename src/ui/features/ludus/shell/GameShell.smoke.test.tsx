@@ -185,6 +185,70 @@ describe('GameShell smoke flows', () => {
     expect(openSurface).toHaveBeenCalledWith({ kind: 'finance' });
   });
 
+  it('marks the treasury fact as dangerous at the low treasury threshold', () => {
+    const save = {
+      ...createTestSave(),
+      ludus: {
+        ...createTestSave().ludus,
+        treasury: 100,
+      },
+    };
+
+    useGameStoreMock.mockReturnValue(createGameStore({ currentSave: save }));
+
+    act(() => {
+      root.render(
+        <TooltipProvider delayDuration={100}>
+          <GameShell />
+        </TooltipProvider>,
+      );
+    });
+
+    const treasuryFact = container.querySelector(
+      '[data-testid="topbar-treasury"] [data-slot="game-fact"]',
+    );
+
+    expect(treasuryFact?.classList.contains('game-fact--danger')).toBe(true);
+  });
+
+  it('renders the game over modal with a new game action', () => {
+    const save = {
+      ...createTestSave(),
+      ludus: {
+        ...createTestSave().ludus,
+        gameStatus: 'lost' as const,
+      },
+      time: {
+        ...createTestSave().time,
+        phase: 'gameOver' as const,
+      },
+    };
+
+    useGameStoreMock.mockReturnValue(createGameStore({ currentSave: save }));
+
+    act(() => {
+      root.render(
+        <TooltipProvider delayDuration={100}>
+          <GameShell />
+        </TooltipProvider>,
+      );
+    });
+
+    expect(document.body.textContent).toContain('gameOver.title');
+
+    const newGameButton = Array.from(
+      document.body.querySelectorAll<HTMLButtonElement>('button'),
+    ).find((button) => button.textContent?.includes('gameOver.newGame'));
+
+    if (!newGameButton) {
+      throw new Error('Missing game over new game button');
+    }
+
+    click(newGameButton);
+
+    expect(navigate).toHaveBeenCalledWith('newGame');
+  });
+
   it('does not render the legacy building efficiency metric in the overview', () => {
     expect(container.textContent).not.toContain('buildingsOverview.efficiencyValue');
     expect(container.textContent).not.toContain('buildingPanel.efficiency');

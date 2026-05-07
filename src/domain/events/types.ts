@@ -2,6 +2,7 @@ import type { BuildingId } from '../buildings/types';
 import type { DayOfWeek } from '../time/types';
 
 export type GameEventStatus = 'pending' | 'resolved' | 'expired';
+export type GameEventSource = 'daily' | 'reactive';
 
 export interface GameEventChoice {
   id: string;
@@ -31,6 +32,7 @@ export type GameEventConsequence =
 export interface GameEvent {
   id: string;
   definitionId: string;
+  source?: GameEventSource;
   titleKey: string;
   descriptionKey: string;
   status: GameEventStatus;
@@ -63,6 +65,8 @@ export type GameEventEffect =
   | { type: 'changeLudusReputation'; amount: number }
   | { type: 'changeLudusHappiness'; amount: number }
   | { type: 'changeLudusRebellion'; amount: number }
+  | { type: 'setGameLost' }
+  | { type: 'startDebtGrace' }
   | { type: 'removeGladiator'; gladiatorId: string; bypassActivityEligibility?: boolean }
   | { type: 'releaseAllGladiators' }
   | {

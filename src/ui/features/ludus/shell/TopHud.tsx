@@ -1,4 +1,5 @@
 import type { GameSave } from '@/domain/types';
+import { GAME_BALANCE } from '@/game-data/balance';
 import { useUiStore } from '@/state/ui-store-context';
 import { Tooltip } from '@/ui/shared/components/Tooltip';
 import { formatMoneyAmount } from '@/ui/shared/formatters/money';
@@ -37,6 +38,8 @@ export function TopHud({
   const dayLabel = t(`days.${save.time.dayOfWeek}`);
   const happinessPercent = Math.round(Math.min(100, Math.max(0, save.ludus.happiness)));
   const domusLevel = save.buildings.domus.level;
+  const treasuryTone =
+    save.ludus.treasury <= GAME_BALANCE.economy.lowTreasuryWarningThreshold ? 'danger' : 'neutral';
 
   return (
     <header className="top-hud" data-testid="topbar">
@@ -79,6 +82,7 @@ export function TopHud({
                 label={t('common.treasury')}
                 showLabel={false}
                 surface="plain"
+                tone={treasuryTone}
                 value={formatMoneyAmount(save.ludus.treasury)}
               />
             </Button>

@@ -67,6 +67,7 @@ export type {
 } from './planning/types';
 export type {
   ActiveLoan,
+  DebtCrisisState,
   EconomyCategory,
   EconomyEntryKind,
   EconomyLedgerEntry,
@@ -98,6 +99,7 @@ export type {
 export type { GameInterruption } from './game-flow/interruption';
 export type {
   GameEventStatus,
+  GameEventSource,
   GameEventChoice,
   GameEvent,
   EventState,

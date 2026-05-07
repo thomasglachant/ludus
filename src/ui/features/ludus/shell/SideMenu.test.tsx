@@ -68,6 +68,10 @@ function createUiStore(): UiStoreValue {
         return 'Empty planning';
       }
 
+      if (key === 'alerts.lowTreasury.title') {
+        return 'Low treasury';
+      }
+
       if (key === 'test.alert.general') {
         return 'General warning';
       }
@@ -188,6 +192,7 @@ function renderSideMenu(
     onArchiveNotification(notificationId: string): void;
     onOpenBuilding(buildingId: BuildingId): void;
     onOpenGladiator(gladiatorId: string): void;
+    onOpenFinance(): void;
     onOpenMarket(): void;
     onOpenNotifications(): void;
     onOpenWeeklyPlanning(): void;
@@ -199,6 +204,7 @@ function renderSideMenu(
       onArchiveNotification={handlers.onArchiveNotification ?? vi.fn()}
       onOpenBuilding={handlers.onOpenBuilding ?? vi.fn()}
       onOpenGladiator={handlers.onOpenGladiator ?? vi.fn()}
+      onOpenFinance={handlers.onOpenFinance ?? vi.fn()}
       onOpenMarket={handlers.onOpenMarket ?? vi.fn()}
       onOpenNotifications={handlers.onOpenNotifications ?? vi.fn()}
       onOpenWeeklyPlanning={handlers.onOpenWeeklyPlanning ?? vi.fn()}
@@ -320,6 +326,35 @@ describe('SideMenu', () => {
     });
 
     expect(onOpenWeeklyPlanning).toHaveBeenCalledTimes(1);
+
+    cleanup(container, root);
+  });
+
+  it('routes finance action alerts to the finance surface', () => {
+    const onOpenFinance = vi.fn();
+    const financeAlert: GameAlert = {
+      id: 'alert-ludus-low-treasury',
+      severity: 'warning',
+      titleKey: 'alerts.lowTreasury.title',
+      descriptionKey: 'alerts.lowTreasury.description',
+      actionKind: 'openFinance',
+      createdAt: '2026-05-01T08:00:00.000Z',
+    };
+    const save = createTestSave({
+      planning: {
+        ...createTestSave().planning,
+        alerts: [financeAlert],
+      },
+    });
+    const { container, root } = renderSideMenu(save, { onOpenFinance });
+
+    const alertButton = getAlertButton(container, 'Low treasury');
+
+    act(() => {
+      alertButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onOpenFinance).toHaveBeenCalledTimes(1);
 
     cleanup(container, root);
   });

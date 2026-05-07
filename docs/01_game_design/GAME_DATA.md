@@ -15,6 +15,8 @@ The ludus money reserve is named `treasury`.
 ```ts
 GAME_BALANCE.economy.initialTreasury = 500;
 GAME_BALANCE.economy.initialReputation = 0;
+GAME_BALANCE.economy.lowTreasuryWarningThreshold = 100;
+GAME_BALANCE.economy.debtGraceDays = 7;
 ```
 
 Loans are defined in `src/game-data/economy.ts`:
@@ -64,7 +66,6 @@ GAME_BALANCE.macroSimulation = {
   rebellionPressureDailyIncrease: 8,
   rebellionCalmDailyReduction: 4,
   rebellionCriticalThreshold: 80,
-  gameOverTreasuryThreshold: -1000,
 };
 ```
 

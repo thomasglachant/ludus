@@ -8,7 +8,11 @@ export const GAME_BALANCE = {
     initialTreasury: 500,
     // Ludus reputation assigned to a brand-new save.
     initialReputation: 0,
-    // Lower clamp for treasury changes from events and actions.
+    // Treasury threshold below which the player receives a persistent warning.
+    lowTreasuryWarningThreshold: 100,
+    // Minimum grace period before a negative treasury can become a defeat.
+    debtGraceDays: 7,
+    // Lower clamp used by debug treasury adjustments.
     minimumTreasury: 0,
     // Lower clamp for ludus and gladiator reputation changes.
     minimumReputation: 0,
@@ -263,7 +267,6 @@ export const GAME_BALANCE = {
     rebellionPressureDailyIncrease: 8,
     rebellionCalmDailyReduction: 4,
     rebellionCriticalThreshold: 80,
-    gameOverTreasuryThreshold: -1000,
   },
 
   events: {

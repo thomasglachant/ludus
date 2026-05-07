@@ -1,5 +1,5 @@
 import type { BuildingId } from '../buildings/types';
-import type { DayOfWeek } from '../time/types';
+import type { DayOfWeek, GameDate } from '../time/types';
 
 export type EconomyEntryKind = 'income' | 'expense';
 
@@ -52,6 +52,12 @@ export interface ActiveLoan {
   startedWeek: number;
 }
 
+export interface DebtCrisisState {
+  status: 'grace';
+  startedAt: GameDate;
+  deadlineAt: GameDate;
+}
+
 export interface WeeklyProjection {
   incomeByCategory: Partial<Record<EconomyCategory, number>>;
   expenseByCategory: Partial<Record<EconomyCategory, number>>;
@@ -61,6 +67,7 @@ export interface WeeklyProjection {
 export interface EconomyState {
   ledgerEntries: EconomyLedgerEntry[];
   activeLoans: ActiveLoan[];
+  debtCrisis?: DebtCrisisState;
   currentWeekSummary: WeeklyProjection;
   weeklyProjection: WeeklyProjection;
 }

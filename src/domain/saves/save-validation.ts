@@ -55,8 +55,14 @@ const arenaRanks = [
 const arenaDayPhases = ['intro', 'summary'];
 const gladiatorTraitIds = GLADIATOR_TRAIT_DEFINITIONS.map((definition) => definition.id);
 const alertSeverities = ['info', 'warning', 'critical'];
-const alertActionKinds = ['allocateGladiatorSkillPoint', 'openWeeklyPlanning', 'openMarket'];
+const alertActionKinds = [
+  'allocateGladiatorSkillPoint',
+  'openFinance',
+  'openWeeklyPlanning',
+  'openMarket',
+];
 const eventStatuses = ['pending', 'resolved', 'expired'];
+const eventSources = ['daily', 'reactive'];
 const dailyPlanActivities: DailyPlanActivity[] = ['training', 'meals', 'sleep', 'production'];
 const legacyFocusedTrainingActivities = [
   'strengthTraining',
@@ -109,6 +115,8 @@ const eventEffectTypes = [
   'changeLudusReputation',
   'changeLudusHappiness',
   'changeLudusRebellion',
+  'setGameLost',
+  'startDebtGrace',
   'removeGladiator',
   'releaseAllGladiators',
   'changeGladiatorExperience',
@@ -592,6 +600,15 @@ function isActiveLoan(value: unknown): value is ActiveLoan {
   );
 }
 
+function isDebtCrisisState(value: unknown) {
+  return (
+    isRecord(value) &&
+    value.status === 'grace' &&
+    isGameDate(value.startedAt) &&
+    isGameDate(value.deadlineAt)
+  );
+}
+
 function isEconomyState(value: unknown): value is EconomyState {
   return (
     isRecord(value) &&
@@ -599,6 +616,7 @@ function isEconomyState(value: unknown): value is EconomyState {
     value.ledgerEntries.every(isEconomyLedgerEntry) &&
     Array.isArray(value.activeLoans) &&
     value.activeLoans.every(isActiveLoan) &&
+    (value.debtCrisis === undefined || isDebtCrisisState(value.debtCrisis)) &&
     (value.currentWeekSummary === undefined || isWeeklyProjection(value.currentWeekSummary)) &&
     isWeeklyProjection(value.weeklyProjection)
   );
@@ -642,6 +660,10 @@ function isGameEventEffect(value: unknown) {
   }
 
   if (effectType === 'releaseAllGladiators') {
+    return true;
+  }
+
+  if (effectType === 'setGameLost' || effectType === 'startDebtGrace') {
     return true;
   }
 
@@ -727,6 +749,7 @@ function isGameEvent(value: unknown): value is GameEvent {
     isRecord(value) &&
     hasString(value, 'id') &&
     hasString(value, 'definitionId') &&
+    (value.source === undefined || isStringFrom(value.source, eventSources)) &&
     hasString(value, 'titleKey') &&
     hasString(value, 'descriptionKey') &&
     hasStringFrom(value, 'status', eventStatuses) &&

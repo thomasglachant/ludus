@@ -80,6 +80,52 @@ function withCompleteRemainingPlanning(save: GameSave): GameSave {
 }
 
 describe('alert actions', () => {
+  it('generates a treasury warning when the ludus is nearly broke', () => {
+    const save = refreshGameAlerts(
+      withoutAlerts({
+        ...createTestSave(),
+        ludus: {
+          ...createTestSave().ludus,
+          treasury: 99,
+        },
+      }),
+    );
+
+    expect(save.planning.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'alert-ludus-low-treasury',
+          severity: 'warning',
+          titleKey: 'alerts.lowTreasury.title',
+          actionKind: 'openFinance',
+        }),
+      ]),
+    );
+  });
+
+  it('upgrades the treasury warning to critical when the ludus is in debt', () => {
+    const save = refreshGameAlerts(
+      withoutAlerts({
+        ...createTestSave(),
+        ludus: {
+          ...createTestSave().ludus,
+          treasury: -1,
+        },
+      }),
+    );
+
+    expect(save.planning.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'alert-ludus-low-treasury',
+          severity: 'critical',
+          titleKey: 'alerts.negativeTreasury.title',
+          actionKind: 'openFinance',
+        }),
+      ]),
+    );
+  });
+
   it('generates a critical Ludus alert when the remaining weekly planning is empty', () => {
     const save = refreshGameAlerts(
       withoutAlerts(withGladiators(createTestSave(), [createGladiator()])),
