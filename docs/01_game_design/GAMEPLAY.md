@@ -52,7 +52,7 @@ Each day resolves:
 - ledger entries and current week summary;
 - game over if treasury reaches the defeat threshold.
 
-Gladiator traits can modify daily gains, combat gauges, combat XP, arena rewards and injury risk. Permanent traits are profile characteristics and do not create alerts. Temporary traits represent short-lived states: `injury` and `rest` block all gladiator activity and create alerts; `victoryAura` boosts training XP after an arena win without creating an alert.
+Gladiator traits can modify daily gains, combat gauges, combat XP, arena rewards, injury risk and effective skills. Permanent traits are profile characteristics, do not create alerts and affect market value. Temporary traits represent short-lived states applied by events or simulation outcomes.
 
 ## Gladiator Progression
 

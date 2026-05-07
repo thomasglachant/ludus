@@ -1,6 +1,6 @@
 import './buildings.css';
 import type { BuildingId, GameSave } from '@/domain/types';
-import { BUILDING_DEFINITIONS, BUILDING_IDS } from '@/game-data/buildings';
+import { BUILDING_DEFINITIONS, BUILDING_IDS } from '@/game-data/buildings/definitions';
 import { useUiStore } from '@/state/ui-store-context';
 import { BuildingAvatar } from '@/ui/features/buildings/BuildingAvatar';
 import { EntityList, EntityListRow } from '@/ui/shared/components/EntityList';

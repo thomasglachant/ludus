@@ -1,4 +1,4 @@
-import { LOAN_DEFINITIONS } from '../../game-data/economy';
+import { LOAN_DEFINITIONS } from '../../game-data/economy/loans';
 import type { GameSave } from '../saves/types';
 import type {
   ActiveLoan,
@@ -8,12 +8,17 @@ import type {
   LoanId,
   WeeklyProjection,
 } from './types';
+import { recordExpense, recordIncome, validateExpense } from './treasury-service';
+export { addLedgerEntry, createLedgerEntry } from './treasury-service';
 
-export type LoanActionFailureReason =
-  | 'loanNotFound'
-  | 'loanAlreadyActive'
-  | 'missingDomusLevel'
-  | 'insufficientTreasury';
+export const LOAN_ACTION_FAILURE_REASONS = [
+  'loanNotFound',
+  'loanAlreadyActive',
+  'missingDomusLevel',
+  'insufficientTreasury',
+] as const;
+
+export type LoanActionFailureReason = (typeof LOAN_ACTION_FAILURE_REASONS)[number];
 
 export interface LoanActionValidation {
   isAllowed: boolean;
@@ -41,48 +46,6 @@ export function createInitialEconomyState(): EconomyState {
     activeLoans: [],
     currentWeekSummary: createEmptyProjection(),
     weeklyProjection: createEmptyProjection(),
-  };
-}
-
-export function createLedgerEntry(
-  save: Pick<GameSave, 'time'> & Partial<Pick<GameSave, 'economy'>>,
-  input: Omit<EconomyLedgerEntry, 'id' | 'year' | 'week' | 'dayOfWeek'>,
-): EconomyLedgerEntry {
-  const sequence = save.economy?.ledgerEntries.length ?? 0;
-
-  return {
-    id: [
-      'ledger',
-      save.time.year,
-      save.time.week,
-      save.time.dayOfWeek,
-      sequence,
-      input.kind,
-      input.category,
-      input.buildingId ?? 'ludus',
-      input.relatedId ?? input.labelKey,
-      Math.abs(input.amount),
-    ].join('-'),
-    year: save.time.year,
-    week: save.time.week,
-    dayOfWeek: save.time.dayOfWeek,
-    ...input,
-  };
-}
-
-export function addLedgerEntry(save: GameSave, entry: EconomyLedgerEntry): GameSave {
-  const signedAmount = entry.kind === 'income' ? entry.amount : -entry.amount;
-
-  return {
-    ...save,
-    ludus: {
-      ...save.ludus,
-      treasury: save.ludus.treasury + signedAmount,
-    },
-    economy: {
-      ...save.economy,
-      ledgerEntries: [entry, ...save.economy.ledgerEntries].slice(0, 120),
-    },
   };
 }
 
@@ -171,7 +134,7 @@ export function takeLoan(save: GameSave, loanId: LoanId): LoanActionResult {
     startedYear: save.time.year,
     startedWeek: save.time.week,
   };
-  const nextSave = addLedgerEntry(
+  const nextSave = recordIncome(
     {
       ...save,
       economy: {
@@ -179,13 +142,12 @@ export function takeLoan(save: GameSave, loanId: LoanId): LoanActionResult {
         activeLoans: [...save.economy.activeLoans, activeLoan],
       },
     },
-    createLedgerEntry(save, {
-      kind: 'income',
+    {
       category: 'loan',
       amount: definition.amount,
       labelKey: definition.labelKey,
       relatedId: activeLoan.id,
-    }),
+    },
   );
 
   return { save: updateCurrentWeekSummary(nextSave), validation: { isAllowed: true, cost: 0 } };
@@ -198,7 +160,9 @@ export function buyoutLoan(save: GameSave, loanInstanceId: string): LoanActionRe
     return { save, validation: { isAllowed: false, cost: 0, reason: 'loanNotFound' } };
   }
 
-  if (save.ludus.treasury < loan.remainingBalance) {
+  const expenseValidation = validateExpense(save, loan.remainingBalance);
+
+  if (!expenseValidation.isAllowed) {
     return {
       save,
       validation: {
@@ -209,7 +173,7 @@ export function buyoutLoan(save: GameSave, loanInstanceId: string): LoanActionRe
     };
   }
 
-  const nextSave = addLedgerEntry(
+  const expenseResult = recordExpense(
     {
       ...save,
       economy: {
@@ -217,17 +181,16 @@ export function buyoutLoan(save: GameSave, loanInstanceId: string): LoanActionRe
         activeLoans: save.economy.activeLoans.filter((candidate) => candidate.id !== loan.id),
       },
     },
-    createLedgerEntry(save, {
-      kind: 'expense',
+    {
       category: 'loan',
       amount: loan.remainingBalance,
       labelKey: 'finance.loanBuyout',
       relatedId: loan.id,
-    }),
+    },
   );
 
   return {
-    save: updateCurrentWeekSummary(nextSave),
+    save: updateCurrentWeekSummary(expenseResult.save),
     validation: { isAllowed: true, cost: loan.remainingBalance },
   };
 }

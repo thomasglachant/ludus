@@ -9,11 +9,15 @@ export interface WeeklyPlanningState {
   alerts: GameAlert[];
 }
 
-export type DailyPlanActivity = 'training' | 'meals' | 'sleep' | 'production';
+export const DAILY_PLAN_ACTIVITIES = ['training', 'meals', 'sleep', 'production'] as const;
+
+export type DailyPlanActivity = (typeof DAILY_PLAN_ACTIVITIES)[number];
 
 export type DailyPlanPoints = Record<DailyPlanActivity, number>;
 
-export type DailyPlanBucket = 'gladiatorTimePoints' | 'laborPoints' | 'adminPoints';
+export const DAILY_PLAN_BUCKETS = ['gladiatorTimePoints', 'laborPoints', 'adminPoints'] as const;
+
+export type DailyPlanBucket = (typeof DAILY_PLAN_BUCKETS)[number];
 
 export type DailyPlanBuildingActivitySelections = Partial<
   Record<DailyPlanActivity, BuildingActivityId>
@@ -49,12 +53,17 @@ export interface WeeklyReport {
   injuries: number;
 }
 
-export type AlertSeverity = 'info' | 'warning' | 'critical';
+export const ALERT_SEVERITIES = ['info', 'warning', 'critical'] as const;
 
-export type GameAlertActionKind =
-  | 'allocateGladiatorSkillPoint'
-  | 'openWeeklyPlanning'
-  | 'openMarket';
+export type AlertSeverity = (typeof ALERT_SEVERITIES)[number];
+
+export const GAME_ALERT_ACTION_KINDS = [
+  'allocateGladiatorSkillPoint',
+  'openWeeklyPlanning',
+  'openMarket',
+] as const;
+
+export type GameAlertActionKind = (typeof GAME_ALERT_ACTION_KINDS)[number];
 
 export interface GameAlert {
   id: string;

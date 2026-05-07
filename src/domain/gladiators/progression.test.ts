@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { GAME_BALANCE } from '../../game-data/balance';
+import { GLADIATOR_PROGRESSION_CONFIG } from '../../game-data/gladiators/progression';
+import { GLADIATOR_SKILL_CONFIG } from '../../game-data/gladiators/skills';
 import {
   addGladiatorExperience,
   allocateGladiatorSkillPoint,
@@ -37,9 +38,7 @@ describe('gladiator progression', () => {
     expect(getGladiatorLevelFromExperience(99)).toBe(1);
     expect(getGladiatorLevelFromExperience(100)).toBe(2);
     expect(getGladiatorLevelFromExperience(390)).toBe(4);
-    expect(getGladiatorLevelFromExperience(999_999)).toBe(
-      GAME_BALANCE.gladiators.progression.maxLevel,
-    );
+    expect(getGladiatorLevelFromExperience(999_999)).toBe(GLADIATOR_PROGRESSION_CONFIG.maxLevel);
     expect(getGladiatorLevel(createGladiator({ experience: 390 }))).toBe(4);
   });
 
@@ -70,10 +69,10 @@ describe('gladiator progression', () => {
 
     expect(gladiator).toMatchObject({
       experience: 100,
-      strength: GAME_BALANCE.gladiators.skills.maximum,
-      agility: GAME_BALANCE.gladiators.skills.minimum,
+      strength: GLADIATOR_SKILL_CONFIG.maximum,
+      agility: GLADIATOR_SKILL_CONFIG.minimum,
       defense: 4,
-      life: GAME_BALANCE.gladiators.skills.maximum,
+      life: GLADIATOR_SKILL_CONFIG.maximum,
     });
   });
 
@@ -102,22 +101,20 @@ describe('gladiator progression', () => {
     const repeatedSeededProfile = createInitialGladiatorSkillProfile('market-gladiator-test');
     const totalPoints = profile.strength + profile.agility + profile.defense + profile.life;
 
-    expect(totalPoints).toBe(GAME_BALANCE.gladiators.skills.initialTotalPoints);
+    expect(totalPoints).toBe(GLADIATOR_SKILL_CONFIG.initialTotalPoints);
+    expect(Object.values(profile).every((value) => value >= GLADIATOR_SKILL_CONFIG.minimum)).toBe(
+      true,
+    );
     expect(
-      Object.values(profile).every((value) => value >= GAME_BALANCE.gladiators.skills.minimum),
-    ).toBe(true);
-    expect(
-      Object.values(profile).every(
-        (value) => value <= GAME_BALANCE.gladiators.skills.initialMaximum,
-      ),
+      Object.values(profile).every((value) => value <= GLADIATOR_SKILL_CONFIG.initialMaximum),
     ).toBe(true);
     expect(seededProfile).toEqual(repeatedSeededProfile);
   });
 
   it('does not allocate points above the skill cap', () => {
     const capped = createGladiator({
-      experience: GAME_BALANCE.gladiators.progression.experienceByLevel[1],
-      strength: GAME_BALANCE.gladiators.skills.maximum,
+      experience: GLADIATOR_PROGRESSION_CONFIG.experienceByLevel[1],
+      strength: GLADIATOR_SKILL_CONFIG.maximum,
       agility: 1,
       defense: 1,
       life: 1,

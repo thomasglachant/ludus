@@ -1,11 +1,8 @@
-import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../../game-data/building-improvements';
-import { BUILDING_SKILLS } from '../../game-data/building-skills';
-import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
-import {
-  addLedgerEntry,
-  createLedgerEntry,
-  updateCurrentWeekSummary,
-} from '../economy/economy-actions';
+import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../../game-data/buildings/improvements';
+import { BUILDING_SKILLS } from '../../game-data/buildings/skills';
+import { BUILDING_DEFINITIONS } from '../../game-data/buildings/definitions';
+import { updateCurrentWeekSummary } from '../economy/economy-actions';
+import { recordExpense, validateExpense } from '../economy/treasury-service';
 import {
   findBuildingPurchaseLevelDefinition,
   getBuildingPurchaseTargetLevel,
@@ -19,21 +16,24 @@ import type {
   BuildingSkillDefinition,
 } from './types';
 
-export type BuildingActionFailureReason =
-  | 'alreadyPurchased'
-  | 'alreadyPurchasedImprovement'
-  | 'alreadyPurchasedSkill'
-  | 'alreadySelectedPolicy'
-  | 'insufficientTreasury'
-  | 'missingBuildingLevel'
-  | 'missingDomusLevel'
-  | 'missingImprovementPrerequisite'
-  | 'missingSkillPrerequisite'
-  | 'notPurchased'
-  | 'unavailableImprovement'
-  | 'unavailableLevel'
-  | 'unavailablePolicy'
-  | 'unavailableSkill';
+export const BUILDING_ACTION_FAILURE_REASONS = [
+  'alreadyPurchased',
+  'alreadyPurchasedImprovement',
+  'alreadyPurchasedSkill',
+  'alreadySelectedPolicy',
+  'insufficientTreasury',
+  'missingBuildingLevel',
+  'missingDomusLevel',
+  'missingImprovementPrerequisite',
+  'missingSkillPrerequisite',
+  'notPurchased',
+  'unavailableImprovement',
+  'unavailableLevel',
+  'unavailablePolicy',
+  'unavailableSkill',
+] as const;
+
+export type BuildingActionFailureReason = (typeof BUILDING_ACTION_FAILURE_REASONS)[number];
 
 export interface BuildingActionValidation {
   isAllowed: boolean;
@@ -84,7 +84,9 @@ function findBuildingSkill(
 }
 
 function validateTreasury(save: GameSave, cost: number): BuildingActionValidation | null {
-  if (save.ludus.treasury < cost) {
+  const validation = validateExpense(save, cost);
+
+  if (!validation.isAllowed) {
     return {
       isAllowed: false,
       cost,
@@ -123,19 +125,15 @@ function recordBuildingExpense(
     return updateCurrentWeekSummary(save);
   }
 
-  return updateCurrentWeekSummary(
-    addLedgerEntry(
-      save,
-      createLedgerEntry(save, {
-        kind: 'expense',
-        category: 'building',
-        amount,
-        labelKey,
-        buildingId,
-        relatedId,
-      }),
-    ),
-  );
+  const result = recordExpense(save, {
+    category: 'building',
+    amount,
+    labelKey,
+    buildingId,
+    relatedId,
+  });
+
+  return updateCurrentWeekSummary(result.save);
 }
 
 export function validateBuildingPurchase(

@@ -4,11 +4,11 @@ import {
   getGladiatorAvatarAssetPath,
   getGladiatorPortraitAssetPath,
   getGladiatorVisualIdentity,
-} from '../../game-data/gladiator-visuals';
+} from '../../game-data/gladiators/visuals';
 import {
   GLADIATOR_CLASS_PORTRAIT_ASSET_PATHS,
   GLADIATOR_CLASS_VISUAL_ASSET_IDS,
-} from '../../game-data/visual-assets';
+} from '../../game-data/gladiators/assets';
 import type { GladiatorSkillProfile, GladiatorVisualIdentity } from './types';
 import { inferGladiatorClassId } from './skills';
 

@@ -1,15 +1,18 @@
 import type { Gladiator } from '../gladiators/types';
 
-export type ArenaRank =
-  | 'bronze3'
-  | 'bronze2'
-  | 'bronze1'
-  | 'silver3'
-  | 'silver2'
-  | 'silver1'
-  | 'gold3'
-  | 'gold2'
-  | 'gold1';
+export const ARENA_RANKS = [
+  'bronze3',
+  'bronze2',
+  'bronze1',
+  'silver3',
+  'silver2',
+  'silver1',
+  'gold3',
+  'gold2',
+  'gold1',
+] as const;
+
+export type ArenaRank = (typeof ARENA_RANKS)[number];
 
 export interface ArenaState {
   arenaDay?: ArenaDayState;
@@ -17,7 +20,9 @@ export interface ArenaState {
   isArenaDayActive: boolean;
 }
 
-export type ArenaDayPhase = 'intro' | 'summary';
+export const ARENA_DAY_PHASES = ['intro', 'summary'] as const;
+
+export type ArenaDayPhase = (typeof ARENA_DAY_PHASES)[number];
 
 export interface ArenaDayState {
   year: number;

@@ -11,10 +11,12 @@ import {
   getActiveTemporaryGladiatorTraits,
   getGladiatorTraitDefinition,
   getRemainingGladiatorTraitDuration,
-} from '../gladiator-traits/gladiator-trait-actions';
+} from '../gladiators/trait-actions';
 import type { GladiatorTrait } from '../gladiators/types';
 
-export type AlertRuleScope = 'ludus' | 'building' | 'gladiator';
+export const ALERT_RULE_SCOPES = ['ludus', 'building', 'gladiator'] as const;
+
+export type AlertRuleScope = (typeof ALERT_RULE_SCOPES)[number];
 
 export interface AlertRuleContext {
   createdAt: string;

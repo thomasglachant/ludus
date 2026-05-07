@@ -1,0 +1,15 @@
+export const WEEKLY_SIMULATION_CONFIG = {
+  baseDailyGladiatorPoints: 6,
+  baseDailyLaborPoints: 8,
+  baseDailyAdminPoints: 0,
+  idealTrainingPressurePointsPerGladiator: 4,
+  maximumTrainingEfficiencyMultiplier: 1.25,
+  trainingInjuryChancePerPoint: 0.015,
+  heavyScheduleHappinessPenalty: 2,
+  productionIncomePerPoint: 8,
+  rebellionPressureHappinessThreshold: 40,
+  rebellionPressureDailyIncrease: 8,
+  rebellionCalmDailyReduction: 4,
+  rebellionCriticalThreshold: 80,
+  gameOverTreasuryThreshold: -1000,
+} as const;

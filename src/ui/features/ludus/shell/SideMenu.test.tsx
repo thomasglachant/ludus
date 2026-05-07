@@ -8,7 +8,7 @@ import type { BuildingId, GameAlert, GameNotification, GameSave, Gladiator } fro
 import { refreshGameAlerts } from '@/domain/alerts/alert-actions';
 import { synchronizePlanning } from '@/domain/planning/planning-actions';
 import { createInitialSave } from '@/domain/saves/create-initial-save';
-import { applyGladiatorTrait } from '@/domain/gladiator-traits/gladiator-trait-actions';
+import { applyGladiatorTrait } from '@/domain/gladiators/trait-actions';
 import { UiStoreContext, type UiStoreValue } from '@/state/ui-store-context';
 import { SideMenu } from './SideMenu';
 

@@ -1,14 +1,16 @@
 import {
   DAILY_EVENT_DEFINITIONS,
-  EVENT_CONFIG,
   type DailyEventConsequenceDefinition,
   type DailyEventDefinition,
   type DailyEventEffectTemplate,
   type DailyEventOutcomeDefinition,
-} from '../../game-data/events';
-import { GAME_BALANCE } from '../../game-data/balance';
-import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/building-activities';
-import { PROGRESSION_CONFIG } from '../../game-data/progression';
+} from '../../game-data/events/definitions';
+import { ARENA_RULES } from '../../game-data/arena/rules';
+import { BUILDING_ACTIVITY_DEFINITIONS } from '../../game-data/buildings/activities';
+import { EVENT_GENERATION_CONFIG } from '../../game-data/events/generation';
+import { TREASURY_CONFIG } from '../../game-data/economy/treasury';
+import { GAME_TIME_CONFIG } from '../../game-data/time';
+import { WEEKLY_SIMULATION_CONFIG } from '../../game-data/weekly-simulation';
 import { refreshGameAlerts } from '../alerts/alert-actions';
 import type { BuildingActivityId } from '../buildings/types';
 import {
@@ -31,7 +33,7 @@ import {
   canGladiatorPerformActivities,
   getActivityEligibleGladiators,
   hasActiveGladiatorTrait,
-} from '../gladiator-traits/gladiator-trait-actions';
+} from '../gladiators/trait-actions';
 import type {
   GameEvent,
   GameEventChoice,
@@ -43,7 +45,9 @@ import type {
 
 type RandomSource = () => number;
 
-export type EventActionFailureReason = 'eventNotFound' | 'choiceNotFound';
+export const EVENT_ACTION_FAILURE_REASONS = ['eventNotFound', 'choiceNotFound'] as const;
+
+export type EventActionFailureReason = (typeof EVENT_ACTION_FAILURE_REASONS)[number];
 
 export interface EventActionValidation {
   isAllowed: boolean;
@@ -64,7 +68,7 @@ function pickIndex(length: number, random: RandomSource) {
 }
 
 function getAbsoluteWeek(year: number, week: number) {
-  return (year - 1) * PROGRESSION_CONFIG.weeksPerYear + (week - 1);
+  return (year - 1) * GAME_TIME_CONFIG.weeksPerYear + (week - 1);
 }
 
 function getWeeksSinceLaunch(save: GameSave, launch: LaunchedGameEventRecord) {
@@ -83,7 +87,7 @@ function isSameLaunchDay(save: GameSave, launch: LaunchedGameEventRecord) {
 }
 
 function isDefinitionOnCooldown(save: GameSave, definition: DailyEventDefinition) {
-  const cooldownWeeks = definition.cooldownWeeks ?? EVENT_CONFIG.defaultCooldownWeeks;
+  const cooldownWeeks = definition.cooldownWeeks ?? EVENT_GENERATION_CONFIG.defaultCooldownWeeks;
 
   return save.events.launchedEvents.some(
     (launch) =>
@@ -95,7 +99,8 @@ function pickWeightedDefinition(definitions: DailyEventDefinition[], random: Ran
   const weightedDefinitions = definitions
     .map((definition) => ({
       definition,
-      weight: definition.selectionWeightPercent ?? EVENT_CONFIG.defaultSelectionWeightPercent,
+      weight:
+        definition.selectionWeightPercent ?? EVENT_GENERATION_CONFIG.defaultSelectionWeightPercent,
     }))
     .filter(({ weight }) => weight > 0);
 
@@ -124,7 +129,7 @@ function isSameEventDay(save: GameSave, event: GameEvent) {
 }
 
 function canDailyEventOccur(save: GameSave, random: RandomSource) {
-  return random() < EVENT_CONFIG.dailyEventProbabilityByDay[save.time.dayOfWeek];
+  return random() < EVENT_GENERATION_CONFIG.dailyEventProbabilityByDay[save.time.dayOfWeek];
 }
 
 function canUseDefinition(save: GameSave, definition: DailyEventDefinition) {
@@ -370,7 +375,7 @@ function addLaunchedEventRecord(
   event: GameEvent,
 ): LaunchedGameEventRecord[] {
   return [...records, createLaunchedEventRecord(event)].slice(
-    -EVENT_CONFIG.launchedEventHistoryLimit,
+    -EVENT_GENERATION_CONFIG.launchedEventHistoryLimit,
   );
 }
 
@@ -419,9 +424,9 @@ export function synchronizeMacroEvents(
   const pendingEvents = save.events.pendingEvents.filter((event) => isSameEventDay(save, event));
   const canCreateEvent =
     save.gladiators.length > 0 &&
-    save.time.dayOfWeek !== GAME_BALANCE.arena.dayOfWeek &&
-    getCurrentWeekEventCount(save) < EVENT_CONFIG.maxEventsPerWeek &&
-    pendingEvents.length < EVENT_CONFIG.maxEventsPerDay &&
+    save.time.dayOfWeek !== ARENA_RULES.dayOfWeek &&
+    getCurrentWeekEventCount(save) < EVENT_GENERATION_CONFIG.maxEventsPerWeek &&
+    pendingEvents.length < EVENT_GENERATION_CONFIG.maxEventsPerDay &&
     !hasEventForCurrentDay(save, pendingEvents) &&
     canDailyEventOccur(save, random);
   const createdEvent = canCreateEvent ? createDailyEvent(save, random, plan) : null;
@@ -433,7 +438,7 @@ export function synchronizeMacroEvents(
         pendingEvents: createdEvent ? [...pendingEvents, createdEvent] : pendingEvents,
         resolvedEvents: [...expiredEvents, ...save.events.resolvedEvents].slice(
           0,
-          EVENT_CONFIG.resolvedEventHistoryLimit,
+          EVENT_GENERATION_CONFIG.resolvedEventHistoryLimit,
         ),
         launchedEvents: createdEvent
           ? addLaunchedEventRecord(save.events.launchedEvents, createdEvent)
@@ -464,7 +469,7 @@ function applyTreasuryEventEffect(
       }),
     ),
   );
-  const isLost = nextSave.ludus.treasury <= GAME_BALANCE.macroSimulation.gameOverTreasuryThreshold;
+  const isLost = nextSave.ludus.treasury <= WEEKLY_SIMULATION_CONFIG.gameOverTreasuryThreshold;
 
   return {
     ...nextSave,
@@ -529,7 +534,7 @@ function applyEventEffect(save: GameSave, effect: GameEventEffect, labelKey: str
       ludus: {
         ...save.ludus,
         reputation: Math.max(
-          GAME_BALANCE.economy.minimumReputation,
+          TREASURY_CONFIG.minimumReputation,
           save.ludus.reputation + effect.amount,
         ),
       },
@@ -790,7 +795,7 @@ export function resolveGameEventChoice(
       pendingEvents,
       resolvedEvents: [resolvedEvent, ...consequenceResult.save.events.resolvedEvents].slice(
         0,
-        EVENT_CONFIG.resolvedEventHistoryLimit,
+        EVENT_GENERATION_CONFIG.resolvedEventHistoryLimit,
       ),
       launchedEvents: consequenceResult.save.events.launchedEvents,
     },
@@ -798,7 +803,7 @@ export function resolveGameEventChoice(
   const nextSave =
     resolvedSave.ludus.gameStatus !== 'lost' &&
     resolvedSave.events.pendingEvents.length === 0 &&
-    resolvedSave.time.dayOfWeek === GAME_BALANCE.arena.dayOfWeek &&
+    resolvedSave.time.dayOfWeek === ARENA_RULES.dayOfWeek &&
     !resolvedSave.arena.arenaDay
       ? {
           ...resolvedSave,

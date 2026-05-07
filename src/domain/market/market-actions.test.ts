@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { GAME_BALANCE } from '../../game-data/balance';
-import { MARKET_CONFIG } from '../../game-data/market';
+import { GLADIATOR_PROGRESSION_CONFIG } from '../../game-data/gladiators/progression';
+import { GLADIATOR_SKILL_CONFIG } from '../../game-data/gladiators/skills';
+import { MARKET_GENERATION_CONFIG } from '../../game-data/market/generation';
+import { MARKET_PRICING_CONFIG } from '../../game-data/market/pricing';
 import { purchaseBuildingImprovement } from '../buildings/building-actions';
+import { GLADIATOR_TRAIT_DEFINITIONS } from '../gladiators/traits';
 import { getAvailableLudusGladiatorPlaces, getLudusGladiatorCapacity } from '../ludus/capacity';
 import type { Gladiator } from '../gladiators/types';
 import { createInitialSave } from '../saves/create-initial-save';
@@ -72,48 +75,86 @@ describe('market actions', () => {
   it('generates twenty market gladiators that respect generation rules', () => {
     const gladiators = generateMarketGladiators(1, 1, () => 0);
 
-    expect(gladiators).toHaveLength(MARKET_CONFIG.availableGladiatorCount);
+    expect(gladiators).toHaveLength(MARKET_GENERATION_CONFIG.availableGladiatorCount);
 
     for (const gladiator of gladiators) {
       const totalSkills =
         gladiator.strength + gladiator.agility + gladiator.defense + gladiator.life;
 
-      expect(gladiator.age).toBeGreaterThanOrEqual(MARKET_CONFIG.minAge);
-      expect(gladiator.age).toBeLessThanOrEqual(MARKET_CONFIG.maxAge);
-      expect(totalSkills).toBe(GAME_BALANCE.gladiators.skills.initialTotalPoints);
-      expect(gladiator.strength).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
-      expect(gladiator.agility).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
-      expect(gladiator.defense).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
-      expect(gladiator.life).toBeGreaterThanOrEqual(GAME_BALANCE.gladiators.skills.minimum);
-      expect(gladiator.strength).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.initialMaximum);
-      expect(gladiator.agility).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.initialMaximum);
-      expect(gladiator.defense).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.initialMaximum);
-      expect(gladiator.life).toBeLessThanOrEqual(GAME_BALANCE.gladiators.skills.initialMaximum);
-      expect(gladiator.experience).toBe(GAME_BALANCE.gladiators.progression.experienceByLevel[0]);
+      expect(gladiator.age).toBeGreaterThanOrEqual(MARKET_GENERATION_CONFIG.minAge);
+      expect(gladiator.age).toBeLessThanOrEqual(MARKET_GENERATION_CONFIG.maxAge);
+      expect(totalSkills).toBe(GLADIATOR_SKILL_CONFIG.initialTotalPoints);
+      expect(gladiator.strength).toBeGreaterThanOrEqual(GLADIATOR_SKILL_CONFIG.minimum);
+      expect(gladiator.agility).toBeGreaterThanOrEqual(GLADIATOR_SKILL_CONFIG.minimum);
+      expect(gladiator.defense).toBeGreaterThanOrEqual(GLADIATOR_SKILL_CONFIG.minimum);
+      expect(gladiator.life).toBeGreaterThanOrEqual(GLADIATOR_SKILL_CONFIG.minimum);
+      expect(gladiator.strength).toBeLessThanOrEqual(GLADIATOR_SKILL_CONFIG.initialMaximum);
+      expect(gladiator.agility).toBeLessThanOrEqual(GLADIATOR_SKILL_CONFIG.initialMaximum);
+      expect(gladiator.defense).toBeLessThanOrEqual(GLADIATOR_SKILL_CONFIG.initialMaximum);
+      expect(gladiator.life).toBeLessThanOrEqual(GLADIATOR_SKILL_CONFIG.initialMaximum);
+      expect(gladiator.experience).toBe(GLADIATOR_PROGRESSION_CONFIG.experienceByLevel[0]);
+      expect(gladiator.traits).toHaveLength(MARKET_GENERATION_CONFIG.generatedTraitCount);
+      expect(new Set(gladiator.traits.map((trait) => trait.traitId))).toHaveLength(
+        MARKET_GENERATION_CONFIG.generatedTraitCount,
+      );
+      expect(
+        gladiator.traits.every((trait) => {
+          const definition = GLADIATOR_TRAIT_DEFINITIONS.find(
+            (candidate) => candidate.id === trait.traitId,
+          );
+
+          return definition?.kind === 'permanent';
+        }),
+      ).toBe(true);
       expect(gladiator.price).toBe(calculateGladiatorMarketPrice(gladiator));
     }
   });
 
-  it('prices gladiators from their experience', () => {
+  it('prices gladiators from their real value', () => {
     const rookieGladiator = createOwnedGladiator({ experience: 0 });
     const veteranGladiator = createOwnedGladiator({
-      experience: MARKET_CONFIG.priceExperienceStep * 3,
+      experience: MARKET_PRICING_CONFIG.priceExperienceStep * 3,
     });
+    const baseRookiePrice =
+      MARKET_PRICING_CONFIG.basePrice +
+      (rookieGladiator.strength +
+        rookieGladiator.agility +
+        rookieGladiator.defense +
+        rookieGladiator.life) *
+        MARKET_PRICING_CONFIG.pricePerSkillPoint;
 
-    expect(calculateGladiatorMarketPrice(rookieGladiator)).toBe(MARKET_CONFIG.minimumPrice);
+    expect(calculateGladiatorMarketPrice(rookieGladiator)).toBe(baseRookiePrice);
     expect(calculateGladiatorMarketPrice(veteranGladiator)).toBe(
-      MARKET_CONFIG.minimumPrice + MARKET_CONFIG.pricePerExperienceStep * 3,
+      baseRookiePrice + MARKET_PRICING_CONFIG.pricePerExperienceStep * 3,
     );
   });
 
   it('floors experience steps for market pricing', () => {
     const gladiator = createOwnedGladiator({
-      experience: MARKET_CONFIG.priceExperienceStep * 2 + MARKET_CONFIG.priceExperienceStep - 1,
+      experience:
+        MARKET_PRICING_CONFIG.priceExperienceStep * 2 +
+        MARKET_PRICING_CONFIG.priceExperienceStep -
+        1,
     });
 
     expect(calculateGladiatorMarketPrice(gladiator)).toBe(
-      MARKET_CONFIG.minimumPrice + MARKET_CONFIG.pricePerExperienceStep * 2,
+      MARKET_PRICING_CONFIG.basePrice +
+        (gladiator.strength + gladiator.agility + gladiator.defense + gladiator.life) *
+          MARKET_PRICING_CONFIG.pricePerSkillPoint +
+        MARKET_PRICING_CONFIG.pricePerExperienceStep * 2,
     );
+  });
+
+  it('allows negative trait packages to price below the old 300 denarii floor', () => {
+    const flawedGladiator = createOwnedGladiator({
+      traits: [{ traitId: 'lazy' }, { traitId: 'limping' }, { traitId: 'cowardly' }],
+    });
+    const giftedGladiator = createOwnedGladiator({
+      traits: [{ traitId: 'quickLearner' }, { traitId: 'fleetFooted' }, { traitId: 'brave' }],
+    });
+
+    expect(calculateGladiatorMarketPrice(flawedGladiator)).toBeLessThan(300);
+    expect(calculateGladiatorMarketPrice(giftedGladiator)).toBeGreaterThan(300);
   });
 
   it('prevents buying a market gladiator when no ludus place is available', () => {
@@ -149,7 +190,7 @@ describe('market actions', () => {
     });
     expect(result.save.gladiators[0]).not.toHaveProperty('price');
     expect(result.save.market.availableGladiators).toHaveLength(
-      MARKET_CONFIG.availableGladiatorCount - 1,
+      MARKET_GENERATION_CONFIG.availableGladiatorCount - 1,
     );
     expect(result.save.economy.ledgerEntries[0]).toMatchObject({
       amount: candidate.price,

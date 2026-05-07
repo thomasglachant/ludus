@@ -1,22 +1,22 @@
-import { inferGladiatorClassId } from '../domain/gladiators/skills';
+import { inferGladiatorClassId } from '../../domain/gladiators/skills';
 import type {
   GladiatorClassId,
   GladiatorSkillProfile,
   GladiatorVisualIdentity,
-} from '../domain/gladiators/types';
-import { GLADIATOR_CLASS_IDS } from '../domain/gladiators/types';
+} from '../../domain/gladiators/types';
+import { GLADIATOR_CLASS_IDS } from '../../domain/gladiators/types';
 import {
   createGladiatorVisualVariantSet,
   type GladiatorClothingStyle,
   type GladiatorVisualVariantSet,
-} from './gladiator-visual-variants';
+} from './visual-variants';
 import {
   getFallbackGladiatorAssetSet,
   getGladiatorClassPortraitAssetPath,
   getGladiatorClassVisualAssetId,
   getGladiatorAssetSet,
-} from './visual-assets';
-import type { GladiatorAssetSet } from './visual-assets';
+} from './assets';
+import type { GladiatorAssetSet } from './assets';
 
 export interface GladiatorVisualIdentityOptions {
   classId?: GladiatorClassId;

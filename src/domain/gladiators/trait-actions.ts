@@ -1,27 +1,30 @@
-import { GAME_BALANCE } from '../../game-data/balance';
-import { GLADIATOR_TRAIT_DEFINITIONS } from '../../game-data/gladiator-traits';
-import { PROGRESSION_CONFIG } from '../../game-data/progression';
-import { DAYS_OF_WEEK } from '../../game-data/time';
-import type { Gladiator, GladiatorTrait } from '../gladiators/types';
+import { GLADIATOR_TEMPORARY_TRAITS } from '../../game-data/gladiators/traits';
+import { DAYS_OF_WEEK, GAME_TIME_CONFIG } from '../../game-data/time';
 import type { GameSave } from '../saves/types';
 import type { GameDate } from '../time/types';
+import type { GladiatorSkillName } from './skills';
+import { GLADIATOR_TRAIT_DEFINITIONS } from './traits';
 import type {
   GladiatorTraitDefinition,
   GladiatorTraitDurationBreakdown,
+  GladiatorTraitId,
   GladiatorTraitModifier,
-} from './types';
+  PermanentGladiatorTraitId,
+  TemporaryGladiatorTraitId,
+} from './traits';
+import type { Gladiator, GladiatorTrait } from './types';
 
 const DEFAULT_MULTIPLIER = 1;
 
 function getAbsoluteDay(date: GameDate) {
-  const weekIndex = (date.year - 1) * PROGRESSION_CONFIG.weeksPerYear + (date.week - 1);
+  const weekIndex = (date.year - 1) * GAME_TIME_CONFIG.weeksPerYear + (date.week - 1);
   const dayIndex = DAYS_OF_WEEK.indexOf(date.dayOfWeek);
 
   return weekIndex * DAYS_OF_WEEK.length + dayIndex;
 }
 
 function getDateFromAbsoluteDay(absoluteDay: number): GameDate {
-  const daysPerYear = PROGRESSION_CONFIG.weeksPerYear * DAYS_OF_WEEK.length;
+  const daysPerYear = GAME_TIME_CONFIG.weeksPerYear * DAYS_OF_WEEK.length;
   const year = Math.floor(absoluteDay / daysPerYear) + 1;
   const dayOfYear = absoluteDay % daysPerYear;
   const week = Math.floor(dayOfYear / DAYS_OF_WEEK.length) + 1;
@@ -38,11 +41,14 @@ function getGladiator(save: GameSave, gladiatorId: string) {
   return save.gladiators.find((gladiator) => gladiator.id === gladiatorId);
 }
 
-function getTraitModifierValue(
+function getTraitModifiers<TType extends GladiatorTraitModifier['type']>(
   definition: GladiatorTraitDefinition,
-  type: GladiatorTraitModifier['type'],
-): number | boolean | undefined {
-  return definition.modifiers.find((modifier) => modifier.type === type)?.value;
+  type: TType,
+): Array<Extract<GladiatorTraitModifier, { type: TType }>> {
+  return definition.modifiers.filter(
+    (modifier): modifier is Extract<GladiatorTraitModifier, { type: TType }> =>
+      modifier.type === type,
+  );
 }
 
 function getTraitModifierValues(
@@ -52,9 +58,8 @@ function getTraitModifierValues(
 ): Array<number | boolean> {
   return getActiveGladiatorTraitsFromGladiator(gladiator, date).flatMap((trait) => {
     const definition = getGladiatorTraitDefinition(trait.traitId);
-    const value = definition ? getTraitModifierValue(definition, type) : undefined;
 
-    return value === undefined ? [] : [value];
+    return definition ? getTraitModifiers(definition, type).map((modifier) => modifier.value) : [];
   });
 }
 
@@ -92,7 +97,11 @@ function pruneExpiredGladiatorTraits(gladiator: Gladiator, date: GameDate): Glad
   return traits.length === gladiator.traits.length ? gladiator : { ...gladiator, traits };
 }
 
-function hasActiveTraitFromGladiator(gladiator: Gladiator, traitId: string, date: GameDate) {
+function hasActiveTraitFromGladiator(
+  gladiator: Gladiator,
+  traitId: GladiatorTraitId,
+  date: GameDate,
+) {
   return gladiator.traits.some(
     (trait) => trait.traitId === traitId && isGladiatorTraitActiveAt(trait, date),
   );
@@ -112,6 +121,20 @@ export function addDaysToGameDate(date: GameDate, durationDays: number): GameDat
 
 export function getGladiatorTraitDefinition(traitId: string): GladiatorTraitDefinition | undefined {
   return GLADIATOR_TRAIT_DEFINITIONS.find((definition) => definition.id === traitId);
+}
+
+export function getMarketPermanentGladiatorTraitDefinitions() {
+  return GLADIATOR_TRAIT_DEFINITIONS.filter(
+    (definition) => definition.kind === 'permanent' && definition.marketWeight > 0,
+  );
+}
+
+export function getGladiatorMarketPriceModifierPercent(gladiator: Gladiator) {
+  return getPermanentGladiatorTraits(gladiator).reduce((total, trait) => {
+    const definition = getGladiatorTraitDefinition(trait.traitId);
+
+    return definition?.kind === 'permanent' ? total + definition.marketPriceModifierPercent : total;
+  }, 0);
 }
 
 export function isGladiatorTraitTemporary(trait: GladiatorTrait) {
@@ -211,6 +234,23 @@ export function getGladiatorArenaRewardMultiplier(gladiator: Gladiator, date?: G
   return multiplyNumericModifiers(gladiator, 'arenaRewardMultiplier', date);
 }
 
+export function getGladiatorSkillBonus(
+  gladiator: Gladiator,
+  skill: GladiatorSkillName,
+  date?: GameDate,
+) {
+  return getActiveGladiatorTraitsFromGladiator(gladiator, date).reduce((total, trait) => {
+    const definition = getGladiatorTraitDefinition(trait.traitId);
+    const skillBonus = definition
+      ? getTraitModifiers(definition, 'skillBonus')
+          .filter((modifier) => modifier.type === 'skillBonus' && modifier.skill === skill)
+          .reduce((modifierTotal, modifier) => modifierTotal + modifier.value, 0)
+      : 0;
+
+    return total + skillBonus;
+  }, 0);
+}
+
 export function getGladiatorCombatEnergyBonus(gladiator: Gladiator, date?: GameDate) {
   return sumNumericModifiers(gladiator, 'combatEnergyBonus', date);
 }
@@ -255,7 +295,7 @@ export function canGladiatorFightInArena(
 export function hasActiveGladiatorTrait(
   save: GameSave,
   gladiatorId: string,
-  traitId: string,
+  traitId: GladiatorTraitId,
   date = getCurrentGameDate(save),
 ) {
   return getActiveGladiatorTraits(save, gladiatorId, date).some(
@@ -265,14 +305,14 @@ export function hasActiveGladiatorTrait(
 
 export function applyGladiatorTraitAtDate(
   save: GameSave,
-  traitId: string,
+  traitId: TemporaryGladiatorTraitId,
   durationDays: number,
   gladiatorId: string,
   date: GameDate,
 ): GameSave {
   const definition = getGladiatorTraitDefinition(traitId);
 
-  if (durationDays <= 0 || !definition) {
+  if (durationDays <= 0 || !definition || definition.kind !== 'temporary') {
     return save;
   }
 
@@ -330,12 +370,12 @@ export function applyGladiatorTraitAtDate(
 
 export function addPermanentGladiatorTrait(
   save: GameSave,
-  traitId: string,
+  traitId: PermanentGladiatorTraitId,
   gladiatorId: string,
 ): GameSave {
   const definition = getGladiatorTraitDefinition(traitId);
 
-  if (!definition) {
+  if (!definition || definition.kind !== 'permanent') {
     return save;
   }
 
@@ -361,7 +401,7 @@ export function addPermanentGladiatorTrait(
 
 export function applyGladiatorTrait(
   save: GameSave,
-  traitId: string,
+  traitId: TemporaryGladiatorTraitId,
   durationDays: number,
   gladiatorId: string,
 ): GameSave {
@@ -375,7 +415,7 @@ export function applyGladiatorTrait(
 }
 
 export function getRandomCombatInjuryDuration(random: () => number) {
-  const { maxDurationDays, minDurationDays } = GAME_BALANCE.traits.injury.combat;
+  const { maxDurationDays, minDurationDays } = GLADIATOR_TEMPORARY_TRAITS.injury.combat;
   const durationSpread = maxDurationDays - minDurationDays;
 
   return minDurationDays + Math.min(durationSpread, Math.floor(random() * (durationSpread + 1)));

@@ -6,7 +6,7 @@ import {
   getPermanentGladiatorTraits,
   getRemainingGladiatorTraitDuration,
   getTemporaryGladiatorTraits,
-} from '@/domain/gladiator-traits/gladiator-trait-actions';
+} from '@/domain/gladiators/trait-actions';
 import type { GameSave, Gladiator, GladiatorTrait, GladiatorTraitModifier } from '@/domain/types';
 import { useUiStore } from '@/state/ui-store-context';
 import { formatSignedNumber } from '@/ui/shared/formatters/number';
@@ -67,6 +67,11 @@ const NUMERIC_MODIFIER_PRESENTATIONS = {
     kind: 'injuryRisk',
     labelKey: 'traits.modifiers.injuryRisk',
     toneDirection: 'lowerIsBetter',
+  },
+  skillBonus: {
+    amountKind: 'additive',
+    kind: 'skillPoint',
+    labelKey: 'traits.modifiers.skillBonus',
   },
   trainingExperienceMultiplier: {
     amountKind: 'multiplierPercent',
@@ -129,6 +134,10 @@ function getModifierIndicator(
   const amount = getNumericModifierAmount(modifier, presentation);
   const suffix = presentation.amountKind === 'multiplierPercent' ? '%' : '';
   const tone = getNumericModifierTone(amount, presentation);
+  const label =
+    modifier.type === 'skillBonus'
+      ? t(presentation.labelKey, { skill: t(`market.stats.${modifier.skill}`) })
+      : t(presentation.labelKey);
 
   return (
     <span
@@ -136,7 +145,7 @@ function getModifierIndicator(
       key={key}
     >
       <GameIcon name={presentation.kind} size={15} />
-      <span>{t(presentation.labelKey)}</span>
+      <span>{label}</span>
       <strong>
         {formatSignedNumber(amount)}
         {suffix}

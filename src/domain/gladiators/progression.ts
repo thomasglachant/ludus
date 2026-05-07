@@ -1,4 +1,5 @@
-import { GAME_BALANCE } from '../../game-data/balance';
+import { GLADIATOR_PROGRESSION_CONFIG } from '../../game-data/gladiators/progression';
+import { GLADIATOR_SKILL_CONFIG } from '../../game-data/gladiators/skills';
 import {
   GLADIATOR_SKILL_NAMES,
   type GladiatorSkillName,
@@ -9,13 +10,13 @@ import type { Gladiator, GladiatorSkillProfile } from './types';
 
 type RandomSource = () => number;
 
-const EXPERIENCE_BY_LEVEL = GAME_BALANCE.gladiators.progression.experienceByLevel;
+const EXPERIENCE_BY_LEVEL = GLADIATOR_PROGRESSION_CONFIG.experienceByLevel;
 const INITIAL_EXPERIENCE = EXPERIENCE_BY_LEVEL[0];
-const MAX_LEVEL = GAME_BALANCE.gladiators.progression.maxLevel;
-const SKILL_MINIMUM = GAME_BALANCE.gladiators.skills.minimum;
-const SKILL_MAXIMUM = GAME_BALANCE.gladiators.skills.maximum;
-const INITIAL_TOTAL_POINTS = GAME_BALANCE.gladiators.skills.initialTotalPoints;
-const INITIAL_MAXIMUM = GAME_BALANCE.gladiators.skills.initialMaximum;
+const MAX_LEVEL = GLADIATOR_PROGRESSION_CONFIG.maxLevel;
+const SKILL_MINIMUM = GLADIATOR_SKILL_CONFIG.minimum;
+const SKILL_MAXIMUM = GLADIATOR_SKILL_CONFIG.maximum;
+const INITIAL_TOTAL_POINTS = GLADIATOR_SKILL_CONFIG.initialTotalPoints;
+const INITIAL_MAXIMUM = GLADIATOR_SKILL_CONFIG.initialMaximum;
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value));

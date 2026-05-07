@@ -1,6 +1,5 @@
-import { INITIAL_TREASURY } from '../../game-data/economy';
-import { GAME_BALANCE } from '../../game-data/balance';
-import { PROGRESSION_CONFIG } from '../../game-data/progression';
+import { INITIAL_TREASURY, TREASURY_CONFIG } from '../../game-data/economy/treasury';
+import { GAME_TIME_CONFIG } from '../../game-data/time';
 import { refreshGameAlerts } from '../alerts/alert-actions';
 import { createInitialBuildings } from '../buildings/initial-buildings';
 import { createInitialEconomyState } from '../economy/economy-actions';
@@ -23,10 +22,7 @@ export interface InitialSaveInput {
 export const CURRENT_SCHEMA_VERSION = 20;
 
 export function createInitialSave(input: InitialSaveInput): GameSave {
-  const market = createMarketState(
-    PROGRESSION_CONFIG.startingYear,
-    PROGRESSION_CONFIG.startingWeek,
-  );
+  const market = createMarketState(GAME_TIME_CONFIG.startingYear, GAME_TIME_CONFIG.startingWeek);
   const save: GameSave = {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     gameId: input.gameId ?? input.saveId,
@@ -39,15 +35,15 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
     },
     ludus: {
       treasury: INITIAL_TREASURY,
-      reputation: GAME_BALANCE.economy.initialReputation,
+      reputation: TREASURY_CONFIG.initialReputation,
       happiness: 65,
       rebellion: 0,
       gameStatus: 'active',
     },
     time: {
-      year: PROGRESSION_CONFIG.startingYear,
-      week: PROGRESSION_CONFIG.startingWeek,
-      dayOfWeek: PROGRESSION_CONFIG.startingDayOfWeek,
+      year: GAME_TIME_CONFIG.startingYear,
+      week: GAME_TIME_CONFIG.startingWeek,
+      dayOfWeek: GAME_TIME_CONFIG.startingDayOfWeek,
       phase: 'planning',
       pendingActionTrigger: 'startWeek',
     },
@@ -62,10 +58,7 @@ export function createInitialSave(input: InitialSaveInput): GameSave {
       resolvedCombats: [],
       isArenaDayActive: false,
     },
-    planning: createDefaultWeeklyPlan(
-      PROGRESSION_CONFIG.startingYear,
-      PROGRESSION_CONFIG.startingWeek,
-    ),
+    planning: createDefaultWeeklyPlan(GAME_TIME_CONFIG.startingYear, GAME_TIME_CONFIG.startingWeek),
     events: {
       pendingEvents: [],
       resolvedEvents: [],

@@ -1,5 +1,5 @@
 import { getPurchasedDormitoryImprovementCapacityBonus } from '../buildings/building-effects';
-import { LUDUS_CAPACITY_CONFIG } from '../../game-data/building-levels';
+import { LUDUS_CAPACITY_CONFIG } from '../../game-data/buildings/levels';
 import type { GameSave } from '../saves/types';
 
 export function getLudusGladiatorCapacity(save: GameSave) {

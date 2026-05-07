@@ -1,10 +1,11 @@
-import { GAME_BALANCE } from '../../game-data/balance';
+import { TREASURY_CONFIG } from '../../game-data/economy/treasury';
+import { GLADIATOR_TEMPORARY_TRAITS } from '../../game-data/gladiators/traits';
 import { DAYS_OF_WEEK } from '../../game-data/time';
 import { refreshGameAlerts } from '../alerts/alert-actions';
 import { getGladiatorExperienceProgress } from '../gladiators/progression';
 import { getActiveGameInterruption } from '../game-flow/interruption';
 import { synchronizePlanning } from '../planning/planning-actions';
-import { applyGladiatorTrait } from '../gladiator-traits/gladiator-trait-actions';
+import { applyGladiatorTrait } from '../gladiators/trait-actions';
 import { resolveWeekStep } from '../weekly-simulation/weekly-simulation-actions';
 import type { GameSave } from '../types';
 import type { DayOfWeek } from '../time/types';
@@ -16,7 +17,7 @@ export function adjustDebugTreasury(save: GameSave, amount: number): GameSave {
     ...save,
     ludus: {
       ...save.ludus,
-      treasury: Math.max(GAME_BALANCE.economy.minimumTreasury, save.ludus.treasury + amount),
+      treasury: Math.max(TREASURY_CONFIG.minimumTreasury, save.ludus.treasury + amount),
     },
   };
 }
@@ -83,7 +84,7 @@ export function createDebugInjuryAlert(save: GameSave, gladiatorId: string): Gam
       applyGladiatorTrait(
         save,
         'injury',
-        GAME_BALANCE.traits.injury.eventDurationDays,
+        GLADIATOR_TEMPORARY_TRAITS.injury.eventDurationDays,
         gladiatorId,
       ),
     ),

@@ -3,16 +3,10 @@ import type {
   BuildingDefinition,
   BuildingEffect,
   BuildingId,
-} from '../domain/buildings/types';
-import { calculateBuildingUpgradeCost } from './building-levels';
-import { GAME_BALANCE } from './balance';
+} from '../../domain/buildings/types';
+import { calculateBuildingUpgradeCost } from './levels';
 
-export const BUILDING_IDS = [
-  'domus',
-  'trainingGround',
-  'canteen',
-  'dormitory',
-] as const satisfies BuildingId[];
+export { BUILDING_IDS } from '../../domain/buildings/types';
 
 function createLevel(level: number, requiredDomusLevel: number, effects: BuildingEffect[] = []) {
   return {
@@ -54,13 +48,12 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         effects: [
           {
             type: 'increaseTrainingExperience',
-            value:
-              GAME_BALANCE.buildings.levelEffects.trainingGround[1].trainingExperienceBonusPercent,
+            value: 1,
             target: 'plannedGladiators',
           },
           {
             type: 'reduceInjuryRisk',
-            value: GAME_BALANCE.buildings.levelEffects.trainingGround[1].injuryRiskPerPoint,
+            value: 4,
             target: 'allGladiators',
           },
         ],
@@ -72,13 +65,12 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         effects: [
           {
             type: 'increaseTrainingExperience',
-            value:
-              GAME_BALANCE.buildings.levelEffects.trainingGround[2].trainingExperienceBonusPercent,
+            value: 2,
             target: 'plannedGladiators',
           },
           {
             type: 'reduceInjuryRisk',
-            value: GAME_BALANCE.buildings.levelEffects.trainingGround[2].injuryRiskPerPoint,
+            value: 4,
             target: 'allGladiators',
           },
         ],
@@ -103,7 +95,7 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         effects: [
           {
             type: 'increaseDailyGladiatorPoints',
-            value: GAME_BALANCE.buildings.levelEffects.canteen[1].dailyGladiatorPoints,
+            value: 1,
             target: 'ludus',
           },
         ],
@@ -115,7 +107,7 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         effects: [
           {
             type: 'increaseDailyGladiatorPoints',
-            value: GAME_BALANCE.buildings.levelEffects.canteen[2].dailyGladiatorPoints,
+            value: 2,
             target: 'ludus',
           },
         ],
@@ -123,36 +115,36 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
       createLevel(3, 3, [
         {
           type: 'increaseDailyGladiatorPoints',
-          value: GAME_BALANCE.buildings.levelEffects.canteen[3].dailyGladiatorPoints,
+          value: 3,
           target: 'ludus',
         },
         {
           type: 'increaseHappiness',
-          value: GAME_BALANCE.buildings.levelEffects.canteen[3].happiness,
+          value: 2,
           target: 'ludus',
         },
       ]),
       createLevel(4, 4, [
         {
           type: 'increaseDailyGladiatorPoints',
-          value: GAME_BALANCE.buildings.levelEffects.canteen[4].dailyGladiatorPoints,
+          value: 4,
           target: 'ludus',
         },
         {
           type: 'reduceExpense',
-          value: GAME_BALANCE.buildings.levelEffects.canteen[4].expenseReduction,
+          value: 5,
           target: 'ludus',
         },
       ]),
       createLevel(5, 5, [
         {
           type: 'increaseDailyGladiatorPoints',
-          value: GAME_BALANCE.buildings.levelEffects.canteen[5].dailyGladiatorPoints,
+          value: 5,
           target: 'ludus',
         },
         {
           type: 'increaseProduction',
-          value: GAME_BALANCE.buildings.levelEffects.canteen[5].production,
+          value: 5,
           target: 'ludus',
         },
       ]),
@@ -173,12 +165,12 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         effects: [
           {
             type: 'increaseDailyGladiatorPoints',
-            value: GAME_BALANCE.buildings.levelEffects.dormitory[1].dailyGladiatorPoints,
+            value: 1,
             target: 'ludus',
           },
           {
             type: 'increaseHappiness',
-            value: GAME_BALANCE.buildings.levelEffects.dormitory[1].happiness,
+            value: 2,
             target: 'ludus',
           },
         ],
@@ -190,12 +182,12 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
         effects: [
           {
             type: 'increaseDailyGladiatorPoints',
-            value: GAME_BALANCE.buildings.levelEffects.dormitory[2].dailyGladiatorPoints,
+            value: 2,
             target: 'ludus',
           },
           {
             type: 'increaseHappiness',
-            value: GAME_BALANCE.buildings.levelEffects.dormitory[2].happiness,
+            value: 3,
             target: 'ludus',
           },
         ],
@@ -203,36 +195,36 @@ export const BUILDING_DEFINITIONS: Record<BuildingId, BuildingDefinition> = {
       createLevel(3, 3, [
         {
           type: 'increaseDailyGladiatorPoints',
-          value: GAME_BALANCE.buildings.levelEffects.dormitory[3].dailyGladiatorPoints,
+          value: 3,
           target: 'ludus',
         },
         {
           type: 'increaseHappiness',
-          value: GAME_BALANCE.buildings.levelEffects.dormitory[3].happiness,
+          value: 2,
           target: 'ludus',
         },
       ]),
       createLevel(4, 4, [
         {
           type: 'increaseDailyGladiatorPoints',
-          value: GAME_BALANCE.buildings.levelEffects.dormitory[4].dailyGladiatorPoints,
+          value: 4,
           target: 'ludus',
         },
         {
           type: 'decreaseRebellion',
-          value: GAME_BALANCE.buildings.levelEffects.dormitory[4].rebellionReduction,
+          value: 2,
           target: 'ludus',
         },
       ]),
       createLevel(5, 5, [
         {
           type: 'increaseDailyGladiatorPoints',
-          value: GAME_BALANCE.buildings.levelEffects.dormitory[5].dailyGladiatorPoints,
+          value: 5,
           target: 'ludus',
         },
         {
           type: 'increaseHappiness',
-          value: GAME_BALANCE.buildings.levelEffects.dormitory[5].happiness,
+          value: 4,
           target: 'ludus',
         },
       ]),

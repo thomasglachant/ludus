@@ -52,15 +52,11 @@ export const PRODUCTION_VISUAL_ASSET_MANIFEST = {
     arena: {
       sourceQuality: 'production',
       combatBackground: '/assets/combat/arena-background.webp',
-      exterior: '/assets/generated/buildings/arena.webp',
     },
     market: {
       sourceQuality: 'production',
-      exterior: '/assets/generated/buildings/market.webp',
     },
   },
   gladiators: {},
-  ui: {
-    'laurel-left': '/assets/ui/laurel-left.webp',
-  },
+  ui: {},
 } as const satisfies VisualAssetManifest;

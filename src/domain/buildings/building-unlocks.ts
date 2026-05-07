@@ -1,8 +1,15 @@
-import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
+import { BUILDING_DEFINITIONS } from '../../game-data/buildings/definitions';
 import type { GameSave } from '../saves/types';
 import type { BuildingId, BuildingLevelDefinition } from './types';
 
-export type BuildingPurchaseAvailabilityStatus = 'purchased' | 'available' | 'locked';
+export const BUILDING_PURCHASE_AVAILABILITY_STATUSES = [
+  'purchased',
+  'available',
+  'locked',
+] as const;
+
+export type BuildingPurchaseAvailabilityStatus =
+  (typeof BUILDING_PURCHASE_AVAILABILITY_STATUSES)[number];
 
 export interface BuildingPurchaseAvailability {
   isPurchased: boolean;

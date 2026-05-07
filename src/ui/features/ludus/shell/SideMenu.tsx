@@ -2,9 +2,9 @@ import type { BuildingId, GameAlert, GameSave } from '@/domain/types';
 import {
   getGladiatorTraitDefinition,
   getRemainingGladiatorTraitDuration,
-} from '@/domain/gladiator-traits/gladiator-trait-actions';
+} from '@/domain/gladiators/trait-actions';
 import { sortGameNotificationsByDateDesc } from '@/domain/notifications/notification-actions';
-import { BUILDING_DEFINITIONS } from '@/game-data/buildings';
+import { BUILDING_DEFINITIONS } from '@/game-data/buildings/definitions';
 import { useUiStore } from '@/state/ui-store-context';
 import { BuildingAvatar } from '@/ui/features/buildings/BuildingAvatar';
 import { Button } from '@/ui/shared/ludus/Button';

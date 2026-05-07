@@ -4,7 +4,7 @@
 
 This document describes current gameplay data and tunable rules implemented in the codebase.
 
-Numeric balance values live in `src/game-data/balance.ts` under `GAME_BALANCE`. Larger content tables live in dedicated modules such as `buildings.ts`, `building-skills.ts`, `economy.ts`, `market.ts` and demo saves.
+Game rules and tunable values live in `src/game-data` next to the catalog or subsystem they describe. There is no central balance object; modules such as `gladiators/traits.ts`, `buildings/definitions.ts`, `market/pricing.ts`, `economy/loans.ts` and `events/definitions.ts` are the source of truth for their own data.
 
 ## Economy
 
@@ -13,11 +13,11 @@ Currency: denarius.
 The ludus money reserve is named `treasury`.
 
 ```ts
-GAME_BALANCE.economy.initialTreasury = 500;
-GAME_BALANCE.economy.initialReputation = 0;
+TREASURY_CONFIG.initialTreasury = 500;
+TREASURY_CONFIG.initialReputation = 0;
 ```
 
-Loans are defined in `src/game-data/economy.ts`:
+Loans are defined in `src/game-data/economy/loans.ts`:
 
 | Loan           | Domus level | Amount | Weekly payment | Duration |
 | -------------- | ----------: | -----: | -------------: | -------: |
@@ -38,7 +38,7 @@ type GamePhase = 'planning' | 'simulation' | 'event' | 'arena' | 'report' | 'gam
 Current initial progression:
 
 ```ts
-GAME_BALANCE.progression = {
+GAME_TIME_CONFIG = {
   weeksPerYear: 8,
   startingYear: 1,
   startingWeek: 1,
@@ -51,7 +51,7 @@ The normal ludus loop is resolved through daily and weekly macro actions. Hour, 
 ## Macro Simulation
 
 ```ts
-GAME_BALANCE.macroSimulation = {
+WEEKLY_SIMULATION_CONFIG = {
   baseDailyGladiatorPoints: 6,
   baseDailyLaborPoints: 8,
   baseDailyAdminPoints: 0,
@@ -77,7 +77,7 @@ Training focus values tune training pressure. Training XP is awarded from effect
 Gladiator strength, agility, defense and life are integer skills.
 
 ```ts
-GAME_BALANCE.gladiators.skills = {
+GLADIATOR_SKILL_CONFIG = {
   names: ['strength', 'agility', 'defense', 'life'],
   minimum: 1,
   maximum: 10,
@@ -88,7 +88,7 @@ GAME_BALANCE.gladiators.skills = {
 
 Gladiator level is derived from accumulated XP. The level itself should be calculated from XP thresholds rather than stored as an independent balance value.
 
-Experience tuning belongs under `GAME_BALANCE.gladiators.progression`, `GAME_BALANCE.gladiators.training` and `GAME_BALANCE.gladiators.combatExperience`:
+Experience tuning belongs under `src/game-data/gladiators/progression.ts` and `src/game-data/gladiators/combat.ts`:
 
 - XP thresholds per derived level;
 - training XP per allocated training point;
@@ -105,7 +105,7 @@ Market candidates should be generated with:
 - derived level 1 from that XP;
 - reputation, traits and visual identity.
 
-Market purchase price is based exclusively on accumulated XP, with a configurable minimum price and XP step. Sale value is derived dynamically from purchase price through the sale multiplier.
+Market purchase price is based on `MARKET_PRICING_CONFIG`: base value, effective skill points, floored XP steps, non-negative reputation, combat record and permanent trait price modifiers. The result is rounded and clamped by the technical minimum price. Sale value is derived dynamically from purchase price through the sale multiplier.
 
 ## Buildings
 
@@ -132,18 +132,17 @@ Buildings must not include a generic `budget` property. They now track:
 Roster capacity is a Ludus-level recruitment limit owned by the Dormitory, not a generic building usage capacity. The purchased Dormitory grants one base gladiator place. Additional places are bought through Dormitory improvements:
 
 ```ts
-GAME_BALANCE.buildings.capacity = {
+LUDUS_CAPACITY_CONFIG = {
   minimumGladiators: 1,
   maximumGladiators: 6,
-  additionalPlaceCosts: [120, 220, 420, 800, 1500],
 };
 ```
 
-`dormitoryExtraBunk1` through `dormitoryExtraBunk5` each add `increaseCapacity +1`, are chained as prerequisites, and require Dormitory levels 1 through 5 respectively. Dormitory level upgrades unlock those purchases but do not grant the place automatically.
+`dormitoryExtraBunk1` through `dormitoryExtraBunk5` are defined in `src/game-data/buildings/improvements.ts`. Each adds `increaseCapacity +1`, is chained as a prerequisite, and requires Dormitory levels 1 through 5 respectively. Dormitory level upgrades unlock those purchases but do not grant the place automatically.
 
 ## Building Skills
 
-`src/game-data/building-skills.ts` generates 20 skills for each current building from the design skill lists.
+`src/game-data/buildings/skills.ts` generates 20 skills for each current building from the design skill lists.
 
 Tree rule:
 
@@ -155,36 +154,27 @@ Tree rule:
 
 Skill effects currently map to the building's primary macro purpose, such as income, production, happiness, injury risk, reputation or expense reduction.
 
-Some skills also expose `unlockedActivities` ids from `src/game-data/building-activities.ts`. These ids use the owning building prefix and are meant for building-specific macro planning options. They are not standalone balance knobs; any resulting simulation benefit should still come from the activity definition, purchased skill state and explicit daily plan selection.
+Some skills also expose `unlockedActivities` ids from `src/game-data/buildings/activities.ts`. These ids use the owning building prefix and are meant for building-specific macro planning options. They are not standalone balance knobs; any resulting simulation benefit should still come from the activity definition, purchased skill state and explicit daily plan selection.
 
 Daily simulation applies active macro effects from levels, improvements, policies and skills. Effect values come directly from the active definitions.
 
 ## Gladiator Traits
 
-`src/game-data/gladiator-traits.ts` defines permanent and temporary gladiator traits. Each definition owns its i18n name and description keys, visual icon/color, alert visibility and modifiers. Tunable values live under `GAME_BALANCE.traits`.
+`src/game-data/gladiators/traits.ts` is the single declaration point for permanent and temporary gladiator traits. Each trait owns its i18n name and description keys, visual icon/color, alert visibility, market metadata, gameplay modifiers and trait-specific duration settings there. `src/domain/gladiators/traits.ts` derives typed runtime definitions from that catalog.
 
-Current definitions:
+Permanent traits are profile characteristics. Generated market gladiators receive exactly three permanent traits, selected from the permanent catalog with weighted positive, challenging and free picks. Permanent traits can modify training, combat gauges, combat XP, arena rewards, injury risk and effective skills.
 
-- `disciplined`: training XP x1.05;
-- `lazy`: training XP x0.95;
-- `brave`: combat morale +5;
-- `cowardly`: combat morale -5;
-- `ambitious`: combat XP x1.05;
-- `fragile`: injury risk x1.15;
-- `crowdFavorite`: arena reward x1.05;
-- `rivalrous`: combat energy +4 and combat morale -3;
-- `stoic`: injury risk x0.90;
-- `injury`: temporary, shows an alert and blocks all gladiator activity;
-- `rest`: temporary, shows an alert and blocks all gladiator activity;
-- `victoryAura`: temporary, does not show an alert and sets training XP multiplier to `1.1`.
+Temporary traits are event or simulation states. Their definitions and the systems that apply them decide whether they show alerts, block activities, change eligibility or apply short-lived bonuses and penalties.
 
 Runtime traits are stored directly in `Gladiator.traits` as `{ traitId, expiresAt? }`. Traits without `expiresAt` are permanent. Temporary trait durations are exclusive by day, and reapplying the same temporary trait extends `expiresAt` without creating a duplicate.
 
+Market prices use the gladiator's real value, including permanent trait price modifiers. The old 300 denarii economic floor is gone; only a low technical clamp prevents zero or negative prices.
+
 ## Events
 
-`src/game-data/events.ts` defines daily event content. Events may set `triggerActivities`; those definitions can only appear when the matching daily plan activity has at least one allocated point. Definitions without `triggerActivities` are global ludus events and remain eligible through the normal probability, cooldown and weekly-limit rules.
+`src/game-data/events/definitions.ts` defines daily event content. Events may set `triggerActivities`; those definitions can only appear when the matching daily plan activity has at least one allocated point. Definitions without `triggerActivities` are global ludus events and remain eligible through the normal probability, cooldown and weekly-limit rules.
 
-Events may also set `triggerBuildingActivities` with ids from `src/game-data/building-activities.ts`. Those definitions require the matching specialized activity to be selected in `DailyPlan.buildingActivitySelections` and require allocated points in the parent activity bucket.
+Events may also set `triggerBuildingActivities` with ids from `src/game-data/buildings/activities.ts`. Those definitions require the matching specialized activity to be selected in `DailyPlan.buildingActivitySelections` and require allocated points in the parent activity bucket.
 
 `rebellionCrisis` is a critical global event unlocked by high rebellion. Critical definitions are selected before the normal weighted event pool.
 

@@ -22,7 +22,7 @@ import type {
   GameSave,
 } from '@/domain/types';
 import type { PlanningActivityDefinition } from '@/game-data/planning';
-import { GAME_BALANCE } from '@/game-data/balance';
+import { ARENA_RULES } from '@/game-data/arena/rules';
 import { DAYS_OF_WEEK } from '@/game-data/time';
 import { useUiStore } from '@/state/ui-store-context';
 import { InfoHoverCard } from '@/ui/shared/components/InfoHoverCard';
@@ -89,7 +89,7 @@ interface ProjectionMetricStripProps {
 }
 
 const planningTaskDragMimeType = 'application/x-ludus-planning-task';
-const playableDays = DAYS_OF_WEEK.filter((dayOfWeek) => dayOfWeek !== GAME_BALANCE.arena.dayOfWeek);
+const playableDays = DAYS_OF_WEEK.filter((dayOfWeek) => dayOfWeek !== ARENA_RULES.dayOfWeek);
 
 const activityIcons: Partial<Record<DailyPlanActivity, GameIconName>> = {
   training: 'training',
@@ -346,7 +346,7 @@ export function WeeklyPlanningPanel({
   };
 
   const addTaskPoints = (dayOfWeek: DayOfWeek, task: PlanningTaskDefinition) => {
-    if (isPastPlanningDay(save, dayOfWeek) || dayOfWeek === GAME_BALANCE.arena.dayOfWeek) {
+    if (isPastPlanningDay(save, dayOfWeek) || dayOfWeek === ARENA_RULES.dayOfWeek) {
       return;
     }
 

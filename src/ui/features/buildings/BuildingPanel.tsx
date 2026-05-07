@@ -1,7 +1,7 @@
 import './buildings.css';
 import { useState } from 'react';
 import type { BuildingId, GameSave } from '@/domain/types';
-import { useUiStore } from '@/state/ui-store-context';
+import { useUiStore, type BuildingSurfaceTab } from '@/state/ui-store-context';
 import { BuildingAvatar } from '@/ui/features/buildings/BuildingAvatar';
 import { ActionBar } from '@/ui/shared/ludus/ActionBar';
 import { PrimaryActionButton } from '@/ui/shared/ludus/PrimaryActionButton';
@@ -43,7 +43,7 @@ interface BuildingPanelProps {
   onUpgradeBuilding(buildingId: BuildingId): void;
 }
 
-export type BuildingPanelTab = 'configuration' | 'finance' | 'gladiators' | 'overview' | 'upgrades';
+export type BuildingPanelTab = BuildingSurfaceTab;
 
 type BuildingPanelSkill = BuildingPanelViewModel['skills'][number];
 type BuildingSkillState = 'available' | 'locked' | 'purchased';

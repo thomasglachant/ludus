@@ -1,7 +1,29 @@
 import type { BuildingId } from '../buildings/types';
+import type { GladiatorSkillName } from '../gladiators/skills';
+import type { TemporaryGladiatorTraitId } from '../gladiators/traits';
 import type { DayOfWeek } from '../time/types';
 
-export type GameEventStatus = 'pending' | 'resolved' | 'expired';
+export const GAME_EVENT_STATUSES = ['pending', 'resolved', 'expired'] as const;
+
+export type GameEventStatus = (typeof GAME_EVENT_STATUSES)[number];
+
+export const GAME_EVENT_CONSEQUENCE_KINDS = ['certain', 'chance', 'oneOf'] as const;
+
+export type GameEventConsequenceKind = (typeof GAME_EVENT_CONSEQUENCE_KINDS)[number];
+
+export const GAME_EVENT_EFFECT_TYPES = [
+  'changeTreasury',
+  'changeLudusReputation',
+  'changeLudusHappiness',
+  'changeLudusRebellion',
+  'removeGladiator',
+  'releaseAllGladiators',
+  'changeGladiatorExperience',
+  'applyGladiatorTrait',
+  'changeGladiatorStat',
+] as const;
+
+export type GameEventEffectType = (typeof GAME_EVENT_EFFECT_TYPES)[number];
 
 export interface GameEventChoice {
   id: string;
@@ -74,14 +96,14 @@ export type GameEventEffect =
   | {
       type: 'applyGladiatorTrait';
       gladiatorId: string;
-      traitId: string;
+      traitId: TemporaryGladiatorTraitId;
       durationDays: number;
       bypassActivityEligibility?: boolean;
     }
   | {
       type: 'changeGladiatorStat';
       gladiatorId: string;
-      stat: 'strength' | 'agility' | 'defense' | 'life';
+      stat: GladiatorSkillName;
       amount: number;
       bypassActivityEligibility?: boolean;
     };

@@ -1,6 +1,6 @@
 import './buildings.css';
 import type { BuildingId } from '@/domain/types';
-import { getBuildingAssetSet } from '@/game-data/visual-assets';
+import { getBuildingAssetSet } from '@/game-data/buildings/assets';
 import { GameIcon, type GameIconName } from '@/ui/shared/icons/GameIcon';
 
 interface BuildingAvatarProps {

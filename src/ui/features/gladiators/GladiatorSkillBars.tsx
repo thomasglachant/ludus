@@ -2,7 +2,7 @@ import './gladiators.css';
 import { GLADIATOR_SKILL_NAMES, type GladiatorSkillName } from '@/domain/gladiators/skills';
 import { getAvailableSkillPoints } from '@/domain/gladiators/progression';
 import type { Gladiator } from '@/domain/types';
-import { GAME_BALANCE } from '@/game-data/balance';
+import { GLADIATOR_SKILL_CONFIG } from '@/game-data/gladiators/skills';
 import { useUiStore } from '@/state/ui-store-context';
 import { IconButton } from '@/ui/shared/ludus/IconButton';
 import { GameIcon } from '@/ui/shared/icons/GameIcon';
@@ -33,7 +33,7 @@ export function GladiatorSkillBars({
     <div className="gladiator-skill-bars">
       {GLADIATOR_SKILL_NAMES.map((skill) => {
         const value = gladiator[skill];
-        const isSkillCapped = value >= GAME_BALANCE.gladiators.skills.maximum;
+        const isSkillCapped = value >= GLADIATOR_SKILL_CONFIG.maximum;
         const allocationLabel = t('gladiatorPanel.allocateSkillPoint', {
           skill: t(`market.stats.${skill}`),
         });
@@ -46,7 +46,7 @@ export function GladiatorSkillBars({
               <strong>{value}</strong>
             </div>
             <div className="gladiator-skill-bars__segments" aria-hidden="true">
-              {Array.from({ length: GAME_BALANCE.gladiators.skills.maximum }, (_, index) => (
+              {Array.from({ length: GLADIATOR_SKILL_CONFIG.maximum }, (_, index) => (
                 <span
                   className={[
                     'gladiator-skill-bars__segment',

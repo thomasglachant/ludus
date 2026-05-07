@@ -1,6 +1,6 @@
-import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../../game-data/building-improvements';
-import { BUILDING_SKILLS } from '../../game-data/building-skills';
-import { BUILDING_DEFINITIONS } from '../../game-data/buildings';
+import { BUILDING_IMPROVEMENTS, BUILDING_POLICIES } from '../../game-data/buildings/improvements';
+import { BUILDING_SKILLS } from '../../game-data/buildings/skills';
+import { BUILDING_DEFINITIONS } from '../../game-data/buildings/definitions';
 import type { GameSave } from '../saves/types';
 import type { BuildingEffect, BuildingId } from './types';
 

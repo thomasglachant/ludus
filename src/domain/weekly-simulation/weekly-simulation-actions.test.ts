@@ -1,14 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { GAME_BALANCE } from '../../game-data/balance';
-import { LOAN_DEFINITIONS } from '../../game-data/economy';
+import { LOAN_DEFINITIONS } from '../../game-data/economy/loans';
+import { WEEKLY_SIMULATION_CONFIG } from '../../game-data/weekly-simulation';
 import { takeLoan } from '../economy/economy-actions';
 import type { Gladiator } from '../gladiators/types';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
-import {
-  applyGladiatorTrait,
-  applyGladiatorTraitAtDate,
-} from '../gladiator-traits/gladiator-trait-actions';
+import { applyGladiatorTrait, applyGladiatorTraitAtDate } from '../gladiators/trait-actions';
 import {
   completeSundayArenaDay,
   createDefaultDailyPlan,
@@ -280,7 +277,7 @@ describe('weekly simulation actions', () => {
   it('caps excessive training gains above the daily realistic ceiling', () => {
     const normalPlan = createDefaultDailyPlan('monday');
     normalPlan.gladiatorTimePoints.training =
-      GAME_BALANCE.macroSimulation.idealTrainingPressurePointsPerGladiator;
+      WEEKLY_SIMULATION_CONFIG.idealTrainingPressurePointsPerGladiator;
     const excessivePlan = createDefaultDailyPlan('monday');
     excessivePlan.gladiatorTimePoints.training = 12;
 
@@ -375,7 +372,7 @@ describe('weekly simulation actions', () => {
       createTestSave({
         ludus: {
           ...createTestSave().ludus,
-          happiness: GAME_BALANCE.macroSimulation.rebellionPressureHappinessThreshold - 1,
+          happiness: WEEKLY_SIMULATION_CONFIG.rebellionPressureHappinessThreshold - 1,
         },
       }),
       pressurePlan,
@@ -385,7 +382,7 @@ describe('weekly simulation actions', () => {
       createTestSave({
         ludus: {
           ...createTestSave().ludus,
-          happiness: GAME_BALANCE.macroSimulation.rebellionPressureHappinessThreshold,
+          happiness: WEEKLY_SIMULATION_CONFIG.rebellionPressureHappinessThreshold,
         },
       }),
       pressurePlan,
@@ -393,10 +390,10 @@ describe('weekly simulation actions', () => {
     );
 
     expect(unhappyResult.summary.rebellionDelta).toBe(
-      GAME_BALANCE.macroSimulation.rebellionPressureDailyIncrease,
+      WEEKLY_SIMULATION_CONFIG.rebellionPressureDailyIncrease,
     );
     expect(stableResult.summary.rebellionDelta).toBe(
-      -GAME_BALANCE.macroSimulation.rebellionCalmDailyReduction,
+      -WEEKLY_SIMULATION_CONFIG.rebellionCalmDailyReduction,
     );
   });
 
@@ -570,7 +567,7 @@ describe('weekly simulation actions', () => {
     const save = createTestSave({
       ludus: {
         ...createTestSave().ludus,
-        treasury: GAME_BALANCE.macroSimulation.gameOverTreasuryThreshold,
+        treasury: WEEKLY_SIMULATION_CONFIG.gameOverTreasuryThreshold,
       },
     });
 

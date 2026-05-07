@@ -1,5 +1,4 @@
-import { PROGRESSION_CONFIG } from '../../game-data/progression';
-import { DAYS_OF_WEEK } from '../../game-data/time';
+import { DAYS_OF_WEEK, GAME_TIME_CONFIG } from '../../game-data/time';
 import { getGladiatorLevel } from '../gladiators/progression';
 import type { Gladiator } from '../gladiators/types';
 import type { GameSave } from '../saves/types';
@@ -23,7 +22,7 @@ export function getGameDateFromSave(save: GameSave): GameDate {
 }
 
 function getAbsoluteDay(date: GameDate) {
-  const weekIndex = (date.year - 1) * PROGRESSION_CONFIG.weeksPerYear + (date.week - 1);
+  const weekIndex = (date.year - 1) * GAME_TIME_CONFIG.weeksPerYear + (date.week - 1);
   const dayIndex = DAYS_OF_WEEK.indexOf(date.dayOfWeek);
 
   return weekIndex * DAYS_OF_WEEK.length + dayIndex;

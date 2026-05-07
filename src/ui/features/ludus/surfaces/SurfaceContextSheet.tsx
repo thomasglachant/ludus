@@ -1,9 +1,9 @@
 import type { GameSave, Gladiator } from '@/domain/types';
 import { useUiStore } from '@/state/ui-store-context';
-import { GladiatorAttributes } from '@/ui/features/gladiators/GladiatorAttributes';
 import { GladiatorExperienceBar } from '@/ui/features/gladiators/GladiatorExperienceBar';
 import { GladiatorPortrait } from '@/ui/features/gladiators/GladiatorPortrait';
 import { GladiatorSkillBars } from '@/ui/features/gladiators/GladiatorSkillBars';
+import { GladiatorSkills } from '@/ui/features/gladiators/GladiatorSkills';
 import { GladiatorTraits } from '@/ui/features/gladiators/GladiatorTraits';
 import { GameIcon } from '@/ui/shared/icons/GameIcon';
 import { ActionBar } from '@/ui/shared/ludus/ActionBar';
@@ -21,7 +21,7 @@ function GladiatorContextSheet({ gladiator, save }: { gladiator: Gladiator; save
           <span>{t('gladiatorPanel.eyebrow')}</span>
           <h3>{gladiator.name}</h3>
           <GladiatorTraits gladiator={gladiator} save={save} variant="compact" />
-          <GladiatorAttributes gladiator={gladiator} />
+          <GladiatorSkills gladiator={gladiator} />
         </div>
       </div>
       <GladiatorSkillBars gladiator={gladiator} />

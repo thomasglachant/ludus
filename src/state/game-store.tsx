@@ -38,7 +38,7 @@ import {
 } from '../domain/planning/planning-actions';
 import { getActiveGameInterruption } from '../domain/game-flow/interruption';
 import { allocateGladiatorSkillPoint as allocateGladiatorSkillPointAction } from '../domain/gladiators/progression';
-import { pruneExpiredTraits } from '../domain/gladiator-traits/gladiator-trait-actions';
+import { pruneExpiredTraits } from '../domain/gladiators/trait-actions';
 import type { GladiatorSkillName } from '../domain/gladiators/skills';
 import type {
   BuildingId,
@@ -58,13 +58,14 @@ import { LocalSaveProvider } from '../persistence/local-save-provider';
 import { SaveService } from '../persistence/save-service';
 import { GameStoreContext, type GameStoreValue, type NewGameInput } from './game-store-context';
 import { useUiStore } from './ui-store-context';
-import { GAME_BALANCE } from '../game-data/balance';
+import { ARENA_RULES } from '../game-data/arena/rules';
+import { DEBUG_TIME_SCALE_OPTIONS, GAME_TIME_CONFIG } from '../game-data/time';
 
 const AUTO_SAVE_INTERVAL_MS = 30_000;
 const ALERT_REFRESH_INTERVAL_MS = 5_000;
 const GAME_CLOCK_INTERVAL_MS = 1_000;
-const GAME_CLOCK_START_MINUTES = GAME_BALANCE.time.dayStartHour * 60;
-const GAME_CLOCK_END_MINUTES = GAME_BALANCE.time.dayEndHour * 60;
+const GAME_CLOCK_START_MINUTES = GAME_TIME_CONFIG.dayStartHour * 60;
+const GAME_CLOCK_END_MINUTES = GAME_TIME_CONFIG.dayEndHour * 60;
 
 function createSaveService() {
   return new SaveService(
@@ -377,9 +378,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     }
 
     setDebugTimeScaleState(
-      GAME_BALANCE.debug.timeScaleOptions.includes(
-        multiplier as (typeof GAME_BALANCE.debug.timeScaleOptions)[number],
-      )
+      DEBUG_TIME_SCALE_OPTIONS.includes(multiplier as (typeof DEBUG_TIME_SCALE_OPTIONS)[number])
         ? multiplier
         : 1,
     );
@@ -513,7 +512,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       );
       setGameClockMinutes(0);
 
-      if (pendingTrigger === 'enterArena' && save.time.dayOfWeek === GAME_BALANCE.arena.dayOfWeek) {
+      if (pendingTrigger === 'enterArena' && save.time.dayOfWeek === ARENA_RULES.dayOfWeek) {
         closeAllModals();
         navigate('arena', { gameId: save.gameId });
       }
@@ -684,7 +683,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       }
 
       setGameClockMinutes((minutes) => {
-        const nextMinutes = minutes + GAME_BALANCE.time.minutesPerRealSecond * debugTimeScale;
+        const nextMinutes = minutes + GAME_TIME_CONFIG.minutesPerRealSecond * debugTimeScale;
 
         if (nextMinutes < GAME_CLOCK_END_MINUTES) {
           return nextMinutes;
@@ -707,7 +706,7 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
     if (
       currentSave.ludus.gameStatus !== 'lost' &&
       currentSave.events.pendingEvents.length === 0 &&
-      currentSave.time.dayOfWeek === GAME_BALANCE.arena.dayOfWeek &&
+      currentSave.time.dayOfWeek === ARENA_RULES.dayOfWeek &&
       currentSave.time.phase === 'arena' &&
       !currentSave.time.pendingActionTrigger &&
       !currentSave.arena.arenaDay

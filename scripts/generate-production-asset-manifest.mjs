@@ -13,7 +13,7 @@ const typescriptManifestPath = join(
   'generated',
   'asset-manifest.production.ts',
 );
-const buildingsPath = join(root, 'src', 'game-data', 'buildings.ts');
+const buildingsPath = join(root, 'src', 'domain', 'buildings', 'types.ts');
 const generatedAt = '2026-04-28T00:00:00.000Z';
 const checkOnly = process.argv.includes('--check');
 

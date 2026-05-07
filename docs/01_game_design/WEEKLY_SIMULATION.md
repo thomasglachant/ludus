@@ -74,7 +74,7 @@ It resolves:
 
 Gladiators carry permanent and temporary traits in `Gladiator.traits`. A trait without `expiresAt` is permanent and always active. A trait with `expiresAt` is temporary and stays active while `currentDate < expiresAt`.
 
-Permanent traits can modify training, combat, reward or injury-risk calculations without generating alerts. Temporary traits represent short-lived states. `injury` and `rest` set `activityEligibility` to `false`, remove the gladiator from effective daily planning capacity, block all gladiator activity effects, block Sunday arena eligibility and show an alert. If a gladiator is injured during training, that day grants no training XP for that gladiator and applies `injury` for 2 days. `victoryAura` is applied on the Monday after a Sunday arena win, lasts 3 days, increases training XP by 10% and does not show an alert.
+Permanent traits can modify training, combat, reward, injury-risk or effective-skill calculations without generating alerts. Temporary traits represent short-lived states applied by simulation and event outcomes; their definitions determine whether they affect activity eligibility, arena eligibility, alerts or temporary bonuses and penalties.
 
 Saved daily plans remain raw player intent. Daily simulation, projections, building activity contributions and activity-gated random events use an effective daily plan capped to the activity-eligible gladiator budget for that day. Over-budget points are ignored by the resolver instead of blocking week advancement. Planning activities declare an execution mode: proportional activities scale down with their effective points, while threshold activities require their effective allocation to reach the declared minimum before discrete effects can run.
 
@@ -146,7 +146,7 @@ The save keeps the most recent reports in `planning.reports`.
 
 ## Failure
 
-If treasury reaches `GAME_BALANCE.macroSimulation.gameOverTreasuryThreshold`, the save becomes:
+If treasury reaches `WEEKLY_SIMULATION_CONFIG.gameOverTreasuryThreshold`, the save becomes:
 
 ```ts
 ludus.gameStatus = 'lost';

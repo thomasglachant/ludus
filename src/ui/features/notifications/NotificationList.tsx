@@ -1,6 +1,6 @@
 import './notifications.css';
 import type { BuildingId, GameNotification, GameSave } from '@/domain/types';
-import { BUILDING_DEFINITIONS } from '@/game-data/buildings';
+import { BUILDING_DEFINITIONS } from '@/game-data/buildings/definitions';
 import { useUiStore } from '@/state/ui-store-context';
 import { BuildingAvatar } from '@/ui/features/buildings/BuildingAvatar';
 import { GameEmptyState } from '@/ui/shared/ludus/GameFeedback';

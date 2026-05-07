@@ -9,7 +9,7 @@ import {
   createDefaultWeeklyPlan,
   synchronizeEconomyProjection,
 } from '../../domain/weekly-simulation/weekly-simulation-actions';
-import { getGladiatorVisualIdentity } from '../gladiator-visuals';
+import { getGladiatorVisualIdentity } from '../gladiators/visuals';
 import type {
   BuildingId,
   BuildingState,

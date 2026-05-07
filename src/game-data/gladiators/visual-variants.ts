@@ -1,4 +1,4 @@
-import type { GladiatorClassId } from '../domain/gladiators/types';
+import type { GladiatorClassId } from '../../domain/gladiators/types';
 
 export const GLADIATOR_CLOTHING_STYLES = [
   'subligaculum',

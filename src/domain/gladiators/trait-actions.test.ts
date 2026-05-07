@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { Gladiator } from '../gladiators/types';
 import { createInitialSave } from '../saves/create-initial-save';
 import type { GameSave } from '../saves/types';
+import { getGladiatorEffectiveSkill } from './skills';
 import {
   addPermanentGladiatorTrait,
   applyGladiatorTrait,
@@ -9,8 +9,11 @@ import {
   canGladiatorFightInArena,
   canGladiatorPerformActivities,
   getActiveGladiatorTraits,
+  getGladiatorSkillBonus,
   getGladiatorTrainingExperienceMultiplier,
-} from './gladiator-trait-actions';
+} from './trait-actions';
+import type { TemporaryGladiatorTraitId } from './traits';
+import type { Gladiator } from './types';
 
 function createGladiator(overrides: Partial<Gladiator> = {}): Gladiator {
   return {
@@ -74,6 +77,20 @@ describe('gladiator trait actions', () => {
     ).toEqual([]);
   });
 
+  it('ignores permanent traits in the temporary trait application path', () => {
+    const save = createTestSave();
+    const result = applyGladiatorTraitAtDate(
+      save,
+      'disciplined' as TemporaryGladiatorTraitId,
+      2,
+      'gladiator-test',
+      { dayOfWeek: 'monday', week: 1, year: 1 },
+    );
+
+    expect(result).toBe(save);
+    expect(result.gladiators[0].traits).toEqual([]);
+  });
+
   it('combines training multipliers with global activity eligibility modifiers', () => {
     const save = applyGladiatorTraitAtDate(
       applyGladiatorTrait(createTestSave(), 'victoryAura', 3, 'gladiator-test'),
@@ -86,6 +103,16 @@ describe('gladiator trait actions', () => {
     expect(getGladiatorTrainingExperienceMultiplier(save, 'gladiator-test')).toBe(1.1);
     expect(canGladiatorPerformActivities(save, 'gladiator-test')).toBe(false);
     expect(canGladiatorFightInArena(save, 'gladiator-test')).toBe(false);
+  });
+
+  it('applies permanent trait skill bonuses to effective skills', () => {
+    const gladiator = createGladiator({
+      agility: 3,
+      traits: [{ traitId: 'limping' }, { traitId: 'fleetFooted' }],
+    });
+
+    expect(getGladiatorSkillBonus(gladiator, 'agility')).toBe(0);
+    expect(getGladiatorEffectiveSkill(gladiator, 'agility')).toBe(3);
   });
 
   it('uses rest as a temporary global activity blocker', () => {

@@ -1,5 +1,5 @@
-import type { BuildingActivityId, BuildingId } from '../domain/buildings/types';
-import type { DailyPlanActivity } from '../domain/planning/types';
+import type { BuildingActivityId, BuildingId } from '../../domain/buildings/types';
+import type { DailyPlanActivity } from '../../domain/planning/types';
 
 export interface BuildingActivityDefinition {
   id: BuildingActivityId;

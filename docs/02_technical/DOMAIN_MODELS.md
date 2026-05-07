@@ -82,7 +82,7 @@ export interface BuildingState {
 
 Buildings do not have a generic operational efficiency percentage. Their contribution comes from level, purchased improvements, selected policies and purchased skills.
 
-Gladiator roster capacity is derived by `src/domain/ludus/capacity.ts` from the Dormitory: one base place when the Dormitory is purchased, plus bought Dormitory `increaseCapacity` improvements, capped by `GAME_BALANCE.buildings.capacity.maximumGladiators`. Domus level is not part of this capacity calculation.
+Gladiator roster capacity is derived by `src/domain/ludus/capacity.ts` from the Dormitory: one base place when the Dormitory is purchased, plus bought Dormitory `increaseCapacity` improvements, capped by `LUDUS_CAPACITY_CONFIG.maximumGladiators`. Domus level is not part of this capacity calculation.
 
 ## Gladiators
 
@@ -126,30 +126,17 @@ export type GladiatorTraitModifier =
   | { type: 'combatEnergyBonus'; value: number }
   | { type: 'combatExperienceMultiplier'; value: number }
   | { type: 'injuryRiskMultiplier'; value: number }
-  | { type: 'arenaRewardMultiplier'; value: number };
+  | { type: 'arenaRewardMultiplier'; value: number }
+  | { type: 'skillBonus'; skill: GladiatorSkillName; value: number };
 ```
 
-Gladiator trait definitions live in `src/game-data/gladiator-traits.ts`. Runtime traits live directly in `Gladiator.traits`.
+Gladiator trait catalog declarations live in `src/game-data/gladiators/traits.ts`. `src/domain/gladiators/traits.ts` derives typed definitions from that catalog. Runtime traits live directly in `Gladiator.traits`.
 
 A trait without `expiresAt` is permanent. Permanent traits are part of the gladiator profile and never generate alerts. A trait with `expiresAt` is temporary and stays active while `currentDate < expiresAt`. Durations are exclusive by day: a temporary trait applied on Monday for 1 day expires at the start of Tuesday. Reapplying the same temporary trait to the same gladiator extends `expiresAt` to the later expiration date instead of stacking duplicates.
 
-Current native permanent trait modifiers:
+Trait definitions also declare generation and pricing metadata. See `docs/01_game_design/GAME_DATA.md` for the trait catalog policy and market pricing overview.
 
-- `disciplined`: training XP x1.05;
-- `lazy`: training XP x0.95;
-- `brave`: combat morale +5;
-- `cowardly`: combat morale -5;
-- `ambitious`: combat XP x1.05;
-- `fragile`: injury risk x1.15;
-- `crowdFavorite`: arena reward x1.05;
-- `rivalrous`: combat energy +4 and combat morale -3;
-- `stoic`: injury risk x0.90.
-
-Current temporary traits:
-
-- `injury`: activity eligibility false and shows an alert;
-- `rest`: activity eligibility false and shows an alert;
-- `victoryAura`: training XP x1.1 and does not show an alert.
+Each gladiator stores at most one runtime entry for a given `traitId`. Save normalization deduplicates legacy or malformed trait arrays and keeps the latest expiration when duplicated temporary traits are found.
 
 ```ts
 export interface BuildingSkillDefinition {

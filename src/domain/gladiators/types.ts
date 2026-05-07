@@ -1,4 +1,5 @@
 import type { GameDate } from '../time/types';
+import type { GladiatorTraitId } from './traits';
 
 export const GLADIATOR_CLASS_IDS = ['murmillo', 'retiarius', 'secutor'] as const;
 
@@ -48,17 +49,3 @@ export interface GladiatorTrait {
   traitId: GladiatorTraitId;
   expiresAt?: GameDate;
 }
-
-export type GladiatorTraitId =
-  | 'disciplined'
-  | 'lazy'
-  | 'brave'
-  | 'cowardly'
-  | 'ambitious'
-  | 'fragile'
-  | 'crowdFavorite'
-  | 'rivalrous'
-  | 'stoic'
-  | 'injury'
-  | 'rest'
-  | 'victoryAura';
